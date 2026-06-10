@@ -1,6 +1,6 @@
 // Le héros : son état (position, direction...), sa mise à jour, son dessin.
 
-import { dessinerCase } from "../core/sprites.js";
+import { dessinerCase, TAILLE_CASE } from "../core/sprites.js";
 
 // Lignes de la planche images/heros/nain.png
 const LIGNE = { bas: 0, gauche: 1, droite: 2, haut: 3 };
@@ -9,9 +9,9 @@ const IMAGES_PAR_SECONDE = 8; // vitesse de l'animation de marche
 
 export function creerHeros() {
   return {
-    x: 144,            // position en pixels (coin haut-gauche du sprite)
-    y: 74,
-    vitesse: 80,       // pixels par seconde
+    x: 288,            // position en pixels (coin haut-gauche du sprite)
+    y: 148,
+    vitesse: 160,      // pixels par seconde
     direction: "bas",
     enMarche: false,
     tempsAnimation: 0,
@@ -45,8 +45,8 @@ export function mettreAJourHeros(heros, clavier, dt, limites) {
   }
 
   // On reste à l'intérieur de la zone
-  heros.x = Math.max(limites.gauche, Math.min(limites.droite - 32, heros.x));
-  heros.y = Math.max(limites.haut, Math.min(limites.bas - 32, heros.y));
+  heros.x = Math.max(limites.gauche, Math.min(limites.droite - TAILLE_CASE, heros.x));
+  heros.y = Math.max(limites.haut, Math.min(limites.bas - TAILLE_CASE, heros.y));
 }
 
 export function dessinerHeros(ctx, heros) {

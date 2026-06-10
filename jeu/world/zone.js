@@ -2,14 +2,14 @@
 // Pour l'instant : un sol de pierre et des murs, dessinés par programme.
 // Plus tard, ce dossier accueillera les vraies zones de la ville.
 
-const TUILE = 16;
+const TUILE = 32;
 
 // L'intérieur jouable (les murs font une tuile d'épaisseur)
 export const limites = {
   gauche: TUILE,
   haut: TUILE,
-  droite: 320 - TUILE,
-  bas: 180 - TUILE,
+  droite: 640 - TUILE,
+  bas: 360 - TUILE,
 };
 
 export function dessinerZone(ctx) {

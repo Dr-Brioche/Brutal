@@ -16,8 +16,8 @@ import {
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
 
-// Rendu pixel art : on agrandit l'écran interne 320x180 d'un facteur ENTIER
-// (x2, x3, x4...) pour remplir la fenêtre sans jamais flouter les pixels.
+// Rendu pixel art : on agrandit l'écran interne 640x360 d'un facteur ENTIER
+// (x2, x3...) pour remplir la fenêtre sans jamais flouter les pixels.
 function ajusterEchelle() {
   const echelle = Math.max(
     1,

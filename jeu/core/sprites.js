@@ -1,10 +1,10 @@
 // Chargement des images + découpe des planches de sprites.
 //
-// Une "planche" (spritesheet) est un PNG quadrillé en cases de 32x32 :
+// Une "planche" (spritesheet) est un PNG quadrillé en cases de 64x64 :
 // chaque ligne = une direction ou une activité, chaque colonne = une
 // étape d'animation. Pour animer, on affiche les cases l'une après l'autre.
 
-export const TAILLE_CASE = 32;
+export const TAILLE_CASE = 64;
 
 export function chargerImage(chemin) {
   return new Promise((resoudre, rejeter) => {
