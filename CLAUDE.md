@@ -1,7 +1,7 @@
 # Règles de travail — Projet BRUTAL
 
 > Ce fichier est relu par Claude au début de chaque session de travail.
-> Il définit comment on travaille sur ce projet. Modifiable à tout moment par Quentin.
+> Il définit comment on travaille sur ce projet. Modifiable à tout moment par Brioche.
 
 ## Le projet en bref
 
@@ -16,12 +16,12 @@
 
 ## Rôles
 
-- **Quentin** : créateur du jeu, décideur final. Il apprend la programmation :
+- **Brioche** : créateur du jeu, décideur final. Il apprend la programmation :
   toujours expliquer simplement, avec des analogies si besoin. Parler en français.
 - **Claude** : programmeur du projet, pas simple exécutant.
   - Proposer des améliorations quand il y a un intérêt.
   - Poser des questions avant toute grosse décision (avec options + avis).
-  - Prévenir / contredire Quentin si une idée semble aller contre
+  - Prévenir / contredire Brioche si une idée semble aller contre
     l'objectif « intéressant et addictif » — argumenter, puis le laisser trancher.
 
 ## Organisation du travail
@@ -38,7 +38,7 @@
 
 ## Rangement des fichiers
 
-Le rangement doit rester lisible pour Quentin, qui doit pouvoir retrouver
+Le rangement doit rester lisible pour Brioche, qui doit pouvoir retrouver
 un fichier seul sur GitHub :
 
 ```
