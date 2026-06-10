@@ -15,7 +15,8 @@ import {
   changerArme, changerArmure,
 } from "./systems/equipement.js";
 import { installerMenu } from "./ui/menu.js";
-import { afficherMessage } from "./ui/effets.js";
+import { afficherMessage, flashCombat } from "./ui/effets.js";
+import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
@@ -121,19 +122,30 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Les points d'intérêt : un message quand on arrive dessus (une seule fois
   // par passage, pas en boucle tant qu'on reste sur la tuile)
   let surPointInteret = false;
-  function verifierPointsInteret() {
-    const { caractere } = tuileSousLesPieds(carte, heros);
-    if (caractere === "M" && !surPointInteret) {
+  function verifierPointsInteret(tuile) {
+    if (tuile.caractere === "M" && !surPointInteret) {
       afficherMessage("⛏ The Depths — mining zone (coming soon)");
     }
-    surPointInteret = caractere === "M";
+    surPointInteret = tuile.caractere === "M";
+  }
+
+  // Les rencontres : sur les tuiles sauvages, un monstre peut surgir.
+  // Pour l'instant : flash + message. Plus tard : l'écran de combat.
+  const rencontres = creerRencontres();
+  async function declencherRencontre() {
+    enPause = true;                 // le monde se fige pendant le flash
+    await flashCombat();
+    afficherMessage("⚔ A creature lunges from the dark! (battle coming soon)");
+    enPause = false;
   }
 
   lancerBoucle({
     mettreAJour(dt) {
       if (enPause) return;          // jeu figé tant que le menu est ouvert
       mettreAJourHeros(heros, clavier, dt, carte);
-      verifierPointsInteret();
+      const tuile = tuileSousLesPieds(carte, heros);
+      verifierPointsInteret(tuile);
+      if (avancerRencontres(rencontres, tuile)) declencherRencontre();
       mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
     },
     dessiner() {

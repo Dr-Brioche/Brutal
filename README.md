@@ -30,6 +30,10 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
   sans serveur.
 - ✅ **Écran de démarrage** : au lancement, choix entre **New Game** et la
   reprise d'une sauvegarde (sauté s'il n'existe encore aucune sauvegarde).
+- ✅ **Zone de test explorable** : caméra qui suit le nain, vrais murs
+  (collisions), quartier de ville + zone sauvage, entrée de mine.
+- ✅ **Rencontres aléatoires** (prototype) : sur le sol sauvage, un monstre
+  peut surgir — flash d'écran façon FF9. Le vrai combat viendra ensuite.
 - ⏭️ Prochaine étape : le premier pilier jouable, le **combat** 🃏
 
 ## Comment voir le jeu ?
@@ -47,12 +51,12 @@ mini-serveur local pour ça. On teste en ligne, c'est notre méthode de toute fa
 |---------------------|---------------------------------------------------------|
 | `index.html`        | La porte d'entrée : écran de titre + lancement du jeu.  |
 | `jeu/principal.js`  | Le chef d'orchestre : assemble les briques du jeu.      |
-| `jeu/core/`         | Le moteur : boucle de jeu, clavier, planches de sprites.|
-| `jeu/data/`         | Le contenu : bibliothèques d'armes, de sets d'armure…   |
-| `jeu/systems/`      | Les mécaniques : équipement, sauvegarde (combat… plus tard). |
-| `jeu/ui/`           | L'interface : le menu pause (dialogues, HUD… plus tard).|
+| `jeu/core/`         | Le moteur : boucle de jeu, clavier, sprites, caméra.    |
+| `jeu/data/`         | Le contenu : armes, sets d'armure, plans des zones…     |
+| `jeu/systems/`      | Les mécaniques : équipement, sauvegarde, rencontres.    |
+| `jeu/ui/`           | L'interface : menus, écran de démarrage, effets.        |
 | `jeu/entities/`     | Les personnages : le héros (PNJ et ennemis plus tard).  |
-| `jeu/world/`        | Les lieux : la zone de test (la ville Brütàl plus tard).|
+| `jeu/world/`        | Les lieux : le moteur de carte (collisions, dessin).    |
 | `images/`           | Les visuels : planches de sprites 64×64.                |
 | `outils/`           | Les outils de chantier (génération des sprites provisoires). |
 | `docs/concept.md`   | Le concept complet du jeu — la « bible » du projet.     |

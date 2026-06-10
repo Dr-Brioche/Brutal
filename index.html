@@ -218,6 +218,26 @@
       margin-top: 2.4rem;
     }
 
+    /* ---- Le flash de combat (façon FF9) ---- */
+    .flash {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 18;
+    }
+    .flash.actif { animation: clignote 0.7s steps(1, end); }
+
+    @keyframes clignote {
+      0%   { opacity: 0.95; }
+      14%  { opacity: 0; }
+      28%  { opacity: 0.95; }
+      42%  { opacity: 0; }
+      56%  { opacity: 0.85; }
+      100% { opacity: 0; }
+    }
+
     /* ---- Les messages furtifs (points d'intérêt, infos de zone) ---- */
     .message-zone {
       position: fixed;
@@ -252,6 +272,9 @@
     <div id="hud-armure"></div>
   </div>
 
+  <!-- Le flash de combat -->
+  <div class="flash" id="flash"></div>
+
   <!-- Les messages furtifs (points d'intérêt…) -->
   <div class="message-zone" id="message-zone"></div>
 
@@ -280,7 +303,7 @@
 
     <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; R / E: swap gear &nbsp;·&nbsp; Esc: menu</p>
 
-    <footer class="pied">v0.7 — choose your path</footer>
+    <footer class="pied">v0.8 — something stirs in the dark</footer>
   </main>
 
   <script type="module">
