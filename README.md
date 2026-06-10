@@ -32,9 +32,14 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
   reprise d'une sauvegarde (sauté s'il n'existe encore aucune sauvegarde).
 - ✅ **Zone de test explorable** : caméra qui suit le nain, vrais murs
   (collisions), quartier de ville + zone sauvage, entrée de mine.
-- ✅ **Rencontres aléatoires** (prototype) : sur le sol sauvage, un monstre
-  peut surgir — flash d'écran façon FF9. Le vrai combat viendra ensuite.
-- ⏭️ Prochaine étape : le premier pilier jouable, le **combat** 🃏
+- ✅ **Rencontres aléatoires** : sur le sol sauvage, un monstre surgit —
+  flash d'écran façon FF9 — et bascule sur le combat.
+- ✅ **Combat, premier jet jouable** 🃏 : écran dédié (nain de profil à gauche,
+  ennemi à droite), **cartes** à jouer, **Chaleur de Forge** comme énergie,
+  défense **Pierre** qui persiste, intention de l'ennemi affichée, victoire /
+  défaite. Chaque arme apporte **sa carte** (hache, marteau, pioche).
+- ⏭️ Prochaine étape : **enrichir le combat** (butin, plus d'ennemis, sons &
+  animations), puis le pilier **Forge** ⚒️
 
 ## Comment voir le jeu ?
 

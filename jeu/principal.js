@@ -17,6 +17,8 @@ import {
 import { installerMenu } from "./ui/menu.js";
 import { afficherMessage, flashCombat } from "./ui/effets.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
+import { demarrerCombat } from "./ui/combat.js";
+import { ennemiParId } from "./data/ennemis.js";
 
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
@@ -129,18 +131,38 @@ export async function demarrerJeu(donneesInitiales = null) {
     surPointInteret = tuile.caractere === "M";
   }
 
-  // Les rencontres : sur les tuiles sauvages, un monstre peut surgir.
-  // Pour l'instant : flash + message. Plus tard : l'écran de combat.
+  // Les rencontres : sur les tuiles sauvages, un monstre invisible surgit.
+  // Flash façon FF9, puis bascule sur l'écran de combat.
+  const hud = document.getElementById("hud");
   const rencontres = creerRencontres();
+  let combatEnCours = null;        // non-null = on est en combat
+
   async function declencherRencontre() {
     enPause = true;                 // le monde se fige pendant le flash
     await flashCombat();
-    afficherMessage("⚔ A creature lunges from the dark! (battle coming soon)");
-    enPause = false;
+    hud.hidden = true;              // on dégage le HUD d'exploration
+    combatEnCours = demarrerCombat({
+      ctx,
+      heros,
+      equipement,
+      ennemi: ennemiParId("gobelin"),
+      surFin: (resultat) => {
+        combatEnCours = null;
+        hud.hidden = false;
+        enPause = false;
+        afficherMessage(
+          resultat === "victoire"
+            ? "⚔ The creature falls. The dark grows quiet."
+            : "💀 You were overwhelmed... and crawl back to safety."
+        );
+      },
+    });
   }
 
   lancerBoucle({
     mettreAJour(dt) {
+      // Pendant un combat, c'est lui qui pilote tout (le monde est figé)
+      if (combatEnCours) { combatEnCours.mettreAJour(dt); return; }
       if (enPause) return;          // jeu figé tant que le menu est ouvert
       mettreAJourHeros(heros, clavier, dt, carte);
       const tuile = tuileSousLesPieds(carte, heros);
@@ -149,6 +171,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
     },
     dessiner() {
+      if (combatEnCours) { combatEnCours.dessiner(); return; } // la scène de combat
       ctx.fillStyle = "#0b0a08";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.save();

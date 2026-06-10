@@ -11,17 +11,20 @@ export const ARMES = [
     nom: "Rusty Axe",            // les noms d'objets sont en anglais (langue du jeu)
     degats: 5,
     planche: "images/armes/hache.png",
+    cartes: ["coup-de-hache"],   // carte injectée dans le deck quand on l'équipe
   },
   {
     id: "marteau-de-forge",
     nom: "Forge Hammer",
     degats: 4,
     planche: "images/armes/marteau.png",
+    cartes: ["ecrasement"],
   },
   {
     id: "pioche-de-mineur",
     nom: "Miner's Pick",
     degats: 3,
     planche: "images/armes/pioche.png",
+    cartes: ["coup-de-pioche"],
   },
 ];

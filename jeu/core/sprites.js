@@ -17,11 +17,18 @@ export function chargerImage(chemin) {
 
 // Dessine UNE case de la planche aux coordonnées (x, y) de l'écran.
 export function dessinerCase(ctx, planche, colonne, ligne, x, y) {
+  dessinerCaseEchelle(ctx, planche, colonne, ligne, x, y, 1);
+}
+
+// Comme dessinerCase, mais AGRANDIE d'un facteur (ex. ×3 en combat).
+// N'agrandir que par un nombre ENTIER : les pixels restent nets, jamais flous.
+export function dessinerCaseEchelle(ctx, planche, colonne, ligne, x, y, echelle) {
+  const taille = TAILLE_CASE * echelle;
   ctx.drawImage(
     planche,
     colonne * TAILLE_CASE, ligne * TAILLE_CASE,   // où découper dans la planche
     TAILLE_CASE, TAILLE_CASE,
     Math.round(x), Math.round(y),                 // où poser à l'écran
-    TAILLE_CASE, TAILLE_CASE
+    taille, taille
   );
 }
