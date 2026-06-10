@@ -44,6 +44,10 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   découpé en **zones/écrans** chargés quand on passe d'une zone à l'autre.
 - **La ville Brütàl** se parcourt à pied ; les bâtiments des factions sont
   les **entrées** vers les écrans d'activité.
+- **PNJ de ville** : personnages d'ambiance (1er jet : un *fanatique* qui
+  arpente la place et interpelle le héros à l'approche). À terme : **dialogues**
+  et donneurs de quêtes. Format sprite : à l'échelle de la carte (repos +
+  marche gauche/droite), découpé par un outil dans `outils/`.
 - **L'extérieur** : carte(s) d'exploration à décor de **montagne profonde
   (style Moria)**, avec des **zones d'intérêt** posées dessus.
 - **La « Profondeur »** : zone de minage **générée +/- aléatoirement**

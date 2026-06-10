@@ -38,6 +38,10 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
   ennemi à droite), **cartes** à jouer, **Chaleur de Forge** comme énergie,
   défense **Pierre** qui persiste, intention de l'ennemi affichée, victoire /
   défaite. Chaque arme apporte **sa carte** (hache, marteau, pioche).
+- ✅ **Premiers vrais sprites** : le **gobelin** de combat est désormais animé
+  (idle / attaque / coup reçu) ; un **PNJ « fanatique »** arpente la ville et
+  t'interpelle quand tu l'approches. Les planches sont découpées par les outils
+  de `outils/` (fond détouré, frames rangées) — méthode rejouable.
 - ⏭️ Prochaine étape : **enrichir le combat** (butin, plus d'ennemis, sons &
   animations), puis le pilier **Forge** ⚒️
 

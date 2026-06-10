@@ -19,6 +19,8 @@ import { afficherMessage, flashCombat } from "./ui/effets.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { demarrerCombat } from "./ui/combat.js";
 import { ennemiParId, ENNEMIS } from "./data/ennemis.js";
+import { FANATIQUE } from "./data/pnj.js";
+import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
 
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
@@ -52,7 +54,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   ctx.imageSmoothingEnabled = false; // jamais de lissage : pixels nets
 
   // On charge toutes les planches des bibliothèques, rangées par chemin
-  const chemins = [...ARMES, ...ARMURES, ...ENNEMIS].map((objet) => objet.planche);
+  const chemins = [...ARMES, ...ARMURES, ...ENNEMIS, FANATIQUE].map((objet) => objet.planche);
   const images = await Promise.all(chemins.map(chargerImage));
   const planches = new Map(chemins.map((chemin, i) => [chemin, images[i]]));
 
@@ -64,6 +66,18 @@ export async function demarrerJeu(donneesInitiales = null) {
   const equipement = creerEquipement();
   appliquerEquipement(heros, equipement, planches);
   majHud(equipement);
+
+  // Un PNJ d'ambiance : un fanatique qui arpente la ville (rangée 7).
+  // Bornes et position calées sur la grille de tuiles (32 px).
+  const fanatique = creerPnj({
+    modele: FANATIQUE,
+    planche: planches.get(FANATIQUE.planche),
+    x: 8 * 32 - 11,
+    y: 7 * 32 - 56,
+    xMin: 4 * 32 - 11,
+    xMax: 15 * 32 - 11,
+    message: "Repent, dwarf — the Deep stirs, and it knows your name.",
+  });
 
   let enPause = false;
 
@@ -169,6 +183,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       const tuile = tuileSousLesPieds(carte, heros);
       verifierPointsInteret(tuile);
       if (avancerRencontres(rencontres, tuile)) declencherRencontre();
+      mettreAJourPnj(fanatique, dt, heros);
       mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
     },
     dessiner() {
@@ -179,7 +194,14 @@ export async function demarrerJeu(donneesInitiales = null) {
       // Tout est dessiné dans le repère du monde, décalé par la caméra
       ctx.translate(-Math.round(camera.x), -Math.round(camera.y));
       dessinerCarte(ctx, carte, camera, canvas.width, canvas.height);
-      dessinerHeros(ctx, heros);
+      // Profondeur : celui dont les pieds sont les plus « hauts » passe derrière
+      if (piedsPnj(fanatique) <= heros.y + 54) {
+        dessinerPnj(ctx, fanatique);
+        dessinerHeros(ctx, heros);
+      } else {
+        dessinerHeros(ctx, heros);
+        dessinerPnj(ctx, fanatique);
+      }
       ctx.restore();
     },
   });
