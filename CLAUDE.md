@@ -31,6 +31,9 @@
 ## Organisation du travail
 
 - **Une amélioration = une tâche = un commit.** Ne jamais tout mélanger en un bloc.
+- **`docs/concept.md` est la référence du design.** À chaque modification de
+  gameplay, analyser ce document et le mettre à jour en conséquence :
+  c'est lui qui survit si la conversation est effacée.
 - Chaque commit est étiqueté par type, au choix parmi :
   - `[gameplay]` — règles du jeu, mécaniques, contenu
   - `[visuel]` — graphismes, animations, effets

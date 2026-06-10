@@ -38,6 +38,27 @@ Trois factions = trois domaines = trois gameplay :
 
 Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of the Vault**.
 
+## Monde & déplacement (validé le 10/06/2026)
+
+- **À pied, caméra qui suit le héros** (style Pokémon Bleu). Le monde est
+  découpé en **zones/écrans** chargés quand on passe d'une zone à l'autre.
+- **La ville Brütàl** se parcourt à pied ; les bâtiments des factions sont
+  les **entrées** vers les écrans d'activité.
+- **L'extérieur** : carte(s) d'exploration à décor de **montagne profonde
+  (style Moria)**, avec des **zones d'intérêt** posées dessus.
+- **La « Profondeur »** : zone de minage **générée +/- aléatoirement**
+  (procédurale — aléatoire encadré par des règles, pas du pur hasard).
+- **Monstres invisibles sur la carte** : pas de sprite d'ennemi en exploration.
+  Dans les zones d'exploration, **chance de rencontre aléatoire** →
+  **flash d'écran façon FF9** → bascule sur l'écran de combat.
+  Un ennemi n'a donc qu'un **skin de combat**.
+- **Taux de rencontre = variable d'équilibrage clé** : ville 0 %, taux qui
+  monte avec la profondeur, période de grâce après un combat ; plus tard,
+  objets/talents pour le réduire (nourrit la progression).
+- **Les 3 piliers (combat, forge, marché) = écrans dédiés plein écran.**
+  La carte sert à circuler, explorer et déclencher — l'activité prend tout
+  l'écran.
+
 ## Les piliers de gameplay
 
 1. **Collecte** de ressources (minage : minerais, pierres précieuses…).
@@ -98,9 +119,12 @@ réinvestir » est ce qui accroche le joueur sur la durée.
 On construit un socle + **UN** pilier complet et fun à la fois, on teste, on valide
 que c'est addictif, **puis** on empile le suivant.
 
-0. **Socle commun** : héros 64×64 qui se déplace dans un bout de Brütàl
-   + système d'équipement (avec skins) + sauvegarde / chargement.
-1. **Combat** (deck-builder) — *en premier*, car il définit ce que font les cartes,
+0. **Socle commun** *(fait)* : héros 64×64 qui se déplace + équipement avec
+   skins + sauvegarde (3 emplacements, menu Échap, écran de démarrage).
+0bis. **Monde / exploration** *(en cours)* : zone de test explorable (caméra
+   qui suit, collisions, point d'intérêt, rencontres-flash), puis transitions
+   entre zones, décor montagne, et zone de minage procédurale.
+1. **Combat** (deck-builder) — *ensuite*, car il définit ce que font les cartes,
    donc les items, donc le craft.
 2. **Craft / Forge** — second.
 3. **Économie / bourse** — en dernier.
