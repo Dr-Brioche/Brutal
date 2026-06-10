@@ -22,8 +22,10 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
 - ✅ Le **concept est posé** (voir ci-dessus).
 - ✅ **Socle, premier morceau** : le nain (placeholder) se déplace dans une zone
   de test — clavier ZQSD / WASD / flèches.
-- ⏭️ Prochaine étape : la suite du socle (équipement + skins, sauvegarde),
-  puis le premier pilier jouable, le **combat**.
+- ✅ **Équipement + skins** : bibliothèques d'armes et de sets d'armure
+  (stats + sprites), visibles sur le nain — touches R (arme) et E (armure).
+- ⏭️ Prochaine étape : la sauvegarde locale, puis le premier pilier jouable,
+  le **combat**.
 
 ## Comment voir le jeu ?
 
@@ -41,9 +43,12 @@ mini-serveur local pour ça. On teste en ligne, c'est notre méthode de toute fa
 | `index.html`        | La porte d'entrée : écran de titre + lancement du jeu.  |
 | `jeu/principal.js`  | Le chef d'orchestre : assemble les briques du jeu.      |
 | `jeu/core/`         | Le moteur : boucle de jeu, clavier, planches de sprites.|
+| `jeu/data/`         | Le contenu : bibliothèques d'armes, de sets d'armure…   |
+| `jeu/systems/`      | Les mécaniques : équipement (combat, forge… plus tard). |
 | `jeu/entities/`     | Les personnages : le héros (PNJ et ennemis plus tard).  |
 | `jeu/world/`        | Les lieux : la zone de test (la ville Brütàl plus tard).|
 | `images/`           | Les visuels : planches de sprites 32×32.                |
+| `outils/`           | Les outils de chantier (génération des sprites provisoires). |
 | `docs/concept.md`   | Le concept complet du jeu — la « bible » du projet.     |
 | `CLAUDE.md`         | Les règles de travail entre Brioche et Claude.          |
 | `README.md`         | Ce fichier : la « notice » du projet.                   |

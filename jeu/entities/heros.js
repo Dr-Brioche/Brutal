@@ -7,7 +7,7 @@ const LIGNE = { bas: 0, gauche: 1, droite: 2, haut: 3 };
 
 const IMAGES_PAR_SECONDE = 8; // vitesse de l'animation de marche
 
-export function creerHeros(planche) {
+export function creerHeros() {
   return {
     x: 144,            // position en pixels (coin haut-gauche du sprite)
     y: 74,
@@ -15,7 +15,8 @@ export function creerHeros(planche) {
     direction: "bas",
     enMarche: false,
     tempsAnimation: 0,
-    planche,
+    plancheArmure: null, // le corps du nain : changé par le set d'armure porté
+    plancheArme: null,   // l'arme tenue : dessinée par-dessus
   };
 }
 
@@ -52,5 +53,11 @@ export function dessinerHeros(ctx, heros) {
   const pose = heros.enMarche
     ? Math.floor(heros.tempsAnimation * IMAGES_PAR_SECONDE) % 4
     : 0;
-  dessinerCase(ctx, heros.planche, pose, LIGNE[heros.direction], heros.x, heros.y);
+  const ligne = LIGNE[heros.direction];
+  // Le corps d'abord (la planche du set d'armure), l'arme par-dessus :
+  // les deux planches partagent la même grille, elles se superposent pile.
+  dessinerCase(ctx, heros.plancheArmure, pose, ligne, heros.x, heros.y);
+  if (heros.plancheArme) {
+    dessinerCase(ctx, heros.plancheArme, pose, ligne, heros.x, heros.y);
+  }
 }

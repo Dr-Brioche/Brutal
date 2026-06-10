@@ -49,6 +49,7 @@ Brutal/
 ├── jeu/            ← le code, découpé par rôle
 ├── images/         ← tous les visuels
 ├── sons/           ← bruitages et musiques
+├── outils/         ← scripts de chantier (ex. génération des sprites provisoires)
 └── docs/           ← concept, idées, notes de conception
 ```
 

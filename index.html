@@ -108,11 +108,33 @@
       color: #4b5563;
       letter-spacing: 0.1em;
     }
+
+    /* ---- Le HUD : l'équipement porté, en bas à gauche ---- */
+    .hud {
+      position: fixed;
+      left: 12px;
+      bottom: 12px;
+      padding: 8px 12px;
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre;
+      color: #e5e7eb;
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid #374151;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
   <!-- L'écran du jeu : 320x180 pixels internes, agrandi sans flou -->
   <canvas id="jeu" width="320" height="180" hidden></canvas>
+
+  <!-- Le HUD : interface en HTML par-dessus le canvas -->
+  <div class="hud" id="hud" hidden>
+    <div id="hud-arme"></div>
+    <div id="hud-armure"></div>
+  </div>
 
   <!-- L'écran de titre -->
   <main class="ecran-titre" id="ecran-titre">
@@ -120,9 +142,9 @@
     <p class="sous-titre">Deep under the mountain</p>
 
     <button class="bouton" id="bouton-jouer">Play</button>
-    <p class="aide">Move with WASD / ZQSD or arrow keys</p>
+    <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; R: swap weapon &nbsp;·&nbsp; E: swap armor</p>
 
-    <footer class="pied">v0.2 — first steps</footer>
+    <footer class="pied">v0.3 — gear up</footer>
   </main>
 
   <script type="module">
@@ -130,12 +152,14 @@
 
     const ecranTitre = document.getElementById("ecran-titre");
     const canvas = document.getElementById("jeu");
+    const hud = document.getElementById("hud");
 
     document.getElementById("bouton-jouer").addEventListener(
       "click",
       () => {
         ecranTitre.hidden = true;
         canvas.hidden = false;
+        hud.hidden = false;
         demarrerJeu();
       },
       { once: true } // un seul démarrage
