@@ -1,6 +1,7 @@
 // Le héros : son état (position, direction...), sa mise à jour, son dessin.
 
-import { dessinerCase, TAILLE_CASE } from "../core/sprites.js";
+import { dessinerCase } from "../core/sprites.js";
+import { piedsLibres } from "../world/carte.js";
 
 // Lignes de la planche images/heros/nain.png
 const LIGNE = { bas: 0, gauche: 1, droite: 2, haut: 3 };
@@ -9,8 +10,8 @@ const IMAGES_PAR_SECONDE = 8; // vitesse de l'animation de marche
 
 export function creerHeros() {
   return {
-    x: 288,            // position en pixels (coin haut-gauche du sprite)
-    y: 148,
+    x: 0,              // position en pixels (placée par la carte au démarrage)
+    y: 0,
     vitesse: 160,      // pixels par seconde
     direction: "bas",
     enMarche: false,
@@ -20,7 +21,7 @@ export function creerHeros() {
   };
 }
 
-export function mettreAJourHeros(heros, clavier, dt, limites) {
+export function mettreAJourHeros(heros, clavier, dt, carte) {
   // -1, 0 ou +1 sur chaque axe selon les touches enfoncées
   const dx = (clavier.droite() ? 1 : 0) - (clavier.gauche() ? 1 : 0);
   const dy = (clavier.bas() ? 1 : 0) - (clavier.haut() ? 1 : 0);
@@ -30,8 +31,13 @@ export function mettreAJourHeros(heros, clavier, dt, limites) {
   if (heros.enMarche) {
     // En diagonale on normalise, sinon le héros irait plus vite (Pythagore !)
     const longueur = Math.hypot(dx, dy);
-    heros.x += (dx / longueur) * heros.vitesse * dt;
-    heros.y += (dy / longueur) * heros.vitesse * dt;
+    const pasX = (dx / longueur) * heros.vitesse * dt;
+    const pasY = (dy / longueur) * heros.vitesse * dt;
+
+    // Chaque axe est testé séparément contre les murs : si un seul des
+    // deux est bloqué, on glisse le long du mur au lieu de rester planté.
+    if (piedsLibres(carte, heros.x + pasX, heros.y)) heros.x += pasX;
+    if (piedsLibres(carte, heros.x, heros.y + pasY)) heros.y += pasY;
 
     // La direction du regard suit le déplacement (l'axe horizontal gagne)
     if (dy > 0) heros.direction = "bas";
@@ -43,10 +49,6 @@ export function mettreAJourHeros(heros, clavier, dt, limites) {
   } else {
     heros.tempsAnimation = 0; // à l'arrêt : retour à la pose immobile
   }
-
-  // On reste à l'intérieur de la zone
-  heros.x = Math.max(limites.gauche, Math.min(limites.droite - TAILLE_CASE, heros.x));
-  heros.y = Math.max(limites.haut, Math.min(limites.bas - TAILLE_CASE, heros.y));
 }
 
 export function dessinerHeros(ctx, heros) {

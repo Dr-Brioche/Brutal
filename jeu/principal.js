@@ -3,8 +3,10 @@
 import { lancerBoucle } from "./core/boucle.js";
 import { clavier } from "./core/clavier.js";
 import { chargerImage } from "./core/sprites.js";
+import { creerCamera, mettreAJourCamera } from "./core/camera.js";
 import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js";
-import { dessinerZone, limites } from "./world/zone.js";
+import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds } from "./world/carte.js";
+import { ZONE_TEST } from "./data/zones.js";
 import { ARMES } from "./data/armes.js";
 import { ARMURES } from "./data/armures.js";
 import {
@@ -13,6 +15,7 @@ import {
   changerArme, changerArmure,
 } from "./systems/equipement.js";
 import { installerMenu } from "./ui/menu.js";
+import { afficherMessage } from "./ui/effets.js";
 
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
@@ -50,7 +53,11 @@ export async function demarrerJeu(donneesInitiales = null) {
   const images = await Promise.all(chemins.map(chargerImage));
   const planches = new Map(chemins.map((chemin, i) => [chemin, images[i]]));
 
+  const carte = creerCarte(ZONE_TEST);
+  const camera = creerCamera();
   const heros = creerHeros();
+  heros.x = carte.departX;
+  heros.y = carte.departY;
   const equipement = creerEquipement();
   appliquerEquipement(heros, equipement, planches);
   majHud(equipement);
@@ -78,7 +85,10 @@ export async function demarrerJeu(donneesInitiales = null) {
     const armure = ARMURES.findIndex((a) => a.id === donnees.armureId);
     if (arme !== -1) equipement.arme = arme;
     if (armure !== -1) equipement.armure = armure;
-    if (Number.isFinite(donnees.x) && Number.isFinite(donnees.y)) {
+    if (
+      Number.isFinite(donnees.x) && Number.isFinite(donnees.y) &&
+      piedsLibres(carte, donnees.x, donnees.y) // jamais dans un mur
+    ) {
       heros.x = donnees.x;
       heros.y = donnees.y;
     }
@@ -108,14 +118,33 @@ export async function demarrerJeu(donneesInitiales = null) {
     majHud(equipement);
   });
 
+  // Les points d'intérêt : un message quand on arrive dessus (une seule fois
+  // par passage, pas en boucle tant qu'on reste sur la tuile)
+  let surPointInteret = false;
+  function verifierPointsInteret() {
+    const { caractere } = tuileSousLesPieds(carte, heros);
+    if (caractere === "M" && !surPointInteret) {
+      afficherMessage("⛏ The Depths — mining zone (coming soon)");
+    }
+    surPointInteret = caractere === "M";
+  }
+
   lancerBoucle({
     mettreAJour(dt) {
       if (enPause) return;          // jeu figé tant que le menu est ouvert
-      mettreAJourHeros(heros, clavier, dt, limites);
+      mettreAJourHeros(heros, clavier, dt, carte);
+      verifierPointsInteret();
+      mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
     },
     dessiner() {
-      dessinerZone(ctx);
+      ctx.fillStyle = "#0b0a08";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      // Tout est dessiné dans le repère du monde, décalé par la caméra
+      ctx.translate(-Math.round(camera.x), -Math.round(camera.y));
+      dessinerCarte(ctx, carte, camera, canvas.width, canvas.height);
       dessinerHeros(ctx, heros);
+      ctx.restore();
     },
   });
 }
