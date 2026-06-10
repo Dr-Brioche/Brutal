@@ -20,21 +20,30 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
 
 - ✅ L'écran de titre est **en ligne** : https://dr-brioche.github.io/Brutal/
 - ✅ Le **concept est posé** (voir ci-dessus).
-- ⏭️ Prochaine étape : le **socle du jeu** (un héros qui se déplace + l'équipement),
+- ✅ **Socle, premier morceau** : le nain (placeholder) se déplace dans une zone
+  de test — clavier ZQSD / WASD / flèches.
+- ⏭️ Prochaine étape : la suite du socle (équipement + skins, sauvegarde),
   puis le premier pilier jouable, le **combat**.
 
 ## Comment voir le jeu ?
 
-- **En ligne** : https://dr-brioche.github.io/Brutal/
-- **Sur l'ordinateur** : ouvrir le fichier `index.html` dans un navigateur.
+👉 **En ligne** : https://dr-brioche.github.io/Brutal/ — rien à installer,
+tout tourne dans le navigateur.
 
-Aucun logiciel à installer, aucun serveur : tout tourne dans le navigateur.
+(Pour les curieux : ouvrir `index.html` directement sur son ordinateur ne
+suffit plus — le code est découpé en modules, et les navigateurs exigent un
+mini-serveur local pour ça. On teste en ligne, c'est notre méthode de toute façon.)
 
 ## Les fichiers
 
-| Fichier / dossier  | À quoi ça sert                                        |
-|--------------------|-------------------------------------------------------|
-| `index.html`       | La page d'accueil du jeu (écran de titre).            |
-| `docs/concept.md`  | Le concept complet du jeu — la « bible » du projet.   |
-| `CLAUDE.md`        | Les règles de travail entre Brioche et Claude.        |
-| `README.md`        | Ce fichier : la « notice » du projet.                 |
+| Fichier / dossier   | À quoi ça sert                                          |
+|---------------------|---------------------------------------------------------|
+| `index.html`        | La porte d'entrée : écran de titre + lancement du jeu.  |
+| `jeu/principal.js`  | Le chef d'orchestre : assemble les briques du jeu.      |
+| `jeu/core/`         | Le moteur : boucle de jeu, clavier, planches de sprites.|
+| `jeu/entities/`     | Les personnages : le héros (PNJ et ennemis plus tard).  |
+| `jeu/world/`        | Les lieux : la zone de test (la ville Brütàl plus tard).|
+| `images/`           | Les visuels : planches de sprites 32×32.                |
+| `docs/concept.md`   | Le concept complet du jeu — la « bible » du projet.     |
+| `CLAUDE.md`         | Les règles de travail entre Brioche et Claude.          |
+| `README.md`         | Ce fichier : la « notice » du projet.                   |

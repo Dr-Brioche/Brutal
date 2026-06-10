@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,22 +16,35 @@
       overflow: hidden;
     }
 
-    /* ---- L'écran qui prend toute la page ---- */
-    .ecran {
-      height: 100%;
+    /* Le body centre le canvas du jeu */
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ---- Le canvas du jeu (caché tant qu'on n'a pas cliqué Play) ---- */
+    canvas {
+      image-rendering: pixelated;   /* pixels nets, jamais de flou */
+      background: #14110f;
+    }
+
+    [hidden] { display: none !important; }
+
+    /* ---- L'écran de titre, par-dessus tout ---- */
+    .ecran-titre {
+      position: fixed;
+      inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      position: relative;
-      /* lueur rouge sombre en fond */
       background:
         radial-gradient(circle at 50% 35%, rgba(220, 38, 38, 0.25), transparent 60%),
         #0a0a0f;
     }
 
-    /* ---- Le grand titre ---- */
     .titre {
       font-size: clamp(3.5rem, 18vw, 11rem);
       font-weight: 900;
@@ -58,7 +71,6 @@
       color: #9ca3af;
     }
 
-    /* ---- Le bouton JOUER ---- */
     .bouton {
       margin-top: 3rem;
       padding: 1rem 3.5rem;
@@ -82,19 +94,13 @@
 
     .bouton:active { transform: translateY(0); }
 
-    /* ---- Le petit message qui apparaît quand on clique ---- */
-    .message {
+    .aide {
       margin-top: 1.5rem;
-      font-size: 1.1rem;
-      color: #fbbf24;
-      height: 1.5rem;           /* place réservée pour éviter que ça saute */
-      opacity: 0;
-      transition: opacity 0.4s ease;
+      font-size: 0.95rem;
+      color: #6b7280;
+      letter-spacing: 0.05em;
     }
 
-    .message.visible { opacity: 1; }
-
-    /* ---- Petite signature en bas ---- */
     .pied {
       position: absolute;
       bottom: 1.2rem;
@@ -105,24 +111,35 @@
   </style>
 </head>
 <body>
-  <main class="ecran">
+  <!-- L'écran du jeu : 320x180 pixels internes, agrandi sans flou -->
+  <canvas id="jeu" width="320" height="180" hidden></canvas>
+
+  <!-- L'écran de titre -->
+  <main class="ecran-titre" id="ecran-titre">
     <h1 class="titre">BRUTAL</h1>
-    <p class="sous-titre">Le jeu</p>
+    <p class="sous-titre">Deep under the mountain</p>
 
-    <button class="bouton" id="jouer">Jouer</button>
-    <p class="message" id="message">🔥 Bientôt disponible…</p>
+    <button class="bouton" id="bouton-jouer">Play</button>
+    <p class="aide">Move with WASD / ZQSD or arrow keys</p>
 
-    <footer class="pied">Version 0.1 — première page en ligne</footer>
+    <footer class="pied">v0.2 — first steps</footer>
   </main>
 
-  <script>
-    // Quand on clique sur le bouton "Jouer", on affiche le message.
-    const bouton  = document.getElementById("jouer");
-    const message = document.getElementById("message");
+  <script type="module">
+    import { demarrerJeu } from "./jeu/principal.js";
 
-    bouton.addEventListener("click", function () {
-      message.classList.add("visible");
-    });
+    const ecranTitre = document.getElementById("ecran-titre");
+    const canvas = document.getElementById("jeu");
+
+    document.getElementById("bouton-jouer").addEventListener(
+      "click",
+      () => {
+        ecranTitre.hidden = true;
+        canvas.hidden = false;
+        demarrerJeu();
+      },
+      { once: true } // un seul démarrage
+    );
   </script>
 </body>
 </html>
