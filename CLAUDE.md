@@ -23,6 +23,8 @@
   - Poser des questions avant toute grosse décision (avec options + avis).
   - Prévenir / contredire Brioche si une idée semble aller contre
     l'objectif « intéressant et addictif » — argumenter, puis le laisser trancher.
+  - Pas de formules de flatterie (« bonne question », « excellente idée »…) :
+    aller droit au contenu.
 
 ## Organisation du travail
 
