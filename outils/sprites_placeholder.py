@@ -196,27 +196,66 @@ def arme_haut(arme, pose):
     return img
 
 
+# ---------------------------------------------------------------- finition --
+# Trois techniques de base du pixel art, appliquées automatiquement :
+# contour sombre, ombre sur les bords bas/droite, lumière sur les bords
+# haut/gauche. Même 32x32, rendu nettement moins "brut".
+
+CONTOUR = (24, 16, 11, 255)
+
+def finition(frame):
+    px = frame.load()
+
+    def opaque(x, y):
+        return 0 <= x < T and 0 <= y < T and px[x, y][3] > 0
+
+    travaille = frame.copy()
+    tpx = travaille.load()
+    for y in range(T):
+        for x in range(T):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                continue
+            if not opaque(x + 1, y) or not opaque(x, y + 1):    # ombre
+                tpx[x, y] = (int(r * 0.68), int(g * 0.68), int(b * 0.68), a)
+            elif not opaque(x - 1, y) or not opaque(x, y - 1):  # lumière
+                tpx[x, y] = (min(255, int(r * 1.22) + 12),
+                             min(255, int(g * 1.22) + 12),
+                             min(255, int(b * 1.22) + 12), a)
+
+    resultat = Image.new("RGBA", (T, T), (0, 0, 0, 0))
+    rpx = resultat.load()
+    for y in range(T):
+        for x in range(T):
+            if tpx[x, y][3] > 0:
+                rpx[x, y] = tpx[x, y]
+            elif any(opaque(x + dx, y + dy)
+                     for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))):
+                rpx[x, y] = CONTOUR
+    return resultat
+
+
 # ------------------------------------------------------------- fabrication --
 
 def planche_nain(P):
     planche = Image.new("RGBA", (T * 4, T * 4), (0, 0, 0, 0))
     for pose in range(4):
-        gauche = frame_gauche(P, pose)
-        planche.paste(frame_bas(P, pose), (pose * T, 0))
+        gauche = finition(frame_gauche(P, pose))
+        planche.paste(finition(frame_bas(P, pose)), (pose * T, 0))
         planche.paste(gauche, (pose * T, T))
         planche.paste(gauche.transpose(Image.FLIP_LEFT_RIGHT), (pose * T, 2 * T))
-        planche.paste(frame_haut(P, pose), (pose * T, 3 * T))
+        planche.paste(finition(frame_haut(P, pose)), (pose * T, 3 * T))
     return planche
 
 
 def planche_arme(arme):
     planche = Image.new("RGBA", (T * 4, T * 4), (0, 0, 0, 0))
     for pose in range(4):
-        gauche = arme_gauche(arme, pose)
-        planche.paste(arme_bas(arme, pose), (pose * T, 0))
+        gauche = finition(arme_gauche(arme, pose))
+        planche.paste(finition(arme_bas(arme, pose)), (pose * T, 0))
         planche.paste(gauche, (pose * T, T))
         planche.paste(gauche.transpose(Image.FLIP_LEFT_RIGHT), (pose * T, 2 * T))
-        planche.paste(arme_haut(arme, pose), (pose * T, 3 * T))
+        planche.paste(finition(arme_haut(arme, pose)), (pose * T, 3 * T))
     return planche
 
 
