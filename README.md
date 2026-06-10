@@ -26,8 +26,8 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
   (stats + sprites), visibles sur le nain — touches R (arme) et E (armure).
 - ✅ **Passage en 64×64** : héros plus détaillé, écran de jeu agrandi.
 - ✅ **Sauvegarde locale** : menu pause (**Échap**) avec **3 emplacements** —
-  sauvegarder / charger sa partie, plus une reprise rapide de la dernière.
-  Tout est retenu par le navigateur, sans serveur.
+  sauvegarder / charger sa partie. Tout est retenu par le navigateur,
+  sans serveur.
 - ✅ **Écran de démarrage** : au lancement, choix entre **New Game** et la
   reprise d'une sauvegarde (sauté s'il n'existe encore aucune sauvegarde).
 - ⏭️ Prochaine étape : le premier pilier jouable, le **combat** 🃏

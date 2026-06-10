@@ -12,15 +12,6 @@ export function tousLesSlots() {
   return liste;
 }
 
-// La sauvegarde la plus récente (tous emplacements confondus), ou null
-export function slotLePlusRecent() {
-  let meilleur = null;
-  for (const { donnees } of tousLesSlots()) {
-    if (donnees && (!meilleur || donnees.date > meilleur.date)) meilleur = donnees;
-  }
-  return meilleur;
-}
-
 // Texte affiché pour un emplacement (vide, ou équipement + date)
 export function resumeSlot(donnees) {
   if (!donnees) return "Empty";

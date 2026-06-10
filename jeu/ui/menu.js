@@ -9,12 +9,11 @@
 //   - surChangementPause(b) : prévenu quand le menu s'ouvre (true) / ferme (false)
 
 import { lireSlot, ecrireSlot } from "../systems/sauvegarde.js";
-import { tousLesSlots, slotLePlusRecent, creerLigneSlot } from "./slots.js";
+import { tousLesSlots, creerLigneSlot } from "./slots.js";
 
 export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }) {
   const menu = document.getElementById("menu");
   const conteneurSlots = document.getElementById("menu-slots");
-  const boutonContinuer = document.getElementById("menu-continuer");
   const boutonReprendre = document.getElementById("menu-reprendre");
   let ouvert = false;
 
@@ -42,7 +41,6 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
         ])
       );
     }
-    boutonContinuer.disabled = !slotLePlusRecent();
   }
 
   function ouvrir() {
@@ -70,13 +68,6 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
   });
 
   boutonReprendre.addEventListener("click", fermer);
-  boutonContinuer.addEventListener("click", () => {
-    const donnees = slotLePlusRecent();
-    if (donnees) {
-      appliquerEtat(donnees);
-      fermer();
-    }
-  });
 
   return { ouvrir, fermer, basculer };
 }

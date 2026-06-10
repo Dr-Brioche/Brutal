@@ -205,18 +205,6 @@
     .menu-slot-actions button:hover { background: #3b3947; }
     .menu-slot-actions button:disabled { opacity: 0.35; cursor: default; }
 
-    .menu-reprendre {
-      margin-top: 18px;
-      padding: 10px 26px;
-      font-weight: 600;
-      color: #e5e7eb;
-      background: transparent;
-      border: 1px solid #45424f;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .menu-reprendre:hover { background: rgba(255, 255, 255, 0.06); }
-
     .menu-aide {
       margin-top: 12px;
       font-size: 0.72rem;
@@ -245,9 +233,8 @@
   <div class="menu" id="menu" hidden>
     <div class="menu-panneau">
       <h2 class="menu-titre">Paused</h2>
-      <button class="menu-continuer" id="menu-continuer">Continue — last save</button>
+      <button class="menu-continuer" id="menu-reprendre">Resume</button>
       <div class="menu-slots" id="menu-slots"></div>
-      <button class="menu-reprendre" id="menu-reprendre">Resume</button>
       <p class="menu-aide">Esc to open / close</p>
     </div>
   </div>
