@@ -39,7 +39,9 @@ function majHud(equipement) {
     `[E] Armor  : ${armure.nom}  (+${armure.defense} DEF)`;
 }
 
-export async function demarrerJeu() {
+// `donneesInitiales` : la sauvegarde choisie sur l'écran de démarrage
+// (ou null pour une nouvelle partie).
+export async function demarrerJeu(donneesInitiales = null) {
   ajusterEchelle();
   ctx.imageSmoothingEnabled = false; // jamais de lissage : pixels nets
 
@@ -92,6 +94,8 @@ export async function demarrerJeu() {
     appliquerEtat,
     surChangementPause: (pause) => { enPause = pause; },
   });
+
+  appliquerEtat(donneesInitiales); // reprise choisie au démarrage (sinon null = neuf)
 
   // Touches d'essayage (inactives quand le menu est ouvert) :
   // R = arme suivante, E = armure suivante

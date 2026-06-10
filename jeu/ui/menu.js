@@ -4,11 +4,12 @@
 // récente. Conçu pour accueillir d'autres options plus tard (Options, etc.).
 //
 // Le menu est découplé du jeu : on lui fournit trois fonctions.
-//   - obtenirEtat()        : renvoie l'état à sauvegarder (objet simple)
+//   - obtenirEtat()         : renvoie l'état à sauvegarder (objet simple)
 //   - appliquerEtat(donnees): applique un état chargé au jeu
-//   - surChangementPause(b): prévenu quand le menu s'ouvre (true) / ferme (false)
+//   - surChangementPause(b) : prévenu quand le menu s'ouvre (true) / ferme (false)
 
-import { NB_SLOTS, lireSlot, ecrireSlot } from "../systems/sauvegarde.js";
+import { lireSlot, ecrireSlot } from "../systems/sauvegarde.js";
+import { tousLesSlots, slotLePlusRecent, creerLigneSlot } from "./slots.js";
 
 export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }) {
   const menu = document.getElementById("menu");
@@ -17,63 +18,31 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
   const boutonReprendre = document.getElementById("menu-reprendre");
   let ouvert = false;
 
-  // Texte affiché pour un emplacement (vide, ou équipement + date)
-  function resume(donnees) {
-    if (!donnees) return "Empty";
-    const date = new Date(donnees.date).toLocaleString();
-    return `${donnees.armureNom} · ${donnees.armeNom}\n${date}`;
-  }
-
-  // L'emplacement sauvegardé le plus récemment (pour la reprise rapide)
-  function dernierSlot() {
-    let meilleur = null;
-    for (let n = 1; n <= NB_SLOTS; n++) {
-      const d = lireSlot(n);
-      if (d && (!meilleur || d.date > meilleur.date)) meilleur = d;
-    }
-    return meilleur;
-  }
-
   // (Re)construit la liste des emplacements à l'écran
   function rafraichir() {
     conteneurSlots.replaceChildren();
-    for (let n = 1; n <= NB_SLOTS; n++) {
-      const donnees = lireSlot(n);
-
-      const ligne = document.createElement("div");
-      ligne.className = "menu-slot";
-
-      const info = document.createElement("div");
-      info.className = "menu-slot-info";
-      const nom = document.createElement("span");
-      nom.className = "menu-slot-nom";
-      nom.textContent = `Slot ${n}`;
-      const res = document.createElement("span");
-      res.className = "menu-slot-resume";
-      res.textContent = resume(donnees);
-      info.append(nom, res);
-
-      const actions = document.createElement("div");
-      actions.className = "menu-slot-actions";
-      const save = document.createElement("button");
-      save.textContent = "Save";
-      save.addEventListener("click", () => {
-        ecrireSlot(n, obtenirEtat());
-        rafraichir();
-      });
-      const load = document.createElement("button");
-      load.textContent = "Load";
-      load.disabled = !donnees;
-      load.addEventListener("click", () => {
-        appliquerEtat(lireSlot(n));
-        fermer();
-      });
-      actions.append(save, load);
-
-      ligne.append(info, actions);
-      conteneurSlots.append(ligne);
+    for (const { numero, donnees } of tousLesSlots()) {
+      conteneurSlots.append(
+        creerLigneSlot(numero, donnees, [
+          {
+            texte: "Save",
+            surClic: () => {
+              ecrireSlot(numero, obtenirEtat());
+              rafraichir();
+            },
+          },
+          {
+            texte: "Load",
+            desactive: !donnees,
+            surClic: () => {
+              appliquerEtat(lireSlot(numero));
+              fermer();
+            },
+          },
+        ])
+      );
     }
-    boutonContinuer.disabled = !dernierSlot();
+    boutonContinuer.disabled = !slotLePlusRecent();
   }
 
   function ouvrir() {
@@ -102,9 +71,9 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
 
   boutonReprendre.addEventListener("click", fermer);
   boutonContinuer.addEventListener("click", () => {
-    const d = dernierSlot();
-    if (d) {
-      appliquerEtat(d);
+    const donnees = slotLePlusRecent();
+    if (donnees) {
+      appliquerEtat(donnees);
       fermer();
     }
   });

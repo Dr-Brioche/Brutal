@@ -223,6 +223,12 @@
       letter-spacing: 0.08em;
       color: #6b7280;
     }
+
+    /* ---- Le choix au démarrage (sur l'écran de titre) ---- */
+    .demarrage {
+      width: min(460px, 92vw);
+      margin-top: 2.4rem;
+    }
   </style>
 </head>
 <body>
@@ -252,28 +258,35 @@
     <p class="sous-titre">Deep under the mountain</p>
 
     <button class="bouton" id="bouton-jouer">Play</button>
+
+    <!-- Le choix au démarrage : nouvelle partie ou reprise d'un emplacement -->
+    <div class="demarrage" id="demarrage" hidden>
+      <button class="menu-continuer" id="demarrage-nouvelle">New Game</button>
+      <div class="menu-slots" id="demarrage-slots"></div>
+    </div>
+
     <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; R / E: swap gear &nbsp;·&nbsp; Esc: menu</p>
 
-    <footer class="pied">v0.6 — save &amp; load</footer>
+    <footer class="pied">v0.7 — choose your path</footer>
   </main>
 
   <script type="module">
     import { demarrerJeu } from "./jeu/principal.js";
+    import { installerDemarrage } from "./jeu/ui/demarrage.js";
 
     const ecranTitre = document.getElementById("ecran-titre");
     const canvas = document.getElementById("jeu");
     const hud = document.getElementById("hud");
 
-    document.getElementById("bouton-jouer").addEventListener(
-      "click",
-      () => {
+    // L'écran de démarrage décide : nouvelle partie (null) ou sauvegarde
+    installerDemarrage({
+      lancer(donnees) {
         ecranTitre.hidden = true;
         canvas.hidden = false;
         hud.hidden = false;
-        demarrerJeu();
+        demarrerJeu(donnees);
       },
-      { once: true } // un seul démarrage
-    );
+    });
   </script>
 </body>
 </html>
