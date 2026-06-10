@@ -1,35 +1,41 @@
-// La sauvegarde locale : le navigateur retient la partie entre deux visites.
-//
-// localStorage = un petit carnet (~5 Mo) que le navigateur garde pour chaque
-// site, chez le joueur. Aucun serveur : conforme à notre règle "100 % local".
-// Le carnet peut être indisponible (navigation privée) ou abîmé : dans ces
-// cas on repart simplement d'une partie neuve, sans jamais planter.
+// La sauvegarde locale : plusieurs emplacements ("slots") dans le carnet
+// du navigateur (localStorage). Aucun serveur : conforme à notre règle
+// "100 % local". Le carnet peut être indisponible (navigation privée) ou
+// abîmé : dans ces cas on renvoie null / false sans jamais planter.
 
-const CLE = "brutal.sauvegarde";
+const PREFIXE = "brutal.slot.";
 const VERSION = 1; // permettra de faire évoluer le format sans tout casser
 
-export function chargerSauvegarde() {
+export const NB_SLOTS = 3;
+
+// Renvoie le contenu d'un emplacement, ou null s'il est vide/illisible.
+export function lireSlot(n) {
   try {
-    const texte = localStorage.getItem(CLE);
+    const texte = localStorage.getItem(PREFIXE + n);
     if (!texte) return null;
     const donnees = JSON.parse(texte);
     return donnees && donnees.version === VERSION ? donnees : null;
   } catch {
-    return null; // carnet indisponible ou contenu illisible
+    return null;
   }
 }
 
-export function enregistrerSauvegarde(donnees) {
+// Écrit dans un emplacement. Ajoute la version et la date automatiquement.
+// Renvoie true si l'écriture a réussi.
+export function ecrireSlot(n, donnees) {
   try {
-    localStorage.setItem(CLE, JSON.stringify({ version: VERSION, ...donnees }));
+    localStorage.setItem(
+      PREFIXE + n,
+      JSON.stringify({ ...donnees, version: VERSION, date: Date.now() })
+    );
+    return true;
   } catch {
-    // stockage indisponible : on jouera sans mémoire, ce n'est pas grave
+    return false; // stockage indisponible : on jouera sans mémoire
   }
 }
 
-// Servira au futur menu (bouton "New Game")
-export function effacerSauvegarde() {
+export function effacerSlot(n) {
   try {
-    localStorage.removeItem(CLE);
+    localStorage.removeItem(PREFIXE + n);
   } catch {}
 }

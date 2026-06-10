@@ -124,6 +124,105 @@
       border: 1px solid #374151;
       border-radius: 6px;
     }
+
+    /* ---- Le menu pause (touche Échap) ---- */
+    .menu {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 5, 8, 0.72);
+      z-index: 10;
+    }
+
+    .menu-panneau {
+      width: min(460px, 92vw);
+      padding: 28px 26px 20px;
+      background: #14121a;
+      border: 1px solid #3b2030;
+      border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+      text-align: center;
+    }
+
+    .menu-titre {
+      margin: 0 0 18px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #f3f4f6;
+    }
+
+    .menu-continuer {
+      width: 100%;
+      margin-bottom: 18px;
+      padding: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #fff;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .menu-continuer:disabled { opacity: 0.4; cursor: default; }
+
+    .menu-slots { display: flex; flex-direction: column; gap: 10px; }
+
+    .menu-slot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      background: #1d1b25;
+      border: 1px solid #2c2a36;
+      border-radius: 8px;
+    }
+
+    .menu-slot-info { display: flex; flex-direction: column; text-align: left; }
+    .menu-slot-nom { font-weight: 700; font-size: 0.95rem; color: #e5e7eb; }
+    .menu-slot-resume {
+      white-space: pre-line;
+      font-size: 0.76rem;
+      line-height: 1.4;
+      color: #9ca3af;
+    }
+
+    .menu-slot-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .menu-slot-actions button {
+      padding: 7px 14px;
+      font-weight: 600;
+      color: #f3f4f6;
+      background: #2f2d3a;
+      border: 1px solid #45424f;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .menu-slot-actions button:hover { background: #3b3947; }
+    .menu-slot-actions button:disabled { opacity: 0.35; cursor: default; }
+
+    .menu-reprendre {
+      margin-top: 18px;
+      padding: 10px 26px;
+      font-weight: 600;
+      color: #e5e7eb;
+      background: transparent;
+      border: 1px solid #45424f;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .menu-reprendre:hover { background: rgba(255, 255, 255, 0.06); }
+
+    .menu-aide {
+      margin-top: 12px;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+    }
   </style>
 </head>
 <body>
@@ -136,15 +235,26 @@
     <div id="hud-armure"></div>
   </div>
 
+  <!-- Le menu pause (touche Échap) : sauvegarder / charger -->
+  <div class="menu" id="menu" hidden>
+    <div class="menu-panneau">
+      <h2 class="menu-titre">Paused</h2>
+      <button class="menu-continuer" id="menu-continuer">Continue — last save</button>
+      <div class="menu-slots" id="menu-slots"></div>
+      <button class="menu-reprendre" id="menu-reprendre">Resume</button>
+      <p class="menu-aide">Esc to open / close</p>
+    </div>
+  </div>
+
   <!-- L'écran de titre -->
   <main class="ecran-titre" id="ecran-titre">
     <h1 class="titre">BRUTAL</h1>
     <p class="sous-titre">Deep under the mountain</p>
 
     <button class="bouton" id="bouton-jouer">Play</button>
-    <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; R: swap weapon &nbsp;·&nbsp; E: swap armor</p>
+    <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; R / E: swap gear &nbsp;·&nbsp; Esc: menu</p>
 
-    <footer class="pied">v0.5 — the mountain remembers</footer>
+    <footer class="pied">v0.6 — save &amp; load</footer>
   </main>
 
   <script type="module">

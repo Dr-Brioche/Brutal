@@ -12,7 +12,7 @@ import {
   armeActuelle, armureActuelle,
   changerArme, changerArmure,
 } from "./systems/equipement.js";
-import { chargerSauvegarde, enregistrerSauvegarde } from "./systems/sauvegarde.js";
+import { installerMenu } from "./ui/menu.js";
 
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
@@ -50,54 +50,63 @@ export async function demarrerJeu() {
 
   const heros = creerHeros();
   const equipement = creerEquipement();
-
-  // On reprend la partie précédente si le carnet en contient une.
-  // Chaque champ est vérifié : une sauvegarde abîmée ne doit rien casser.
-  const sauvegarde = chargerSauvegarde();
-  if (sauvegarde) {
-    const arme = ARMES.findIndex((a) => a.id === sauvegarde.armeId);
-    const armure = ARMURES.findIndex((a) => a.id === sauvegarde.armureId);
-    if (arme !== -1) equipement.arme = arme;
-    if (armure !== -1) equipement.armure = armure;
-    if (Number.isFinite(sauvegarde.x) && Number.isFinite(sauvegarde.y)) {
-      heros.x = sauvegarde.x;
-      heros.y = sauvegarde.y;
-    }
-    if (["bas", "gauche", "droite", "haut"].includes(sauvegarde.direction)) {
-      heros.direction = sauvegarde.direction;
-    }
-  }
-
   appliquerEquipement(heros, equipement, planches);
   majHud(equipement);
 
-  function sauvegarder() {
-    enregistrerSauvegarde({
+  let enPause = false;
+
+  // L'état qu'un emplacement de sauvegarde retient.
+  function obtenirEtat() {
+    return {
       x: heros.x,
       y: heros.y,
       direction: heros.direction,
       armeId: armeActuelle(equipement).id,
       armureId: armureActuelle(equipement).id,
-    });
+      armeNom: armeActuelle(equipement).nom,     // pour l'affichage du slot
+      armureNom: armureActuelle(equipement).nom,
+    };
   }
 
-  // Touches d'essayage : R = arme suivante, E = armure suivante
+  // L'état qu'on applique en chargeant (vérifié champ par champ : une
+  // sauvegarde abîmée ne doit jamais casser le jeu).
+  function appliquerEtat(donnees) {
+    if (!donnees) return;
+    const arme = ARMES.findIndex((a) => a.id === donnees.armeId);
+    const armure = ARMURES.findIndex((a) => a.id === donnees.armureId);
+    if (arme !== -1) equipement.arme = arme;
+    if (armure !== -1) equipement.armure = armure;
+    if (Number.isFinite(donnees.x) && Number.isFinite(donnees.y)) {
+      heros.x = donnees.x;
+      heros.y = donnees.y;
+    }
+    if (["bas", "gauche", "droite", "haut"].includes(donnees.direction)) {
+      heros.direction = donnees.direction;
+    }
+    appliquerEquipement(heros, equipement, planches);
+    majHud(equipement);
+  }
+
+  installerMenu({
+    obtenirEtat,
+    appliquerEtat,
+    surChangementPause: (pause) => { enPause = pause; },
+  });
+
+  // Touches d'essayage (inactives quand le menu est ouvert) :
+  // R = arme suivante, E = armure suivante
   window.addEventListener("keydown", (e) => {
-    if (e.repeat) return; // ignorer la répétition quand on garde la touche enfoncée
+    if (enPause || e.repeat) return;
     if (e.code === "KeyR") changerArme(equipement);
     else if (e.code === "KeyE") changerArmure(equipement);
     else return;
     appliquerEquipement(heros, equipement, planches);
     majHud(equipement);
-    sauvegarder();
   });
-
-  // Sauvegarde de la position : toutes les 3 secondes + en quittant la page
-  setInterval(sauvegarder, 3000);
-  window.addEventListener("pagehide", sauvegarder);
 
   lancerBoucle({
     mettreAJour(dt) {
+      if (enPause) return;          // jeu figé tant que le menu est ouvert
       mettreAJourHeros(heros, clavier, dt, limites);
     },
     dessiner() {
