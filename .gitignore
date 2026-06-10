@@ -1,0 +1,4 @@
+# Fichiers techniques à ne pas suivre
+__pycache__/
+*.pyc
+.DS_Store

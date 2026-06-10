@@ -3,7 +3,7 @@
 //
 // Choix d'affichage validé : on VOIT le nain, de profil à gauche, en
 // réutilisant son sprite de carte (pose latérale) agrandi ×3. L'ennemi est un
-// placeholder dessiné « au feutre » (formes pleines) en attendant un vrai skin.
+// vrai sprite animé (idle / attaque / coup reçu), lu depuis sa planche.
 //
 // On renvoie { mettreAJour(dt), dessiner() } : la boucle principale appelle
 // ces deux fonctions tant que le combat est actif.
@@ -14,12 +14,15 @@ import { dessinerCaseEchelle } from "../core/sprites.js";
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
 const ECHELLE_HEROS = 3;            // 64×64 → 192×192
 const HEROS = { x: 70, y: 96 };     // coin haut-gauche du sprite agrandi
-const ENNEMI = { x: 430, y: 150, l: 110, h: 120 }; // rectangle du placeholder
+const GOBELIN = { x: 401, y: 120 }; // coin haut-gauche de la case ennemie
 const SOL_Y = 270;                  // ligne de sol
 // ---------------------------------------------------------------------------
 
-export function demarrerCombat({ ctx, heros, equipement, ennemi, surFin }) {
+export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFin }) {
   const combat = creerCombat(equipement, ennemi);
+  const plancheEnnemi = planches?.get(ennemi.planche) ?? null;
+  const spr = ennemi.sprite;
+  const cx = GOBELIN.x + spr.caseL / 2; // centre horizontal de l'ennemi
 
   // Éléments d'interface (présents dans index.html)
   const overlay = document.getElementById("combat");
@@ -37,6 +40,10 @@ export function demarrerCombat({ ctx, heros, equipement, ennemi, surFin }) {
   let secousseEnnemi = 0;
   let secousseHeros = 0;
   const flottants = [];  // nombres de dégâts qui montent et s'estompent
+
+  // L'état du sprite ennemi : quelle animation, depuis quand
+  let animEnnemi = { nom: "idle", t: 0 };
+  const jouerAnimEnnemi = (nom) => { animEnnemi = { nom, t: 0 }; };
 
   function ajouterFlottant(texte, x, y, couleur) {
     flottants.push({ texte, x, y, couleur, t: 1 });
@@ -63,8 +70,8 @@ export function demarrerCombat({ ctx, heros, equipement, ennemi, surFin }) {
     if (combat.pvEnnemi < pvAvant) {
       animAttaque = 0.25;
       secousseEnnemi = 0.3;
-      ajouterFlottant(`-${pvAvant - combat.pvEnnemi}`,
-        ENNEMI.x + ENNEMI.l / 2, ENNEMI.y, "#ffe27a");
+      jouerAnimEnnemi(combat.pvEnnemi <= 0 ? "ko" : "touche");
+      ajouterFlottant(`-${pvAvant - combat.pvEnnemi}`, cx, GOBELIN.y + 36, "#ffe27a");
     }
     if (combat.pierre > pierreAvant) {
       ajouterFlottant(`+${combat.pierre - pierreAvant}`,
@@ -77,6 +84,7 @@ export function demarrerCombat({ ctx, heros, equipement, ennemi, surFin }) {
   function finDeTour() {
     const pvAvant = combat.pvHeros;
     finirTour(combat);
+    if (combat.pvEnnemi > 0) jouerAnimEnnemi("attaque"); // le gobelin frappe
     if (combat.pvHeros < pvAvant) {
       secousseHeros = 0.3;
       ajouterFlottant(`-${pvAvant - combat.pvHeros}`,
@@ -113,6 +121,14 @@ export function demarrerCombat({ ctx, heros, equipement, ennemi, surFin }) {
     aff.pvEnnemi += (combat.pvEnnemi - aff.pvEnnemi) * Math.min(1, dt * 8);
     aff.pierre += (combat.pierre - aff.pierre) * Math.min(1, dt * 10);
 
+    // L'animation de l'ennemi avance ; touche/attaque reviennent à l'idle
+    animEnnemi.t += dt;
+    const def = spr.anims[animEnnemi.nom] ?? spr.anims.idle;
+    if (!def.boucle && animEnnemi.t * def.ips >= def.frames.length &&
+        (animEnnemi.nom === "touche" || animEnnemi.nom === "attaque")) {
+      animEnnemi = { nom: "idle", t: 0 };
+    }
+
     animAttaque = Math.max(0, animAttaque - dt);
     secousseEnnemi = Math.max(0, secousseEnnemi - dt);
     secousseHeros = Math.max(0, secousseHeros - dt);
@@ -125,12 +141,14 @@ export function demarrerCombat({ ctx, heros, equipement, ennemi, surFin }) {
   function dessiner() {
     dessinerFond(ctx);
 
-    // Ennemi (placeholder), avec secousse + éclair rouge quand il est touché
-    const trEnnemi = secousseEnnemi > 0 ? (Math.random() - 0.5) * 8 : 0;
-    dessinerGobelin(ctx, ENNEMI, trEnnemi, secousseEnnemi > 0);
-    dessinerBarreVie(ctx, ENNEMI.x - 5, ENNEMI.y - 26, ENNEMI.l + 10,
+    // Ennemi : sa frame d'animation courante (+ léger tremblement si touché)
+    const def = spr.anims[animEnnemi.nom] ?? spr.anims.idle;
+    const frame = frameAnim(def, animEnnemi.t);
+    const tr = secousseEnnemi > 0 ? (Math.random() - 0.5) * 6 : 0;
+    dessinerEnnemi(ctx, plancheEnnemi, spr, frame, GOBELIN.x + tr, GOBELIN.y);
+    dessinerBarreVie(ctx, GOBELIN.x + 45, GOBELIN.y - 6, spr.caseL - 90,
       aff.pvEnnemi / combat.pvEnnemiMax, "#c0392b");
-    dessinerIntention(ctx, combat.intention, ENNEMI.x + ENNEMI.l / 2, ENNEMI.y - 36);
+    if (combat.pvEnnemi > 0) dessinerIntention(ctx, combat.intention, cx, GOBELIN.y - 18);
 
     // Héros : sprite de carte, pose « droite » (regarde l'ennemi), agrandi.
     // Pendant une attaque, il avance un peu vers l'ennemi (« poussée d'arme »).
@@ -164,7 +182,16 @@ export function demarrerCombat({ ctx, heros, equipement, ennemi, surFin }) {
   return { mettreAJour, dessiner };
 }
 
-// ----- Dessin de la scène (placeholders « au feutre ») ---------------------
+// ----- Animation -----------------------------------------------------------
+
+// La frame à afficher pour une animation donnée, au temps t (secondes).
+function frameAnim(def, t) {
+  let i = Math.floor(t * def.ips);
+  i = def.boucle ? i % def.frames.length : Math.min(i, def.frames.length - 1);
+  return def.frames[i];
+}
+
+// ----- Dessin de la scène --------------------------------------------------
 
 function dessinerFond(ctx) {
   const grad = ctx.createLinearGradient(0, 0, 0, 360);
@@ -179,25 +206,18 @@ function dessinerFond(ctx) {
   ctx.fillRect(0, SOL_Y, 640, 4);
 }
 
-function dessinerGobelin(ctx, e, tr, touche) {
-  const x = e.x + tr;
-  // Corps
-  ctx.fillStyle = touche ? "#9fd07a" : "#5e8c3a";
-  ctx.fillRect(x + 22, e.y + 36, e.l - 44, e.h - 36);
-  // Tête
-  ctx.fillRect(x + 30, e.y, e.l - 60, 44);
-  // Oreilles pointues
-  ctx.beginPath();
-  ctx.moveTo(x + 30, e.y + 8); ctx.lineTo(x + 16, e.y - 6); ctx.lineTo(x + 32, e.y + 24);
-  ctx.moveTo(x + e.l - 30, e.y + 8); ctx.lineTo(x + e.l - 16, e.y - 6); ctx.lineTo(x + e.l - 32, e.y + 24);
-  ctx.fill();
-  // Yeux (tournés vers le héros, à gauche)
-  ctx.fillStyle = "#ffdd55";
-  ctx.fillRect(x + 34, e.y + 18, 7, 7);
-  ctx.fillRect(x + 48, e.y + 18, 7, 7);
-  // Gourdin
-  ctx.fillStyle = "#6b4a2b";
-  ctx.fillRect(x + 14, e.y + 40, 10, 46);
+// Une frame de la planche ennemie (ou un rectangle de secours si pas chargée).
+function dessinerEnnemi(ctx, planche, spr, frame, x, y) {
+  if (!planche) {
+    ctx.fillStyle = "#5e8c3a";
+    ctx.fillRect(x + 55, y + 30, 100, 120);
+    return;
+  }
+  ctx.drawImage(
+    planche,
+    frame * spr.caseL, 0, spr.caseL, spr.caseH,
+    Math.round(x), Math.round(y), spr.caseL, spr.caseH
+  );
 }
 
 function dessinerBarreVie(ctx, x, y, largeur, ratio, couleur) {

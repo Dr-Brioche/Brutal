@@ -18,7 +18,7 @@ import { installerMenu } from "./ui/menu.js";
 import { afficherMessage, flashCombat } from "./ui/effets.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { demarrerCombat } from "./ui/combat.js";
-import { ennemiParId } from "./data/ennemis.js";
+import { ennemiParId, ENNEMIS } from "./data/ennemis.js";
 
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
@@ -52,7 +52,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   ctx.imageSmoothingEnabled = false; // jamais de lissage : pixels nets
 
   // On charge toutes les planches des bibliothèques, rangées par chemin
-  const chemins = [...ARMES, ...ARMURES].map((objet) => objet.planche);
+  const chemins = [...ARMES, ...ARMURES, ...ENNEMIS].map((objet) => objet.planche);
   const images = await Promise.all(chemins.map(chargerImage));
   const planches = new Map(chemins.map((chemin, i) => [chemin, images[i]]));
 
@@ -145,6 +145,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       ctx,
       heros,
       equipement,
+      planches,
       ennemi: ennemiParId("gobelin"),
       surFin: (resultat) => {
         combatEnCours = null;
