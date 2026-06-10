@@ -25,8 +25,9 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
 - ✅ **Équipement + skins** : bibliothèques d'armes et de sets d'armure
   (stats + sprites), visibles sur le nain — touches R (arme) et E (armure).
 - ✅ **Passage en 64×64** : héros plus détaillé, écran de jeu agrandi.
-- ⏭️ Prochaine étape : la sauvegarde locale, puis le premier pilier jouable,
-  le **combat**.
+- ✅ **Sauvegarde locale** : la partie reprend où on l'a laissée
+  (position + équipement, retenus par le navigateur).
+- ⏭️ Prochaine étape : le premier pilier jouable, le **combat** 🃏
 
 ## Comment voir le jeu ?
 
@@ -45,7 +46,7 @@ mini-serveur local pour ça. On teste en ligne, c'est notre méthode de toute fa
 | `jeu/principal.js`  | Le chef d'orchestre : assemble les briques du jeu.      |
 | `jeu/core/`         | Le moteur : boucle de jeu, clavier, planches de sprites.|
 | `jeu/data/`         | Le contenu : bibliothèques d'armes, de sets d'armure…   |
-| `jeu/systems/`      | Les mécaniques : équipement (combat, forge… plus tard). |
+| `jeu/systems/`      | Les mécaniques : équipement, sauvegarde (combat… plus tard). |
 | `jeu/entities/`     | Les personnages : le héros (PNJ et ennemis plus tard).  |
 | `jeu/world/`        | Les lieux : la zone de test (la ville Brütàl plus tard).|
 | `images/`           | Les visuels : planches de sprites 64×64.                |

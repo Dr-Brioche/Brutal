@@ -12,6 +12,7 @@ import {
   armeActuelle, armureActuelle,
   changerArme, changerArmure,
 } from "./systems/equipement.js";
+import { chargerSauvegarde, enregistrerSauvegarde } from "./systems/sauvegarde.js";
 
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
@@ -49,8 +50,36 @@ export async function demarrerJeu() {
 
   const heros = creerHeros();
   const equipement = creerEquipement();
+
+  // On reprend la partie précédente si le carnet en contient une.
+  // Chaque champ est vérifié : une sauvegarde abîmée ne doit rien casser.
+  const sauvegarde = chargerSauvegarde();
+  if (sauvegarde) {
+    const arme = ARMES.findIndex((a) => a.id === sauvegarde.armeId);
+    const armure = ARMURES.findIndex((a) => a.id === sauvegarde.armureId);
+    if (arme !== -1) equipement.arme = arme;
+    if (armure !== -1) equipement.armure = armure;
+    if (Number.isFinite(sauvegarde.x) && Number.isFinite(sauvegarde.y)) {
+      heros.x = sauvegarde.x;
+      heros.y = sauvegarde.y;
+    }
+    if (["bas", "gauche", "droite", "haut"].includes(sauvegarde.direction)) {
+      heros.direction = sauvegarde.direction;
+    }
+  }
+
   appliquerEquipement(heros, equipement, planches);
   majHud(equipement);
+
+  function sauvegarder() {
+    enregistrerSauvegarde({
+      x: heros.x,
+      y: heros.y,
+      direction: heros.direction,
+      armeId: armeActuelle(equipement).id,
+      armureId: armureActuelle(equipement).id,
+    });
+  }
 
   // Touches d'essayage : R = arme suivante, E = armure suivante
   window.addEventListener("keydown", (e) => {
@@ -60,7 +89,12 @@ export async function demarrerJeu() {
     else return;
     appliquerEquipement(heros, equipement, planches);
     majHud(equipement);
+    sauvegarder();
   });
+
+  // Sauvegarde de la position : toutes les 3 secondes + en quittant la page
+  setInterval(sauvegarder, 3000);
+  window.addEventListener("pagehide", sauvegarder);
 
   lancerBoucle({
     mettreAJour(dt) {
