@@ -12,7 +12,9 @@ cercle le plus influent qui dirige Brütàl avec le meilleur de chaque faction.
 
 ## Direction artistique
 
-- Pixel art **détaillé**, personnages et univers en **32×32 minimum**.
+- Pixel art **détaillé**, personnages et univers en **64×64**.
+  (Décision du 10/06/2026 : on assume le surcoût de travail de pixel art
+  pour avoir des personnages réellement détaillés.)
 - **Armes & outils** visibles cosmétiquement, chacun son skin.
 - **Armures = sets complets** qui changent le sprite global du héros
   (pas pièce par pièce indépendamment).
@@ -96,7 +98,7 @@ réinvestir » est ce qui accroche le joueur sur la durée.
 On construit un socle + **UN** pilier complet et fun à la fois, on teste, on valide
 que c'est addictif, **puis** on empile le suivant.
 
-0. **Socle commun** : héros 32×32 qui se déplace dans un bout de Brütàl
+0. **Socle commun** : héros 64×64 qui se déplace dans un bout de Brütàl
    + système d'équipement (avec skins) + sauvegarde / chargement.
 1. **Combat** (deck-builder) — *en premier*, car il définit ce que font les cartes,
    donc les items, donc le craft.
@@ -132,7 +134,7 @@ Brutal/
 │   ├── systems/      ← un dossier par pilier : combat/ forge/ economy/ collection/ progression/
 │   ├── ui/           ← HUD, menus, dialogues (+ i18n en/ fr/)
 │   └── world/        ← ville Brütàl, zones, navigation
-├── images/           ← sprites 32×32
+├── images/           ← sprites 64×64
 ├── sons/             ← bruitages, musiques
 └── docs/             ← ce document + notes de conception
 ```

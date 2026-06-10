@@ -24,6 +24,7 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
   de test — clavier ZQSD / WASD / flèches.
 - ✅ **Équipement + skins** : bibliothèques d'armes et de sets d'armure
   (stats + sprites), visibles sur le nain — touches R (arme) et E (armure).
+- ✅ **Passage en 64×64** : héros plus détaillé, écran de jeu agrandi.
 - ⏭️ Prochaine étape : la sauvegarde locale, puis le premier pilier jouable,
   le **combat**.
 
@@ -47,7 +48,7 @@ mini-serveur local pour ça. On teste en ligne, c'est notre méthode de toute fa
 | `jeu/systems/`      | Les mécaniques : équipement (combat, forge… plus tard). |
 | `jeu/entities/`     | Les personnages : le héros (PNJ et ennemis plus tard).  |
 | `jeu/world/`        | Les lieux : la zone de test (la ville Brütàl plus tard).|
-| `images/`           | Les visuels : planches de sprites 32×32.                |
+| `images/`           | Les visuels : planches de sprites 64×64.                |
 | `outils/`           | Les outils de chantier (génération des sprites provisoires). |
 | `docs/concept.md`   | Le concept complet du jeu — la « bible » du projet.     |
 | `CLAUDE.md`         | Les règles de travail entre Brioche et Claude.          |
