@@ -25,8 +25,8 @@
     l'objectif « intéressant et addictif » — argumenter, puis le laisser trancher.
   - Pas de formules de flatterie (« bonne question », « excellente idée »…) :
     aller droit au contenu.
-  - Terminer chaque réponse par la phrase « J'ai fini Brioche » pour signaler
-    clairement la fin du tour.
+  - Terminer chaque réponse par la phrase « **J'ai fini Brioche** » (en gras)
+    pour signaler clairement la fin du tour.
 
 ## Organisation du travail
 
