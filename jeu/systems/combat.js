@@ -17,8 +17,12 @@ import { armeActuelle } from "./equipement.js";
 // ----- Réglages (équilibrage, valeurs provisoires) -------------------------
 const PV_HEROS = 40;
 const TAILLE_MAIN = 5;        // cartes piochées par tour
-// Deck de base commun (avant l'ajout des cartes d'équipement)
-const DECK_BASE = ["frappe", "frappe", "frappe", "frappe", "garde", "garde", "garde"];
+// Deck de base commun : des cartes FAIBLES à 0 Chaleur (toujours jouables),
+// avant l'ajout des cartes fortes (coûteuses) de l'équipement.
+const DECK_BASE = [
+  "coup-faible", "coup-faible", "coup-faible", "coup-faible", "coup-faible",
+  "garde-faible", "garde-faible", "garde-faible",
+];
 
 // La Chaleur de Forge (l'énergie des cartes). Elle PERSISTE entre les tours et
 // peut monter en SURCHAUFFE au-dessus du seuil. Ces valeurs de base seront

@@ -125,7 +125,10 @@ télégraphées**. Mise en scène : **héros à gauche, ennemis à droite**, on 
 
 **Le deck est le miroir de l'équipement.**
 
-- Un **deck de base commun**, permanent (cartes non liées à un équipement).
+- Un **deck de base commun**, permanent : des cartes **à 0 Chaleur mais faibles**
+  (ex. *Tap* 3 dégâts, *Brace* 3 Pierre). Elles évitent les tours vides quand la
+  Chaleur est basse ; les cartes **fortes coûtent de la Chaleur** et viennent du
+  **stuff**. → sans équipement on « bricole », bien équipé on frappe fort.
 - Chaque **arme / armure / rune / gemme équipée injecte ses propres cartes**,
   et les **retire au déséquipement**.
 - Changer d'arme = gagner ses cartes, perdre celles de l'ancienne
