@@ -218,6 +218,16 @@
       margin-top: 2.4rem;
     }
 
+    /* ---- Le fondu au noir (transitions entre zones) ---- */
+    .fondu {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 17;
+    }
+
     /* ---- Le flash de combat (façon FF9) ---- */
     .flash {
       position: fixed;
@@ -401,6 +411,9 @@
     <div id="hud-arme"></div>
     <div id="hud-armure"></div>
   </div>
+
+  <!-- Le fondu au noir (transitions entre zones) -->
+  <div class="fondu" id="fondu"></div>
 
   <!-- Le flash de combat -->
   <div class="flash" id="flash"></div>

@@ -57,13 +57,17 @@ export function tuileSousLesPieds(carte, heros) {
 // ---- Dessin -------------------------------------------------------------
 
 const STYLE = {
-  solVille: ["#211c18", "#1d1916"],
-  solSauvage: ["#1b211a", "#171d17"],
-  mousse: "#2a3324",
+  solVille: ["#211c18", "#1d1916"],     // dallage travaillé de la cité
+  solCaverne: ["#2a2520", "#241f1b"],   // roche brute des souterrains
+  gravats: "#3a332b",                    // petits cailloux / gravats au sol
+  veine: "#9a6b2f",                      // rare veine de minerai (lueur ocre)
   mur: "#4a505a",
   joint: "#2b2f36",
   mineFond: "#0b0907",
   mineCadre: "#5a4632",
+  porteFond: "#1a120c",                  // l'ouverture sombre de la porte
+  porteCadre: "#7a6f60",                 // l'encadrement de pierre
+  porteLueur: "#b9692e",                 // lueur de torche venant de l'autre côté
 };
 
 // Ne dessine que les tuiles visibles par la caméra
@@ -99,15 +103,34 @@ export function dessinerCarte(ctx, carte, camera, largeurVue, hauteurVue) {
         continue;
       }
 
-      // Sols : damier discret, version ville ou version sauvage
-      const couleurs = caractere === "," ? STYLE.solSauvage : STYLE.solVille;
+      if (caractere === "P") {
+        // Une porte : encadrement de pierre, ouverture sombre, lueur de torche
+        ctx.fillStyle = STYLE.porteFond;
+        ctx.fillRect(x, y, TUILE, TUILE);
+        ctx.fillStyle = STYLE.porteCadre;
+        ctx.fillRect(x, y, TUILE, 6);              // linteau
+        ctx.fillRect(x, y, 6, TUILE);              // montant gauche
+        ctx.fillRect(x + TUILE - 6, y, 6, TUILE);  // montant droit
+        ctx.fillStyle = STYLE.porteLueur;
+        ctx.fillRect(x + 10, y + TUILE - 9, TUILE - 20, 6); // lueur au seuil
+        continue;
+      }
+
+      // Sols : damier discret, version ville (dalles) ou souterrain (roche)
+      const couleurs = caractere === "," ? STYLE.solCaverne : STYLE.solVille;
       ctx.fillStyle = couleurs[(c + l) % 2];
       ctx.fillRect(x, y, TUILE, TUILE);
-      // Quelques touffes de mousse sur le sol sauvage (motif fixe, sans hasard)
-      if (caractere === "," && (c * 7 + l * 13) % 9 === 0) {
-        ctx.fillStyle = STYLE.mousse;
-        ctx.fillRect(x + 12, y + 18, 4, 3);
-        ctx.fillRect(x + 20, y + 8, 3, 3);
+      // Détails de la roche : gravats fréquents, rare veine de minerai
+      if (caractere === ",") {
+        const motif = (c * 7 + l * 13) % 9;
+        if (motif === 0) {
+          ctx.fillStyle = STYLE.gravats;
+          ctx.fillRect(x + 12, y + 18, 5, 3);
+          ctx.fillRect(x + 21, y + 9, 3, 3);
+        } else if (motif === 4) {
+          ctx.fillStyle = STYLE.veine;
+          ctx.fillRect(x + 22, y + 21, 3, 3);
+        }
       }
     }
   }

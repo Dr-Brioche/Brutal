@@ -40,18 +40,23 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
 
 ## Monde & déplacement (validé le 10/06/2026)
 
+- **Tout est SOUS TERRE** : on ne va **jamais** à la surface. Le monde, c'est
+  la cité naine et les galeries qui l'entourent.
 - **À pied, caméra qui suit le héros** (style Pokémon Bleu). Le monde est
-  découpé en **zones/écrans** chargés quand on passe d'une zone à l'autre.
+  découpé en **zones**, reliées par des **portes** : marcher sur une porte fait
+  passer dans la zone voisine (court fondu au noir). *(fait)*
 - **La ville Brütàl** se parcourt à pied ; les bâtiments des factions sont
   les **entrées** vers les écrans d'activité.
 - **PNJ de ville** : personnages d'ambiance (1er jet : un *fanatique* qui
   arpente la place et interpelle le héros à l'approche). À terme : **dialogues**
   et donneurs de quêtes. Format sprite : à l'échelle de la carte (repos +
   marche gauche/droite), découpé par un outil dans `outils/`.
-- **L'extérieur** : carte(s) d'exploration à décor de **montagne profonde
-  (style Moria)**, avec des **zones d'intérêt** posées dessus.
-- **La « Profondeur »** : zone de minage **générée +/- aléatoirement**
-  (procédurale — aléatoire encadré par des règles, pas du pur hasard).
+- **Les souterrains autour de Brütàl** : galeries et cavernes de **roche
+  (style Moria)** — l'exploration et les dangers. C'est là qu'on croise les
+  monstres. *(1er jet : une zone reliée à la ville par une porte)*
+- **La « Profondeur »** : niveaux de minage plus profonds, **générés +/-
+  aléatoirement** (procédural — aléatoire encadré par des règles), atteints
+  via les **entrées de mine** (`M`). À venir.
 - **Monstres invisibles sur la carte** : pas de sprite d'ennemi en exploration.
   Dans les zones d'exploration, **chance de rencontre aléatoire** →
   **flash d'écran façon FF9** → bascule sur l'écran de combat.

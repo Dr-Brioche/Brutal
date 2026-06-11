@@ -5,8 +5,8 @@ import { clavier } from "./core/clavier.js";
 import { chargerImage } from "./core/sprites.js";
 import { creerCamera, mettreAJourCamera } from "./core/camera.js";
 import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js";
-import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds } from "./world/carte.js";
-import { ZONE_TEST } from "./data/zones.js";
+import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, TUILE } from "./world/carte.js";
+import { VILLE, ZONES } from "./data/zones.js";
 import { ARMES } from "./data/armes.js";
 import { ARMURES } from "./data/armures.js";
 import {
@@ -15,7 +15,7 @@ import {
   changerArme, changerArmure,
 } from "./systems/equipement.js";
 import { installerMenu } from "./ui/menu.js";
-import { afficherMessage, flashCombat } from "./ui/effets.js";
+import { afficherMessage, flashCombat, fondu } from "./ui/effets.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { demarrerCombat } from "./ui/combat.js";
 import { ennemiParId, ENNEMIS } from "./data/ennemis.js";
@@ -47,6 +47,12 @@ function majHud(equipement) {
     `[E] Armor  : ${armure.nom}  (+${armure.defense} DEF)`;
 }
 
+// Place le héros pour que ses PIEDS soient centrés sur une case (colonne, ligne).
+function poserHeros(heros, colonne, ligne) {
+  heros.x = colonne * TUILE - 16;
+  heros.y = ligne * TUILE - 38;
+}
+
 // `donneesInitiales` : la sauvegarde choisie sur l'écran de démarrage
 // (ou null pour une nouvelle partie).
 export async function demarrerJeu(donneesInitiales = null) {
@@ -58,7 +64,11 @@ export async function demarrerJeu(donneesInitiales = null) {
   const images = await Promise.all(chemins.map(chargerImage));
   const planches = new Map(chemins.map((chemin, i) => [chemin, images[i]]));
 
-  const carte = creerCarte(ZONE_TEST);
+  // La zone courante (on démarre dans la ville). `carte` et `rencontres`
+  // changent à chaque passage de porte, d'où le `let`.
+  let zoneActuelle = "ville";
+  let carte = creerCarte(VILLE);
+  let rencontres = creerRencontres();
   const camera = creerCamera();
   const heros = creerHeros();
   heros.x = carte.departX;
@@ -67,23 +77,26 @@ export async function demarrerJeu(donneesInitiales = null) {
   appliquerEquipement(heros, equipement, planches);
   majHud(equipement);
 
-  // Un PNJ d'ambiance : un fanatique qui arpente la ville (rangée 7).
-  // Bornes et position calées sur la grille de tuiles (32 px).
+  const hud = document.getElementById("hud");
+  let enPause = false;
+  let enTransition = false;
+  let combatEnCours = null;        // non-null = on est en combat
+
+  // Un PNJ d'ambiance : un fanatique qui arpente la place de la ville.
   const fanatique = creerPnj({
     modele: FANATIQUE,
     planche: planches.get(FANATIQUE.planche),
-    x: 8 * 32 - 11,
-    y: 7 * 32 - 56,
-    xMin: 4 * 32 - 11,
-    xMax: 15 * 32 - 11,
+    x: 12 * TUILE - 11,
+    y: 6 * TUILE - 56,
+    xMin: 9 * TUILE - 11,
+    xMax: 20 * TUILE - 11,
     message: "Repent, dwarf — the Deep stirs, and it knows your name.",
   });
-
-  let enPause = false;
 
   // L'état qu'un emplacement de sauvegarde retient.
   function obtenirEtat() {
     return {
+      zone: zoneActuelle,
       x: heros.x,
       y: heros.y,
       direction: heros.direction,
@@ -102,6 +115,12 @@ export async function demarrerJeu(donneesInitiales = null) {
     const armure = ARMURES.findIndex((a) => a.id === donnees.armureId);
     if (arme !== -1) equipement.arme = arme;
     if (armure !== -1) equipement.armure = armure;
+    // Recharger la bonne zone AVANT de valider la position
+    if (donnees.zone && ZONES[donnees.zone] && donnees.zone !== zoneActuelle) {
+      carte = creerCarte(ZONES[donnees.zone]);
+      zoneActuelle = donnees.zone;
+      rencontres = creerRencontres();
+    }
     if (
       Number.isFinite(donnees.x) && Number.isFinite(donnees.y) &&
       piedsLibres(carte, donnees.x, donnees.y) // jamais dans un mur
@@ -114,6 +133,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     }
     appliquerEquipement(heros, equipement, planches);
     majHud(equipement);
+    mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
   }
 
   installerMenu({
@@ -145,12 +165,37 @@ export async function demarrerJeu(donneesInitiales = null) {
     surPointInteret = tuile.caractere === "M";
   }
 
-  // Les rencontres : sur les tuiles sauvages, un monstre invisible surgit.
-  // Flash façon FF9, puis bascule sur l'écran de combat.
-  const hud = document.getElementById("hud");
-  const rencontres = creerRencontres();
-  let combatEnCours = null;        // non-null = on est en combat
+  // Les portes : marcher sur une case 'P' fait passer dans la zone reliée.
+  let surPorte = false;
+  function verifierPorte(tuile) {
+    if (tuile.caractere === "P" && !surPorte && !enTransition) {
+      const portail = (ZONES[zoneActuelle].portails || []).find(
+        (p) => p.colonne === tuile.colonne && p.ligne === tuile.ligne
+      );
+      if (portail) allerVersZone(portail.vers, portail.entree);
+    }
+    surPorte = tuile.caractere === "P";
+  }
 
+  async function allerVersZone(zoneId, entree) {
+    if (enTransition) return;
+    enTransition = true;
+    enPause = true;
+    await fondu(1);                  // écran au noir
+    carte = creerCarte(ZONES[zoneId]);
+    zoneActuelle = zoneId;
+    poserHeros(heros, entree.colonne, entree.ligne);
+    rencontres = creerRencontres();  // période de grâce fraîche dans la zone
+    surPorte = true;                 // on arrive : ne pas re-déclencher
+    mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
+    afficherMessage(carte.nom);
+    await fondu(0);                  // on rouvre l'écran
+    enPause = false;
+    enTransition = false;
+  }
+
+  // Les rencontres : sur les tuiles de souterrain, un monstre invisible surgit.
+  // Flash façon FF9, puis bascule sur l'écran de combat.
   async function declencherRencontre() {
     enPause = true;                 // le monde se fige pendant le flash
     await flashCombat();
@@ -178,12 +223,13 @@ export async function demarrerJeu(donneesInitiales = null) {
     mettreAJour(dt) {
       // Pendant un combat, c'est lui qui pilote tout (le monde est figé)
       if (combatEnCours) { combatEnCours.mettreAJour(dt); return; }
-      if (enPause) return;          // jeu figé tant que le menu est ouvert
+      if (enPause) return;          // figé : menu ouvert ou transition en cours
       mettreAJourHeros(heros, clavier, dt, carte);
       const tuile = tuileSousLesPieds(carte, heros);
       verifierPointsInteret(tuile);
+      verifierPorte(tuile);
       if (avancerRencontres(rencontres, tuile)) declencherRencontre();
-      mettreAJourPnj(fanatique, dt, heros);
+      if (zoneActuelle === "ville") mettreAJourPnj(fanatique, dt, heros);
       mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
     },
     dessiner() {
@@ -194,13 +240,18 @@ export async function demarrerJeu(donneesInitiales = null) {
       // Tout est dessiné dans le repère du monde, décalé par la caméra
       ctx.translate(-Math.round(camera.x), -Math.round(camera.y));
       dessinerCarte(ctx, carte, camera, canvas.width, canvas.height);
-      // Profondeur : celui dont les pieds sont les plus « hauts » passe derrière
-      if (piedsPnj(fanatique) <= heros.y + 54) {
-        dessinerPnj(ctx, fanatique);
-        dessinerHeros(ctx, heros);
+      // Le fanatique n'existe que dans la ville. Profondeur : celui dont les
+      // pieds sont les plus « hauts » passe derrière l'autre.
+      if (zoneActuelle === "ville") {
+        if (piedsPnj(fanatique) <= heros.y + 54) {
+          dessinerPnj(ctx, fanatique);
+          dessinerHeros(ctx, heros);
+        } else {
+          dessinerHeros(ctx, heros);
+          dessinerPnj(ctx, fanatique);
+        }
       } else {
         dessinerHeros(ctx, heros);
-        dessinerPnj(ctx, fanatique);
       }
       ctx.restore();
     },

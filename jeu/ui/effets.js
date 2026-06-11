@@ -10,6 +10,16 @@ export function flashCombat() {
   return new Promise((resoudre) => setTimeout(resoudre, 700));
 }
 
+// Fondu au noir pour les transitions de zone. Règle l'opacité du voile noir
+// (0 = transparent, 1 = noir plein) et renvoie une promesse résolue à la fin
+// du fondu — pour enchaîner : await fondu(1) … changer de zone … await fondu(0).
+export function fondu(opacite, duree = 220) {
+  const voile = document.getElementById("fondu");
+  voile.style.transition = `opacity ${duree}ms ease`;
+  voile.style.opacity = String(opacite);
+  return new Promise((resoudre) => setTimeout(resoudre, duree));
+}
+
 let minuterieMessage = null;
 
 // Affiche un court message en bas de l'écran, qui disparaît tout seul.

@@ -30,9 +30,10 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
   sans serveur.
 - ✅ **Écran de démarrage** : au lancement, choix entre **New Game** et la
   reprise d'une sauvegarde (sauté s'il n'existe encore aucune sauvegarde).
-- ✅ **Zone de test explorable** : caméra qui suit le nain, vrais murs
-  (collisions), quartier de ville + zone sauvage, entrée de mine.
-- ✅ **Rencontres aléatoires** : sur le sol sauvage, un monstre surgit —
+- ✅ **Deux zones reliées par une porte** : la **ville** (sûre) et les
+  **souterrains** (roche style Moria, dangereux) — on passe de l'une à l'autre
+  en marchant sur une **porte**, avec un fondu au noir. Tout est sous terre.
+- ✅ **Rencontres aléatoires** : dans les souterrains, un monstre surgit —
   flash d'écran façon FF9 — et bascule sur le combat.
 - ✅ **Combat, premier jet jouable** 🃏 : écran dédié (nain de profil à gauche,
   ennemi à droite), **cartes** à jouer, **Chaleur de Forge** comme énergie,
