@@ -41,10 +41,12 @@ function ajusterEchelle() {
 }
 window.addEventListener("resize", ajusterEchelle);
 
-// Le HUD (interface par-dessus le jeu) affiche l'équipement porté.
-function majHud(equipement) {
+// Le HUD (interface par-dessus le jeu) affiche la vie + l'équipement porté.
+function majHud(equipement, heros) {
   const arme = armeActuelle(equipement);
   const armure = armureActuelle(equipement);
+  document.getElementById("hud-pv").textContent =
+    `❤ HP    : ${heros.pv}/${heros.pvMax}`;
   document.getElementById("hud-arme").textContent =
     `[R] Weapon : ${arme.nom}  (+${arme.degats} ATK)`;
   document.getElementById("hud-armure").textContent =
@@ -78,7 +80,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   heros.y = carte.departY;
   const equipement = creerEquipement();
   appliquerEquipement(heros, equipement, planches);
-  majHud(equipement);
+  majHud(equipement, heros);
 
   const hud = document.getElementById("hud");
   let enPause = false;
@@ -102,6 +104,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       zone: zoneActuelle,
       x: heros.x,
       y: heros.y,
+      pv: heros.pv,
       direction: heros.direction,
       armeId: armeActuelle(equipement).id,
       armureId: armureActuelle(equipement).id,
@@ -134,8 +137,11 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (["bas", "gauche", "droite", "haut"].includes(donnees.direction)) {
       heros.direction = donnees.direction;
     }
+    if (Number.isFinite(donnees.pv)) {
+      heros.pv = Math.max(1, Math.min(heros.pvMax, donnees.pv)); // jamais 0 ni au-delà du max
+    }
     appliquerEquipement(heros, equipement, planches);
-    majHud(equipement);
+    majHud(equipement, heros);
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
   }
 
@@ -155,7 +161,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     else if (e.code === "KeyE") changerArmure(equipement);
     else return;
     appliquerEquipement(heros, equipement, planches);
-    majHud(equipement);
+    majHud(equipement, heros);
   });
 
   // Les points d'intérêt : le message vient du catalogue (champ `interet`),
@@ -211,12 +217,17 @@ export async function demarrerJeu(donneesInitiales = null) {
       surFin: (resultat) => {
         combatEnCours = null;
         hud.hidden = false;
-        enPause = false;
-        afficherMessage(
-          resultat === "victoire"
-            ? "⚔ The creature falls. The dark grows quiet."
-            : "💀 You were overwhelmed... and crawl back to safety."
-        );
+        majHud(equipement, heros);     // la vie a pu baisser (elle persiste)
+        if (resultat === "defaite") {
+          // Pas encore mort : on se réveille en ville, à 1 PV (à soigner).
+          heros.pv = 1;
+          majHud(equipement, heros);
+          afficherMessage("💀 You collapse... and wake up back in Brütàl.");
+          allerVersZone("ville", VILLE.depart); // retour sûr (gère le fondu + la pause)
+        } else {
+          enPause = false;
+          afficherMessage("⚔ The creature falls. The dark grows quiet.");
+        }
       },
     });
   }

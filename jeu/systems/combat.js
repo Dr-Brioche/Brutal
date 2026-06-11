@@ -15,7 +15,6 @@ import { CARTES } from "../data/cartes.js";
 import { armeActuelle } from "./equipement.js";
 
 // ----- Réglages (équilibrage, valeurs provisoires) -------------------------
-const PV_HEROS = 40;
 const TAILLE_MAIN = 5;        // cartes piochées par tour
 // Deck de base commun : des cartes FAIBLES à 0 Chaleur (toujours jouables),
 // avant l'ajout des cartes fortes (coûteuses) de l'équipement.
@@ -55,11 +54,13 @@ function construireDeck(equipement) {
   return ids.map((id) => CARTES[id]);
 }
 
-export function creerCombat(equipement, ennemi) {
+// `pv` / `pvMax` : la vie du héros, qui PERSISTE entre les combats (passée par
+// l'appelant). On ne repart donc pas à pleine vie à chaque bataille.
+export function creerCombat(equipement, ennemi, pv = 40, pvMax = 40) {
   const combat = {
     // Héros
-    pvHerosMax: PV_HEROS,
-    pvHeros: PV_HEROS,
+    pvHerosMax: pvMax,
+    pvHeros: pv,
     pierre: 0,
     // Chaleur de Forge (persiste, comme la Pierre) + ses stats de surchauffe
     chaleur: CHALEUR_DEPART,

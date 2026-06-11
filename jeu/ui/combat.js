@@ -20,7 +20,7 @@ const JAUGE = { x: 20, y: 76, l: 26, h: 192 }; // jauge de Chaleur (lave), à ga
 // ---------------------------------------------------------------------------
 
 export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFin }) {
-  const combat = creerCombat(equipement, ennemi);
+  const combat = creerCombat(equipement, ennemi, heros.pv, heros.pvMax);
   const plancheEnnemi = planches?.get(ennemi.planche) ?? null;
   const spr = ennemi.sprite;
   const cx = GOBELIN.x + spr.caseL / 2; // centre horizontal de l'ennemi
@@ -188,6 +188,7 @@ export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFi
     panneauResultat.hidden = true;
     boutonFin.removeEventListener("click", finDeTour);
     boutonContinuer.removeEventListener("click", fermer);
+    heros.pv = combat.pvHeros; // la vie persiste vers la carte
     surFin(combat.resultat);
   }
 

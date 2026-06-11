@@ -18,6 +18,8 @@ export function creerHeros() {
     tempsAnimation: 0,
     plancheArmure: null, // le corps du nain : changé par le set d'armure porté
     plancheArme: null,   // l'arme tenue : dessinée par-dessus
+    pvMax: 40,           // points de vie max
+    pv: 40,              // vie courante — PERSISTE entre les combats
   };
 }
 
