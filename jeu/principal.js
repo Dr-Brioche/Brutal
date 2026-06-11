@@ -25,15 +25,18 @@ import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
 
-// Rendu pixel art : on agrandit l'écran interne 640x360 d'un facteur ENTIER
-// (x2, x3...) pour remplir la fenêtre sans jamais flouter les pixels.
+// Le canvas remplit TOUTE la fenêtre (plus de marges noires). Sa résolution
+// interne = fenêtre / ZOOM : ZOOM = taille d'un pixel-jeu à l'écran. Plus ZOOM
+// est petit, plus on voit loin (mais plus les sprites sont petits). Bornée pour
+// garder une vue raisonnable sur très grand écran.
+const ZOOM = 2;
+const VUE_MAX = { l: 1344, h: 800 };
 function ajusterEchelle() {
-  const echelle = Math.max(
-    1,
-    Math.floor(Math.min(innerWidth / canvas.width, innerHeight / canvas.height))
-  );
-  canvas.style.width = canvas.width * echelle + "px";
-  canvas.style.height = canvas.height * echelle + "px";
+  canvas.width = Math.min(VUE_MAX.l, Math.ceil(innerWidth / ZOOM));
+  canvas.height = Math.min(VUE_MAX.h, Math.ceil(innerHeight / ZOOM));
+  canvas.style.width = innerWidth + "px";
+  canvas.style.height = innerHeight + "px";
+  ctx.imageSmoothingEnabled = false; // redimensionner le canvas réinitialise le contexte
 }
 window.addEventListener("resize", ajusterEchelle);
 
@@ -56,8 +59,7 @@ function poserHeros(heros, colonne, ligne) {
 // `donneesInitiales` : la sauvegarde choisie sur l'écran de démarrage
 // (ou null pour une nouvelle partie).
 export async function demarrerJeu(donneesInitiales = null) {
-  ajusterEchelle();
-  ctx.imageSmoothingEnabled = false; // jamais de lissage : pixels nets
+  ajusterEchelle(); // règle la taille du canvas + coupe le lissage
 
   // On charge toutes les planches des bibliothèques, rangées par chemin
   const chemins = [...ARMES, ...ARMURES, ...ENNEMIS, FANATIQUE].map((objet) => objet.planche);
@@ -82,14 +84,14 @@ export async function demarrerJeu(donneesInitiales = null) {
   let enTransition = false;
   let combatEnCours = null;        // non-null = on est en combat
 
-  // Un PNJ d'ambiance : un fanatique qui arpente la place de la ville.
+  // Un PNJ d'ambiance : un fanatique qui arpente la place de la ville (rangée 8).
   const fanatique = creerPnj({
     modele: FANATIQUE,
     planche: planches.get(FANATIQUE.planche),
-    x: 12 * TUILE - 11,
-    y: 6 * TUILE - 56,
-    xMin: 9 * TUILE - 11,
-    xMax: 20 * TUILE - 11,
+    x: 18 * TUILE - 11,
+    y: 8 * TUILE - 56,
+    xMin: 14 * TUILE - 11,
+    xMax: 28 * TUILE - 11,
     message: "Repent, dwarf — the Deep stirs, and it knows your name.",
   });
 

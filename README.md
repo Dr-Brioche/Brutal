@@ -30,9 +30,12 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
   sans serveur.
 - ✅ **Écran de démarrage** : au lancement, choix entre **New Game** et la
   reprise d'une sauvegarde (sauté s'il n'existe encore aucune sauvegarde).
+- ✅ **Affichage plein écran** : le jeu remplit toute la fenêtre (fini les
+  marges noires) et on voit **plus loin** sur la carte. Réglable d'une valeur.
 - ✅ **Deux zones reliées par une porte** : la **ville** (sûre) et les
-  **souterrains** (roche style Moria, dangereux) — on passe de l'une à l'autre
-  en marchant sur une **porte**, avec un fondu au noir. Tout est sous terre.
+  **souterrains** (roche style Moria, dangereux), **agrandies** — on passe de
+  l'une à l'autre en marchant sur une **porte**, avec un fondu au noir. Tout est
+  sous terre.
 - ✅ **Rencontres aléatoires** : dans les souterrains, un monstre surgit —
   flash d'écran façon FF9 — et bascule sur le combat.
 - ✅ **Combat, premier jet jouable** 🃏 : écran dédié (nain de profil à gauche,

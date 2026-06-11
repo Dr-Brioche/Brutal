@@ -200,6 +200,15 @@ export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFi
   }
 
   function dessiner() {
+    // Le combat est conçu en 640×360 ; on le fait tenir, centré, dans le canvas
+    // (qui remplit l'écran, taille variable). Le pourtour reste sombre.
+    const W = ctx.canvas.width, H = ctx.canvas.height;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = "#0c0907";
+    ctx.fillRect(0, 0, W, H);
+    const s = Math.min(W / 640, H / 360);
+    ctx.setTransform(s, 0, 0, s, Math.round((W - 640 * s) / 2), Math.round((H - 360 * s) / 2));
+
     dessinerFond(ctx);
 
     // Ennemi : sa frame courante. À sa mort il s'estompe pendant que les
@@ -248,6 +257,7 @@ export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFi
     }
     ctx.globalAlpha = 1;
     ctx.textAlign = "left";
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // on rétablit le repère écran après la scène
   }
 
   return { mettreAJour, dessiner };
