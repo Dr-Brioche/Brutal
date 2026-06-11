@@ -50,6 +50,12 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
   jouable ; les cartes fortes coûtent de la Chaleur et viennent du **stuff**.
 - ✅ **La vie persiste** entre les combats (plus de soin gratuit). À la défaite,
   on se réveille en ville à 1 PV.
+- ✅ **Butin & inventaire** 🎒 : les monstres lâchent de l'**or** et des **objets**
+  (selon leur rareté). **Inventaire (touche B)** façon Diablo : un **sac** en cases
+  (les objets prennent de la place) et une **poupée d'équipement** (arme(s),
+  armure, gants, bottes, collier, 5 bagues, sac). Clic pour équiper / déséquiper.
+  L'équipement change le **skin**, les **cartes** et les stats. (Plus de R/E :
+  on a un stuff de départ et on s'équipe via le sac.)
 - ✅ **Dialogues** 💬 : près du **fanatique**, *[Space] Talk* ouvre un dialogue
   avec un choix — se faire **soigner** ou partir. (Le soin, c'est lui pour l'instant.)
 - ✅ **Tout au clavier** : déplacements ZQSD/WASD/flèches, **Espace** pour

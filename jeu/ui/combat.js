@@ -9,6 +9,7 @@
 // ces deux fonctions tant que le combat est actif.
 
 import { creerCombat, jouerCarte, finirTour, degatsSurchauffe } from "../systems/combat.js";
+import { cartesEquipees } from "../systems/inventaire.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
@@ -19,8 +20,10 @@ const SOL_Y = 270;                  // ligne de sol
 const JAUGE = { x: 20, y: 76, l: 26, h: 192 }; // jauge de Chaleur (lave), à gauche
 // ---------------------------------------------------------------------------
 
-export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFin }) {
-  const combat = creerCombat(equipement, ennemi, heros.pv, heros.pvMax);
+export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFin }) {
+  const combat = creerCombat(ennemi, {
+    pv: heros.pv, pvMax: heros.pvMax, cartes: cartesEquipees(inventaire),
+  });
   const plancheEnnemi = planches?.get(ennemi.planche) ?? null;
   const spr = ennemi.sprite;
   const cx = GOBELIN.x + spr.caseL / 2; // centre horizontal de l'ennemi

@@ -8,19 +8,18 @@ import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js
 import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, TUILE } from "./world/carte.js";
 import { VILLE, ZONES } from "./data/zones.js";
 import { tuileDef, estPorte } from "./data/tuiles.js";
-import { ARMES } from "./data/armes.js";
-import { ARMURES } from "./data/armures.js";
+import { ITEMS } from "./data/items.js";
 import {
-  creerEquipement, appliquerEquipement,
-  armeActuelle, armureActuelle,
-  changerArme, changerArmure,
-} from "./systems/equipement.js";
+  creerInventaire, appliquerEquipement, armeEquipee, armureEquipee,
+  ajouterObjet, ajouterOr, etatInventaire, chargerInventaire,
+} from "./systems/inventaire.js";
+import { installerInventaire } from "./ui/inventaire.js";
 import { installerMenu } from "./ui/menu.js";
 import { afficherMessage, flashCombat, fondu } from "./ui/effets.js";
 import { ouvrirDialogue, dialogueActif } from "./ui/dialogue.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { demarrerCombat } from "./ui/combat.js";
-import { ennemiParId, ENNEMIS } from "./data/ennemis.js";
+import { ennemiParId, ENNEMIS, tirerButin } from "./data/ennemis.js";
 import { FANATIQUE } from "./data/pnj.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
 
@@ -42,16 +41,16 @@ function ajusterEchelle() {
 }
 window.addEventListener("resize", ajusterEchelle);
 
-// Le HUD (interface par-dessus le jeu) affiche la vie + l'équipement porté.
-function majHud(equipement, heros) {
-  const arme = armeActuelle(equipement);
-  const armure = armureActuelle(equipement);
-  document.getElementById("hud-pv").textContent =
-    `❤ HP    : ${heros.pv}/${heros.pvMax}`;
+// Le HUD (interface par-dessus le jeu) affiche la vie, l'or et l'équipement.
+function majHud(inventaire, heros) {
+  const arme = armeEquipee(inventaire);
+  const armure = armureEquipee(inventaire);
+  document.getElementById("hud-pv").textContent = `❤ HP    : ${heros.pv}/${heros.pvMax}`;
+  document.getElementById("hud-or").textContent = `🪙 Gold  : ${inventaire.or}`;
   document.getElementById("hud-arme").textContent =
-    `[R] Weapon : ${arme.nom}  (+${arme.degats} ATK)`;
+    `⚔ ${arme ? `${arme.nom}  (+${arme.degats} ATK)` : "Unarmed"}`;
   document.getElementById("hud-armure").textContent =
-    `[E] Armor  : ${armure.nom}  (+${armure.defense} DEF)`;
+    `🛡 ${armure.nom}  (+${armure.defense} DEF)`;
 }
 
 // Place le héros pour que ses PIEDS soient centrés sur une case (colonne, ligne).
@@ -65,8 +64,9 @@ function poserHeros(heros, colonne, ligne) {
 export async function demarrerJeu(donneesInitiales = null) {
   ajusterEchelle(); // règle la taille du canvas + coupe le lissage
 
-  // On charge toutes les planches des bibliothèques, rangées par chemin
-  const chemins = [...ARMES, ...ARMURES, ...ENNEMIS, FANATIQUE].map((objet) => objet.planche);
+  // On charge toutes les planches (items équipables + ennemis + PNJ), dédoublonnées
+  const aPlanche = [...Object.values(ITEMS), ...ENNEMIS, FANATIQUE].filter((o) => o.planche);
+  const chemins = [...new Set(aPlanche.map((o) => o.planche))];
   const images = await Promise.all(chemins.map(chargerImage));
   const planches = new Map(chemins.map((chemin, i) => [chemin, images[i]]));
 
@@ -79,9 +79,11 @@ export async function demarrerJeu(donneesInitiales = null) {
   const heros = creerHeros();
   heros.x = carte.departX;
   heros.y = carte.departY;
-  const equipement = creerEquipement();
-  appliquerEquipement(heros, equipement, planches);
-  majHud(equipement, heros);
+  const inventaire = creerInventaire();
+  inventaire.slots.arme1 = "hache-rouillee";      // équipement de base
+  inventaire.slots.armure = "tenue-de-voyageur";
+  appliquerEquipement(heros, inventaire, planches);
+  majHud(inventaire, heros);
 
   const hud = document.getElementById("hud");
   let enPause = false;
@@ -115,7 +117,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           texte: "I have faith — heal me.",
           action: () => {
             heros.pv = heros.pvMax;
-            majHud(equipement, heros);
+            majHud(inventaire, heros);
             afficherMessage("✨ Warmth floods your bones — fully healed.");
           },
         },
@@ -135,10 +137,9 @@ export async function demarrerJeu(donneesInitiales = null) {
       y: heros.y,
       pv: heros.pv,
       direction: heros.direction,
-      armeId: armeActuelle(equipement).id,
-      armureId: armureActuelle(equipement).id,
-      armeNom: armeActuelle(equipement).nom,     // pour l'affichage du slot
-      armureNom: armureActuelle(equipement).nom,
+      inventaire: etatInventaire(inventaire),
+      armeNom: armeEquipee(inventaire)?.nom ?? "Unarmed", // pour l'affichage du slot
+      armureNom: armureEquipee(inventaire).nom,
     };
   }
 
@@ -146,10 +147,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // sauvegarde abîmée ne doit jamais casser le jeu).
   function appliquerEtat(donnees) {
     if (!donnees) return;
-    const arme = ARMES.findIndex((a) => a.id === donnees.armeId);
-    const armure = ARMURES.findIndex((a) => a.id === donnees.armureId);
-    if (arme !== -1) equipement.arme = arme;
-    if (armure !== -1) equipement.armure = armure;
+    if (donnees.inventaire) chargerInventaire(inventaire, donnees.inventaire);
     // Recharger la bonne zone AVANT de valider la position
     if (donnees.zone && ZONES[donnees.zone] && donnees.zone !== zoneActuelle) {
       carte = creerCarte(ZONES[donnees.zone]);
@@ -169,8 +167,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (Number.isFinite(donnees.pv)) {
       heros.pv = Math.max(1, Math.min(heros.pvMax, donnees.pv)); // jamais 0 ni au-delà du max
     }
-    appliquerEquipement(heros, equipement, planches);
-    majHud(equipement, heros);
+    appliquerEquipement(heros, inventaire, planches);
+    majHud(inventaire, heros);
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
   }
 
@@ -182,15 +180,26 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   appliquerEtat(donneesInitiales); // reprise choisie au démarrage (sinon null = neuf)
 
-  // Touches d'essayage (inactives quand le menu est ouvert) :
-  // R = arme suivante, E = armure suivante
+  // L'inventaire (touche B) : équiper/déséquiper réapplique le skin + le HUD.
+  const inventaireUI = installerInventaire({
+    inventaire,
+    surChangement: () => {
+      appliquerEquipement(heros, inventaire, planches);
+      majHud(inventaire, heros);
+    },
+    surFermer: () => basculerInventaire(),
+  });
+  let inventaireOuvert = false;
+  function basculerInventaire() {
+    if (combatEnCours || dialogueActif() || enTransition) return;
+    if (!inventaireOuvert && enPause) return; // un autre écran est déjà ouvert
+    inventaireOuvert = !inventaireOuvert;
+    enPause = inventaireOuvert;
+    if (inventaireOuvert) { invite.hidden = true; inventaireUI.ouvrir(); }
+    else inventaireUI.fermer();
+  }
   window.addEventListener("keydown", (e) => {
-    if (enPause || e.repeat) return;
-    if (e.code === "KeyR") changerArme(equipement);
-    else if (e.code === "KeyE") changerArmure(equipement);
-    else return;
-    appliquerEquipement(heros, equipement, planches);
-    majHud(equipement, heros);
+    if (e.code === "KeyB" && !e.repeat) { e.preventDefault(); basculerInventaire(); }
   });
 
   // Espace : parler au PNJ tout proche
@@ -246,25 +255,31 @@ export async function demarrerJeu(donneesInitiales = null) {
     enPause = true;                 // le monde se fige pendant le flash
     await flashCombat();
     hud.hidden = true;              // on dégage le HUD d'exploration
+    const ennemi = ennemiParId("gobelin");
     combatEnCours = demarrerCombat({
-      ctx,
-      heros,
-      equipement,
-      planches,
-      ennemi: ennemiParId("gobelin"),
+      ctx, heros, inventaire, planches, ennemi,
       surFin: (resultat) => {
         combatEnCours = null;
         hud.hidden = false;
-        majHud(equipement, heros);     // la vie a pu baisser (elle persiste)
         if (resultat === "defaite") {
           // Pas encore mort : on se réveille en ville, à 1 PV (à soigner).
           heros.pv = 1;
-          majHud(equipement, heros);
+          majHud(inventaire, heros);
           afficherMessage("💀 You collapse... and wake up back in Brütàl.");
           allerVersZone("ville", VILLE.depart); // retour sûr (gère le fondu + la pause)
         } else {
           enPause = false;
-          afficherMessage("⚔ The creature falls. The dark grows quiet.");
+          // Butin : de l'or + des objets (selon leur rareté de drop)
+          const butin = tirerButin(ennemi);
+          ajouterOr(inventaire, butin.or);
+          const recus = [];
+          for (const id of butin.objets) {
+            if (ajouterObjet(inventaire, id)) recus.push(ITEMS[id].nom);
+          }
+          majHud(inventaire, heros);
+          let msg = `⚔ The goblin falls.  +${butin.or} 🪙`;
+          if (recus.length) msg += `  ·  ${recus.join(", ")}`;
+          afficherMessage(msg);
         }
       },
     });

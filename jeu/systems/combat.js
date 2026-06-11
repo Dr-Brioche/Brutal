@@ -1,6 +1,6 @@
 // Le moteur de combat : l'état d'une bataille + les règles qui le font évoluer.
 //
-// Ici, AUCUN affichage : que des nombres et des règles (comme equipement.js).
+// Ici, AUCUN affichage : que des nombres et des règles (comme inventaire.js).
 // L'écran de combat (jeu/ui/combat.js) lit cet état et le dessine.
 //
 // Grammaire (façon Slay the Spire) :
@@ -12,7 +12,6 @@
 // (contrairement au Blocage classique qui disparaît chaque tour).
 
 import { CARTES } from "../data/cartes.js";
-import { armeActuelle } from "./equipement.js";
 
 // ----- Réglages (équilibrage, valeurs provisoires) -------------------------
 const TAILLE_MAIN = 5;        // cartes piochées par tour
@@ -42,21 +41,19 @@ function melanger(tableau) {
   return t;
 }
 
-// Construit le deck de départ : deck de base + les cartes de l'arme équipée
-// (« le deck est le miroir de l'équipement »). On met 2 exemplaires de la
-// carte d'arme pour bien la voir pendant ces premiers tests.
-function construireDeck(equipement) {
+// Construit le deck de départ : deck de base + les cartes apportées par
+// l'équipement (« le deck est le miroir de l'équipement »). On met 2 exemplaires
+// de chaque carte d'équipement pour bien les voir.
+function construireDeck(cartesEquip) {
   const ids = [...DECK_BASE];
-  const arme = armeActuelle(equipement);
-  for (const idCarte of arme.cartes ?? []) {
-    ids.push(idCarte, idCarte);
-  }
-  return ids.map((id) => CARTES[id]);
+  for (const idCarte of cartesEquip ?? []) ids.push(idCarte, idCarte);
+  return ids.map((id) => CARTES[id]).filter(Boolean);
 }
 
-// `pv` / `pvMax` : la vie du héros, qui PERSISTE entre les combats (passée par
-// l'appelant). On ne repart donc pas à pleine vie à chaque bataille.
-export function creerCombat(equipement, ennemi, pv = 40, pvMax = 40) {
+// `opts` : { pv, pvMax, cartes } — la vie du héros (qui PERSISTE entre les
+// combats) et les cartes apportées par son équipement.
+export function creerCombat(ennemi, opts = {}) {
+  const { pv = 40, pvMax = 40, cartes = [] } = opts;
   const combat = {
     // Héros
     pvHerosMax: pvMax,
@@ -74,7 +71,7 @@ export function creerCombat(equipement, ennemi, pv = 40, pvMax = 40) {
     pvEnnemi: ennemi.pv,
     intention: null,        // ce que l'ennemi prépare (télégraphié au joueur)
     // Deck
-    pioche: melanger(construireDeck(equipement)),
+    pioche: melanger(construireDeck(cartes)),
     main: [],
     defausse: [],
     // Déroulé

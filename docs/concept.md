@@ -159,6 +159,24 @@ directement la **collecte** et le **marché**.
   les tours** (≠ Blocage qui disparaît chaque tour). Les nains sont coriaces →
   le jeu défensif/tank devient une vraie stratégie.
 
+## Items, butin & inventaire (1er jet implémenté)
+
+- **Butin par monstre** : chaque ennemi a une table (`butin`) — de l'**or** + des
+  **objets**, chacun avec une **rareté de drop** (probabilité). Le gobelin lâche
+  2–3 or, parfois sa pioche, rarement un anneau.
+- **Inventaire façon Diablo** (touche **B**) : un **sac** en cases ; chaque objet
+  a une **empreinte** (l×h) et prend de la place. Le sac est **petit au départ**
+  et s'**agrandira** avec des sacs (loot/craft). Rangement automatique pour l'instant.
+- **Poupée d'équipement** (« sur soi ») : **arme1 + arme2** (2 mains, ou 1 main +
+  bouclier), **armure** (= skin), **gants**, **bottes**, **collier**, **5 bagues**,
+  **sac à dos**. Catalogue dans `jeu/data/items.js`.
+- **L'équipement est la source de puissance** : il définit le **skin** (armure),
+  les **cartes** injectées dans le deck (deck = miroir de l'équipement) et les
+  **stats** (ex. bague qui monte le seuil de surchauffe). On part avec un stuff de
+  base ; on s'équipe ensuite **via le sac** (plus de touches R/E).
+- *À venir* : glisser-déposer, navigation clavier, vraies icônes pixel art,
+  effets des bijoux/gants, agrandissement du sac, vente au Deep-Market.
+
 ## La grande boucle (le moteur d'addiction)
 
 ```
