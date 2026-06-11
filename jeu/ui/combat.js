@@ -45,8 +45,49 @@ export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFi
   let animEnnemi = { nom: "idle", t: 0 };
   const jouerAnimEnnemi = (nom) => { animEnnemi = { nom, t: 0 }; };
 
+  // Mort de l'ennemi : braises de forge + estompage du sprite, puis écran de fin
+  const particules = [];
+  const mortEnnemi = { actif: false, t: 0 };
+  let delaiFin = -1, termine = false;
+
   function ajouterFlottant(texte, x, y, couleur) {
     flottants.push({ texte, x, y, couleur, t: 1 });
+  }
+
+  // Explosion de braises quand un ennemi meurt — pur code, réutilisable pour
+  // n'importe quel ennemi (pas besoin de frame de mort dessinée).
+  function exploserEnnemi() {
+    mortEnnemi.actif = true;
+    mortEnnemi.t = 0;
+    jouerAnimEnnemi("ko");
+    const ox = GOBELIN.x + spr.caseL / 2;
+    const oy = GOBELIN.y + spr.caseH * 0.5;
+    particules.push({ type: "flash", x: ox, y: oy, vx: 0, vy: 0, taille: 12, vie: 0.18, vieMax: 0.18 });
+    for (let i = 0; i < 26; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const v = 40 + Math.random() * 130;
+      particules.push({
+        type: "braise",
+        x: ox + (Math.random() - 0.5) * 40, y: oy + (Math.random() - 0.5) * 50,
+        vx: Math.cos(a) * v, vy: Math.sin(a) * v - 50,
+        taille: 2 + Math.random() * 2, vie: 0.5 + Math.random() * 0.6, vieMax: 1.1,
+      });
+    }
+    for (let i = 0; i < 8; i++) {
+      particules.push({
+        type: "fumee",
+        x: ox + (Math.random() - 0.5) * 30, y: oy + (Math.random() - 0.5) * 40,
+        vx: (Math.random() - 0.5) * 24, vy: -22 - Math.random() * 28,
+        taille: 8 + Math.random() * 10, vie: 0.7 + Math.random() * 0.5, vieMax: 1.2,
+      });
+    }
+  }
+
+  // Programme l'écran de fin après un court délai (laisse jouer le poof / le coup fatal)
+  function verifierFin() {
+    if (combat.fini && delaiFin < 0) {
+      delaiFin = combat.resultat === "victoire" ? 0.7 : 0.45;
+    }
   }
 
   // -- Construction de la main (cartes cliquables) --------------------------
@@ -70,7 +111,8 @@ export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFi
     if (combat.pvEnnemi < pvAvant) {
       animAttaque = 0.25;
       secousseEnnemi = 0.3;
-      jouerAnimEnnemi(combat.pvEnnemi <= 0 ? "ko" : "touche");
+      if (combat.pvEnnemi <= 0) exploserEnnemi();   // mort : braises de forge
+      else jouerAnimEnnemi("touche");
       ajouterFlottant(`-${pvAvant - combat.pvEnnemi}`, cx, GOBELIN.y + 36, "#ffe27a");
     }
     if (combat.pierre > pierreAvant) {
@@ -78,7 +120,7 @@ export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFi
         HEROS.x + 96, HEROS.y + 40, "#9cd3ff");
     }
     rafraichir();
-    if (combat.fini) terminer();
+    verifierFin();
   }
 
   function finDeTour() {
@@ -91,7 +133,7 @@ export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFi
         HEROS.x + 96, HEROS.y + 30, "#ff7a7a");
     }
     rafraichir();
-    if (combat.fini) terminer();
+    verifierFin();
   }
 
   function terminer() {
@@ -136,19 +178,46 @@ export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFi
     for (let i = flottants.length - 1; i >= 0; i--) {
       if (flottants[i].t <= 0) flottants.splice(i, 1);
     }
+
+    // Mort de l'ennemi : estompage + envol des braises
+    if (mortEnnemi.actif) mortEnnemi.t += dt;
+    for (const p of particules) {
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      if (p.type === "braise") { p.vy += 90 * dt; p.vx *= 0.96; } // retombent un peu
+      else if (p.type === "fumee") { p.vy -= 6 * dt; p.taille += 14 * dt; } // monte, gonfle
+      else if (p.type === "flash") { p.taille += 180 * dt; }
+      p.vie -= dt;
+    }
+    for (let i = particules.length - 1; i >= 0; i--) {
+      if (particules[i].vie <= 0) particules.splice(i, 1);
+    }
+
+    // L'écran de fin apparaît après le délai (le temps que le poof se joue)
+    if (delaiFin >= 0 && !termine) {
+      delaiFin -= dt;
+      if (delaiFin <= 0) { termine = true; terminer(); }
+    }
   }
 
   function dessiner() {
     dessinerFond(ctx);
 
-    // Ennemi : sa frame d'animation courante (+ léger tremblement si touché)
+    // Ennemi : sa frame courante. À sa mort il s'estompe pendant que les
+    // braises jaillissent ; sa barre de vie et son intention disparaissent.
     const def = spr.anims[animEnnemi.nom] ?? spr.anims.idle;
     const frame = frameAnim(def, animEnnemi.t);
     const tr = secousseEnnemi > 0 ? (Math.random() - 0.5) * 6 : 0;
-    dessinerEnnemi(ctx, plancheEnnemi, spr, frame, GOBELIN.x + tr, GOBELIN.y);
-    dessinerBarreVie(ctx, GOBELIN.x + 45, GOBELIN.y - 6, spr.caseL - 90,
-      aff.pvEnnemi / combat.pvEnnemiMax, "#c0392b");
-    if (combat.pvEnnemi > 0) dessinerIntention(ctx, combat.intention, cx, GOBELIN.y - 18);
+    const alphaEnnemi = mortEnnemi.actif ? Math.max(0, 1 - mortEnnemi.t / 0.35) : 1;
+    if (alphaEnnemi > 0) {
+      ctx.globalAlpha = alphaEnnemi;
+      dessinerEnnemi(ctx, plancheEnnemi, spr, frame, GOBELIN.x + tr, GOBELIN.y);
+      ctx.globalAlpha = 1;
+    }
+    if (!mortEnnemi.actif) {
+      dessinerBarreVie(ctx, GOBELIN.x + 45, GOBELIN.y - 6, spr.caseL - 90,
+        aff.pvEnnemi / combat.pvEnnemiMax, "#c0392b");
+      dessinerIntention(ctx, combat.intention, cx, GOBELIN.y - 18);
+    }
 
     // Héros : sprite de carte, pose « droite » (regarde l'ennemi), agrandi.
     // Pendant une attaque, il avance un peu vers l'ennemi (« poussée d'arme »).
@@ -166,6 +235,8 @@ export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFi
     if (combat.pierre > 0) {
       dessinerPierre(ctx, HEROS.x + 36, HEROS.y, Math.round(aff.pierre));
     }
+
+    dessinerParticules(ctx, particules);
 
     // Nombres de dégâts qui montent
     for (const f of flottants) {
@@ -189,6 +260,40 @@ function frameAnim(def, t) {
   let i = Math.floor(t * def.ips);
   i = def.boucle ? i % def.frames.length : Math.min(i, def.frames.length - 1);
   return def.frames[i];
+}
+
+// ----- Particules (braises de forge à la mort) -----------------------------
+
+function dessinerParticules(ctx, particules) {
+  // 1re passe : la fumée sombre, par-dessous (rendu normal)
+  for (const p of particules) {
+    if (p.type !== "fumee") continue;
+    ctx.globalAlpha = Math.max(0, Math.min(1, p.vie / p.vieMax)) * 0.32;
+    ctx.fillStyle = "#2a2622";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.taille, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // 2e passe : braises et flash en mode ADDITIF -> elles rougeoient dans le noir
+  ctx.globalCompositeOperation = "lighter";
+  for (const p of particules) {
+    if (p.type === "fumee") continue;
+    const k = Math.max(0, Math.min(1, p.vie / p.vieMax));
+    if (p.type === "braise") {
+      ctx.globalAlpha = k;
+      ctx.fillStyle = k > 0.6 ? "#ffe39a" : (k > 0.3 ? "#ff8a2c" : "#a82a12");
+      const s = Math.max(1, Math.round(p.taille));
+      ctx.fillRect(Math.round(p.x), Math.round(p.y), s, s);
+    } else { // flash : bref éclat chaud à l'instant de la mort
+      ctx.globalAlpha = k * 0.5;
+      ctx.fillStyle = "#ffca8a";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.taille, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = 1;
 }
 
 // ----- Dessin de la scène --------------------------------------------------
