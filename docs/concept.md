@@ -68,6 +68,20 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   La carte sert à circuler, explorer et déclencher — l'activité prend tout
   l'écran.
 
+### Décor : catalogue de tuiles (décision d'architecture)
+
+- Le décor est fait de **tuiles** (un **tileset**), **pas** d'images de fond
+  peintes + obstacles invisibles. Raisons : léger, réutilisable, indispensable
+  pour générer la **Profondeur** procéduralement, et la **collision = la tuile**
+  (jamais de décalage visuel/collision).
+- **Catalogue** `jeu/data/tuiles.js` : chaque tuile a un **id** (`mur`,
+  `sol-caverne`…), et des propriétés (`solide`, `rencontre`, `porte`, `interet`).
+  Les cartes restent des **grilles de caractères** (faciles à éditer).
+- Quand Brioche fournira du pixel art : on range les images dans une **galerie**
+  (ids type `mur-01`, `sol-02`…) et on remplace `couleurs` par des images dans le
+  catalogue — sans toucher aux cartes. Prévus : **variantes auto** (le moteur
+  pioche un sol parmi plusieurs) et **auto-mur** (raccord des bords/coins).
+
 ## Les piliers de gameplay
 
 1. **Collecte** de ressources (minage : minerais, pierres précieuses…).

@@ -7,6 +7,7 @@ import { creerCamera, mettreAJourCamera } from "./core/camera.js";
 import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js";
 import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, TUILE } from "./world/carte.js";
 import { VILLE, ZONES } from "./data/zones.js";
+import { tuileDef, estPorte } from "./data/tuiles.js";
 import { ARMES } from "./data/armes.js";
 import { ARMURES } from "./data/armures.js";
 import {
@@ -157,26 +158,25 @@ export async function demarrerJeu(donneesInitiales = null) {
     majHud(equipement);
   });
 
-  // Les points d'intérêt : un message quand on arrive dessus (une seule fois
-  // par passage, pas en boucle tant qu'on reste sur la tuile)
-  let surPointInteret = false;
+  // Les points d'intérêt : le message vient du catalogue (champ `interet`),
+  // affiché une seule fois par passage (pas en boucle tant qu'on reste dessus).
+  let surInteret = false;
   function verifierPointsInteret(tuile) {
-    if (tuile.caractere === "M" && !surPointInteret) {
-      afficherMessage("⛏ The Depths — mining zone (coming soon)");
-    }
-    surPointInteret = tuile.caractere === "M";
+    const message = tuileDef(tuile.caractere).interet;
+    if (message && !surInteret) afficherMessage(message);
+    surInteret = Boolean(message);
   }
 
-  // Les portes : marcher sur une case 'P' fait passer dans la zone reliée.
+  // Les portes : marcher sur une tuile-porte fait passer dans la zone reliée.
   let surPorte = false;
   function verifierPorte(tuile) {
-    if (tuile.caractere === "P" && !surPorte && !enTransition) {
+    if (estPorte(tuile.caractere) && !surPorte && !enTransition) {
       const portail = (ZONES[zoneActuelle].portails || []).find(
         (p) => p.colonne === tuile.colonne && p.ligne === tuile.ligne
       );
       if (portail) allerVersZone(portail.vers, portail.entree);
     }
-    surPorte = tuile.caractere === "P";
+    surPorte = estPorte(tuile.caractere);
   }
 
   async function allerVersZone(zoneId, entree) {

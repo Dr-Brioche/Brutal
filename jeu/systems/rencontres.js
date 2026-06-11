@@ -1,7 +1,10 @@
-// Les rencontres aléatoires : des monstres invisibles rôdent sur les
-// tuiles sauvages. À chaque NOUVELLE tuile sauvage traversée, une chance
-// de déclencher un combat (flash d'écran façon FF9).
+// Les rencontres aléatoires : des monstres invisibles rôdent sur les tuiles
+// dangereuses (celles marquées `rencontre` dans le catalogue jeu/data/tuiles.js).
+// À chaque NOUVELLE tuile dangereuse traversée, une chance de déclencher un
+// combat (flash d'écran façon FF9).
 //
+import { estRencontre } from "../data/tuiles.js";
+
 // ----- Réglages (équilibrage) ---------------------------------------------
 // La sensation de jeu se règle presque entièrement avec ces deux valeurs :
 const PAS_DE_GRACE = 6;       // tuiles tranquilles après un combat (ou au départ)
@@ -21,7 +24,7 @@ export function avancerRencontres(etat, tuile) {
   if (cle === etat.derniereTuile) return false; // toujours sur la même tuile
   etat.derniereTuile = cle;
 
-  if (tuile.caractere !== ",") return false;    // tuile sûre (ville, mine…)
+  if (!estRencontre(tuile.caractere)) return false; // tuile sûre (ville, porte…)
 
   if (etat.grace > 0) {
     etat.grace--;
