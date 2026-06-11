@@ -19,7 +19,7 @@ export const ENNEMIS = [
     attaque: 6,
     planche: "images/ennemis/gobelin.png",
     sprite: {
-      caseL: 209,
+      caseL: 204,
       caseH: 150,
       anims: {
         idle:    { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 8,  boucle: true },

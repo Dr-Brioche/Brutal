@@ -15,12 +15,14 @@
 # Lancer :  python3 outils/importer_gobelin.py
 
 from PIL import Image, ImageChops
+import math
 
 SOURCE = "images/sources/gobelin-source.png"
 SORTIE = "images/ennemis/gobelin.png"
 FRAMES_ATTENDUES = [8, 3, 3]   # idle, attaque, coup reçu
 HAUTEUR_CIBLE = 150            # hauteur d'une case dans la planche finale (px)
 SEUIL_FOND = 18               # <= cette luminosité = fond noir -> transparent
+NORMALISER = True             # remettre chaque frame à la même « masse » que l'idle
 
 
 def masque_sprite(im):
@@ -71,6 +73,19 @@ def bbox_frame(px, x0, x1, y0, y1):
     return minx, miny, maxx, maxy
 
 
+def aire_verte(frame):
+    """Surface de « peau verte » d'une frame (sert de mesure de taille du corps,
+    en ignorant l'os crème et les étoiles jaunes)."""
+    px = frame.load()
+    n = 0
+    for y in range(frame.height):
+        for x in range(frame.width):
+            r, g, b, a = px[x, y]
+            if a > 40 and g > r + 12 and g > b + 12:
+                n += 1
+    return n
+
+
 def main():
     src = Image.open(SOURCE).convert("RGB")
     W, H = src.size
@@ -103,20 +118,33 @@ def main():
     mx = ImageChops.lighter(ImageChops.lighter(r, g), b)
     rgba.putalpha(mx.point(lambda v: 0 if v <= SEUIL_FOND else 255))
 
-    # 4) Case native = plus grande frame (+ marge), puis échelle vers la cible
-    cw = max(x1 - x0 + 1 for x0, _, x1, _ in frames)
-    ch = max(y1 - y0 + 1 for _, y0, _, y1 in frames)
-    cw += 8; ch += 8
+    # 4) Découpe + NORMALISATION de taille. L'IA a dessiné le gobelin plus gros
+    # dans les frames d'action : on remet chaque frame à la même surface de peau
+    # verte que l'idle, pour qu'il ne gonfle/rétrécisse plus pendant l'animation.
+    imgs = [rgba.crop((x0, y0, x1 + 1, y1 + 1)) for x0, y0, x1, y1 in frames]
+    if NORMALISER:
+        aires = [aire_verte(im) for im in imgs]
+        idle = sorted(aires[:FRAMES_ATTENDUES[0]])
+        cible = idle[len(idle) // 2]   # médiane des frames idle
+        ajustees = []
+        for im, a in zip(imgs, aires):
+            s = math.sqrt(cible / a) if a else 1.0
+            ajustees.append(im.resize(
+                (max(1, round(im.width * s)), max(1, round(im.height * s))), Image.LANCZOS))
+        imgs = ajustees
+
+    # 5) Cases égales, alignées sur les pieds, puis échelle vers la cible
+    cw = max(im.width for im in imgs) + 8
+    ch = max(im.height for im in imgs) + 8
     echelle = HAUTEUR_CIBLE / ch
     tcw, tch = round(cw * echelle), HAUTEUR_CIBLE
 
-    planche = Image.new("RGBA", (tcw * len(frames), tch), (0, 0, 0, 0))
-    for i, (x0, y0, x1, y1) in enumerate(frames):
-        frame = rgba.crop((x0, y0, x1 + 1, y1 + 1))
+    planche = Image.new("RGBA", (tcw * len(imgs), tch), (0, 0, 0, 0))
+    for i, frame in enumerate(imgs):
         case = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
         # aligné en bas (pieds), centré horizontalement
         case.alpha_composite(frame, ((cw - frame.width) // 2, ch - frame.height))
-        case = case.resize((tcw, tch), Image.NEAREST)
+        case = case.resize((tcw, tch), Image.LANCZOS)
         planche.alpha_composite(case, (i * tcw, 0))
 
     planche.save(SORTIE)
