@@ -139,9 +139,14 @@ directement la **collecte** et le **marché**.
 
 ### Twist nain (l'identité du combat)
 
-- **Moteur principal : « Chaleur de Forge »** — remplace l'énergie générique.
-  *(Premier jet : 3 Chaleur regénérées par tour, façon Slay the Spire ; le côté
-  « la chaleur monte/descend » reste à explorer.)*
+- **Moteur principal : « Chaleur de Forge » avec SURCHAUFFE — implémenté.**
+  Jauge de lave qui **persiste** entre les tours et **se recharge** (+1/tour de
+  base). Seuil de base **3** ; on peut le dépasser jusqu'à un plafond (**8**),
+  mais au-dessus du seuil on **surchauffe** : on subit chaque tour
+  **(chaleur − seuil)²** dégâts directs (ex. à 4 → 1, à 5 → 4, à 6 → 9). Tous ces
+  réglages (recharge, seuil, plafond) seront **modifiés par l'équipement/les
+  items** : monter en chaleur = jouer plus fort, mais brûler. La jauge change de
+  **couleur et de fumée** selon la chaleur (visuel de lave).
 - Gardés en réserve comme **archétypes de cartes** (pas la ressource générale) :
   **Runes-à-charger** et **Élan-de-l'Enclume**.
 - **Défense « Pierre » — CONFIRMÉ et implémenté** : la Pierre **persiste entre

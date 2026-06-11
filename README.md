@@ -39,9 +39,13 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
 - ✅ **Rencontres aléatoires** : dans les souterrains, un monstre surgit —
   flash d'écran façon FF9 — et bascule sur le combat.
 - ✅ **Combat, premier jet jouable** 🃏 : écran dédié (nain de profil à gauche,
-  ennemi à droite), **cartes** à jouer, **Chaleur de Forge** comme énergie,
-  défense **Pierre** qui persiste, intention de l'ennemi affichée, victoire /
-  défaite. Chaque arme apporte **sa carte** (hache, marteau, pioche).
+  ennemi à droite), **cartes** à jouer, défense **Pierre** qui persiste,
+  intention de l'ennemi affichée, victoire / défaite. Chaque arme apporte
+  **sa carte** (hache, marteau, pioche).
+- ✅ **Chaleur de Forge avec surchauffe** 🌋 : jauge de lave qui s'accumule
+  (+1/tour) ; au-delà du seuil (3) on **surchauffe** et on brûle de
+  **(chaleur−seuil)²** PV/tour. La jauge chauffe en couleur et fume de plus en
+  plus haut. (Réglages bientôt modifiés par l'équipement.)
 - ✅ **Premiers vrais sprites** : le **gobelin** de combat est désormais animé
   (idle / attaque / coup reçu) ; un **PNJ « fanatique »** arpente la ville et
   t'interpelle quand tu l'approches. Les planches sont découpées par les outils

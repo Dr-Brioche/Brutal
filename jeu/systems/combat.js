@@ -16,10 +16,17 @@ import { armeActuelle } from "./equipement.js";
 
 // ----- Réglages (équilibrage, valeurs provisoires) -------------------------
 const PV_HEROS = 40;
-const ENERGIE_PAR_TOUR = 3;   // Chaleur de Forge regénérée à chaque tour
 const TAILLE_MAIN = 5;        // cartes piochées par tour
 // Deck de base commun (avant l'ajout des cartes d'équipement)
 const DECK_BASE = ["frappe", "frappe", "frappe", "frappe", "garde", "garde", "garde"];
+
+// La Chaleur de Forge (l'énergie des cartes). Elle PERSISTE entre les tours et
+// peut monter en SURCHAUFFE au-dessus du seuil. Ces valeurs de base seront
+// modifiables par l'équipement plus tard.
+const CHALEUR_DEPART = 3;     // chaleur au début du combat
+const CHALEUR_RECHARGE = 1;   // +1 par tour
+const CHALEUR_SEUIL = 3;      // au-delà = surchauffe (le « max » de base)
+const CHALEUR_MAX = 8;        // plafond absolu
 // ---------------------------------------------------------------------------
 
 // Mélange une copie du tableau (Fisher-Yates : chaque ordre est équiprobable).
@@ -50,8 +57,12 @@ export function creerCombat(equipement, ennemi) {
     pvHerosMax: PV_HEROS,
     pvHeros: PV_HEROS,
     pierre: 0,
-    energieMax: ENERGIE_PAR_TOUR,
-    energie: ENERGIE_PAR_TOUR,
+    // Chaleur de Forge (persiste, comme la Pierre) + ses stats de surchauffe
+    chaleur: CHALEUR_DEPART,
+    chaleurRecharge: CHALEUR_RECHARGE,
+    chaleurSeuil: CHALEUR_SEUIL,
+    chaleurMax: CHALEUR_MAX,
+    derniereBrulure: 0,        // dégâts de surchauffe au dernier tour (pour l'UI)
     // Ennemi
     ennemi,
     pvEnnemiMax: ennemi.pv,
@@ -118,13 +129,20 @@ function verifierFin(combat) {
   }
 }
 
+// Dégâts de surchauffe pour la chaleur actuelle : (chaleur - seuil)² si on
+// dépasse le seuil, sinon 0. (Ex. seuil 3 : à 4 → 1, à 5 → 4, à 6 → 9…)
+export function degatsSurchauffe(combat) {
+  const surplus = combat.chaleur - combat.chaleurSeuil;
+  return surplus > 0 ? surplus * surplus : 0;
+}
+
 // Joue la carte à l'indice `index` de la main. Renvoie true si elle a été jouée.
 export function jouerCarte(combat, index) {
   if (combat.fini || !combat.tourJoueur) return false;
   const carte = combat.main[index];
-  if (!carte || carte.cout > combat.energie) return false;
+  if (!carte || carte.cout > combat.chaleur) return false;
 
-  combat.energie -= carte.cout;
+  combat.chaleur -= carte.cout;
   for (const effet of carte.effets) appliquerEffet(combat, effet);
 
   combat.main.splice(index, 1);
@@ -149,8 +167,16 @@ export function finirTour(combat) {
   verifierFin(combat);
   if (combat.fini) return;
 
-  // Nouveau tour du joueur (la Pierre n'est PAS remise à zéro : elle persiste)
-  combat.energie = combat.energieMax;
+  // Nouveau tour : on recharge la Chaleur (elle persiste et peut surchauffer),
+  // puis la surchauffe brûle le héros — dégâts DIRECTS, la Pierre ne protège
+  // pas du feu intérieur. (La Pierre, elle, n'est jamais remise à zéro.)
+  combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + combat.chaleurRecharge);
+  combat.derniereBrulure = degatsSurchauffe(combat);
+  if (combat.derniereBrulure > 0) {
+    combat.pvHeros = Math.max(0, combat.pvHeros - combat.derniereBrulure);
+    verifierFin(combat);
+    if (combat.fini) return;
+  }
   piocherMain(combat);
   prevoirIntention(combat);
   combat.tourJoueur = true;
