@@ -109,11 +109,11 @@
       letter-spacing: 0.1em;
     }
 
-    /* ---- Le HUD : l'équipement porté, en bas à gauche ---- */
+    /* ---- Le HUD : vie / or / équipement, en haut à gauche ---- */
     .hud {
       position: fixed;
       left: 12px;
-      bottom: 12px;
+      top: 12px;
       padding: 8px 12px;
       font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
       font-size: 13px;
@@ -554,6 +554,31 @@
     }
     .inv-item:hover { filter: brightness(1.15); }
     .inv-aide { margin-top: 12px; font-size: 0.72rem; color: #6b7280; text-align: center; }
+
+    /* ---- Contrôles tactiles (test mobile uniquement) ---- */
+    .tactile { position: fixed; inset: 0; z-index: 9; pointer-events: none; }
+    .tac-b {
+      pointer-events: auto;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; font-weight: 800; color: #f3f4f6;
+      background: rgba(20, 18, 26, 0.55);
+      border: 1px solid rgba(180, 160, 140, 0.4);
+      border-radius: 12px;
+      user-select: none; -webkit-user-select: none; touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tac-b:active { background: rgba(180, 83, 9, 0.6); }
+    .tac-dpad {
+      position: absolute; left: 18px; bottom: 22px;
+      display: grid; grid-template-columns: repeat(3, 54px); grid-template-rows: repeat(3, 54px); gap: 5px;
+    }
+    .tac-haut   { grid-column: 2; grid-row: 1; }
+    .tac-gauche { grid-column: 1; grid-row: 2; }
+    .tac-droite { grid-column: 3; grid-row: 2; }
+    .tac-bas    { grid-column: 2; grid-row: 3; }
+    .tac-actions { position: absolute; right: 22px; bottom: 30px; display: flex; align-items: center; gap: 16px; }
+    .tac-a, .tac-bag { width: 66px; height: 66px; border-radius: 50%; }
+    .tac-menu { position: absolute; right: 16px; top: 16px; width: 46px; height: 46px; font-size: 1.1rem; }
   </style>
 </head>
 <body>
@@ -621,6 +646,21 @@
     </div>
   </div>
 
+  <!-- Contrôles tactiles (test mobile uniquement ; cachés sur PC) -->
+  <div class="tactile" id="tactile" hidden>
+    <div class="tac-dpad">
+      <button class="tac-b tac-haut"   data-code="ArrowUp">▲</button>
+      <button class="tac-b tac-gauche" data-code="ArrowLeft">◀</button>
+      <button class="tac-b tac-droite" data-code="ArrowRight">▶</button>
+      <button class="tac-b tac-bas"    data-code="ArrowDown">▼</button>
+    </div>
+    <div class="tac-actions">
+      <button class="tac-b tac-bag" data-code="KeyB">B</button>
+      <button class="tac-b tac-a"   data-code="Space">A</button>
+    </div>
+    <button class="tac-b tac-menu" data-code="Escape">≡</button>
+  </div>
+
   <!-- Le menu pause (touche Échap) : sauvegarder / charger -->
   <div class="menu" id="menu" hidden>
     <div class="menu-panneau">
@@ -652,6 +692,7 @@
   <script type="module">
     import { demarrerJeu } from "./jeu/principal.js";
     import { installerDemarrage } from "./jeu/ui/demarrage.js";
+    import { installerTactile } from "./jeu/ui/tactile.js";
 
     const ecranTitre = document.getElementById("ecran-titre");
     const canvas = document.getElementById("jeu");
@@ -663,6 +704,7 @@
         ecranTitre.hidden = true;
         canvas.hidden = false;
         hud.hidden = false;
+        installerTactile(); // contrôles tactiles si on est sur écran tactile
         demarrerJeu(donnees);
       },
     });
