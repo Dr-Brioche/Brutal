@@ -20,6 +20,11 @@ export function creerHeros() {
     plancheArme: null,   // l'arme tenue : dessinée par-dessus
     pvMax: 40,           // points de vie max
     pv: 40,              // vie courante — PERSISTE entre les combats
+    // Stats de base (provisoires : non encore utilisées par le gameplay)
+    force: 14,
+    agilite: 9,
+    foi: 8,
+    esprit: 10,          // « ingéniosité »
   };
 }
 

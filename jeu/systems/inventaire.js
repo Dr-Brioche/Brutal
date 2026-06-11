@@ -115,6 +115,18 @@ export function desequiper(inv, slot) {
 
 export function ajouterOr(inv, n) { inv.or += n; }
 
+// Somme des bonus de stats apportés par tout l'équipement (ex. { chaleurSeuil: 1 }).
+export function bonusStats(inv) {
+  const total = {};
+  for (const s of SLOTS) {
+    const id = inv.slots[s];
+    if (!id) continue;
+    const st = itemDef(id).stats;
+    if (st) for (const [k, v] of Object.entries(st)) total[k] = (total[k] || 0) + v;
+  }
+  return total;
+}
+
 // ---- Liens avec le reste du jeu ------------------------------------------
 
 // Le nain porte toujours au moins ses habits de base (pour avoir un corps).

@@ -485,51 +485,63 @@
 
     /* ---- L'inventaire (touche B) ---- */
     .inventaire {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
       background: rgba(5, 5, 8, 0.72);
       z-index: 16;
     }
     .inv-panneau {
-      width: min(560px, 94vw);
-      max-height: 92vh;
+      width: min(420px, 94vw);
+      max-height: 94vh;
       overflow: auto;
-      padding: 18px 20px 20px;
+      padding: 16px 18px 18px;
       background: #14121a;
       border: 1px solid #3b2030;
       border-radius: 14px;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
     }
     .inv-entete { display: flex; align-items: center; justify-content: space-between; }
-    .inv-titre { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+    .inv-titre { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
     .inv-or-boite { color: #ffcf57; font-weight: 700; font-family: ui-monospace, monospace; }
     #inv-fermer {
-      padding: 5px 12px; color: #f3f4f6; background: #2f2d3a;
-      border: 1px solid #45424f; border-radius: 6px; cursor: pointer;
+      padding: 4px 12px; color: #f3f4f6; background: #2f2d3a;
+      border: 1px solid #45424f; border-radius: 6px; cursor: pointer; font-weight: 700;
     }
     .inv-soustitre { margin: 14px 0 8px; font-size: 0.72rem; letter-spacing: 0.1em;
       text-transform: uppercase; color: #8b8f98; }
 
-    /* La poupée d'équipement : des slots */
-    .inv-poupee { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+    /* La fiche : slots à gauche · héros au centre · slots à droite */
+    .inv-perso { display: flex; justify-content: center; align-items: flex-start; gap: 12px; margin-top: 12px; }
+    .inv-colonne { display: flex; flex-direction: column; gap: 8px; }
+    .inv-centre { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 0 0 auto; }
+    #inv-hero {
+      background: radial-gradient(circle at 50% 40%, #211c2a, #0c0a12);
+      border: 1px solid #2c2a36; border-radius: 8px;
+      image-rendering: pixelated;
+    }
+    .inv-armes { display: flex; gap: 8px; }
+
     .inv-slot {
       position: relative;
-      aspect-ratio: 1 / 1;
-      display: flex; align-items: center; justify-content: center;
-      text-align: center;
-      background: #1d1b25;
-      border: 1px dashed #3a3744;
-      border-radius: 6px;
-      font-size: 0.6rem; color: #6b7280; padding: 2px;
+      width: 46px; height: 46px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      background: #1d1b25; border: 1px dashed #3a3744; border-radius: 6px;
+      font-size: 0.56rem; color: #6b7280; padding: 2px;
     }
+
+    /* Les stats, sous le héros */
+    .inv-stats {
+      width: 100%; margin-top: 2px;
+      background: #100e16; border: 1px solid #2c2a36; border-radius: 8px;
+      padding: 8px 12px;
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.82rem;
+    }
+    .inv-stat { display: flex; justify-content: space-between; padding: 2px 0; color: #b9c2cc; }
+    .inv-stat b { color: #fff; }
 
     /* Le sac : grille de cases */
     .inv-grille {
-      position: relative;
-      margin: 0 auto;
+      position: relative; margin: 0 auto;
       background-color: #14121a;
       background-image:
         linear-gradient(#2c2a36 1px, transparent 1px),
@@ -542,15 +554,11 @@
     .inv-item {
       display: flex; align-items: center; justify-content: center;
       width: 100%; height: 100%;
-      border: 2px solid #9aa0a6;
-      border-radius: 5px;
-      cursor: pointer;
-      overflow: hidden;
+      border: 2px solid #9aa0a6; border-radius: 5px; cursor: pointer; overflow: hidden;
     }
     .inv-item span {
-      font-size: 0.52rem; line-height: 1.05; font-weight: 700;
-      color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-      padding: 2px; text-align: center;
+      font-size: 0.5rem; line-height: 1.05; font-weight: 700;
+      color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.8); padding: 2px; text-align: center;
     }
     .inv-item:hover { filter: brightness(1.15); }
     .inv-aide { margin-top: 12px; font-size: 0.72rem; color: #6b7280; text-align: center; }
@@ -630,19 +638,26 @@
     </div>
   </div>
 
-  <!-- L'inventaire (touche B) : équipement porté + sac -->
+  <!-- La fiche de personnage / inventaire (touche B) -->
   <div class="inventaire" id="inventaire" hidden>
     <div class="inv-panneau">
       <div class="inv-entete">
-        <span class="inv-titre">Inventory</span>
+        <span class="inv-titre">Character</span>
         <span class="inv-or-boite">🪙 <span id="inv-or">0</span></span>
-        <button id="inv-fermer">Close [B]</button>
+        <button id="inv-fermer">✕</button>
       </div>
-      <div class="inv-soustitre">Equipped</div>
-      <div class="inv-poupee" id="inv-poupee"></div>
+      <div class="inv-perso">
+        <div class="inv-colonne" id="inv-gauche"></div>
+        <div class="inv-centre">
+          <canvas id="inv-hero" width="140" height="150"></canvas>
+          <div class="inv-armes" id="inv-armes"></div>
+          <div class="inv-stats" id="inv-stats"></div>
+        </div>
+        <div class="inv-colonne" id="inv-droite"></div>
+      </div>
       <div class="inv-soustitre">Bag</div>
       <div class="inv-grille" id="inv-grille"></div>
-      <p class="inv-aide">Click a bag item to equip it · click an equipped item to remove it · [B] to close</p>
+      <p class="inv-aide">Click a bag item to equip · click an equipped item to remove · [B] to close</p>
     </div>
   </div>
 

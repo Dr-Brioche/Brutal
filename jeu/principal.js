@@ -183,6 +183,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // L'inventaire (touche B) : équiper/déséquiper réapplique le skin + le HUD.
   const inventaireUI = installerInventaire({
     inventaire,
+    heros,
     surChangement: () => {
       appliquerEquipement(heros, inventaire, planches);
       majHud(inventaire, heros);

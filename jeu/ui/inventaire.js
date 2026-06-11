@@ -1,76 +1,110 @@
-// La fenêtre d'inventaire (touche B) : en haut la « poupée » d'équipement (ce
-// qu'on porte), en bas le sac (grille de cases façon Diablo, items à empreinte).
+// La fiche de personnage / inventaire (touche B), disposée verticalement :
+//   - au centre : le HÉROS avec son stuff (sprite), ses deux slots d'arme dessous,
+//     puis ses STATS ;
+//   - sur les côtés : les slots d'équipement (armure/cou/mains/pieds/sac à gauche,
+//     5 bagues à droite) ;
+//   - tout en bas : le SAC (grille de cases façon Diablo, items à empreinte).
 //
-// 1er jet : icônes placeholder (carré coloré + bordure de rareté), au clic :
-//   - clic sur un item du sac  → on l'équipe sur son slot ;
-//   - clic sur un slot équipé  → on le remet dans le sac.
-// (Le glisser-déposer et le clavier viendront ensuite.)
+// 1er jet : icônes placeholder (carré coloré + bordure de rareté). Au clic :
+//   - clic sur un item du sac  → on l'équipe ;
+//   - clic sur un item équipé  → on le remet dans le sac.
 
 import { itemDef, couleurRarete } from "../data/items.js";
-import { rangsInventaire, equiper, desequiper } from "../systems/inventaire.js";
+import { rangsInventaire, equiper, desequiper, bonusStats } from "../systems/inventaire.js";
+import { dessinerCaseEchelle } from "../core/sprites.js";
 
-const CASE = 34; // taille d'une case en px (doit matcher le fond CSS de la grille)
+const CASE = 34;            // taille d'une case du sac (doit matcher le fond CSS)
+const ECHELLE_HERO = 2;     // 64×64 → 128 dans la fiche
 
-// Disposition de la poupée d'équipement (ordre d'affichage + libellé).
-const POUPEE = [
-  { slot: "arme1", nom: "Main hand" },
-  { slot: "arme2", nom: "Off hand" },
-  { slot: "armure", nom: "Armor" },
-  { slot: "gant", nom: "Gloves" },
-  { slot: "botte", nom: "Boots" },
-  { slot: "collier", nom: "Necklace" },
-  { slot: "bague1", nom: "Ring 1" },
-  { slot: "bague2", nom: "Ring 2" },
-  { slot: "bague3", nom: "Ring 3" },
-  { slot: "bague4", nom: "Ring 4" },
-  { slot: "bague5", nom: "Ring 5" },
-  { slot: "sac", nom: "Backpack" },
-];
+const COL_GAUCHE = ["armure", "collier", "gant", "botte", "sac"];
+const COL_DROITE = ["bague1", "bague2", "bague3", "bague4", "bague5"];
+const SLOTS_ARME = ["arme1", "arme2"];
+const LABELS = {
+  arme1: "Main", arme2: "Off", armure: "Body", gant: "Hands", botte: "Feet",
+  collier: "Neck", sac: "Bag", bague1: "Ring", bague2: "Ring", bague3: "Ring",
+  bague4: "Ring", bague5: "Ring",
+};
 
-export function installerInventaire({ inventaire, surChangement, surFermer }) {
+// Stats de base de la Chaleur de Forge (cf. systems/combat.js)
+const FORGE_SEUIL = 3, FORGE_MAX = 8;
+
+export function installerInventaire({ inventaire, heros, surChangement, surFermer }) {
   const overlay = document.getElementById("inventaire");
-  const grille = document.getElementById("inv-grille");
-  const poupee = document.getElementById("inv-poupee");
+  const elGauche = document.getElementById("inv-gauche");
+  const elDroite = document.getElementById("inv-droite");
+  const elArmes = document.getElementById("inv-armes");
+  const elStats = document.getElementById("inv-stats");
+  const elGrille = document.getElementById("inv-grille");
   const elOr = document.getElementById("inv-or");
+  const canvasHero = document.getElementById("inv-hero");
   document.getElementById("inv-fermer").onclick = () => surFermer();
 
-  // Une icône d'item (carré coloré + bordure de rareté + nom).
   function iconeItem(id) {
     const d = itemDef(id);
     const el = document.createElement("div");
     el.className = "inv-item";
     el.style.background = d.icone;
     el.style.borderColor = couleurRarete(id);
-    el.title = d.nom;
+    el.title = `${d.nom}`;
     const t = document.createElement("span");
     t.textContent = d.nom;
     el.append(t);
     return el;
   }
 
-  function rendrePoupee() {
-    poupee.replaceChildren();
-    for (const { slot, nom } of POUPEE) {
-      const cell = document.createElement("div");
-      cell.className = "inv-slot";
-      const id = inventaire.slots[slot];
-      if (id) {
-        const ic = iconeItem(id);
-        ic.onclick = () => { if (desequiper(inventaire, slot)) { surChangement(); rendre(); } };
-        cell.append(ic);
-      } else {
-        cell.classList.add("vide");
-        cell.textContent = nom;
-      }
-      poupee.append(cell);
+  // Un slot d'équipement (objet équipé → clic pour déséquiper ; sinon libellé).
+  function slotEl(slot) {
+    const cell = document.createElement("div");
+    cell.className = "inv-slot";
+    const id = inventaire.slots[slot];
+    if (id) {
+      const ic = iconeItem(id);
+      ic.onclick = () => { if (desequiper(inventaire, slot)) { surChangement(); rendre(); } };
+      cell.append(ic);
+    } else {
+      cell.classList.add("vide");
+      cell.textContent = LABELS[slot] ?? "";
     }
+    return cell;
+  }
+
+  function rendreColonne(conteneur, slots) {
+    conteneur.replaceChildren(...slots.map(slotEl));
+  }
+
+  function rendreHero() {
+    const c = canvasHero.getContext("2d");
+    c.imageSmoothingEnabled = false;
+    c.clearRect(0, 0, canvasHero.width, canvasHero.height);
+    const x = (canvasHero.width - 64 * ECHELLE_HERO) / 2;
+    const y = (canvasHero.height - 64 * ECHELLE_HERO) / 2;
+    if (heros.plancheArmure) dessinerCaseEchelle(c, heros.plancheArmure, 0, 0, x, y, ECHELLE_HERO);
+    if (heros.plancheArme) dessinerCaseEchelle(c, heros.plancheArme, 0, 0, x, y, ECHELLE_HERO);
+  }
+
+  function rendreStats() {
+    const b = bonusStats(inventaire);
+    const lignes = [
+      ["Life", `${heros.pv} / ${heros.pvMax}`],
+      ["Strength", heros.force + (b.force || 0)],
+      ["Agility", heros.agilite + (b.agilite || 0)],
+      ["Faith", heros.foi + (b.foi || 0)],
+      ["Wit", heros.esprit + (b.esprit || 0)],
+      ["Forge Heat", `${FORGE_SEUIL + (b.chaleurSeuil || 0)} / ${FORGE_MAX + (b.chaleurMax || 0)}`],
+    ];
+    elStats.replaceChildren(...lignes.map(([nom, val]) => {
+      const l = document.createElement("div");
+      l.className = "inv-stat";
+      l.innerHTML = `<span>${nom}</span><b>${val}</b>`;
+      return l;
+    }));
   }
 
   function rendreGrille() {
-    grille.replaceChildren();
+    elGrille.replaceChildren();
     const rangs = rangsInventaire(inventaire);
-    grille.style.width = inventaire.cols * CASE + "px";
-    grille.style.height = rangs * CASE + "px";
+    elGrille.style.width = inventaire.cols * CASE + "px";
+    elGrille.style.height = rangs * CASE + "px";
     for (const o of inventaire.objets) {
       const d = itemDef(o.id);
       const ic = iconeItem(o.id);
@@ -80,13 +114,17 @@ export function installerInventaire({ inventaire, surChangement, surFermer }) {
       ic.style.width = d.taille.l * CASE - 4 + "px";
       ic.style.height = d.taille.h * CASE - 4 + "px";
       ic.onclick = () => { if (equiper(inventaire, o)) { surChangement(); rendre(); } };
-      grille.append(ic);
+      elGrille.append(ic);
     }
   }
 
   function rendre() {
     elOr.textContent = inventaire.or;
-    rendrePoupee();
+    rendreColonne(elGauche, COL_GAUCHE);
+    rendreColonne(elDroite, COL_DROITE);
+    rendreColonne(elArmes, SLOTS_ARME);
+    rendreHero();
+    rendreStats();
     rendreGrille();
   }
 
