@@ -17,6 +17,7 @@ import {
 } from "./systems/equipement.js";
 import { installerMenu } from "./ui/menu.js";
 import { afficherMessage, flashCombat, fondu } from "./ui/effets.js";
+import { ouvrirDialogue, dialogueActif } from "./ui/dialogue.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { demarrerCombat } from "./ui/combat.js";
 import { ennemiParId, ENNEMIS } from "./data/ennemis.js";
@@ -95,8 +96,36 @@ export async function demarrerJeu(donneesInitiales = null) {
     y: 8 * TUILE - 56,
     xMin: 14 * TUILE - 11,
     xMax: 28 * TUILE - 11,
-    message: "Repent, dwarf — the Deep stirs, and it knows your name.",
   });
+  const invite = document.getElementById("invite");
+
+  // Parler au fanatique : un petit laïus, puis un choix (se faire soigner ou partir).
+  function parlerAuFanatique() {
+    if (dialogueActif() || combatEnCours || enPause) return;
+    enPause = true;
+    invite.hidden = true;
+    ouvrirDialogue({
+      nom: "The Fanatic",
+      texte: [
+        "Repent, dwarf — the Deep stirs, and it knows your name.",
+        "Kneel, and its forge-fire shall mend your broken flesh.",
+      ],
+      choix: [
+        {
+          texte: "I have faith — heal me.",
+          action: () => {
+            heros.pv = heros.pvMax;
+            majHud(equipement, heros);
+            afficherMessage("✨ Warmth floods your bones — fully healed.");
+          },
+        },
+        {
+          texte: "Your religion is a cult.",
+          action: () => afficherMessage("The Fanatic sneers and turns away."),
+        },
+      ],
+    }, () => { enPause = false; });
+  }
 
   // L'état qu'un emplacement de sauvegarde retient.
   function obtenirEtat() {
@@ -148,7 +177,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   installerMenu({
     obtenirEtat,
     appliquerEtat,
-    surChangementPause: (pause) => { enPause = pause; },
+    surChangementPause: (pause) => { enPause = pause; if (pause) invite.hidden = true; },
   });
 
   appliquerEtat(donneesInitiales); // reprise choisie au démarrage (sinon null = neuf)
@@ -162,6 +191,15 @@ export async function demarrerJeu(donneesInitiales = null) {
     else return;
     appliquerEquipement(heros, equipement, planches);
     majHud(equipement, heros);
+  });
+
+  // Espace : parler au PNJ tout proche
+  window.addEventListener("keydown", (e) => {
+    if (e.code !== "Space" || e.repeat || enPause || combatEnCours || dialogueActif()) return;
+    if (zoneActuelle === "ville" && fanatique.proche) {
+      e.preventDefault();
+      parlerAuFanatique();
+    }
   });
 
   // Les points d'intérêt : le message vient du catalogue (champ `interet`),
@@ -243,6 +281,8 @@ export async function demarrerJeu(donneesInitiales = null) {
       verifierPorte(tuile);
       if (avancerRencontres(rencontres, tuile)) declencherRencontre();
       if (zoneActuelle === "ville") mettreAJourPnj(fanatique, dt, heros);
+      // L'invite « parler » s'affiche quand on est à portée du fanatique
+      invite.hidden = !(zoneActuelle === "ville" && fanatique.proche);
       mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
     },
     dessiner() {

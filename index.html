@@ -400,6 +400,80 @@
       border-radius: 999px;
       cursor: pointer;
     }
+
+    /* ---- L'invite « parler » (près d'un PNJ) ---- */
+    .invite {
+      position: fixed;
+      left: 50%;
+      bottom: 92px;
+      transform: translateX(-50%);
+      padding: 7px 16px;
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      font-size: 13px;
+      color: #f3f4f6;
+      background: rgba(10, 10, 15, 0.85);
+      border: 1px solid #5b4636;
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 8;
+    }
+
+    /* ---- Les dialogues (PNJ) ---- */
+    .dialogue {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      background: rgba(5, 5, 8, 0.45);
+      z-index: 20;
+    }
+    .dialogue-boite {
+      width: min(640px, 94vw);
+      margin-bottom: 5vh;
+      padding: 18px 20px 14px;
+      background: #14121a;
+      border: 1px solid #3b2030;
+      border-radius: 12px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    }
+    .dialogue-nom {
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      color: #ff8a5b;
+      margin-bottom: 8px;
+    }
+    .dialogue-texte {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      color: #f3f4f6;
+      min-height: 2.2em;
+    }
+    .dialogue-choix { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .dialogue-option {
+      padding: 9px 12px;
+      font-size: 0.98rem;
+      color: #cbd0d6;
+      background: #1d1b25;
+      border: 1px solid #2c2a36;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: pre;
+    }
+    .dialogue-option.sel {
+      color: #fff;
+      background: #3a2030;
+      border-color: #b45309;
+    }
+    .dialogue-aide {
+      margin-top: 12px;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      text-align: right;
+    }
   </style>
 </head>
 <body>
@@ -433,6 +507,19 @@
     <div class="combat-resultat" id="combat-resultat" hidden>
       <span class="combat-resultat-texte" id="combat-resultat-texte"></span>
       <button id="combat-continuer">Continue</button>
+    </div>
+  </div>
+
+  <!-- L'invite « parler » près d'un PNJ -->
+  <div class="invite" id="invite" hidden>[Space] Talk</div>
+
+  <!-- Les dialogues (PNJ) : texte + choix, navigables au clavier -->
+  <div class="dialogue" id="dialogue" hidden>
+    <div class="dialogue-boite">
+      <div class="dialogue-nom" id="dialogue-nom"></div>
+      <p class="dialogue-texte" id="dialogue-texte"></p>
+      <div class="dialogue-choix" id="dialogue-choix"></div>
+      <div class="dialogue-aide" id="dialogue-aide"></div>
     </div>
   </div>
 

@@ -1,7 +1,5 @@
-// Un PNJ de ville : il fait les cent pas, et s'arrête pour « parler » quand le
-// héros s'approche. Premier jet d'ambiance — pas encore de vrai dialogue.
-
-import { afficherMessage } from "../ui/effets.js";
+// Un PNJ de ville : il fait les cent pas, et s'arrête pour faire face au héros
+// quand il s'approche (`pnj.proche` devient true → on peut lui parler).
 
 const VITESSE = 38;        // px/s (plus lent que le héros)
 const PAUSE_BOUT = 0.8;    // pause à chaque extrémité du trajet (s)
@@ -9,14 +7,14 @@ const DIST_PROCHE = 50;    // distance d'« accostage » (px)
 
 // `planche` : l'image déjà chargée. `x` : position de départ (haut-gauche du
 // sprite). `xMin`/`xMax` : bornes du va-et-vient. `y` : rangée (fixe).
-export function creerPnj({ modele, planche, x, y, xMin, xMax, message }) {
+export function creerPnj({ modele, planche, x, y, xMin, xMax }) {
   return {
-    modele, planche, x, y, xMin, xMax, message,
+    modele, planche, x, y, xMin, xMax,
     direction: "droite",   // "gauche" | "droite"
     mode: "marche",        // "marche" | "repos" | "face"
     t: 0,                  // horloge d'animation
     pause: 0,
-    aParle: false,         // déjà parlé pour cette approche ?
+    proche: false,         // le héros est-il à portée de parole ?
   };
 }
 
@@ -28,14 +26,13 @@ export function mettreAJourPnj(pnj, dt, heros) {
   const dx = (heros.x + 32) - (pnj.x + s.caseL / 2);
   const dy = (heros.y + 54) - (pnj.y + s.caseH);
 
-  // Héros tout proche : le PNJ s'arrête, se tourne vers lui, et l'interpelle
-  if (Math.abs(dx) < DIST_PROCHE && Math.abs(dy) < 40) {
+  // Héros tout proche : le PNJ s'arrête et se tourne vers lui (prêt à parler)
+  pnj.proche = Math.abs(dx) < DIST_PROCHE && Math.abs(dy) < 40;
+  if (pnj.proche) {
     pnj.mode = "face";
     pnj.direction = dx < 0 ? "gauche" : "droite";
-    if (!pnj.aParle) { afficherMessage(pnj.message); pnj.aParle = true; }
     return;
   }
-  pnj.aParle = false;
 
   // Pause en bout de trajet
   if (pnj.pause > 0) { pnj.pause -= dt; pnj.mode = "repos"; return; }
