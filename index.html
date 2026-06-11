@@ -368,6 +368,14 @@
     }
     .combat-fin:disabled { opacity: 0.4; cursor: default; }
 
+    /* L'élément sélectionné au clavier (carte ou bouton) */
+    .combat-carte.sel, .combat-fin.sel {
+      outline: 3px solid #ffcf57;
+      outline-offset: 2px;
+      box-shadow: 0 0 18px rgba(255, 180, 60, 0.55);
+    }
+    .combat-carte.sel { transform: translateY(-8px); }
+
     /* Le panneau Victory / Defeat */
     .combat-resultat {
       position: absolute;
@@ -546,7 +554,7 @@
       <div class="menu-slots" id="demarrage-slots"></div>
     </div>
 
-    <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; R / E: swap gear &nbsp;·&nbsp; Esc: menu</p>
+    <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; Space: talk / confirm &nbsp;·&nbsp; R / E: swap gear &nbsp;·&nbsp; Esc: menu</p>
 
     <footer class="pied">v0.9 — steel meets stone</footer>
   </main>

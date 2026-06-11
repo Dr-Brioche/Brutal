@@ -47,10 +47,13 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   passer dans la zone voisine (court fondu au noir). *(fait)*
 - **La ville Brütàl** se parcourt à pied ; les bâtiments des factions sont
   les **entrées** vers les écrans d'activité.
-- **PNJ de ville** : personnages d'ambiance (1er jet : un *fanatique* qui
-  arpente la place et interpelle le héros à l'approche). À terme : **dialogues**
-  et donneurs de quêtes. Format sprite : à l'échelle de la carte (repos +
-  marche gauche/droite), découpé par un outil dans `outils/`.
+- **PNJ de ville** : personnages d'ambiance. Près d'eux, *[Space] Talk* ouvre un
+  **dialogue** (texte + choix, navigable au clavier — Z/S, Espace). Le *fanatique*
+  propose de **soigner** le héros (ou de l'envoyer balader). À terme : vraies
+  quêtes. Format sprite : échelle carte, découpé par un outil dans `outils/`.
+- **La vie PERSISTE entre les combats** (pas de soin gratuit). On se soigne par
+  des **PNJ** (le fanatique), et plus tard des **items / cartes**. À la défaite :
+  réveil en ville à 1 PV (un vrai système de mort viendra).
 - **Les souterrains autour de Brütàl** : galeries et cavernes de **roche
   (style Moria)** — l'exploration et les dangers. C'est là qu'on croise les
   monstres. *(1er jet : une zone reliée à la ville par une porte)*

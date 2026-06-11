@@ -124,13 +124,47 @@ export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFi
     for (let i = lave.length - 1; i >= 0; i--) if (lave[i].vie <= 0) lave.splice(i, 1);
   }
 
-  // -- Construction de la main (cartes cliquables) --------------------------
+  // -- Construction de la main + sélection clavier --------------------------
+  let selection = 0; // index dans [cartes…, bouton Fin du tour]
+
+  function elementsNavigables() {
+    return [...conteneurMain.children, boutonFin];
+  }
+  function majSelection() {
+    const els = elementsNavigables();
+    selection = Math.max(0, Math.min(els.length - 1, selection));
+    els.forEach((el, i) => el.classList.toggle("sel", i === selection));
+  }
   function rafraichir() {
     conteneurMain.replaceChildren();
     combat.main.forEach((carte, i) => {
       conteneurMain.append(creerCarteDOM(carte, combat, () => jouer(i)));
     });
     boutonFin.disabled = combat.fini || !combat.tourJoueur;
+    majSelection();
+  }
+
+  // Navigation clavier : Q/D (ou flèches) pour choisir, Espace pour valider.
+  // En phase capture + stopPropagation : ni menu pause ni déplacement pendant le combat.
+  function surTouche(e) {
+    if (!["KeyA", "KeyD", "ArrowLeft", "ArrowRight", "Space", "Enter", "Escape"].includes(e.code)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (!panneauResultat.hidden) {                 // écran de fin : Espace = Continue
+      if (e.code === "Space" || e.code === "Enter") fermer();
+      return;
+    }
+    if (combat.fini || !combat.tourJoueur) return; // rien pendant l'anim de fin / le tour ennemi
+    const els = elementsNavigables();
+    if (e.code === "KeyA" || e.code === "ArrowLeft") {
+      selection = (selection - 1 + els.length) % els.length; majSelection();
+    } else if (e.code === "KeyD" || e.code === "ArrowRight") {
+      selection = (selection + 1) % els.length; majSelection();
+    } else if (e.code === "Space" || e.code === "Enter") {
+      if (selection < combat.main.length) jouer(selection);
+      else finDeTour();
+    }
+    // Escape : bloqué (aucune action) — pas de menu pause par-dessus le combat
   }
 
   // -- Actions du joueur ----------------------------------------------------
@@ -188,12 +222,14 @@ export function demarrerCombat({ ctx, heros, equipement, planches, ennemi, surFi
     panneauResultat.hidden = true;
     boutonFin.removeEventListener("click", finDeTour);
     boutonContinuer.removeEventListener("click", fermer);
+    window.removeEventListener("keydown", surTouche, true);
     heros.pv = combat.pvHeros; // la vie persiste vers la carte
     surFin(combat.resultat);
   }
 
   boutonFin.addEventListener("click", finDeTour);
   boutonContinuer.addEventListener("click", fermer);
+  window.addEventListener("keydown", surTouche, true);
   panneauResultat.hidden = true;
   overlay.hidden = false;
   rafraichir();

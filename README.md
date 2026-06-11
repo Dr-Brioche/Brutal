@@ -46,12 +46,19 @@ Pour gagner, il faut **devenir le meilleur d'une de ces factions** et rejoindre
   (+1/tour) ; au-delà du seuil (3) on **surchauffe** et on brûle de
   **(chaleur−seuil)²** PV/tour. La jauge chauffe en couleur et fume de plus en
   plus haut. (Réglages bientôt modifiés par l'équipement.)
-- ✅ **Premiers vrais sprites** : le **gobelin** de combat est désormais animé
-  (idle / attaque / coup reçu) ; un **PNJ « fanatique »** arpente la ville et
-  t'interpelle quand tu l'approches. Les planches sont découpées par les outils
-  de `outils/` (fond détouré, frames rangées) — méthode rejouable.
-- ⏭️ Prochaine étape : **enrichir le combat** (butin, plus d'ennemis, sons &
-  animations), puis le pilier **Forge** ⚒️
+- ✅ **Cartes de base à 0 énergie** : un set commun faible (Tap, Brace) toujours
+  jouable ; les cartes fortes coûtent de la Chaleur et viennent du **stuff**.
+- ✅ **La vie persiste** entre les combats (plus de soin gratuit). À la défaite,
+  on se réveille en ville à 1 PV.
+- ✅ **Dialogues** 💬 : près du **fanatique**, *[Space] Talk* ouvre un dialogue
+  avec un choix — se faire **soigner** ou partir. (Le soin, c'est lui pour l'instant.)
+- ✅ **Tout au clavier** : déplacements ZQSD/WASD/flèches, **Espace** pour
+  parler/valider, dialogue et **cartes de combat** navigables au clavier.
+- ✅ **Premiers vrais sprites** : le **gobelin** de combat est animé
+  (idle / attaque / coup reçu) ; le **fanatique** arpente la ville. Les planches
+  sont découpées par les outils de `outils/` — méthode rejouable.
+- ⏭️ Prochaine étape : **enrichir le combat** (butin, plus d'ennemis, sons),
+  les **items** qui modifient la Chaleur, puis le pilier **Forge** ⚒️
 
 ## Comment voir le jeu ?
 
