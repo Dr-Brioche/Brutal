@@ -182,11 +182,12 @@ export async function demarrerJeu(donneesInitiales = null) {
   let inventaireOuvert = false;
   function basculerInventaire() {
     if (combatEnCours || dialogueActif() || enTransition) return;
-    if (!inventaireOuvert && enPause) return; // un autre écran est déjà ouvert
-    inventaireOuvert = !inventaireOuvert;
-    enPause = inventaireOuvert;
-    if (inventaireOuvert) { invite.hidden = true; inventaireUI.ouvrir(); }
-    else inventaireUI.fermer();
+    if (inventaireOuvert) { inventaireOuvert = false; enPause = false; inventaireUI.fermer(); return; }
+    // Pour ouvrir : soit rien d'autre n'est ouvert, soit on vient du deck (B
+    // depuis le deck) — dans ce cas on referme le deck d'abord.
+    if (enPause && !deckOuvert) return; // menu pause ou autre écran déjà ouvert
+    if (deckOuvert) { deckOuvert = false; deckUI.fermer(); }
+    inventaireOuvert = true; enPause = true; invite.hidden = true; inventaireUI.ouvrir();
   }
   window.addEventListener("keydown", (e) => {
     if (e.code === "KeyB" && !e.repeat) { e.preventDefault(); basculerInventaire(); }
