@@ -32,10 +32,12 @@ const ENNEMI_ECRAN_CX = 475;
 function versOrigine(cxEcran) {
   return PIVOT_SCENE.x + (cxEcran - PIVOT_SCENE.x) / ECHELLE_SCENE;
 }
-// Vie + états affichés SOUS chaque perso (la zone AU-DESSUS du monstre reste
-// réservée à ses prochaines actions). Décalages réglables :
-const VIE_SOUS = 8;    // écart bas du perso → barre de vie
-const ETATS_SOUS = 16; // écart barre de vie → rangée d'états
+// Barre de vie sous chaque perso (unités SCÈNE, à taille réelle pour rester
+// lisible : les PV chiffrés s'affichent dedans). L'armure (Pierre) = un bouclier
+// bleu à gauche de la barre. La zone AU-DESSUS du monstre reste son intention.
+const BAR_L = 80, BAR_H = 11;  // largeur / hauteur de la barre de vie
+const VIE_SOUS = 7;            // écart pieds (sol) → haut de la barre
+const ETATS_SOUS = 10;         // écart bas de la barre → rangée d'états (poison…)
 // La jauge de Chaleur n'est plus dessinée ici : c'est une barre HTML (voir
 // index.html + majJauge ci-dessous), posée à gauche des cartes.
 // ---------------------------------------------------------------------------
@@ -51,7 +53,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
   // donc les pieds y restent exactement, et la vie/le sol coïncident).
   const HEROS = { x: versOrigine(HEROS_ECRAN_CX) - (64 * ECHELLE_HEROS) / 2, y: SOL_Y - 64 * ECHELLE_HEROS };
   const GOBELIN = { x: versOrigine(ENNEMI_ECRAN_CX) - spr.caseL / 2, y: SOL_Y - spr.caseH };
-  const cx = GOBELIN.x + spr.caseL / 2; // centre horizontal de l'ennemi
+  // Repères À L'ÉCRAN (coords scène) de chaque perso, pour poser la vie et les
+  // nombres à taille réelle (hors du dézoom des sprites) : centre, sol, mi-hauteur.
+  const heroEcran = { cx: HEROS_ECRAN_CX, sol: SOL_Y, haut: SOL_Y - 64 * ECHELLE_HEROS * ECHELLE_SCENE };
+  heroEcran.milieu = (heroEcran.haut + heroEcran.sol) / 2;
+  const ennemiEcran = { cx: ENNEMI_ECRAN_CX, sol: SOL_Y, haut: SOL_Y - spr.caseH * ECHELLE_SCENE };
+  ennemiEcran.milieu = (ennemiEcran.haut + ennemiEcran.sol) / 2;
 
   // Éléments d'interface (présents dans index.html)
   const overlay = document.getElementById("combat");
@@ -222,11 +229,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
       secousseEnnemi = 0.3;
       if (combat.pvEnnemi <= 0) exploserEnnemi();   // mort : braises de forge
       else jouerAnimEnnemi("touche");
-      ajouterFlottant(`-${pvAvant - combat.pvEnnemi}`, cx, GOBELIN.y + 36, "#ffe27a");
+      ajouterFlottant(`-${pvAvant - combat.pvEnnemi}`, ennemiEcran.cx, ennemiEcran.milieu, "#ffe27a");
     }
     if (combat.pierre > pierreAvant) {
       ajouterFlottant(`+${combat.pierre - pierreAvant}`,
-        HEROS.x + 96, HEROS.y + 40, "#9cd3ff");
+        heroEcran.cx, heroEcran.milieu, "#9cd3ff");
     }
     // Après avoir joué : garder la sélection SUR UNE CARTE (jamais sur End Turn).
     // Si la main est vide, on ne sélectionne plus rien (-1) : aller sur End Turn
@@ -246,7 +253,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     const degatsEnnemi = (pvAvant - combat.pvHeros) - brulure;
     if (degatsEnnemi > 0) {
       secousseHeros = 0.3;
-      ajouterFlottant(`-${degatsEnnemi}`, HEROS.x + 96, HEROS.y + 30, "#ff7a7a");
+      ajouterFlottant(`-${degatsEnnemi}`, heroEcran.cx, heroEcran.milieu, "#ff7a7a");
     }
     if (brulure > 0) {
       secousseHeros = 0.3;
@@ -327,13 +334,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     alerteVie(combat.pvHeros / combat.pvHerosMax); // liseré rouge si vie basse
   }
 
-  // Les états affichés sous chaque perso. Pour l'instant : la Pierre du héros
-  // (sa défense persistante = son « armure »). On ajoutera ici poison, stun,
-  // saignement… : il suffira d'allonger la liste, l'affichage suit.
+  // États affichés sous la barre (poison, stun, saignement… à venir). L'armure
+  // (Pierre) n'est PAS ici : elle a son bouclier bleu à gauche de la barre.
   function etatsHeros() {
-    const liste = [];
-    if (combat.pierre > 0) liste.push({ texte: `🛡 ${Math.round(aff.pierre)}`, couleur: "#9cd3ff" });
-    return liste;
+    return [];
   }
   function etatsEnnemi() {
     return []; // aucun état ennemi pour l'instant
@@ -351,15 +355,15 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
 
     dessinerFond(ctx);
 
-    // Tout l'avant-plan (ennemi, héros, barres, nombres, particules) est réduit
-    // d'un cran VERS le sol : les persos paraissent moins zoomés, pieds ancrés.
+    // Les SPRITES (héros + ennemi + braises de mort) sont réduits VERS le sol :
+    // ils paraissent moins zoomés, pieds ancrés. La vie/les nombres, eux, sont
+    // dessinés à taille réelle plus bas (hors de ce dézoom) pour rester lisibles.
     ctx.save();
     ctx.translate(PIVOT_SCENE.x, PIVOT_SCENE.y);
     ctx.scale(ECHELLE_SCENE, ECHELLE_SCENE);
     ctx.translate(-PIVOT_SCENE.x, -PIVOT_SCENE.y);
 
-    // Ennemi : sa frame courante. À sa mort il s'estompe pendant que les
-    // braises jaillissent ; sa barre de vie et son intention disparaissent.
+    // Ennemi : sa frame courante. À sa mort il s'estompe pendant que les braises jaillissent.
     const def = spr.anims[animEnnemi.nom] ?? spr.anims.idle;
     const frame = frameAnim(def, animEnnemi.t);
     const tr = secousseEnnemi > 0 ? (Math.random() - 0.5) * 6 : 0;
@@ -369,18 +373,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
       dessinerEnnemi(ctx, plancheEnnemi, spr, frame, GOBELIN.x + tr, GOBELIN.y);
       ctx.globalAlpha = 1;
     }
-    if (!mortEnnemi.actif) {
-      const basEnnemi = GOBELIN.y + spr.caseH;          // ligne des pieds
-      const vieEnnemiY = basEnnemi + VIE_SOUS;
-      dessinerBarreVie(ctx, GOBELIN.x + 45, vieEnnemiY, spr.caseL - 90,
-        aff.pvEnnemi / combat.pvEnnemiMax, "#c0392b");
-      dessinerEtats(ctx, etatsEnnemi(), cx, vieEnnemiY + ETATS_SOUS);
-      // L'intention reste AU-DESSUS du monstre (zone de ses prochaines actions).
-      dessinerIntention(ctx, combat.intention, cx, GOBELIN.y - 18);
-    }
 
-    // Héros : sprite de carte, pose « droite » (regarde l'ennemi), agrandi.
-    // Pendant une attaque, il avance un peu vers l'ennemi (« poussée d'arme »).
+    // Héros : sprite de carte, pose « droite ». Pendant une attaque, il avance.
     const avance = Math.sin((1 - animAttaque / 0.25) * Math.PI) * 14;
     const trHeros = secousseHeros > 0 ? (Math.random() - 0.5) * 8 : 0;
     const hx = HEROS.x + (animAttaque > 0 ? avance : 0) + trHeros;
@@ -390,23 +384,29 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     if (heros.plancheArme) {
       dessinerCaseEchelle(ctx, heros.plancheArme, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
     }
-    const basHeros = HEROS.y + 64 * ECHELLE_HEROS;      // ligne des pieds
-    const vieHerosY = basHeros + VIE_SOUS;
-    dessinerBarreVie(ctx, HEROS.x + 36, vieHerosY, 120,
-      aff.pvHeros / combat.pvHerosMax, "#2e8b57");
-    dessinerEtats(ctx, etatsHeros(), HEROS.x + 96, vieHerosY + ETATS_SOUS);
 
-    dessinerParticules(ctx, particules);
+    dessinerParticules(ctx, particules); // braises de mort, à l'échelle du sprite
+    ctx.restore(); // fin du dézoom des sprites
 
-    // Nombres de dégâts qui montent
+    // --- Vie + états + intention, à TAILLE RÉELLE (lisibles), posés aux
+    //     repères-écran des persos. La vie affiche les PV chiffrés dedans ;
+    //     l'armure (Pierre) est un bouclier bleu à gauche de la barre. -----------
+    if (!mortEnnemi.actif) {
+      barreVieAuSol(ctx, ennemiEcran, aff.pvEnnemi / combat.pvEnnemiMax,
+        `${Math.round(combat.pvEnnemi)}/${combat.pvEnnemiMax}`, "#c0392b", etatsEnnemi(), 0);
+      dessinerIntention(ctx, combat.intention, ennemiEcran.cx, ennemiEcran.haut - 8);
+    }
+    barreVieAuSol(ctx, heroEcran, aff.pvHeros / combat.pvHerosMax,
+      `${Math.round(combat.pvHeros)}/${combat.pvHerosMax}`, "#2e8b57", etatsHeros(), combat.pierre);
+
+    // Nombres de dégâts qui montent (coords scène)
     for (const f of flottants) {
       ctx.globalAlpha = Math.max(0, Math.min(1, f.t));
       ctx.fillStyle = f.couleur;
-      ctx.font = "bold 20px ui-monospace, monospace";
+      ctx.font = "bold 13px ui-monospace, monospace";
       ctx.textAlign = "center";
-      ctx.fillText(f.texte, f.x, f.y - (1 - f.t) * 24);
+      ctx.fillText(f.texte, f.x, f.y - (1 - f.t) * 14);
     }
-    ctx.restore(); // fin du dézoom de l'avant-plan
     ctx.globalAlpha = 1;
     ctx.textAlign = "left";
     ctx.setTransform(1, 0, 0, 1, 0, 0); // on rétablit le repère écran après la scène
@@ -487,33 +487,80 @@ function dessinerEnnemi(ctx, planche, spr, frame, x, y) {
   );
 }
 
-function dessinerBarreVie(ctx, x, y, largeur, ratio, couleur) {
+// La vie d'un perso posée à son repère-écran : bouclier d'armure (Pierre) à
+// GAUCHE, barre + PV chiffrés au centre, états (poison…) en DESSOUS.
+function barreVieAuSol(ctx, perso, ratio, texte, couleur, etats, pierre) {
+  const x = perso.cx - BAR_L / 2;
+  const y = perso.sol + VIE_SOUS;
+  if (pierre > 0) dessinerBouclier(ctx, x - BAR_H * 0.95, y + BAR_H / 2, BAR_H + 6, pierre);
+  dessinerBarreVie(ctx, x, y, BAR_L, BAR_H, ratio, couleur, texte);
+  dessinerEtats(ctx, etats, perso.cx, y + BAR_H + ETATS_SOUS);
+}
+
+// La barre : fond + remplissage + PV chiffrés au centre (cernés de noir pour
+// rester lisibles par-dessus la couleur), afin de calculer ce qu'il reste.
+function dessinerBarreVie(ctx, x, y, l, h, ratio, couleur, texte) {
   const r = Math.max(0, Math.min(1, ratio));
   ctx.fillStyle = "#000";
-  ctx.fillRect(x - 1, y - 1, largeur + 2, 10);
+  ctx.fillRect(x - 1, y - 1, l + 2, h + 2);
   ctx.fillStyle = "#3a3a3a";
-  ctx.fillRect(x, y, largeur, 8);
+  ctx.fillRect(x, y, l, h);
   ctx.fillStyle = couleur;
-  ctx.fillRect(x, y, largeur * r, 8);
+  ctx.fillRect(x, y, l * r, h);
+  if (texte) {
+    ctx.font = `bold ${Math.round(h * 0.82)}px ui-monospace, monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineWidth = 2.4;
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.85)";
+    ctx.strokeText(texte, x + l / 2, y + h / 2 + 0.5);
+    ctx.fillStyle = "#fff";
+    ctx.fillText(texte, x + l / 2, y + h / 2 + 0.5);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+}
+
+// Un petit bouclier bleu (l'armure du nain = sa Pierre) avec sa valeur dedans.
+function dessinerBouclier(ctx, cx, cy, taille, valeur) {
+  const w = taille, h = taille * 1.18;
+  ctx.beginPath();
+  ctx.moveTo(cx - w / 2, cy - h / 2);
+  ctx.lineTo(cx + w / 2, cy - h / 2);
+  ctx.lineTo(cx + w / 2, cy + h * 0.12);
+  ctx.quadraticCurveTo(cx + w * 0.46, cy + h * 0.42, cx, cy + h / 2);
+  ctx.quadraticCurveTo(cx - w * 0.46, cy + h * 0.42, cx - w / 2, cy + h * 0.12);
+  ctx.closePath();
+  ctx.fillStyle = "#2f6fb0";
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#bcd8f5";
+  ctx.stroke();
+  ctx.font = `bold ${Math.round(taille * 0.6)}px ui-monospace, monospace`;
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(String(valeur), cx, cy + h * 0.04);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
 }
 
 function dessinerIntention(ctx, intention, cx, y) {
   if (!intention) return;
   ctx.fillStyle = "#ff8a5b";
-  ctx.font = "bold 18px ui-monospace, monospace";
+  ctx.font = "bold 12px ui-monospace, monospace";
   ctx.textAlign = "center";
   ctx.fillText(`⚔ ${intention.valeur}`, cx, y);
   ctx.textAlign = "left";
 }
 
-// Une rangée de petits badges d'état (armure/Pierre, poison, stun, saignement…),
-// centrée en (cx, y). Vide = on n'affiche rien. Conçue pour grossir facilement :
-// chaque état est juste { texte, couleur }.
+// Une rangée de petits badges d'état (poison, stun, saignement… à venir),
+// centrée en (cx, y). Vide = rien. Chaque état = { texte, couleur }.
 function dessinerEtats(ctx, etats, cx, y) {
   if (!etats || etats.length === 0) return;
-  ctx.font = "bold 14px ui-monospace, monospace";
+  ctx.font = "bold 9px ui-monospace, monospace";
   ctx.textAlign = "center";
-  const espace = 46;
+  const espace = 22;
   const x0 = cx - ((etats.length - 1) * espace) / 2;
   etats.forEach((etat, i) => {
     ctx.fillStyle = etat.couleur;
