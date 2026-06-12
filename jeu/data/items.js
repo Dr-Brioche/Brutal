@@ -1,5 +1,7 @@
 // Catalogue des ITEMS : armes, armures, bijoux, sacs… tout ce qui se loote,
 // se range dans l'inventaire et s'équipe. (Contenu pur, comme les cartes.)
+
+import { CARTES } from "./cartes.js";
 //
 // Champs d'un item :
 //   id        : identifiant interne
@@ -94,4 +96,42 @@ export function itemDef(id) {
 export function couleurRarete(id) {
   const it = ITEMS[id];
   return (it && RARETES[it.rarete]?.couleur) || "#9aa0a6";
+}
+
+// Noms lisibles (anglais) pour les bulles d'info.
+const NOM_STAT = {
+  chaleurSeuil: "Forge Heat threshold",
+  chaleurMax: "Forge Heat cap",
+  force: "Strength", agilite: "Agility", foi: "Faith", esprit: "Wit",
+};
+const NOM_CATEGORIE = {
+  arme: "Weapon", bouclier: "Shield", armure: "Armor", gant: "Gloves",
+  botte: "Boots", collier: "Amulet", bague: "Ring", sac: "Bag",
+};
+
+// Libellé court de catégorie (« Ring », « Weapon »…) pour l'en-tête d'une bulle.
+export function categorieLisible(id) {
+  const d = ITEMS[id];
+  return d ? (NOM_CATEGORIE[d.categorie] ?? d.categorie) : "";
+}
+
+// Les effets d'un item en lignes de texte prêtes à afficher (ATK, DEF, stats,
+// cartes injectées dans le deck…). Vide si l'objet n'apporte rien de chiffré.
+export function statsLisibles(id) {
+  const d = ITEMS[id];
+  if (!d) return [];
+  const lignes = [];
+  if (d.degats != null) lignes.push(`+${d.degats} ATK`);
+  if (d.defense != null) lignes.push(`+${d.defense} DEF`);
+  if (d.mains === 2) lignes.push("Two-handed");
+  if (d.rangsBonus) lignes.push(`+${d.rangsBonus} bag rows`);
+  if (d.stats) {
+    for (const [k, v] of Object.entries(d.stats)) {
+      lignes.push(`${v >= 0 ? "+" : ""}${v} ${NOM_STAT[k] ?? k}`);
+    }
+  }
+  if (d.cartes?.length) {
+    lignes.push(`Cards: ${d.cartes.map((c) => CARTES[c]?.nom ?? c).join(", ")}`);
+  }
+  return lignes;
 }

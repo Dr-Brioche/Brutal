@@ -639,6 +639,23 @@
     .inv-item:hover { filter: brightness(1.15); }
     .inv-aide { margin-top: 12px; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
+    /* La bulle d'info au survol d'un objet (nom + rareté + stats). */
+    .inv-tip {
+      position: fixed; z-index: 30; pointer-events: none;
+      max-width: 240px; padding: 8px 11px;
+      background: rgba(12, 10, 18, 0.97);
+      border: 1px solid #45424f; border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      font-size: 0.78rem; color: #cbd0d6;
+    }
+    .inv-tip-nom { font-weight: 800; font-size: 0.92rem; }
+    .inv-tip-rarete {
+      margin: 1px 0 6px; font-size: 0.66rem;
+      letter-spacing: 0.08em; text-transform: uppercase; color: #8b8f98;
+    }
+    .inv-tip-ligne { color: #d9c08a; padding: 1px 0; }
+
     /* Le bouton « voir le deck » dans l'en-tête de l'inventaire */
     #inv-deck {
       padding: 4px 12px; color: #f3f4f6; background: #2f2d3a;
@@ -802,6 +819,9 @@
       <p class="inv-aide">Your deck mirrors your gear · not shown in combat — remember it! · [N] to close</p>
     </div>
   </div>
+
+  <!-- La bulle d'info au survol d'un objet (suit la souris, posée sur tout) -->
+  <div class="inv-tip" id="inv-tip" hidden></div>
 
   <!-- Contrôles tactiles (test mobile uniquement ; cachés sur PC) -->
   <div class="tactile" id="tactile" hidden>
