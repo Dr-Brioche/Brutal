@@ -16,9 +16,9 @@ import { alerteVie } from "./effets.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
 const ECHELLE_HEROS = 3;            // 64×64 → 192×192 (avant dézoom de scène)
-const HEROS_Y = 96;                 // haut du sprite héros
-const GOBELIN_Y = 120;              // haut de la case ennemie
-const SOL_Y = 270;                  // ligne de sol
+const SOL_Y = 240;                  // ligne de sol au 1/3 DU BAS (scène 640×360) :
+                                    // 2/3 libres au-dessus (futur fond), le bas pour
+                                    // les cartes. Les pieds des persos se calent dessus.
 // Dézoom global de l'avant-plan (héros + ennemi + barres) : 1 = taille d'avant,
 // plus petit = moins zoomé. La réduction se fait VERS le sol pour garder les
 // pieds ancrés. Un seul chiffre à régler si on veut plus ou moins gros.
@@ -47,8 +47,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
   const plancheEnnemi = planches?.get(ennemi.planche) ?? null;
   const spr = ennemi.sprite;
   // Coins haut-gauche des sprites, calés sur les centres voulus à l'écran.
-  const HEROS = { x: versOrigine(HEROS_ECRAN_CX) - (64 * ECHELLE_HEROS) / 2, y: HEROS_Y };
-  const GOBELIN = { x: versOrigine(ENNEMI_ECRAN_CX) - spr.caseL / 2, y: GOBELIN_Y };
+  // Pieds calés sur la ligne de sol (et l'avant-plan est réduit autour d'elle,
+  // donc les pieds y restent exactement, et la vie/le sol coïncident).
+  const HEROS = { x: versOrigine(HEROS_ECRAN_CX) - (64 * ECHELLE_HEROS) / 2, y: SOL_Y - 64 * ECHELLE_HEROS };
+  const GOBELIN = { x: versOrigine(ENNEMI_ECRAN_CX) - spr.caseL / 2, y: SOL_Y - spr.caseH };
   const cx = GOBELIN.x + spr.caseL / 2; // centre horizontal de l'ennemi
 
   // Éléments d'interface (présents dans index.html)
