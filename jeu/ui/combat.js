@@ -138,8 +138,22 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     combat.main.forEach((carte, i) => {
       conteneurMain.append(creerCarteDOM(carte, combat, () => jouer(i)));
     });
+    disposerEventail();
     boutonFin.disabled = combat.fini || !combat.tourJoueur;
     majSelection();
+  }
+
+  // Pose chaque carte en léger éventail : rotation croissante + descente vers
+  // les bords (le centre reste haut), pour l'effet « cartes tenues en main ».
+  // Le CSS compose ces valeurs (--rot, --dy) avec le survol/la sélection.
+  function disposerEventail() {
+    const cartes = [...conteneurMain.children];
+    const milieu = (cartes.length - 1) / 2;
+    cartes.forEach((el, i) => {
+      const ecart = i - milieu;                  // distance au centre, en cartes
+      el.style.setProperty("--rot", (ecart * 4).toFixed(2) + "deg");
+      el.style.setProperty("--dy", (ecart * ecart * 5).toFixed(1) + "px");
+    });
   }
 
   // Navigation clavier : Q/D (ou flèches) pour choisir, Espace pour valider.

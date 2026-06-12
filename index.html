@@ -362,13 +362,17 @@
       100% { transform: translateX(0);  filter: brightness(1); }
     }
 
-    .combat-main { display: flex; gap: 10px; }
+    /* La main : les cartes se chevauchent en léger éventail (tenues en main).
+       L'angle (--rot) et la descente vers les bords (--dy) sont posés en JS. */
+    .combat-main { display: flex; gap: 0; padding-top: 26px; }
 
     .combat-carte {
+      position: relative;
       display: flex;
       flex-direction: column;
       width: 116px;
       height: 150px;
+      margin: 0 -12px;            /* chevauchement façon main de cartes */
       padding: 10px;
       text-align: left;
       color: #f3efe7;
@@ -376,11 +380,15 @@
       border: 1px solid #3a4450;
       border-radius: 10px;
       cursor: pointer;
-      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      transform-origin: bottom center;
+      transform: translateY(var(--dy, 0px)) rotate(var(--rot, 0deg));
+      transition: transform 0.14s ease, box-shadow 0.14s ease;
     }
+    /* Carte survolée / sélectionnée : elle se redresse, grandit, passe devant. */
     .combat-carte:hover:not(:disabled) {
-      transform: translateY(-8px);
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+      transform: translateY(calc(var(--dy, 0px) - 24px)) rotate(0deg) scale(1.06);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+      z-index: 10;
     }
     .combat-carte:disabled { opacity: 0.42; cursor: default; }
     .combat-carte--attaque { border-color: #7a3b32; background: #2a211f; }
@@ -425,7 +433,10 @@
       outline-offset: 2px;
       box-shadow: 0 0 18px rgba(255, 180, 60, 0.55);
     }
-    .combat-carte.sel { transform: translateY(-8px); }
+    .combat-carte.sel {
+      transform: translateY(calc(var(--dy, 0px) - 22px)) rotate(0deg) scale(1.06);
+      z-index: 10;
+    }
 
     /* Le panneau Victory / Defeat */
     .combat-resultat {
@@ -642,8 +653,10 @@
       display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
       margin-top: 16px;
     }
-    /* Ici les cartes ne se jouent pas : on neutralise le survol « actif ». */
-    .deck-liste .combat-carte { position: relative; cursor: default; }
+    /* Ici les cartes ne se jouent pas : grille à plat, pas d'éventail ni de survol. */
+    .deck-liste .combat-carte {
+      position: relative; cursor: default; margin: 0; transform: none;
+    }
     .deck-liste .combat-carte:hover { transform: none; box-shadow: none; }
     /* Le badge « ×N » : nombre d'exemplaires de cette carte dans le deck. */
     .deck-nombre {
