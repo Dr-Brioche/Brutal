@@ -273,43 +273,46 @@
     }
 
     /* ---- L'écran de combat ---- */
-    /* Conteneur transparent : la scène (canvas) reste visible derrière,
-       seuls les contrôles (barre du bas, panneau de fin) captent la souris. */
+    /* Conteneur transparent qui CENTRE la zone de jeu ; la scène (canvas) reste
+       visible derrière, seuls les contrôles captent la souris. */
     .combat {
       position: fixed;
       inset: 0;
       z-index: 12;
       pointer-events: none;
-    }
-
-    .combat-barre {
-      position: absolute;
-      left: 0; right: 0; bottom: 0;
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
-      gap: 14px;
-      padding: 14px 16px 18px;
-      background: linear-gradient(0deg, rgba(8, 6, 5, 0.92), transparent);
-      pointer-events: auto;
     }
 
-    /* La jauge de Chaleur de Forge : barre HORIZONTALE, à gauche des cartes.
-       (Un cadre en image fixe viendra l'habiller plus tard.) */
+    /* La ZONE DE JEU : le plus grand rectangle 16:9 tenant dans la fenêtre,
+       centré, calé EXACTEMENT sur la scène dessinée dans le canvas. Tout l'HUD
+       (jauge, End Turn) s'y place en PROPORTIONS (unités cq = % de la zone),
+       pour qu'un futur calque de fond les habille en s'adaptant à la résolution. */
+    .combat-zone {
+      position: relative;
+      width: min(100vw, calc(100vh * 16 / 9));
+      aspect-ratio: 16 / 9;
+      container-type: size;
+      pointer-events: none;
+    }
+
+    /* La jauge de Chaleur de Forge : barre HORIZONTALE, place FIXE en bas à
+       gauche DE LA ZONE DE JEU, en proportions (cqw/cqh = % de la zone) pour
+       s'aligner sur un futur calque de fond à toute résolution. */
     .combat-jauge {
-      position: absolute;       /* place FIXE en bas à gauche, hors du flux des
-                                   cartes (sinon elle glisse quand il y en a moins) */
-      left: 24px; bottom: 22px;
+      position: absolute;
+      left: 3cqw; bottom: 6cqh;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 5px;
-      width: 200px;
+      gap: 0.8cqh;
+      width: 22cqh;
       font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
       color: #ffcaa0;
     }
     .combat-jauge-titre {
-      font-size: 0.62rem;
+      font-size: 1.4cqh;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: #b88;
@@ -317,10 +320,10 @@
     .combat-jauge-bar {
       position: relative;
       width: 100%;
-      height: 26px;
+      height: 3.2cqh;
       background: #17110d;
-      border: 2px solid #3a2f26;
-      border-radius: 5px;
+      border: 0.25cqh solid #3a2f26;
+      border-radius: 0.6cqh;
       overflow: hidden;
     }
     .combat-jauge-fill {
@@ -339,20 +342,20 @@
       0%, 100% { box-shadow: 0 0 6px rgba(255, 74, 24, 0.45); }
       50%      { box-shadow: 0 0 16px rgba(255, 74, 24, 0.9); }
     }
-    /* Le repère du seuil de surchauffe (position posée en JS). */
+    /* Le repère du seuil de surchauffe (position en % posée en JS). */
     .combat-jauge-seuil {
-      position: absolute; top: -2px; bottom: -2px; width: 2px;
+      position: absolute; top: -0.3cqh; bottom: -0.3cqh; width: 0.3cqh;
       background: #ffe2b0; box-shadow: 0 0 4px rgba(255, 226, 176, 0.8);
-      transform: translateX(-1px);
+      transform: translateX(-50%);
     }
     .combat-jauge-valeur {
-      position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
-      font-size: 1rem; font-weight: 800; color: #fff;
+      position: absolute; right: 0.8cqh; top: 50%; transform: translateY(-50%);
+      font-size: 2cqh; font-weight: 800; color: #fff;
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
     }
     .combat-jauge-brulure {
-      min-height: 0.95em;
-      font-size: 0.66rem; font-weight: 700; color: #ff8a3c;
+      min-height: 1.6cqh;
+      font-size: 1.5cqh; font-weight: 700; color: #ff8a3c;
     }
     /* Flash + secousse au moment où la surchauffe brûle. */
     .combat-jauge.brule .combat-jauge-bar { animation: brule 0.45s ease-out; }
@@ -370,9 +373,13 @@
        (vh, pas vw) : les cartes sont grandes mais restent dans la bande du bas
        et ne recouvrent pas les personnages, quelle que soit la largeur d'écran. */
     .combat-main {
+      position: absolute;
+      left: 50%; bottom: 2cqh;
+      transform: translateX(-50%);
       --carte-l: clamp(150px, 18vh, 230px);
-      display: flex; gap: 0;
+      display: flex; gap: 0; align-items: flex-end;
       padding-top: calc(var(--carte-l) * 0.16);
+      pointer-events: auto;
     }
 
     .combat-carte {
@@ -447,14 +454,19 @@
     .combat-carte--injouable .combat-carte-cout { background: #e0473a; color: #fff; }
 
     .combat-fin {
-      padding: 12px 18px;
+      position: absolute;        /* place fixe en bas à droite de la zone, ne
+                                    bouge plus avec le nombre de cartes */
+      right: 3cqw; bottom: 6cqh;
+      padding: 1.4cqh 3cqh;
       font-weight: 700;
       letter-spacing: 0.06em;
+      font-size: 1.8cqh;
       color: #fff;
       background: linear-gradient(135deg, #b45309, #7c2d12);
       border: none;
-      border-radius: 8px;
+      border-radius: 1cqh;
       cursor: pointer;
+      pointer-events: auto;
     }
     .combat-fin:disabled { opacity: 0.4; cursor: default; }
 
@@ -763,8 +775,9 @@
   <!-- L'écran de combat : la scène est dessinée dans le canvas,
        les cartes et boutons sont posés par-dessus -->
   <div class="combat" id="combat" hidden>
-    <div class="combat-barre">
-      <!-- La jauge de Chaleur de Forge : barre horizontale, à gauche du deck -->
+    <!-- La zone de jeu 16:9, calée sur la scène : jauge et boutons s'y placent -->
+    <div class="combat-zone">
+      <!-- La jauge de Chaleur de Forge : place fixe en bas à gauche de la zone -->
       <div class="combat-jauge" id="combat-jauge">
         <div class="combat-jauge-titre">Forge Heat</div>
         <div class="combat-jauge-bar" id="combat-jauge-bar">
