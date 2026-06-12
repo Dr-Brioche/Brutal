@@ -109,22 +109,6 @@
       letter-spacing: 0.1em;
     }
 
-    /* ---- Le HUD : vie / or / équipement, en haut à gauche ---- */
-    .hud {
-      position: fixed;
-      left: 12px;
-      top: 12px;
-      padding: 8px 12px;
-      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      white-space: pre;
-      color: #e5e7eb;
-      background: rgba(10, 10, 15, 0.75);
-      border: 1px solid #374151;
-      border-radius: 6px;
-    }
-
     /* ---- Le menu pause (touche Échap) ---- */
     .menu {
       position: fixed;
@@ -578,6 +562,7 @@
     }
     .inv-entete { display: flex; align-items: center; justify-content: space-between; }
     .inv-titre { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+    .inv-pv-boite { color: #ff6b6b; font-weight: 700; font-family: ui-monospace, monospace; }
     .inv-or-boite { color: #ffcf57; font-weight: 700; font-family: ui-monospace, monospace; }
     #inv-fermer {
       padding: 4px 12px; color: #f3f4f6; background: #2f2d3a;
@@ -729,15 +714,6 @@
   <!-- L'écran du jeu : 640x360 pixels internes, agrandi sans flou -->
   <canvas id="jeu" width="640" height="360" hidden></canvas>
 
-  <!-- Le HUD : interface en HTML par-dessus le canvas -->
-  <div class="hud" id="hud" hidden>
-    <div id="hud-pv"></div>
-    <div id="hud-or"></div>
-    <div id="hud-arme"></div>
-    <div id="hud-armure"></div>
-    <div style="color:#6b7280">[B] Inventory  ·  [N] Deck</div>
-  </div>
-
   <!-- Le fondu au noir (transitions entre zones) -->
   <div class="fondu" id="fondu"></div>
 
@@ -789,6 +765,7 @@
     <div class="inv-panneau">
       <div class="inv-entete">
         <span class="inv-titre">Character</span>
+        <span class="inv-pv-boite">❤ <span id="inv-pv">0/0</span></span>
         <span class="inv-or-boite">🪙 <span id="inv-or">0</span></span>
         <button id="inv-deck">🃏 Deck</button>
         <button id="inv-fermer">✕</button>
@@ -873,14 +850,12 @@
 
     const ecranTitre = document.getElementById("ecran-titre");
     const canvas = document.getElementById("jeu");
-    const hud = document.getElementById("hud");
 
     // L'écran de démarrage décide : nouvelle partie (null) ou sauvegarde
     installerDemarrage({
       lancer(donnees) {
         ecranTitre.hidden = true;
         canvas.hidden = false;
-        hud.hidden = false;
         installerTactile(); // contrôles tactiles si on est sur écran tactile
         demarrerJeu(donnees);
       },

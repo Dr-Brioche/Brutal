@@ -42,18 +42,6 @@ function ajusterEchelle() {
 }
 window.addEventListener("resize", ajusterEchelle);
 
-// Le HUD (interface par-dessus le jeu) affiche la vie, l'or et l'équipement.
-function majHud(inventaire, heros) {
-  const arme = armeEquipee(inventaire);
-  const armure = armureEquipee(inventaire);
-  document.getElementById("hud-pv").textContent = `❤ HP    : ${heros.pv}/${heros.pvMax}`;
-  document.getElementById("hud-or").textContent = `🪙 Gold  : ${inventaire.or}`;
-  document.getElementById("hud-arme").textContent =
-    `⚔ ${arme ? `${arme.nom}  (+${arme.degats} ATK)` : "Unarmed"}`;
-  document.getElementById("hud-armure").textContent =
-    `🛡 ${armure.nom}  (+${armure.defense} DEF)`;
-}
-
 // Place le héros pour que ses PIEDS soient centrés sur une case (colonne, ligne).
 function poserHeros(heros, colonne, ligne) {
   heros.x = colonne * TUILE - 16;
@@ -84,9 +72,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   inventaire.slots.arme1 = "hache-rouillee";      // équipement de base
   inventaire.slots.armure = "tenue-de-voyageur";
   appliquerEquipement(heros, inventaire, planches);
-  majHud(inventaire, heros);
 
-  const hud = document.getElementById("hud");
   let enPause = false;
   let enTransition = false;
   let combatEnCours = null;        // non-null = on est en combat
@@ -118,7 +104,6 @@ export async function demarrerJeu(donneesInitiales = null) {
           texte: "I have faith — heal me.",
           action: () => {
             heros.pv = heros.pvMax;
-            majHud(inventaire, heros);
             afficherMessage("✨ Warmth floods your bones — fully healed.");
           },
         },
@@ -169,7 +154,6 @@ export async function demarrerJeu(donneesInitiales = null) {
       heros.pv = Math.max(1, Math.min(heros.pvMax, donnees.pv)); // jamais 0 ni au-delà du max
     }
     appliquerEquipement(heros, inventaire, planches);
-    majHud(inventaire, heros);
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
   }
 
@@ -187,7 +171,6 @@ export async function demarrerJeu(donneesInitiales = null) {
     heros,
     surChangement: () => {
       appliquerEquipement(heros, inventaire, planches);
-      majHud(inventaire, heros);
     },
     surFermer: () => basculerInventaire(),
   });
@@ -277,17 +260,14 @@ export async function demarrerJeu(donneesInitiales = null) {
   async function declencherRencontre() {
     enPause = true;                 // le monde se fige pendant le flash
     await flashCombat();
-    hud.hidden = true;              // on dégage le HUD d'exploration
     const ennemi = ennemiParId("gobelin");
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemi,
       surFin: (resultat) => {
         combatEnCours = null;
-        hud.hidden = false;
         if (resultat === "defaite") {
           // Pas encore mort : on se réveille en ville, à 1 PV (à soigner).
           heros.pv = 1;
-          majHud(inventaire, heros);
           afficherMessage("💀 You collapse... and wake up back in Brütàl.");
           allerVersZone("ville", VILLE.depart); // retour sûr (gère le fondu + la pause)
         } else {
@@ -299,7 +279,6 @@ export async function demarrerJeu(donneesInitiales = null) {
           for (const id of butin.objets) {
             if (ajouterObjet(inventaire, id)) recus.push(ITEMS[id].nom);
           }
-          majHud(inventaire, heros);
           let msg = `⚔ The goblin falls.  +${butin.or} 🪙`;
           if (recus.length) msg += `  ·  ${recus.join(", ")}`;
           afficherMessage(msg);

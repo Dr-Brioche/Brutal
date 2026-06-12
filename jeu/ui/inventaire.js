@@ -36,6 +36,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   const elStats = document.getElementById("inv-stats");
   const elGrille = document.getElementById("inv-grille");
   const elOr = document.getElementById("inv-or");
+  const elPv = document.getElementById("inv-pv");
   const canvasHero = document.getElementById("inv-hero");
   const tip = document.getElementById("inv-tip");
   document.getElementById("inv-fermer").onclick = () => surFermer();
@@ -120,7 +121,6 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function rendreStats() {
     const b = bonusStats(inventaire);
     const lignes = [
-      ["Life", `${heros.pv} / ${heros.pvMax}`],
       ["Strength", heros.force + (b.force || 0)],
       ["Agility", heros.agilite + (b.agilite || 0)],
       ["Faith", heros.foi + (b.foi || 0)],
@@ -156,6 +156,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function rendre() {
     cacherTip(); // une icône survolée peut disparaître (équip/déséquip)
     elOr.textContent = inventaire.or;
+    elPv.textContent = `${heros.pv}/${heros.pvMax}`;
     rendreColonne(elGauche, COL_GAUCHE);
     rendreColonne(elDroite, COL_DROITE);
     rendreColonne(elArmes, SLOTS_ARME);
