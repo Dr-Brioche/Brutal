@@ -24,6 +24,10 @@ const SOL_Y = 270;                  // ligne de sol
 // pieds ancrés. Un seul chiffre à régler si on veut plus ou moins gros.
 const ECHELLE_SCENE = 0.75;
 const PIVOT_SCENE = { x: 320, y: SOL_Y };
+// Vie + états affichés SOUS chaque perso (la zone AU-DESSUS du monstre reste
+// réservée à ses prochaines actions). Décalages réglables :
+const VIE_SOUS = 8;    // écart bas du perso → barre de vie
+const ETATS_SOUS = 16; // écart barre de vie → rangée d'états
 // La jauge de Chaleur n'est plus dessinée ici : c'est une barre HTML (voir
 // index.html + majJauge ci-dessous), posée à gauche des cartes.
 // ---------------------------------------------------------------------------
@@ -310,6 +314,18 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     alerteVie(combat.pvHeros / combat.pvHerosMax); // liseré rouge si vie basse
   }
 
+  // Les états affichés sous chaque perso. Pour l'instant : la Pierre du héros
+  // (sa défense persistante = son « armure »). On ajoutera ici poison, stun,
+  // saignement… : il suffira d'allonger la liste, l'affichage suit.
+  function etatsHeros() {
+    const liste = [];
+    if (combat.pierre > 0) liste.push({ texte: `🛡 ${Math.round(aff.pierre)}`, couleur: "#9cd3ff" });
+    return liste;
+  }
+  function etatsEnnemi() {
+    return []; // aucun état ennemi pour l'instant
+  }
+
   function dessiner() {
     // Le combat est conçu en 640×360 ; on le fait tenir, centré, dans le canvas
     // (qui remplit l'écran, taille variable). Le pourtour reste sombre.
@@ -341,8 +357,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
       ctx.globalAlpha = 1;
     }
     if (!mortEnnemi.actif) {
-      dessinerBarreVie(ctx, GOBELIN.x + 45, GOBELIN.y - 6, spr.caseL - 90,
+      const basEnnemi = GOBELIN.y + spr.caseH;          // ligne des pieds
+      const vieEnnemiY = basEnnemi + VIE_SOUS;
+      dessinerBarreVie(ctx, GOBELIN.x + 45, vieEnnemiY, spr.caseL - 90,
         aff.pvEnnemi / combat.pvEnnemiMax, "#c0392b");
+      dessinerEtats(ctx, etatsEnnemi(), cx, vieEnnemiY + ETATS_SOUS);
+      // L'intention reste AU-DESSUS du monstre (zone de ses prochaines actions).
       dessinerIntention(ctx, combat.intention, cx, GOBELIN.y - 18);
     }
 
@@ -357,11 +377,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     if (heros.plancheArme) {
       dessinerCaseEchelle(ctx, heros.plancheArme, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
     }
-    dessinerBarreVie(ctx, HEROS.x + 36, HEROS.y + 18, 120,
+    const basHeros = HEROS.y + 64 * ECHELLE_HEROS;      // ligne des pieds
+    const vieHerosY = basHeros + VIE_SOUS;
+    dessinerBarreVie(ctx, HEROS.x + 36, vieHerosY, 120,
       aff.pvHeros / combat.pvHerosMax, "#2e8b57");
-    if (combat.pierre > 0) {
-      dessinerPierre(ctx, HEROS.x + 36, HEROS.y, Math.round(aff.pierre));
-    }
+    dessinerEtats(ctx, etatsHeros(), HEROS.x + 96, vieHerosY + ETATS_SOUS);
 
     dessinerParticules(ctx, particules);
 
@@ -473,10 +493,20 @@ function dessinerIntention(ctx, intention, cx, y) {
   ctx.textAlign = "left";
 }
 
-function dessinerPierre(ctx, x, y, valeur) {
-  ctx.fillStyle = "#9cd3ff";
-  ctx.font = "bold 16px ui-monospace, monospace";
-  ctx.fillText(`🛡 ${valeur}`, x, y);
+// Une rangée de petits badges d'état (armure/Pierre, poison, stun, saignement…),
+// centrée en (cx, y). Vide = on n'affiche rien. Conçue pour grossir facilement :
+// chaque état est juste { texte, couleur }.
+function dessinerEtats(ctx, etats, cx, y) {
+  if (!etats || etats.length === 0) return;
+  ctx.font = "bold 14px ui-monospace, monospace";
+  ctx.textAlign = "center";
+  const espace = 46;
+  const x0 = cx - ((etats.length - 1) * espace) / 2;
+  etats.forEach((etat, i) => {
+    ctx.fillStyle = etat.couleur;
+    ctx.fillText(etat.texte, x0 + i * espace, y);
+  });
+  ctx.textAlign = "left";
 }
 
 // ----- Une carte en HTML ---------------------------------------------------
