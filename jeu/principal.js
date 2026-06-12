@@ -76,6 +76,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   let enPause = false;
   let enTransition = false;
   let combatEnCours = null;        // non-null = on est en combat
+  let menuPauseOuvert = false;     // le menu pause (Échap) est-il ouvert ?
 
   // Un PNJ d'ambiance : un fanatique qui arpente la place de la ville (rangée 8).
   const fanatique = creerPnj({
@@ -157,10 +158,14 @@ export async function demarrerJeu(donneesInitiales = null) {
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
   }
 
-  installerMenu({
+  const menu = installerMenu({
     obtenirEtat,
     appliquerEtat,
-    surChangementPause: (pause) => { enPause = pause; if (pause) invite.hidden = true; },
+    surChangementPause: (pause) => {
+      enPause = pause;
+      menuPauseOuvert = pause;
+      if (pause) invite.hidden = true;
+    },
   });
 
   appliquerEtat(donneesInitiales); // reprise choisie au démarrage (sinon null = neuf)
@@ -207,6 +212,19 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (e.code === "KeyN" && !e.repeat) { e.preventDefault(); basculerDeck(); }
   });
   document.getElementById("inv-deck").addEventListener("click", basculerDeck);
+
+  // Échap : ferme d'abord l'écran ouvert (inventaire, deck, menu pause) ; si rien
+  // n'est ouvert, ouvre le menu pause (sauvegarder / quitter).
+  window.addEventListener("keydown", (e) => {
+    if (e.code !== "Escape" || e.repeat) return;
+    if (combatEnCours || dialogueActif()) return; // gérés ailleurs (le combat capte Échap)
+    e.preventDefault();
+    if (inventaireOuvert) { basculerInventaire(); return; }
+    if (deckOuvert) { basculerDeck(); return; }
+    if (menuPauseOuvert) { menu.fermer(); return; }
+    if (enPause) return;          // état transitoire (transition de zone, flash) : on ignore
+    menu.ouvrir();
+  });
 
   // Espace : parler au PNJ tout proche
   window.addEventListener("keydown", (e) => {

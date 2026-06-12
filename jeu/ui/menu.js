@@ -60,12 +60,8 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
     ouvert ? fermer() : ouvrir();
   }
 
-  window.addEventListener("keydown", (e) => {
-    if (e.code === "Escape") {
-      e.preventDefault();
-      basculer();
-    }
-  });
+  // La touche Échap est gérée de façon centralisée par principal.js (pour
+  // qu'elle ferme d'abord l'inventaire/le deck ouverts avant le menu pause).
 
   boutonReprendre.addEventListener("click", fermer);
 
