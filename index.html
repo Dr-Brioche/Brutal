@@ -563,6 +563,47 @@
     .inv-item:hover { filter: brightness(1.15); }
     .inv-aide { margin-top: 12px; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
+    /* Le bouton « voir le deck » dans l'en-tête de l'inventaire */
+    #inv-deck {
+      padding: 4px 12px; color: #f3f4f6; background: #2f2d3a;
+      border: 1px solid #45424f; border-radius: 6px; cursor: pointer; font-weight: 700;
+    }
+    #inv-deck:hover { background: #3b3947; }
+
+    /* ---- La consultation du deck (touche N) ---- */
+    .deck {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5, 5, 8, 0.72);
+      z-index: 16;
+    }
+    .deck-panneau {
+      width: min(760px, 94vw);
+      max-height: 94vh;
+      overflow: auto;
+      padding: 16px 18px 18px;
+      background: #14121a;
+      border: 1px solid #3b2030;
+      border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    }
+    .deck-liste {
+      display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+      margin-top: 16px;
+    }
+    /* Ici les cartes ne se jouent pas : on neutralise le survol « actif ». */
+    .deck-liste .combat-carte { position: relative; cursor: default; }
+    .deck-liste .combat-carte:hover { transform: none; box-shadow: none; }
+    /* Le badge « ×N » : nombre d'exemplaires de cette carte dans le deck. */
+    .deck-nombre {
+      position: absolute; top: -9px; left: -9px;
+      min-width: 24px; height: 24px; padding: 0 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.8rem;
+      color: #1a1208; background: #ffcf57;
+      border-radius: 999px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
     /* ---- Contrôles tactiles (test mobile uniquement) ---- */
     .tactile { position: fixed; inset: 0; z-index: 9; pointer-events: none; }
     .tac-b {
@@ -599,7 +640,7 @@
     <div id="hud-or"></div>
     <div id="hud-arme"></div>
     <div id="hud-armure"></div>
-    <div style="color:#6b7280">[B] Inventory</div>
+    <div style="color:#6b7280">[B] Inventory  ·  [N] Deck</div>
   </div>
 
   <!-- Le fondu au noir (transitions entre zones) -->
@@ -644,6 +685,7 @@
       <div class="inv-entete">
         <span class="inv-titre">Character</span>
         <span class="inv-or-boite">🪙 <span id="inv-or">0</span></span>
+        <button id="inv-deck">🃏 Deck</button>
         <button id="inv-fermer">✕</button>
       </div>
       <div class="inv-perso">
@@ -658,6 +700,18 @@
       <div class="inv-soustitre">Bag</div>
       <div class="inv-grille" id="inv-grille"></div>
       <p class="inv-aide">Click a bag item to equip · click an equipped item to remove · [B] to close</p>
+    </div>
+  </div>
+
+  <!-- La consultation du deck (touche N) : composition actuelle, hors combat -->
+  <div class="deck" id="deck" hidden>
+    <div class="deck-panneau">
+      <div class="inv-entete">
+        <span class="inv-titre">Deck · <span id="deck-total">0</span> cards</span>
+        <button id="deck-fermer">✕</button>
+      </div>
+      <div class="deck-liste" id="deck-liste"></div>
+      <p class="inv-aide">Your deck mirrors your gear · not shown in combat — remember it! · [N] to close</p>
     </div>
   </div>
 
@@ -699,7 +753,7 @@
       <div class="menu-slots" id="demarrage-slots"></div>
     </div>
 
-    <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; Space: talk / confirm &nbsp;·&nbsp; B: inventory &nbsp;·&nbsp; Esc: menu</p>
+    <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; Space: talk / confirm &nbsp;·&nbsp; B: inventory &nbsp;·&nbsp; N: deck &nbsp;·&nbsp; Esc: menu</p>
 
     <footer class="pied">v0.9 — steel meets stone</footer>
   </main>

@@ -44,7 +44,10 @@ function melanger(tableau) {
 // Construit le deck de départ : deck de base + les cartes apportées par
 // l'équipement (« le deck est le miroir de l'équipement »). On met 2 exemplaires
 // de chaque carte d'équipement pour bien les voir.
-function construireDeck(cartesEquip) {
+//
+// Exporté pour que l'écran de consultation du deck (jeu/ui/deck.js) montre
+// EXACTEMENT le même deck que celui joué en combat — pas une approximation.
+export function composerDeck(cartesEquip) {
   const ids = [...DECK_BASE];
   for (const idCarte of cartesEquip ?? []) ids.push(idCarte, idCarte);
   return ids.map((id) => CARTES[id]).filter(Boolean);
@@ -71,7 +74,7 @@ export function creerCombat(ennemi, opts = {}) {
     pvEnnemi: ennemi.pv,
     intention: null,        // ce que l'ennemi prépare (télégraphié au joueur)
     // Deck
-    pioche: melanger(construireDeck(cartes)),
+    pioche: melanger(composerDeck(cartes)),
     main: [],
     defausse: [],
     // Déroulé

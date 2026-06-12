@@ -14,6 +14,7 @@ import {
   ajouterObjet, ajouterOr, etatInventaire, chargerInventaire,
 } from "./systems/inventaire.js";
 import { installerInventaire } from "./ui/inventaire.js";
+import { installerDeck } from "./ui/deck.js";
 import { installerMenu } from "./ui/menu.js";
 import { afficherMessage, flashCombat, fondu } from "./ui/effets.js";
 import { ouvrirDialogue, dialogueActif } from "./ui/dialogue.js";
@@ -202,6 +203,27 @@ export async function demarrerJeu(donneesInitiales = null) {
   window.addEventListener("keydown", (e) => {
     if (e.code === "KeyB" && !e.repeat) { e.preventDefault(); basculerInventaire(); }
   });
+
+  // La consultation du deck (touche N + bouton de l'inventaire). Le deck = miroir
+  // de l'équipement ; on l'étudie ici, JAMAIS en combat (effort de mémoire voulu).
+  const deckUI = installerDeck({
+    inventaire,
+    surFermer: () => basculerDeck(),
+  });
+  let deckOuvert = false;
+  function basculerDeck() {
+    if (combatEnCours || dialogueActif() || enTransition) return;
+    if (deckOuvert) { deckOuvert = false; enPause = false; deckUI.fermer(); return; }
+    // Pour ouvrir : soit rien d'autre n'est ouvert, soit on vient de l'inventaire
+    // (le bouton 🃏) — dans ce cas on referme l'inventaire d'abord.
+    if (enPause && !inventaireOuvert) return; // menu pause ou autre écran déjà ouvert
+    if (inventaireOuvert) { inventaireOuvert = false; inventaireUI.fermer(); }
+    deckOuvert = true; enPause = true; invite.hidden = true; deckUI.ouvrir();
+  }
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "KeyN" && !e.repeat) { e.preventDefault(); basculerDeck(); }
+  });
+  document.getElementById("inv-deck").addEventListener("click", basculerDeck);
 
   // Espace : parler au PNJ tout proche
   window.addEventListener("keydown", (e) => {
