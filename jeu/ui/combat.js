@@ -22,7 +22,7 @@ const SOL_Y = 270;                  // ligne de sol
 // Dézoom global de l'avant-plan (héros + ennemi + barres) : 1 = taille d'avant,
 // plus petit = moins zoomé. La réduction se fait VERS le sol pour garder les
 // pieds ancrés. Un seul chiffre à régler si on veut plus ou moins gros.
-const ECHELLE_SCENE = 0.75;
+const ECHELLE_SCENE = 0.4;
 const PIVOT_SCENE = { x: 320, y: SOL_Y };
 // Vie + états affichés SOUS chaque perso (la zone AU-DESSUS du monstre reste
 // réservée à ses prochaines actions). Décalages réglables :
