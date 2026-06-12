@@ -153,8 +153,9 @@ directement la **collecte** et le **marché**.
   mais au-dessus du seuil on **surchauffe** : on subit chaque tour
   **(chaleur − seuil)²** dégâts directs (ex. à 4 → 1, à 5 → 4, à 6 → 9). Tous ces
   réglages (recharge, seuil, plafond) seront **modifiés par l'équipement/les
-  items** : monter en chaleur = jouer plus fort, mais brûler. La jauge change de
-  **couleur et de fumée** selon la chaleur (visuel de lave).
+  items** : monter en chaleur = jouer plus fort, mais brûler. La jauge est une
+  **barre horizontale** posée à gauche du deck ; elle rougeoie et **pulse** en
+  surchauffe (un **cadre en image fixe** viendra l'habiller plus tard).
 - Gardés en réserve comme **archétypes de cartes** (pas la ressource générale) :
   **Runes-à-charger** et **Élan-de-l'Enclume**.
 - **Défense « Pierre » — CONFIRMÉ et implémenté** : la Pierre **persiste entre

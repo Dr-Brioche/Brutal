@@ -17,7 +17,8 @@ const ECHELLE_HEROS = 3;            // 64×64 → 192×192
 const HEROS = { x: 70, y: 96 };     // coin haut-gauche du sprite agrandi
 const GOBELIN = { x: 401, y: 120 }; // coin haut-gauche de la case ennemie
 const SOL_Y = 270;                  // ligne de sol
-const JAUGE = { x: 20, y: 76, l: 26, h: 192 }; // jauge de Chaleur (lave), à gauche
+// La jauge de Chaleur n'est plus dessinée ici : c'est une barre HTML (voir
+// index.html + majJauge ci-dessous), posée à gauche des cartes.
 // ---------------------------------------------------------------------------
 
 export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFin }) {
@@ -35,6 +36,15 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
   const panneauResultat = document.getElementById("combat-resultat");
   const texteResultat = document.getElementById("combat-resultat-texte");
   const boutonContinuer = document.getElementById("combat-continuer");
+  // La jauge de Chaleur (barre HTML horizontale, à gauche des cartes)
+  const jauge = document.getElementById("combat-jauge");
+  const jaugeBar = document.getElementById("combat-jauge-bar");
+  const jaugeFill = document.getElementById("combat-jauge-fill");
+  const jaugeSeuil = document.getElementById("combat-jauge-seuil");
+  const jaugeValeur = document.getElementById("combat-jauge-valeur");
+  const jaugeBrulure = document.getElementById("combat-jauge-brulure");
+  // Le repère de seuil est fixe (l'équipement ne change pas pendant un combat).
+  jaugeSeuil.style.left = (combat.chaleurSeuil / combat.chaleurMax) * 100 + "%";
 
   // Valeurs « affichées » : elles glissent vers les vraies (barres animées)
   const aff = { pvHeros: combat.pvHeros, pvEnnemi: combat.pvEnnemi, pierre: 0, chaleur: combat.chaleur };
@@ -42,9 +52,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
   let animAttaque = 0;   // le nain pousse son arme vers l'avant
   let secousseEnnemi = 0;
   let secousseHeros = 0;
-  let temps = 0;         // horloge pour les scintillements de la lave
   const flottants = [];  // nombres de dégâts qui montent et s'estompent
-  const lave = [];       // braises/fumée qui s'échappent de la jauge de Chaleur
 
   // L'état du sprite ennemi : quelle animation, depuis quand
   let animEnnemi = { nom: "idle", t: 0 };
@@ -95,36 +103,23 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     }
   }
 
-  // La surface de lave (haut du remplissage) d'où s'échappent les braises.
-  function surfaceLave() {
-    return JAUGE.y + JAUGE.h - (aff.chaleur / combat.chaleurMax) * JAUGE.h;
+  // -- La jauge de Chaleur (barre HTML) -------------------------------------
+  // On la rafraîchit à chaque image : le remplissage suit la valeur ANIMÉE
+  // (aff.chaleur, qui glisse), le chiffre et la brûlure suivent la valeur réelle.
+  function majJauge() {
+    const pct = Math.max(0, Math.min(1, aff.chaleur / combat.chaleurMax)) * 100;
+    jaugeFill.style.width = pct + "%";
+    jaugeBar.classList.toggle("surchauffe", combat.chaleur > combat.chaleurSeuil);
+    jaugeValeur.textContent = combat.chaleur;
+    const brulure = degatsSurchauffe(combat);
+    jaugeBrulure.textContent = brulure > 0 ? `🔥 -${brulure}/turn` : "";
   }
 
-  function emettreLave(fumee) {
-    lave.push({
-      x: JAUGE.x + 3 + Math.random() * (JAUGE.l - 6),
-      y: surfaceLave(),
-      vx: (Math.random() - 0.5) * (fumee ? 18 : 26),
-      vy: -20 - Math.random() * (fumee ? 26 : 40),
-      taille: fumee ? 4 + Math.random() * 5 : 1 + Math.random() * 2,
-      vie: 0.5 + Math.random() * 0.6, vieMax: 1.1, fumee,
-    });
-  }
-
-  function gicleeLave(n) { for (let i = 0; i < n; i++) emettreLave(false); }
-
-  function majLave(dt) {
-    // Émission : un peu dès que c'est chaud, beaucoup en surchauffe (+ fumée)
-    const surplus = Math.max(0, combat.chaleur - combat.chaleurSeuil);
-    const taux = combat.chaleur * 0.8 + surplus * 4;
-    if (Math.random() < taux * dt) emettreLave(surplus > 0 && Math.random() < 0.4);
-    for (const p of lave) {
-      p.x += p.vx * dt; p.y += p.vy * dt;
-      if (p.fumee) { p.vy -= 8 * dt; p.taille += 8 * dt; }
-      else { p.vy += 24 * dt; } // les braises retombent un peu
-      p.vie -= dt;
-    }
-    for (let i = lave.length - 1; i >= 0; i--) if (lave[i].vie <= 0) lave.splice(i, 1);
+  // Flash + secousse de la jauge à l'instant où la surchauffe brûle.
+  function pulserJauge() {
+    jauge.classList.remove("brule");
+    void jauge.offsetWidth;     // force le redémarrage de l'animation CSS
+    jauge.classList.add("brule");
   }
 
   // -- Construction de la main + sélection clavier --------------------------
@@ -207,8 +202,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     }
     if (brulure > 0) {
       secousseHeros = 0.3;
-      ajouterFlottant(`🔥-${brulure}`, JAUGE.x + JAUGE.l / 2, JAUGE.y - 4, "#ff7a2c");
-      gicleeLave(16); // grosse giclée de lave au moment de la brûlure
+      pulserJauge(); // la barre de Chaleur « brûle » brièvement (flash + secousse)
     }
     rafraichir();
     verifierFin();
@@ -236,6 +230,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
   panneauResultat.hidden = true;
   overlay.hidden = false;
   rafraichir();
+  majJauge(); // état correct dès la 1re image (pas de barre vide qui clignote)
 
   // -- Boucle : animations + dessin ----------------------------------------
   function mettreAJour(dt) {
@@ -244,8 +239,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     aff.pvEnnemi += (combat.pvEnnemi - aff.pvEnnemi) * Math.min(1, dt * 8);
     aff.pierre += (combat.pierre - aff.pierre) * Math.min(1, dt * 10);
     aff.chaleur += (combat.chaleur - aff.chaleur) * Math.min(1, dt * 9);
-    temps += dt;
-    majLave(dt);
+    majJauge();
 
     // L'animation de l'ennemi avance ; touche/attaque reviennent à l'idle
     animEnnemi.t += dt;
@@ -294,7 +288,6 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     ctx.setTransform(s, 0, 0, s, Math.round((W - 640 * s) / 2), Math.round((H - 360 * s) / 2));
 
     dessinerFond(ctx);
-    dessinerJauge(ctx, combat, aff, temps); // la jauge de Chaleur (lave)
 
     // Ennemi : sa frame courante. À sa mort il s'estompe pendant que les
     // braises jaillissent ; sa barre de vie et son intention disparaissent.
@@ -331,7 +324,6 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     }
 
     dessinerParticules(ctx, particules);
-    dessinerLave(ctx, lave); // braises au-dessus de la jauge de Chaleur
 
     // Nombres de dégâts qui montent
     for (const f of flottants) {
@@ -405,96 +397,6 @@ function dessinerFond(ctx) {
   ctx.fillRect(0, SOL_Y, 640, 360 - SOL_Y);
   ctx.fillStyle = "#2e241b";
   ctx.fillRect(0, SOL_Y, 640, 4);
-}
-
-// Mélange deux couleurs RGB ; renvoie "rgb(r, g, b)".
-function lerpCouleur(a, b, t) {
-  t = Math.max(0, Math.min(1, t));
-  const c = a.map((v, i) => Math.round(v + (b[i] - v) * t));
-  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
-}
-
-// La jauge de Chaleur de Forge : des crans de lave, couleur de plus en plus
-// vive vers le haut, repère du seuil de surchauffe, halo rouge au-delà.
-function dessinerJauge(ctx, combat, aff, temps) {
-  const g = JAUGE;
-  const max = combat.chaleurMax, seuil = combat.chaleurSeuil;
-  const pitch = g.h / max;
-  const surchauffe = combat.chaleur > seuil;
-
-  // Halo rouge pulsé derrière la jauge quand on surchauffe
-  if (surchauffe) {
-    ctx.globalCompositeOperation = "lighter";
-    ctx.globalAlpha = 0.35 + 0.25 * Math.sin(temps * 9);
-    ctx.fillStyle = "#ff4a18";
-    ctx.fillRect(g.x - 9, g.y - 9, g.l + 18, g.h + 18);
-    ctx.globalCompositeOperation = "source-over";
-    ctx.globalAlpha = 1;
-  }
-
-  // Cadre de pierre
-  ctx.fillStyle = "#0a0807";
-  ctx.fillRect(g.x - 3, g.y - 3, g.l + 6, g.h + 6);
-  ctx.fillStyle = "#3a2f26";
-  ctx.fillRect(g.x - 2, g.y - 2, g.l + 4, g.h + 4);
-
-  // Crans, du bas vers le haut
-  for (let k = 1; k <= max; k++) {
-    const sy = g.y + g.h - k * pitch;
-    let col;
-    if (aff.chaleur < k - 0.5) {
-      col = "#17110d"; // cran vide (éteint)
-    } else if (k <= seuil) {
-      const t = seuil > 1 ? (k - 1) / (seuil - 1) : 1; // bas -> seuil
-      col = lerpCouleur([150, 48, 14], [255, 142, 26], t); // rouge profond -> orange vif
-    } else {
-      const flick = 0.7 + 0.3 * Math.sin(temps * 18 + k); // jaune-blanc scintillant
-      col = `rgb(255, ${Math.round(188 + 50 * flick)}, ${Math.round(80 + 70 * flick)})`;
-    }
-    ctx.fillStyle = col;
-    ctx.fillRect(g.x, sy + 1, g.l, pitch - 2);
-  }
-
-  // Repère du seuil de surchauffe (trait clair)
-  const sy = g.y + g.h - seuil * pitch;
-  ctx.fillStyle = "#ffe2b0";
-  ctx.fillRect(g.x - 5, sy - 1, g.l + 10, 2);
-
-  // Valeur + brûlure projetée, au-dessus de la jauge (loin des cartes)
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 17px ui-monospace, monospace";
-  ctx.fillText(String(combat.chaleur), g.x + g.l / 2, g.y - 6);
-  const brulure = degatsSurchauffe(combat);
-  if (brulure > 0) {
-    ctx.fillStyle = "#ff8a3c";
-    ctx.font = "bold 12px ui-monospace, monospace";
-    ctx.fillText(`🔥-${brulure}/t`, g.x + g.l / 2, g.y - 22);
-  }
-  ctx.textAlign = "left";
-}
-
-// Les braises (et un peu de fumée) qui s'échappent de la lave de la jauge.
-function dessinerLave(ctx, lave) {
-  for (const p of lave) {
-    if (!p.fumee) continue;
-    ctx.globalAlpha = Math.max(0, p.vie / p.vieMax) * 0.25;
-    ctx.fillStyle = "#2a2622";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.taille, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.globalCompositeOperation = "lighter";
-  for (const p of lave) {
-    if (p.fumee) continue;
-    const k = Math.max(0, p.vie / p.vieMax);
-    ctx.globalAlpha = k;
-    ctx.fillStyle = k > 0.5 ? "#ffd06a" : "#ff7a1e";
-    const s = Math.max(1, Math.round(p.taille));
-    ctx.fillRect(Math.round(p.x), Math.round(p.y), s, s);
-  }
-  ctx.globalCompositeOperation = "source-over";
-  ctx.globalAlpha = 1;
 }
 
 // Une frame de la planche ennemie (ou un rectangle de secours si pas chargée).

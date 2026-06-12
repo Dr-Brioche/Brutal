@@ -293,22 +293,73 @@
       pointer-events: auto;
     }
 
-    /* La jauge de Chaleur de Forge, à gauche des cartes */
+    /* La jauge de Chaleur de Forge : barre HORIZONTALE, à gauche des cartes.
+       (Un cadre en image fixe viendra l'habiller plus tard.) */
     .combat-jauge {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      min-width: 78px;
+      align-items: flex-start;
+      align-self: center;
+      gap: 5px;
+      width: 200px;
+      flex-shrink: 0;
       font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
       color: #ffcaa0;
     }
-    .combat-jauge-valeur { font-size: 1.5rem; font-weight: 800; }
     .combat-jauge-titre {
       font-size: 0.62rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: #b88;
+    }
+    .combat-jauge-bar {
+      position: relative;
+      width: 100%;
+      height: 26px;
+      background: #17110d;
+      border: 2px solid #3a2f26;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .combat-jauge-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 0%;
+      background: linear-gradient(90deg, #963012, #ff8e1a);
+      transition: width 0.08s linear;
+    }
+    /* Au-delà du seuil : la jauge rougeoie et pulse (surchauffe). */
+    .combat-jauge-bar.surchauffe { animation: chauffe 0.7s ease-in-out infinite; }
+    .combat-jauge-bar.surchauffe .combat-jauge-fill {
+      background: linear-gradient(90deg, #ff7a1a, #ff3b14);
+    }
+    @keyframes chauffe {
+      0%, 100% { box-shadow: 0 0 6px rgba(255, 74, 24, 0.45); }
+      50%      { box-shadow: 0 0 16px rgba(255, 74, 24, 0.9); }
+    }
+    /* Le repère du seuil de surchauffe (position posée en JS). */
+    .combat-jauge-seuil {
+      position: absolute; top: -2px; bottom: -2px; width: 2px;
+      background: #ffe2b0; box-shadow: 0 0 4px rgba(255, 226, 176, 0.8);
+      transform: translateX(-1px);
+    }
+    .combat-jauge-valeur {
+      position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+      font-size: 1rem; font-weight: 800; color: #fff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    }
+    .combat-jauge-brulure {
+      min-height: 0.95em;
+      font-size: 0.66rem; font-weight: 700; color: #ff8a3c;
+    }
+    /* Flash + secousse au moment où la surchauffe brûle. */
+    .combat-jauge.brule .combat-jauge-bar { animation: brule 0.45s ease-out; }
+    @keyframes brule {
+      0%   { transform: translateX(0);  filter: brightness(2.2); }
+      25%  { transform: translateX(-3px); }
+      50%  { transform: translateX(3px); }
+      75%  { transform: translateX(-2px); }
+      100% { transform: translateX(0);  filter: brightness(1); }
     }
 
     .combat-main { display: flex; gap: 10px; }
@@ -656,6 +707,16 @@
        les cartes et boutons sont posés par-dessus -->
   <div class="combat" id="combat" hidden>
     <div class="combat-barre">
+      <!-- La jauge de Chaleur de Forge : barre horizontale, à gauche du deck -->
+      <div class="combat-jauge" id="combat-jauge">
+        <div class="combat-jauge-titre">Forge Heat</div>
+        <div class="combat-jauge-bar" id="combat-jauge-bar">
+          <div class="combat-jauge-fill" id="combat-jauge-fill"></div>
+          <div class="combat-jauge-seuil" id="combat-jauge-seuil"></div>
+          <span class="combat-jauge-valeur" id="combat-jauge-valeur">1</span>
+        </div>
+        <div class="combat-jauge-brulure" id="combat-jauge-brulure"></div>
+      </div>
       <div class="combat-main" id="combat-main"></div>
       <button class="combat-fin" id="combat-fin">End Turn</button>
     </div>
