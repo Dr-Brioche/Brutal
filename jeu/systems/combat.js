@@ -25,7 +25,9 @@ const DECK_BASE = [
 // La Chaleur de Forge (l'énergie des cartes). Elle PERSISTE entre les tours et
 // peut monter en SURCHAUFFE au-dessus du seuil. Ces valeurs de base seront
 // modifiables par l'équipement plus tard.
-const CHALEUR_DEPART = 3;     // chaleur au début du combat
+const CHALEUR_DEPART = 1;     // chaleur au début du combat (forge FROIDE : on
+                              // monte en puissance avec le temps + l'équipement,
+                              // et on ne brûle pas dès le 1er tour)
 const CHALEUR_RECHARGE = 1;   // +1 par tour
 const CHALEUR_SEUIL = 3;      // au-delà = surchauffe (le « max » de base)
 const CHALEUR_MAX = 8;        // plafond absolu

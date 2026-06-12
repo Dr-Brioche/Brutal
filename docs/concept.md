@@ -146,8 +146,10 @@ directement la **collecte** et le **marché**.
 ### Twist nain (l'identité du combat)
 
 - **Moteur principal : « Chaleur de Forge » avec SURCHAUFFE — implémenté.**
-  Jauge de lave qui **persiste** entre les tours et **se recharge** (+1/tour de
-  base). Seuil de base **3** ; on peut le dépasser jusqu'à un plafond (**8**),
+  Jauge qui **persiste** entre les tours et **se recharge** (+1/tour de
+  base). Le combat **démarre forge froide (chaleur 1)** : la puissance vient du
+  temps et de l'équipement, et on ne se brûle pas dès le 1er tour.
+  Seuil de base **3** ; on peut le dépasser jusqu'à un plafond (**8**),
   mais au-dessus du seuil on **surchauffe** : on subit chaque tour
   **(chaleur − seuil)²** dégâts directs (ex. à 4 → 1, à 5 → 4, à 6 → 9). Tous ces
   réglages (recharge, seuil, plafond) seront **modifiés par l'équipement/les
