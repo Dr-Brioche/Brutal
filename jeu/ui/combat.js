@@ -135,9 +135,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
   function elementsNavigables() {
     return [...conteneurMain.children, boutonFin];
   }
+  // selection = index dans elementsNavigables(), ou -1 = RIEN de sélectionné
+  // (état volontaire après avoir joué la dernière carte : on ne veut pas que
+  // « End Turn » soit prêt à être validé par un Espace de trop).
   function majSelection() {
     const els = elementsNavigables();
-    selection = Math.max(0, Math.min(els.length - 1, selection));
+    if (selection >= els.length) selection = els.length - 1; // jamais hors borne
     els.forEach((el, i) => el.classList.toggle("sel", i === selection));
   }
   function rafraichir() {
@@ -176,10 +179,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     if (combat.fini || !combat.tourJoueur) return; // rien pendant l'anim de fin / le tour ennemi
     const els = elementsNavigables();
     if (e.code === "KeyA" || e.code === "ArrowLeft") {
-      selection = (selection - 1 + els.length) % els.length; majSelection();
+      selection = selection < 0 ? els.length - 1 : (selection - 1 + els.length) % els.length;
+      majSelection();
     } else if (e.code === "KeyD" || e.code === "ArrowRight") {
-      selection = (selection + 1) % els.length; majSelection();
+      selection = selection < 0 ? 0 : (selection + 1) % els.length;
+      majSelection();
     } else if (e.code === "Space" || e.code === "Enter") {
+      if (selection < 0) return;                  // rien de sélectionné : on ne valide rien
       if (selection < combat.main.length) jouer(selection);
       else finDeTour();
     }
@@ -205,6 +211,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
       ajouterFlottant(`+${combat.pierre - pierreAvant}`,
         HEROS.x + 96, HEROS.y + 40, "#9cd3ff");
     }
+    // Après avoir joué : garder la sélection SUR UNE CARTE (jamais sur End Turn).
+    // Si la main est vide, on ne sélectionne plus rien (-1) : aller sur End Turn
+    // devient un geste volontaire, pas un automatisme.
+    selection = combat.main.length > 0 ? Math.min(selection, combat.main.length - 1) : -1;
     rafraichir();
     verifierFin();
   }
