@@ -366,10 +366,11 @@
 
     /* La main : les cartes se chevauchent en léger éventail (tenues en main).
        L'angle (--rot) et la descente vers les bords (--dy) sont posés en JS.
-       --carte-l = largeur d'une carte, RESPONSIVE (clamp = s'adapte à l'écran) ;
-       tout le reste (hauteur, marges, textes) en découle. */
+       --carte-l = largeur d'une carte. On la base sur la HAUTEUR de l'écran
+       (vh, pas vw) : les cartes sont grandes mais restent dans la bande du bas
+       et ne recouvrent pas les personnages, quelle que soit la largeur d'écran. */
     .combat-main {
-      --carte-l: clamp(220px, 13vw, 320px);
+      --carte-l: clamp(150px, 18vh, 230px);
       display: flex; gap: 0;
       padding-top: calc(var(--carte-l) * 0.16);
     }
