@@ -525,8 +525,11 @@ function dessinerEtats(ctx, etats, cx, y) {
 function creerCarteDOM(carte, combat, surClic) {
   const el = document.createElement("button");
   el.className = "combat-carte";
-  el.disabled = combat.fini || !combat.tourJoueur || carte.cout > combat.chaleur;
+  // Désactivé UNIQUEMENT hors de notre tour. Ne pas pouvoir payer une carte ne
+  // la grise plus (c'était bizarre) : on met juste son coût en ROUGE.
+  el.disabled = combat.fini || !combat.tourJoueur;
   garnirCarte(el, carte); // coût + (illustration OU nom/texte)
+  if (carte.cout > combat.chaleur) el.classList.add("combat-carte--injouable");
   el.addEventListener("click", surClic);
   return el;
 }

@@ -430,6 +430,10 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
     }
 
+    /* Carte qu'on ne peut pas PAYER : pas de transparence, juste le coût en rouge. */
+    .combat-carte--injouable { cursor: not-allowed; }
+    .combat-carte--injouable .combat-carte-cout { background: #e0473a; color: #fff; }
+
     .combat-fin {
       padding: 12px 18px;
       font-weight: 700;
