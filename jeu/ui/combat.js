@@ -19,6 +19,11 @@ const ECHELLE_HEROS = 3;            // 64×64 → 192×192
 const HEROS = { x: 70, y: 96 };     // coin haut-gauche du sprite agrandi
 const GOBELIN = { x: 401, y: 120 }; // coin haut-gauche de la case ennemie
 const SOL_Y = 270;                  // ligne de sol
+// Dézoom global de l'avant-plan (héros + ennemi + barres) : 1 = taille d'avant,
+// plus petit = moins zoomé. La réduction se fait VERS le sol pour garder les
+// pieds ancrés. Un seul chiffre à régler si on veut plus ou moins gros.
+const ECHELLE_SCENE = 0.75;
+const PIVOT_SCENE = { x: 320, y: SOL_Y };
 // La jauge de Chaleur n'est plus dessinée ici : c'est une barre HTML (voir
 // index.html + majJauge ci-dessous), posée à gauche des cartes.
 // ---------------------------------------------------------------------------
@@ -307,6 +312,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
 
     dessinerFond(ctx);
 
+    // Tout l'avant-plan (ennemi, héros, barres, nombres, particules) est réduit
+    // d'un cran VERS le sol : les persos paraissent moins zoomés, pieds ancrés.
+    ctx.save();
+    ctx.translate(PIVOT_SCENE.x, PIVOT_SCENE.y);
+    ctx.scale(ECHELLE_SCENE, ECHELLE_SCENE);
+    ctx.translate(-PIVOT_SCENE.x, -PIVOT_SCENE.y);
+
     // Ennemi : sa frame courante. À sa mort il s'estompe pendant que les
     // braises jaillissent ; sa barre de vie et son intention disparaissent.
     const def = spr.anims[animEnnemi.nom] ?? spr.anims.idle;
@@ -351,6 +363,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
       ctx.textAlign = "center";
       ctx.fillText(f.texte, f.x, f.y - (1 - f.t) * 24);
     }
+    ctx.restore(); // fin du dézoom de l'avant-plan
     ctx.globalAlpha = 1;
     ctx.textAlign = "left";
     ctx.setTransform(1, 0, 0, 1, 0, 0); // on rétablit le repère écran après la scène
