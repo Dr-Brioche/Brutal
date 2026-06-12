@@ -297,13 +297,14 @@
     /* La jauge de Chaleur de Forge : barre HORIZONTALE, à gauche des cartes.
        (Un cadre en image fixe viendra l'habiller plus tard.) */
     .combat-jauge {
+      position: absolute;       /* place FIXE en bas à gauche, hors du flux des
+                                   cartes (sinon elle glisse quand il y en a moins) */
+      left: 24px; bottom: 22px;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      align-self: center;
       gap: 5px;
       width: 200px;
-      flex-shrink: 0;
       font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
       color: #ffcaa0;
     }
