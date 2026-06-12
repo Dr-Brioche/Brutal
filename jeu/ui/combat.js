@@ -15,15 +15,23 @@ import { garnirCarte } from "./carte.js";
 import { alerteVie } from "./effets.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
-const ECHELLE_HEROS = 3;            // 64×64 → 192×192
-const HEROS = { x: 70, y: 96 };     // coin haut-gauche du sprite agrandi
-const GOBELIN = { x: 401, y: 120 }; // coin haut-gauche de la case ennemie
+const ECHELLE_HEROS = 3;            // 64×64 → 192×192 (avant dézoom de scène)
+const HEROS_Y = 96;                 // haut du sprite héros
+const GOBELIN_Y = 120;              // haut de la case ennemie
 const SOL_Y = 270;                  // ligne de sol
 // Dézoom global de l'avant-plan (héros + ennemi + barres) : 1 = taille d'avant,
 // plus petit = moins zoomé. La réduction se fait VERS le sol pour garder les
 // pieds ancrés. Un seul chiffre à régler si on veut plus ou moins gros.
 const ECHELLE_SCENE = 0.4;
 const PIVOT_SCENE = { x: 320, y: SOL_Y };
+// Centres horizontaux VOULUS À L'ÉCRAN (repère 640 de la scène), écartés vers
+// l'extérieur. L'avant-plan étant réduit autour du centre, on remonte aux coords
+// d'origine en INVERSANT le dézoom (sinon les persos se tassent au milieu).
+const HEROS_ECRAN_CX = 165;
+const ENNEMI_ECRAN_CX = 475;
+function versOrigine(cxEcran) {
+  return PIVOT_SCENE.x + (cxEcran - PIVOT_SCENE.x) / ECHELLE_SCENE;
+}
 // Vie + états affichés SOUS chaque perso (la zone AU-DESSUS du monstre reste
 // réservée à ses prochaines actions). Décalages réglables :
 const VIE_SOUS = 8;    // écart bas du perso → barre de vie
@@ -38,6 +46,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
   });
   const plancheEnnemi = planches?.get(ennemi.planche) ?? null;
   const spr = ennemi.sprite;
+  // Coins haut-gauche des sprites, calés sur les centres voulus à l'écran.
+  const HEROS = { x: versOrigine(HEROS_ECRAN_CX) - (64 * ECHELLE_HEROS) / 2, y: HEROS_Y };
+  const GOBELIN = { x: versOrigine(ENNEMI_ECRAN_CX) - spr.caseL / 2, y: GOBELIN_Y };
   const cx = GOBELIN.x + spr.caseL / 2; // centre horizontal de l'ennemi
 
   // Éléments d'interface (présents dans index.html)
