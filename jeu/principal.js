@@ -16,7 +16,7 @@ import {
 import { installerInventaire } from "./ui/inventaire.js";
 import { installerDeck } from "./ui/deck.js";
 import { installerMenu } from "./ui/menu.js";
-import { afficherMessage, flashCombat, fondu } from "./ui/effets.js";
+import { afficherMessage, flashCombat, fondu, alerteVie } from "./ui/effets.js";
 import { ouvrirDialogue, dialogueActif } from "./ui/dialogue.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { demarrerCombat } from "./ui/combat.js";
@@ -301,6 +301,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       // L'invite « parler » s'affiche quand on est à portée du fanatique
       invite.hidden = !(zoneActuelle === "ville" && fanatique.proche);
       mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
+      alerteVie(heros.pv / heros.pvMax); // liseré rouge si la vie est basse
     },
     dessiner() {
       if (combatEnCours) { combatEnCours.dessiner(); return; } // la scène de combat

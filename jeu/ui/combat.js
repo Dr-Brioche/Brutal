@@ -12,6 +12,7 @@ import { creerCombat, jouerCarte, finirTour, degatsSurchauffe } from "../systems
 import { cartesEquipees } from "../systems/inventaire.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 import { garnirCarte } from "./carte.js";
+import { alerteVie } from "./effets.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
 const ECHELLE_HEROS = 3;            // 64×64 → 192×192
@@ -290,6 +291,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
       delaiFin -= dt;
       if (delaiFin <= 0) { termine = true; terminer(); }
     }
+
+    alerteVie(combat.pvHeros / combat.pvHerosMax); // liseré rouge si vie basse
   }
 
   function dessiner() {

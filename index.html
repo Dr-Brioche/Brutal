@@ -232,6 +232,23 @@
       100% { opacity: 0; }
     }
 
+    /* ---- L'alerte « vie basse » : liseré rouge qui pulse (PV < 10 %) ---- */
+    .vignette-vie {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 13;            /* au-dessus de la scène/combat, sous les menus */
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .vignette-vie.actif {
+      opacity: 1;
+      animation: pulse-vie 1.1s ease-in-out infinite;
+    }
+    @keyframes pulse-vie {
+      0%, 100% { box-shadow: inset 0 0 90px 18px rgba(220, 38, 38, 0.35); }
+      50%      { box-shadow: inset 0 0 150px 48px rgba(220, 38, 38, 0.75); }
+    }
+
     /* ---- Les messages furtifs (points d'intérêt, infos de zone) ---- */
     .message-zone {
       position: fixed;
@@ -719,6 +736,9 @@
 
   <!-- Le flash de combat -->
   <div class="flash" id="flash"></div>
+
+  <!-- L'alerte « vie basse » : liseré rouge qui pulse autour de l'écran -->
+  <div class="vignette-vie" id="vignette-vie"></div>
 
   <!-- Les messages furtifs (points d'intérêt…) -->
   <div class="message-zone" id="message-zone"></div>

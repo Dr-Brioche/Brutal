@@ -20,6 +20,15 @@ export function fondu(opacite, duree = 220) {
   return new Promise((resoudre) => setTimeout(resoudre, duree));
 }
 
+// Alerte « vie basse » : un liseré rouge pulse autour de l'écran quand les PV
+// passent sous le seuil. `ratio` = pv / pvMax (0..1). Appelée chaque image,
+// aussi bien en exploration qu'en combat (chacun fournit sa source de PV).
+const SEUIL_VIE_BASSE = 0.10;
+export function alerteVie(ratio) {
+  const voile = document.getElementById("vignette-vie");
+  if (voile) voile.classList.toggle("actif", ratio > 0 && ratio < SEUIL_VIE_BASSE);
+}
+
 let minuterieMessage = null;
 
 // Affiche un court message en bas de l'écran, qui disparaît tout seul.
