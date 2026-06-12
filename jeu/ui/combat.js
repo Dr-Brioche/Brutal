@@ -11,6 +11,7 @@
 import { creerCombat, jouerCarte, finirTour, degatsSurchauffe } from "../systems/combat.js";
 import { cartesEquipees } from "../systems/inventaire.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
+import { garnirCarte } from "./carte.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
 const ECHELLE_HEROS = 3;            // 64×64 → 192×192
@@ -456,22 +457,9 @@ function dessinerPierre(ctx, x, y, valeur) {
 
 function creerCarteDOM(carte, combat, surClic) {
   const el = document.createElement("button");
-  el.className = `combat-carte combat-carte--${carte.type}`;
+  el.className = "combat-carte";
   el.disabled = combat.fini || !combat.tourJoueur || carte.cout > combat.chaleur;
-
-  const cout = document.createElement("span");
-  cout.className = "combat-carte-cout";
-  cout.textContent = carte.cout;
-
-  const nom = document.createElement("span");
-  nom.className = "combat-carte-nom";
-  nom.textContent = carte.nom;
-
-  const texte = document.createElement("span");
-  texte.className = "combat-carte-texte";
-  texte.textContent = carte.texte;
-
-  el.append(cout, nom, texte);
+  garnirCarte(el, carte); // coût + (illustration OU nom/texte)
   el.addEventListener("click", surClic);
   return el;
 }

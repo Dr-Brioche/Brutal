@@ -10,6 +10,10 @@
 //   cout   : Chaleur de Forge dépensée pour la jouer (0 = gratuite)
 //   type   : "attaque" ou "defense" (sert juste à la couleur de la carte)
 //   texte  : description affichée au joueur
+//   image  : (optionnel) PNG illustrant TOUTE la carte. S'il est présent, on
+//            n'affiche par-dessus que le COÛT (un chiffre, pour qu'il puisse
+//            changer si un effet le réduit). Sans image : rectangle + texte.
+//            Ranger les illustrations dans images/cartes/ (nommées comme l'id).
 //   effets : liste d'effets appliqués dans l'ordre, chacun { type, valeur }
 //            - "degats" : retire `valeur` PV à l'ennemi
 //            - "pierre" : ajoute `valeur` de défense "Pierre" au héros

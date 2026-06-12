@@ -9,6 +9,7 @@
 
 import { composerDeck } from "../systems/combat.js";
 import { cartesEquipees } from "../systems/inventaire.js";
+import { garnirCarte } from "./carte.js";
 
 export function installerDeck({ inventaire, surFermer }) {
   const overlay = document.getElementById("deck");
@@ -16,25 +17,12 @@ export function installerDeck({ inventaire, surFermer }) {
   const total = document.getElementById("deck-total");
   document.getElementById("deck-fermer").onclick = () => surFermer();
 
-  // Une carte affichée (réutilise le look des cartes de combat) + un badge ×N
-  // quand la même carte est présente en plusieurs exemplaires.
+  // Une carte affichée (même rendu qu'en combat) + un badge ×N quand la même
+  // carte est présente en plusieurs exemplaires.
   function carteDOM(carte, nombre) {
     const el = document.createElement("div");
-    el.className = `combat-carte combat-carte--${carte.type}`;
-
-    const cout = document.createElement("span");
-    cout.className = "combat-carte-cout";
-    cout.textContent = carte.cout;
-
-    const nom = document.createElement("span");
-    nom.className = "combat-carte-nom";
-    nom.textContent = carte.nom;
-
-    const texte = document.createElement("span");
-    texte.className = "combat-carte-texte";
-    texte.textContent = carte.texte;
-
-    el.append(cout, nom, texte);
+    el.className = "combat-carte";
+    garnirCarte(el, carte); // coût + (illustration OU nom/texte)
     if (nombre > 1) {
       const badge = document.createElement("span");
       badge.className = "deck-nombre";

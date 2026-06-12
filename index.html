@@ -415,6 +415,20 @@
       color: #b9c2cc;
     }
 
+    /* Carte illustrée : le PNG remplit la carte, seul le coût est posé dessus. */
+    .combat-carte--image { padding: 0; overflow: hidden; }
+    .combat-carte--image img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      border-radius: 9px;
+      pointer-events: none;
+    }
+    .combat-carte--image .combat-carte-cout {
+      position: absolute; top: 6px; left: 6px;
+      align-self: auto;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+
     .combat-fin {
       padding: 12px 18px;
       font-weight: 700;
