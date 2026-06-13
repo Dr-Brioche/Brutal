@@ -20,7 +20,9 @@
 //            - "poison" : ajoute `valeur` de Poison à l'ennemi (dégâts/tour qui
 //                         baissent de 1 par tour, ignorent la Pierre)
 //            - "feu"    : ajoute `valeur` d'Enflammé à l'ennemi (comme le poison ;
-//                         se propagera aux ennemis adjacents — combat multi à venir)
+//                         se propage aux ennemis adjacents non encore enflammés)
+//            - "sang"   : ajoute `valeur` de Saignement à l'ennemi (comme le poison,
+//                         mais le sang absorbé SOIGNE le héros à chaque tick)
 
 export const CARTES = {
   // ---- Deck de base commun : cartes à 0 Chaleur, mais FAIBLES --------------
@@ -116,5 +118,15 @@ export const CARTES = {
     type: "attaque",
     texte: "Deal 5 damage. Apply 4 Burning.",
     effets: [{ type: "degats", valeur: 5 }, { type: "feu", valeur: 4 }],
+  },
+
+  // Bague de sang : saignement qui te SOIGNE à chaque tick (vol de vie lent).
+  "coup-de-sang": {
+    id: "coup-de-sang",
+    nom: "Bloodletting",
+    cout: 1,
+    type: "attaque",
+    texte: "Deal 2 damage. Apply 2 Bleed (heals you each tick).",
+    effets: [{ type: "degats", valeur: 2 }, { type: "sang", valeur: 2 }],
   },
 };

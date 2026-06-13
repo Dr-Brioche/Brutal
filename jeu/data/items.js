@@ -92,6 +92,11 @@ export const ITEMS = {
     id: "anneau-de-braise", nom: "Ember Ring", categorie: "bague", rarete: "rare",
     taille: { l: 1, h: 1 }, icone: "#d9603a", stats: { chaleurSeuil: 1 },
   },
+  // Bague de sang : injecte « Bloodletting » (saignement qui soigne le héros).
+  "bague-de-sang": {
+    id: "bague-de-sang", nom: "Blood Ring", categorie: "bague", rarete: "rare",
+    taille: { l: 1, h: 1 }, icone: "#7a1f2b", cartes: ["coup-de-sang"],
+  },
   "gants-de-mineur": {
     id: "gants-de-mineur", nom: "Miner's Gloves", categorie: "gant", rarete: "commun",
     taille: { l: 2, h: 1 }, icone: "#7a6a4a", stats: {},

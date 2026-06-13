@@ -171,7 +171,10 @@ directement la **collecte** et le **marché**.
     ennemis adjacents NON encore enflammés** à la fin du tour ennemi (ils prennent
     le feu du voisin le plus ardent ; un ennemi déjà en feu ne se ré-enflamme pas,
     il continue de brûler). Ex. *Magma Hammer* → carte *Lava Hammer*.
-  - À venir : stun, saignement…
+  - **Saignement (sang)** : comme le poison, mais le sang absorbé **soigne le
+    héros** du même montant à chaque tick (vol de vie lent). Ex. *Blood Ring* →
+    carte *Bloodletting*.
+  - À venir : stun…
 
 ## Items, butin & inventaire (1er jet implémenté)
 

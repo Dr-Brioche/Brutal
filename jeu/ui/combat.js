@@ -378,26 +378,35 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
         u.secousse = 0.3;
         ajouterFlottant(`🔥 ${e.dernierFeu}`, u.ecran.cx, u.ecran.milieu - 16, "#ff8a2c");
       }
+      if (e.dernierSang > 0) {
+        u.secousse = 0.3;
+        ajouterFlottant(`🩸 ${e.dernierSang}`, u.ecran.cx, u.ecran.milieu - 32, "#e05a5a");
+      }
       if (e.pv <= 0 && !u.mort.actif && !u.partis) exploser(u);       // mort par statut
       else if (e.pv > 0 && e.intention?.type === "attaque") jouerAnim(u, "attaque");
     });
 
-    // Dégâts subis par le héros : attaques cumulées vs brûlure vs statuts héros.
+    // Vie du héros : attaques cumulées, moins le soin du saignement, séparés de
+    // la brûlure (jauge) et des statuts du héros.
     const brulure = combat.derniereBrulure;
     const poison = combat.dernierPoisonHeros;
     const feu = combat.dernierFeuHeros;
-    const degats = (pvHerosAvant - combat.pvHeros) - brulure - poison - feu;
+    const soin = combat.dernierSoinSang;
+    const degats = (pvHerosAvant - combat.pvHeros) - brulure - poison - feu + soin;
     if (degats > 0) {
       secousseHeros = 0.3;
       ajouterFlottant(`-${degats}`, heroEcran.cx, heroEcran.milieu, "#ff7a7a");
     }
+    if (soin > 0) {
+      ajouterFlottant(`+${soin}`, heroEcran.cx, heroEcran.milieu - 16, "#86e08a"); // saignement → vie
+    }
     if (poison > 0) {
       secousseHeros = 0.3;
-      ajouterFlottant(`☠ ${poison}`, heroEcran.cx, heroEcran.milieu - 16, "#7ec850");
+      ajouterFlottant(`☠ ${poison}`, heroEcran.cx, heroEcran.milieu - 32, "#7ec850");
     }
     if (feu > 0) {
       secousseHeros = 0.3;
-      ajouterFlottant(`🔥 ${feu}`, heroEcran.cx, heroEcran.milieu - 32, "#ff8a2c");
+      ajouterFlottant(`🔥 ${feu}`, heroEcran.cx, heroEcran.milieu - 48, "#ff8a2c");
     }
     if (brulure > 0) {
       secousseHeros = 0.3;
@@ -492,6 +501,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     const l = [];
     if (e.poison > 0) l.push({ texte: `☠ ${e.poison}`, couleur: "#7ec850" });
     if (e.feu > 0) l.push({ texte: `🔥 ${e.feu}`, couleur: "#ff8a2c" });
+    if (e.sang > 0) l.push({ texte: `🩸 ${e.sang}`, couleur: "#e05a5a" });
     return l;
   }
 

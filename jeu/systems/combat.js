@@ -53,8 +53,8 @@ export function composerDeck(cartesEquip) {
 function creerEnnemiCombat(def) {
   return {
     def, pv: def.pv, pvMax: def.pv,
-    poison: 0, feu: 0,             // statuts (dégâts dans le temps)
-    dernierPoison: 0, dernierFeu: 0, // dégâts subis au dernier tour (pour l'UI)
+    poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps ; sang = vol de vie)
+    dernierPoison: 0, dernierFeu: 0, dernierSang: 0, // dégâts subis au dernier tour (UI)
     intention: null,              // ce qu'il prépare (télégraphié)
   };
 }
@@ -85,6 +85,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     derniereBrulure: 0,
     dernierPoisonHeros: 0,
     dernierFeuHeros: 0,
+    dernierSoinSang: 0,    // PV rendus au héros par le saignement ce tour (pour l'UI)
     // Ennemis (liste) + l'ennemi visé
     ennemis: ennemisDefs.map(creerEnnemiCombat),
     cible: 0,
@@ -136,7 +137,7 @@ function prevoirIntentions(combat) {
 // directement sur soi (Pierre…), sans choix de cible.
 export function carteVise(carte) {
   return (carte?.effets ?? []).some(
-    (e) => e.type === "degats" || e.type === "poison" || e.type === "feu"
+    (e) => e.type === "degats" || e.type === "poison" || e.type === "feu" || e.type === "sang"
   );
 }
 
@@ -151,6 +152,8 @@ function appliquerEffet(combat, effet, ennemi) {
     if (ennemi) ennemi.poison += effet.valeur;
   } else if (effet.type === "feu") {
     if (ennemi) ennemi.feu += effet.valeur;
+  } else if (effet.type === "sang") {
+    if (ennemi) ennemi.sang += effet.valeur; // saignement : soigne le héros à chaque tick
   }
 }
 
@@ -242,18 +245,25 @@ function propagerFeu(combat) {
 export function finirTour(combat) {
   if (combat.fini || !combat.tourJoueur) return;
   combat.tourJoueur = false;
-  combat.dernierPoisonHeros = combat.dernierFeuHeros = 0;
-  for (const e of combat.ennemis) { e.dernierPoison = 0; e.dernierFeu = 0; }
+  combat.dernierPoisonHeros = combat.dernierFeuHeros = combat.dernierSoinSang = 0;
+  for (const e of combat.ennemis) { e.dernierPoison = 0; e.dernierFeu = 0; e.dernierSang = 0; }
 
   // Les cartes encore en main repartent à la défausse
   combat.defausse.push(...combat.main);
   combat.main = [];
 
-  // Chaque ennemi vivant : poison + feu en début de SON tour, puis il attaque.
+  // Chaque ennemi vivant : poison + feu + saignement en début de SON tour, puis
+  // il attaque. Le saignement absorbé SOIGNE le héros du même montant.
   for (const e of combat.ennemis) {
     if (e.pv <= 0) continue;
     e.dernierPoison = tiquerEnnemi(e, "poison");
     e.dernierFeu = tiquerEnnemi(e, "feu");
+    e.dernierSang = tiquerEnnemi(e, "sang");
+    if (e.dernierSang > 0) {
+      const avant = combat.pvHeros;
+      combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + e.dernierSang);
+      combat.dernierSoinSang += combat.pvHeros - avant; // soin réellement appliqué
+    }
     if (e.pv <= 0) continue;            // mort par statut → il n'attaque pas
     if (e.intention?.type === "attaque") subirDegats(combat, e.intention.valeur);
     if (combat.pvHeros <= 0) break;     // héros mort → on arrête là
