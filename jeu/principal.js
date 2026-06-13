@@ -102,6 +102,45 @@ export async function demarrerJeu(donneesInitiales = null) {
     xMin: 11 * TUILE - 11,
     xMax: 11 * TUILE - 11,
   });
+  // FONTAINE (build de TEST) : statique, au centre de la place. On lui parle
+  // pour gagner 1 niveau d'un coup → tester l'arbre de talents sans farmer.
+  const fontaine = {
+    cx: 21 * TUILE + TUILE / 2, // centre x (monde)
+    solY: 14 * TUILE,           // base/pieds (profondeur + dessin)
+    proche: false,
+    t: 0,
+  };
+  function dessinerFontaine(ctx, f) {
+    const cx = f.cx, by = f.solY;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.28)"; // ombre
+    ctx.beginPath(); ctx.ellipse(cx, by, 27, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#5c544a";              // bassin (pierre, dessous)
+    ctx.beginPath(); ctx.ellipse(cx, by - 5, 25, 11, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#857b6b";              // rebord
+    ctx.beginPath(); ctx.ellipse(cx, by - 8, 25, 11, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#356394";              // eau
+    ctx.beginPath(); ctx.ellipse(cx, by - 9, 20, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(150, 200, 240, 0.55)"; // reflets qui tournent
+    for (let i = 0; i < 3; i++) {
+      const a = f.t * 1.6 + i * 2.1;
+      ctx.beginPath();
+      ctx.ellipse(cx + Math.cos(a) * 11, by - 9 + Math.sin(a) * 4, 3, 1.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = "#7d7464";              // pilier central
+    ctx.fillRect(cx - 4, by - 28, 8, 20);
+    ctx.fillStyle = "#a89d88";
+    ctx.beginPath(); ctx.ellipse(cx, by - 28, 9, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "rgba(160, 205, 245, 0.85)"; // jets : gouttes qui jaillissent
+    for (let i = 0; i < 7; i++) {
+      const p = (f.t * 1.3 + i / 7) % 1;
+      const ang = (i / 7) * Math.PI * 2;
+      const dxj = Math.cos(ang) * (3 + p * 13);
+      const yj = by - 30 - Math.sin(p * Math.PI) * 15;
+      ctx.fillRect(Math.round(cx + dxj) - 1, Math.round(yj), 2, 3);
+    }
+  }
+
   const invite = document.getElementById("invite");
 
   // Parler au fanatique : un petit laïus, puis un choix (se faire soigner ou partir).
@@ -127,6 +166,32 @@ export async function demarrerJeu(donneesInitiales = null) {
           texte: "Your religion is a cult.",
           action: () => afficherMessage("The Fanatic sneers and turns away."),
         },
+      ],
+    }, () => { enPause = false; });
+  }
+
+  // Parler à la fontaine (build de TEST) : monter d'un niveau d'un coup pour
+  // essayer l'arbre de talents sans devoir farmer des combats.
+  function parlerALaFontaine() {
+    if (dialogueActif() || combatEnCours || enPause) return;
+    enPause = true;
+    invite.hidden = true;
+    ouvrirDialogue({
+      nom: "Ancient Fountain",
+      texte: [
+        "The water glows with old forge-magic.",
+        "Drink, and feel your power grow.",
+      ],
+      choix: [
+        {
+          texte: "💧  Drink — gain 1 level",
+          action: () => {
+            heros.niveau += 1;
+            heros.pointsTalent += 1;
+            afficherMessage(`⬆ Level ${heros.niveau}!  +1 talent point — press T to spend it.`);
+          },
+        },
+        { texte: "Leave", action: () => {} },
       ],
     }, () => { enPause = false; });
   }
@@ -365,6 +430,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (zoneActuelle !== "ville") return;
     if (fanatique.proche) { e.preventDefault(); parlerAuFanatique(); }
     else if (marchand.proche) { e.preventDefault(); parlerAuMarchand(); }
+    else if (fontaine.proche) { e.preventDefault(); parlerALaFontaine(); }
   });
 
   // Les points d'intérêt : le message vient du catalogue (champ `interet`),
@@ -461,9 +527,14 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (zoneActuelle === "ville") {
         mettreAJourPnj(fanatique, dt, heros);
         mettreAJourPnj(marchand, dt, heros);
+        fontaine.t += dt;
+        fontaine.proche =
+          Math.abs((heros.x + 32) - fontaine.cx) < 46 &&
+          Math.abs((heros.y + 54) - fontaine.solY) < 46;
       }
-      // L'invite « parler » s'affiche quand on est à portée d'un PNJ
-      invite.hidden = !(zoneActuelle === "ville" && (fanatique.proche || marchand.proche));
+      // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la fontaine
+      invite.hidden = !(zoneActuelle === "ville" &&
+        (fanatique.proche || marchand.proche || fontaine.proche));
       mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
       alerteVie(heros.pv / heros.pvMax); // liseré rouge si la vie est basse
     },
@@ -479,6 +550,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       // PNJ du plus « haut » (pieds les plus en arrière) au plus « bas ».
       if (zoneActuelle === "ville") {
         const acteurs = [
+          { pieds: fontaine.solY, dessiner: () => dessinerFontaine(ctx, fontaine) },
           { pieds: piedsPnj(fanatique), dessiner: () => dessinerPnj(ctx, fanatique) },
           { pieds: piedsPnj(marchand), dessiner: () => dessinerPnj(ctx, marchand) },
           { pieds: heros.y + 54, dessiner: () => dessinerHeros(ctx, heros) },

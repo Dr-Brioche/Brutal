@@ -216,6 +216,9 @@ l'**arbre** (écran touche **T**) : des nœuds reliés en arborescence, débloqu
 selon leurs prérequis. *(1er jet implémenté : XP/niveau/points sauvegardés, écran
 de l'arbre, effets appliqués. À venir : plus de nœuds, rangs multiples.)*
 
+> **Outil de TEST (à retirer)** : une **fontaine** au centre de la ville donne
+> **+1 niveau** quand on lui parle, pour essayer les talents sans farmer.
+
 ## La grande boucle (le moteur d'addiction)
 
 ```
