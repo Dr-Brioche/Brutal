@@ -20,3 +20,12 @@ export const FANATIQUE = {
     },
   },
 };
+
+// Marchand de TEST : permet de récupérer toutes les armes/armures gratuitement
+// pour essayer le stuff. Placeholder visuel : on réutilise le sprite du
+// fanatique en attendant un vrai sprite de marchand.
+export const MARCHAND = {
+  id: "marchand",
+  planche: FANATIQUE.planche,
+  sprite: FANATIQUE.sprite,
+};

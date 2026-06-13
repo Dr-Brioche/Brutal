@@ -21,7 +21,7 @@ import { ouvrirDialogue, dialogueActif } from "./ui/dialogue.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { demarrerCombat } from "./ui/combat.js";
 import { ennemiParId, ENNEMIS, tirerButin } from "./data/ennemis.js";
-import { FANATIQUE } from "./data/pnj.js";
+import { FANATIQUE, MARCHAND } from "./data/pnj.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
 
 const canvas = document.getElementById("jeu");
@@ -54,7 +54,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   ajusterEchelle(); // règle la taille du canvas + coupe le lissage
 
   // On charge toutes les planches (items équipables + ennemis + PNJ), dédoublonnées
-  const aPlanche = [...Object.values(ITEMS), ...ENNEMIS, FANATIQUE].filter((o) => o.planche);
+  const aPlanche = [...Object.values(ITEMS), ...ENNEMIS, FANATIQUE, MARCHAND].filter((o) => o.planche);
   const chemins = [...new Set(aPlanche.map((o) => o.planche))];
   const images = await Promise.all(chemins.map(chargerImage));
   const planches = new Map(chemins.map((chemin, i) => [chemin, images[i]]));
@@ -87,6 +87,15 @@ export async function demarrerJeu(donneesInitiales = null) {
     xMin: 14 * TUILE - 11,
     xMax: 28 * TUILE - 11,
   });
+  // Marchand de TEST (rangée 11, près du départ). Placeholder visuel = fanatique.
+  const marchand = creerPnj({
+    modele: MARCHAND,
+    planche: planches.get(MARCHAND.planche),
+    x: 11 * TUILE - 11,
+    y: 11 * TUILE - 56,
+    xMin: 9 * TUILE - 11,
+    xMax: 13 * TUILE - 11,
+  });
   const invite = document.getElementById("invite");
 
   // Parler au fanatique : un petit laïus, puis un choix (se faire soigner ou partir).
@@ -114,6 +123,39 @@ export async function demarrerJeu(donneesInitiales = null) {
         },
       ],
     }, () => { enPause = false; });
+  }
+
+  // Marchand de TEST : toutes les armes et armures, gratuites, ajoutées au sac
+  // (on choisit ensuite quoi équiper via l'inventaire). Le menu reste ouvert
+  // tant qu'on n'a pas choisi « Leave », pour en prendre plusieurs d'affilée.
+  const articlesTest = Object.values(ITEMS)
+    .filter((it) => it.categorie === "arme" || it.categorie === "armure")
+    .map((it) => it.id);
+
+  function parlerAuMarchand() {
+    if (dialogueActif() || combatEnCours || enPause) return;
+    enPause = true;
+    invite.hidden = true;
+    ouvrirBoutique();
+  }
+  function ouvrirBoutique() {
+    let reouvrir = false;
+    const choix = articlesTest.map((id) => ({
+      texte: `${ITEMS[id].nom}  ·  free`,
+      action: () => {
+        reouvrir = true;
+        if (ajouterObjet(inventaire, id)) {
+          afficherMessage(`🛒 ${ITEMS[id].nom} added to your bag — equip it with B.`);
+        } else {
+          afficherMessage("Your bag is full — equip or drop something first.");
+        }
+      },
+    }));
+    choix.push({ texte: "Leave", action: () => { reouvrir = false; } });
+    ouvrirDialogue({ nom: "Test Merchant", choix }, () => {
+      if (reouvrir) ouvrirBoutique(); // on reste à la boutique pour en reprendre
+      else enPause = false;
+    });
   }
 
   // L'état qu'un emplacement de sauvegarde retient.
@@ -230,10 +272,9 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Espace : parler au PNJ tout proche
   window.addEventListener("keydown", (e) => {
     if (e.code !== "Space" || e.repeat || enPause || combatEnCours || dialogueActif()) return;
-    if (zoneActuelle === "ville" && fanatique.proche) {
-      e.preventDefault();
-      parlerAuFanatique();
-    }
+    if (zoneActuelle !== "ville") return;
+    if (fanatique.proche) { e.preventDefault(); parlerAuFanatique(); }
+    else if (marchand.proche) { e.preventDefault(); parlerAuMarchand(); }
   });
 
   // Les points d'intérêt : le message vient du catalogue (champ `interet`),
@@ -316,9 +357,12 @@ export async function demarrerJeu(donneesInitiales = null) {
       verifierPointsInteret(tuile);
       verifierPorte(tuile);
       if (avancerRencontres(rencontres, tuile)) declencherRencontre();
-      if (zoneActuelle === "ville") mettreAJourPnj(fanatique, dt, heros);
-      // L'invite « parler » s'affiche quand on est à portée du fanatique
-      invite.hidden = !(zoneActuelle === "ville" && fanatique.proche);
+      if (zoneActuelle === "ville") {
+        mettreAJourPnj(fanatique, dt, heros);
+        mettreAJourPnj(marchand, dt, heros);
+      }
+      // L'invite « parler » s'affiche quand on est à portée d'un PNJ
+      invite.hidden = !(zoneActuelle === "ville" && (fanatique.proche || marchand.proche));
       mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
       alerteVie(heros.pv / heros.pvMax); // liseré rouge si la vie est basse
     },
@@ -330,16 +374,16 @@ export async function demarrerJeu(donneesInitiales = null) {
       // Tout est dessiné dans le repère du monde, décalé par la caméra
       ctx.translate(-Math.round(camera.x), -Math.round(camera.y));
       dessinerCarte(ctx, carte, camera, canvas.width, canvas.height);
-      // Le fanatique n'existe que dans la ville. Profondeur : celui dont les
-      // pieds sont les plus « hauts » passe derrière l'autre.
+      // Les PNJ n'existent que dans la ville. Profondeur : on dessine héros et
+      // PNJ du plus « haut » (pieds les plus en arrière) au plus « bas ».
       if (zoneActuelle === "ville") {
-        if (piedsPnj(fanatique) <= heros.y + 54) {
-          dessinerPnj(ctx, fanatique);
-          dessinerHeros(ctx, heros);
-        } else {
-          dessinerHeros(ctx, heros);
-          dessinerPnj(ctx, fanatique);
-        }
+        const acteurs = [
+          { pieds: piedsPnj(fanatique), dessiner: () => dessinerPnj(ctx, fanatique) },
+          { pieds: piedsPnj(marchand), dessiner: () => dessinerPnj(ctx, marchand) },
+          { pieds: heros.y + 54, dessiner: () => dessinerHeros(ctx, heros) },
+        ];
+        acteurs.sort((a, b) => a.pieds - b.pieds);
+        for (const a of acteurs) a.dessiner();
       } else {
         dessinerHeros(ctx, heros);
       }
