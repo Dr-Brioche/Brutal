@@ -136,6 +136,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (dialogueActif() || combatEnCours || enPause) return;
     enPause = true;
     invite.hidden = true;
+    document.body.classList.add("en-boutique"); // inventaire à côté (feedback des achats)
+    inventaireUI.ouvrir();
     ouvrirBoutique();
   }
   function ouvrirBoutique() {
@@ -145,17 +147,23 @@ export async function demarrerJeu(donneesInitiales = null) {
       action: () => {
         reouvrir = true;
         if (ajouterObjet(inventaire, id)) {
-          afficherMessage(`🛒 ${ITEMS[id].nom} added to your bag — equip it with B.`);
+          afficherMessage(`🛒 ${ITEMS[id].nom} added to your bag.`);
         } else {
           afficherMessage("Your bag is full — equip or drop something first.");
         }
+        inventaireUI.rendre(); // l'objet apparaît tout de suite dans le sac
       },
     }));
     choix.push({ texte: "Leave", action: () => { reouvrir = false; } });
     ouvrirDialogue({ nom: "Test Merchant", choix }, () => {
       if (reouvrir) ouvrirBoutique(); // on reste à la boutique pour en reprendre
-      else enPause = false;
+      else fermerBoutique();
     });
+  }
+  function fermerBoutique() {
+    document.body.classList.remove("en-boutique");
+    inventaireUI.fermer();
+    enPause = false;
   }
 
   // L'état qu'un emplacement de sauvegarde retient.

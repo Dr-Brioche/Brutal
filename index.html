@@ -593,6 +593,22 @@
       text-align: right;
     }
 
+    /* ---- Mode boutique (marchand de test) : inventaire à GAUCHE, choix du
+       marchand à DROITE, côte à côte (feedback : on voit le sac se remplir) ---- */
+    body.en-boutique #inventaire { justify-content: flex-start; }
+    body.en-boutique .inv-panneau { margin-left: 4vw; }
+    body.en-boutique #dialogue {
+      justify-content: flex-end;
+      align-items: center;
+      background: transparent;   /* l'inventaire reste bien visible à côté */
+      pointer-events: none;      /* on peut cliquer l'inventaire à travers */
+    }
+    body.en-boutique .dialogue-boite {
+      width: min(360px, 44vw);
+      margin: 0 4vw 0 0;
+      pointer-events: auto;
+    }
+
     /* ---- L'inventaire (touche B) ---- */
     .inventaire {
       position: fixed; inset: 0;
