@@ -630,6 +630,24 @@
       transform: translateX(calc(50% + 8px));   /* bord gauche au centre */
     }
 
+    /* ---- Butin côte à côte : fenêtre de butin à GAUCHE, inventaire à DROITE
+       (voir la place restante et organiser/jeter pour faire de la place) ---- */
+    body.en-butin #butin {
+      background: transparent;   /* l'inventaire (dessous) reste visible à côté */
+      pointer-events: none;      /* les clics passent vers l'inventaire… */
+      justify-content: center;
+    }
+    body.en-butin .butin-panneau {
+      margin: 0;
+      transform: translateX(calc(-50% - 8px)); /* bord droit au centre */
+      pointer-events: auto;      /* …sauf sur le panneau de butin lui-même */
+    }
+    body.en-butin #inventaire { justify-content: center; }
+    body.en-butin .inv-panneau {
+      margin: 0;
+      transform: translateX(calc(50% + 8px));   /* bord gauche au centre */
+    }
+
     /* ---- L'inventaire (touche B) ---- */
     .inventaire {
       position: fixed; inset: 0;

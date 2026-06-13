@@ -500,12 +500,21 @@ export async function demarrerJeu(donneesInitiales = null) {
             xp += e.xp || 0;
             items.push(...butin.objets);
           }
+          // On ouvre l'inventaire À CÔTÉ du butin (place restante + organisation).
+          document.body.classList.add("en-butin");
+          inventaireUI.ouvrir();
           butinUI.ouvrir({ or, xp, items }, {
-            prendre: (id) => ajouterObjet(inventaire, id), // range l'objet, false si sac plein
+            prendre: (id) => {
+              const ok = ajouterObjet(inventaire, id); // range l'objet, false si sac plein
+              if (ok) inventaireUI.rendre();            // l'objet apparaît tout de suite
+              return ok;
+            },
             surFin: () => {
               ajouterOr(inventaire, or);
               const niveaux = gagnerXp(heros, xp);
               if (niveaux > 0) afficherMessage(`⬆ Lvl ${heros.niveau} (+${niveaux} talent pt)`);
+              document.body.classList.remove("en-butin");
+              inventaireUI.fermer();
               enPause = false;
             },
           });
