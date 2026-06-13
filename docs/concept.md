@@ -219,9 +219,10 @@ que c'est addictif, **puis** on empile le suivant.
    Forge** comme énergie, défense **Pierre** persistante, statuts (poison, feu),
    intentions télégraphées, victoire/défaite. Chaque arme injecte sa carte
    signature. **Combat à plusieurs ennemis** : 1 à 3 monstres, les cartes
-   d'attaque visent une **cible** (au clavier : on arme la carte puis on choisit
-   la cible avec les flèches, une flèche rouge la pointe). *À enrichir* :
-   ciblage à la souris, pioche/deck plus riche, variété d'ennemis, sons.
+   d'attaque visent une **cible** — au **clavier** (on arme la carte puis on
+   choisit la cible aux flèches, une flèche rouge la pointe) ou à la **souris**
+   (on tire une flèche de la carte vers le monstre et on lâche dessus).
+   *À enrichir* : pioche/deck plus riche, variété d'ennemis, sons.
 2. **Craft / Forge** — second.
 3. **Économie / bourse** — en dernier.
 

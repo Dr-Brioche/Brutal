@@ -190,7 +190,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   function rafraichir() {
     conteneurMain.replaceChildren();
     combat.main.forEach((carte, i) => {
-      conteneurMain.append(creerCarteDOM(carte, combat, () => jouer(i)));
+      const el = creerCarteDOM(carte, combat);
+      el.addEventListener("pointerdown", (ev) => debutDrag(i, el, ev));
+      conteneurMain.append(el);
     });
     disposerEventail();
     boutonFin.disabled = combat.fini || !combat.tourJoueur;
@@ -287,6 +289,74 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     verifierFin();
   }
 
+  // -- Ciblage SOURIS : on saisit une carte et on tire une flèche vers un monstre.
+  let drag = null; // { i, el, vise, depart{x,y}, x, y (scène), cibleSurvol }
+
+  // Convertit un point ÉCRAN (clientX/Y) en coords de la SCÈNE (640×360).
+  function pointerVersScene(clientX, clientY) {
+    const r = ctx.canvas.getBoundingClientRect();
+    const bx = (clientX - r.left) * (ctx.canvas.width / r.width);
+    const by = (clientY - r.top) * (ctx.canvas.height / r.height);
+    const s = Math.min(ctx.canvas.width / 640, ctx.canvas.height / 360);
+    const offX = (ctx.canvas.width - 640 * s) / 2;
+    const offY = (ctx.canvas.height - 360 * s) / 2;
+    return { x: (bx - offX) / s, y: (by - offY) / s };
+  }
+  function elementVersScene(el) {
+    const r = el.getBoundingClientRect();
+    return pointerVersScene(r.left + r.width / 2, r.top); // haut-centre de la carte
+  }
+  function dansElement(el, x, y) {
+    const r = el.getBoundingClientRect();
+    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  }
+  // Quel ennemi vivant est sous ce point (coords scène) ? -1 sinon.
+  function ennemiSousPoint(sx, sy) {
+    for (let i = 0; i < ennemisUI.length; i++) {
+      const u = ennemisUI[i];
+      if (u.e.pv <= 0 || u.partis) continue;
+      const dl = (u.spr.caseL * ECHELLE_SCENE) / 2 + 8;
+      if (Math.abs(sx - u.ecran.cx) <= dl && sy >= u.ecran.haut - 12 && sy <= u.ecran.sol + 12) return i;
+    }
+    return -1;
+  }
+
+  function debutDrag(i, el, ev) {
+    if (combat.fini || !combat.tourJoueur || phaseCiblage) return;
+    const carte = combat.main[i];
+    if (!carte || carte.cout > combat.chaleur) return; // injouable
+    ev.preventDefault();
+    const p = pointerVersScene(ev.clientX, ev.clientY);
+    drag = {
+      i, el,
+      vise: carteVise(carte) && indicesVivants().length >= 1, // tire une flèche ?
+      depart: elementVersScene(el),
+      x: p.x, y: p.y,
+      cibleSurvol: -1,
+    };
+    if (drag.vise) drag.cibleSurvol = ennemiSousPoint(p.x, p.y);
+    window.addEventListener("pointermove", surDragMove);
+    window.addEventListener("pointerup", surDragUp);
+  }
+  function surDragMove(ev) {
+    if (!drag) return;
+    const p = pointerVersScene(ev.clientX, ev.clientY);
+    drag.x = p.x; drag.y = p.y;
+    if (drag.vise) drag.cibleSurvol = ennemiSousPoint(p.x, p.y);
+  }
+  function surDragUp(ev) {
+    window.removeEventListener("pointermove", surDragMove);
+    window.removeEventListener("pointerup", surDragUp);
+    const d = drag; drag = null;
+    if (!d) return;
+    if (d.vise) {
+      if (d.cibleSurvol >= 0) jouer(d.i, d.cibleSurvol); // lâché SUR un ennemi → joue
+      // lâché ailleurs → annulé (la carte reste en main)
+    } else if (dansElement(d.el, ev.clientX, ev.clientY)) {
+      jouer(d.i); // carte sans cible : un simple clic la joue
+    }
+  }
+
   function finDeTour() {
     if (phaseCiblage) return; // on choisit une cible : End Turn attend
     const pvHerosAvant = combat.pvHeros;
@@ -344,6 +414,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     boutonFin.removeEventListener("click", finDeTour);
     boutonContinuer.removeEventListener("click", fermer);
     window.removeEventListener("keydown", surTouche, true);
+    window.removeEventListener("pointermove", surDragMove); // au cas où un drag traîne
+    window.removeEventListener("pointerup", surDragUp);
     heros.pv = combat.pvHeros; // la vie persiste vers la carte
     surFin(combat.resultat);
   }
@@ -461,11 +533,20 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
       dessinerIntention(ctx, u.e.intention, u.ecran.cx, u.ecran.haut - 8);
     });
 
-    // Flèche rouge animée au-dessus de la cible (utile dès qu'il y a un choix).
+    // Flèche rouge animée au-dessus de la cible clavier (dès qu'il y a un choix).
     const vivants = indicesVivants();
-    if (vivants.length >= 2 && combat.tourJoueur && !combat.fini) {
+    if (!drag && vivants.length >= 2 && combat.tourJoueur && !combat.fini) {
       const u = ennemisUI[combat.cible];
       if (u && u.e.pv > 0) dessinerFlecheCible(ctx, u.ecran, temps, phaseCiblage);
+    }
+
+    // Flèche de DRAG souris : de la carte vers le pointeur (ou l'ennemi survolé).
+    if (drag && drag.vise) {
+      const surv = drag.cibleSurvol >= 0 ? ennemisUI[drag.cibleSurvol] : null;
+      const ex = surv ? surv.ecran.cx : drag.x;
+      const ey = surv ? surv.ecran.milieu : drag.y;
+      dessinerFlecheDrag(ctx, drag.depart.x, drag.depart.y, ex, ey);
+      if (surv && surv.e.pv > 0) dessinerFlecheCible(ctx, surv.ecran, temps, true);
     }
 
     // Vie du héros (avec son bouclier d'armure = la Pierre).
@@ -653,14 +734,35 @@ function dessinerFlecheCible(ctx, ecran, t, fort) {
   ctx.stroke();
 }
 
+// Une flèche rouge tracée de la carte (x0,y0) vers le pointeur/monstre (x1,y1).
+function dessinerFlecheDrag(ctx, x0, y0, x1, y1) {
+  ctx.strokeStyle = "#ff3b30";
+  ctx.lineWidth = 3;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.lineTo(x1, y1);
+  ctx.stroke();
+  // Pointe de flèche
+  const a = Math.atan2(y1 - y0, x1 - x0);
+  const t = 11;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x1 - t * Math.cos(a - 0.45), y1 - t * Math.sin(a - 0.45));
+  ctx.lineTo(x1 - t * Math.cos(a + 0.45), y1 - t * Math.sin(a + 0.45));
+  ctx.closePath();
+  ctx.fillStyle = "#ff3b30";
+  ctx.fill();
+  ctx.lineCap = "butt";
+}
+
 // ----- Une carte en HTML ---------------------------------------------------
 
-function creerCarteDOM(carte, combat, surClic) {
+function creerCarteDOM(carte, combat) {
   const el = document.createElement("button");
   el.className = "combat-carte";
   el.disabled = combat.fini || !combat.tourJoueur;
   garnirCarte(el, carte);
   if (carte.cout > combat.chaleur) el.classList.add("combat-carte--injouable");
-  el.addEventListener("click", surClic);
   return el;
 }
