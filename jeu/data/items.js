@@ -97,6 +97,12 @@ export const ITEMS = {
     id: "bague-de-sang", nom: "Blood Ring", categorie: "bague", rarete: "rare",
     taille: { l: 1, h: 1 }, icone: "#7a1f2b", cartes: ["coup-de-sang"],
   },
+  // Collier de lave : monte le PLAFOND de Chaleur (plus d'énergie en réserve →
+  // plus de crans sur la jauge, sans changer sa taille).
+  "collier-de-lave": {
+    id: "collier-de-lave", nom: "Molten Core", categorie: "collier", rarete: "epique",
+    taille: { l: 1, h: 1 }, icone: "#b83218", stats: { chaleurMax: 2 },
+  },
   "gants-de-mineur": {
     id: "gants-de-mineur", nom: "Miner's Gloves", categorie: "gant", rarete: "commun",
     taille: { l: 2, h: 1 }, icone: "#7a6a4a", stats: {},
