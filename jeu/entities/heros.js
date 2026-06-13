@@ -20,6 +20,12 @@ export function creerHeros() {
     plancheArme: null,   // l'arme tenue : dessinée par-dessus
     pvMax: 40,           // points de vie max
     pv: 40,              // vie courante — PERSISTE entre les combats
+    // Progression : XP/niveau → points de talent (l'arbre de talents donne les
+    // CHIFFRES ; l'équipement donne les CARTES).
+    niveau: 1,
+    xp: 0,
+    pointsTalent: 0,
+    talents: {},         // { idNoeud: rang } — talents débloqués
     // Stats de base (provisoires : non encore utilisées par le gameplay)
     force: 14,
     agilite: 9,

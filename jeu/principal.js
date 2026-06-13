@@ -19,6 +19,7 @@ import { installerMenu } from "./ui/menu.js";
 import { afficherMessage, flashCombat, fondu, alerteVie } from "./ui/effets.js";
 import { ouvrirDialogue, dialogueActif } from "./ui/dialogue.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
+import { gagnerXp } from "./systems/progression.js";
 import { demarrerCombat } from "./ui/combat.js";
 import { ennemiParId, ENNEMIS, tirerButin } from "./data/ennemis.js";
 import { FANATIQUE, MARCHAND } from "./data/pnj.js";
@@ -199,6 +200,10 @@ export async function demarrerJeu(donneesInitiales = null) {
       x: heros.x,
       y: heros.y,
       pv: heros.pv,
+      niveau: heros.niveau,
+      xp: heros.xp,
+      pointsTalent: heros.pointsTalent,
+      talents: { ...heros.talents },
       direction: heros.direction,
       inventaire: etatInventaire(inventaire),
       armeNom: armeEquipee(inventaire)?.nom ?? "Unarmed", // pour l'affichage du slot
@@ -230,6 +235,11 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (Number.isFinite(donnees.pv)) {
       heros.pv = Math.max(1, Math.min(heros.pvMax, donnees.pv)); // jamais 0 ni au-delà du max
     }
+    // Progression (validée champ par champ)
+    if (Number.isFinite(donnees.niveau) && donnees.niveau >= 1) heros.niveau = Math.floor(donnees.niveau);
+    if (Number.isFinite(donnees.xp) && donnees.xp >= 0) heros.xp = Math.floor(donnees.xp);
+    if (Number.isFinite(donnees.pointsTalent) && donnees.pointsTalent >= 0) heros.pointsTalent = Math.floor(donnees.pointsTalent);
+    if (donnees.talents && typeof donnees.talents === "object") heros.talents = { ...donnees.talents };
     appliquerEquipement(heros, inventaire, planches);
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
   }
@@ -368,19 +378,22 @@ export async function demarrerJeu(donneesInitiales = null) {
           allerVersZone("ville", VILLE.depart); // retour sûr (gère le fondu + la pause)
         } else {
           enPause = false;
-          // Butin : chaque ennemi vaincu lâche son or + ses objets (selon rareté).
-          let or = 0;
+          // Butin : chaque ennemi vaincu lâche son or, ses objets et de l'XP.
+          let or = 0, xp = 0;
           const recus = [];
           for (const e of ennemis) {
             const butin = tirerButin(e);
             or += butin.or;
+            xp += e.xp || 0;
             for (const id of butin.objets) {
               if (ajouterObjet(inventaire, id)) recus.push(ITEMS[id].nom);
             }
           }
           ajouterOr(inventaire, or);
-          let msg = `⚔ ${nb > 1 ? "The goblins fall" : "The goblin falls"}.  +${or} 🪙`;
+          const niveaux = gagnerXp(heros, xp);
+          let msg = `⚔ ${nb > 1 ? "The goblins fall" : "The goblin falls"}.  +${or} 🪙  +${xp} XP`;
           if (recus.length) msg += `  ·  ${recus.join(", ")}`;
+          if (niveaux > 0) msg += `  ·  ⬆ Lvl ${heros.niveau} (+${niveaux} talent pt)`;
           afficherMessage(msg);
         }
       },

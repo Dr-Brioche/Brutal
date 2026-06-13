@@ -4,7 +4,7 @@
 // invisibles — cf. concept.md « Monstres invisibles sur la carte »).
 //
 // Champs :
-//   id, nom (anglais), pv, attaque (dégâts par tour)
+//   id, nom (anglais), pv, attaque (dégâts par tour), xp (donnée à la mort)
 //   planche : la planche de sprites de combat (générée par outils/importer_*.py)
 //   sprite  : comment lire la planche
 //     caseL, caseH : taille d'une case (px)
@@ -20,6 +20,7 @@ export const ENNEMIS = [
     nom: "Cave Goblin",
     pv: 24,
     attaque: 4,
+    xp: 6,            // XP donnée au héros à sa mort
     planche: "images/ennemis/gobelin.png",
     sprite: {
       caseL: 204,
