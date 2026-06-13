@@ -1,9 +1,11 @@
 // La bulle d'info d'un OBJET, partagée par l'inventaire ET le marchand : nom,
-// rareté/catégorie, effets chiffrés (ATK/DEF…) et surtout un VISUEL des cartes
-// que l'objet ajoute au deck (même rendu que dans le deck) — pour savoir d'un
-// coup d'œil ce qu'on récupère ou ce qu'on achète.
+// rareté/catégorie, infos utiles et surtout un VISUEL des cartes que l'objet
+// ajoute au deck (même rendu que dans le deck) — pour savoir d'un coup d'œil ce
+// qu'on récupère, achète ou vend.
 //
-// Singleton : tout passe par l'élément #inv-tip (une seule bulle à la fois).
+// Singleton : tout passe par l'élément #inv-tip (une seule bulle à la fois). On
+// peut la placer SOUS LA SOURIS (montrerInfobulle) ou À CÔTÉ D'UN ÉLÉMENT
+// (montrerInfobulleEl) — ce dernier sert à la navigation au CLAVIER.
 
 import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES } from "../data/items.js";
 import { CARTES } from "../data/cartes.js";
@@ -14,9 +16,11 @@ function bulle() {
   return (tip ||= document.getElementById("inv-tip"));
 }
 
-export function montrerInfobulle(id, e) {
+// Remplit la bulle pour l'objet `id` (sans la positionner). Renvoie false si l'id
+// est inconnu.
+function construire(id) {
   const d = itemDef(id);
-  if (!d) return;
+  if (!d) return false;
   const t = bulle();
 
   const nom = document.createElement("div");
@@ -64,7 +68,12 @@ export function montrerInfobulle(id, e) {
 
   t.replaceChildren(...enfants);
   t.hidden = false;
-  suivreInfobulle(e);
+  return true;
+}
+
+// Affiche la bulle SOUS LA SOURIS (survol).
+export function montrerInfobulle(id, e) {
+  if (construire(id)) suivreInfobulle(e);
 }
 
 // La bulle suit la souris en restant dans l'écran.
@@ -75,6 +84,22 @@ export function suivreInfobulle(e) {
   let x = e.clientX + m, y = e.clientY + m;
   if (x + r.width + 8 > innerWidth) x = e.clientX - r.width - m;
   if (y + r.height + 8 > innerHeight) y = e.clientY - r.height - m;
+  t.style.left = Math.max(8, x) + "px";
+  t.style.top = Math.max(8, y) + "px";
+}
+
+// Affiche la bulle À CÔTÉ d'un élément (à sa droite, ou à gauche si pas de place)
+// — pour la navigation au CLAVIER (le marchand, par ex.).
+export function montrerInfobulleEl(id, el) {
+  if (!construire(id)) return;
+  const t = bulle();
+  const r = el.getBoundingClientRect();
+  const tr = t.getBoundingClientRect();
+  const m = 10;
+  let x = r.right + m;
+  if (x + tr.width + 8 > innerWidth) x = r.left - tr.width - m; // pas de place à droite → à gauche
+  let y = r.top;
+  if (y + tr.height + 8 > innerHeight) y = innerHeight - tr.height - 8;
   t.style.left = Math.max(8, x) + "px";
   t.style.top = Math.max(8, y) + "px";
 }

@@ -9,7 +9,7 @@
 //             Un choix peut porter `itemId` : au survol, on montre la bulle de
 //             l'objet (effets + visuel des cartes) — utilisé par le marchand.
 
-import { montrerInfobulle, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
+import { montrerInfobulle, suivreInfobulle, cacherInfobulle, montrerInfobulleEl } from "./infobulle.js";
 
 // Touches captées par le dialogue (bloquées pour le reste du jeu pendant qu'il
 // est ouvert : pas de menu pause, pas de déplacement parasite).
@@ -44,6 +44,7 @@ export function ouvrirDialogue(dialogue, surFin) {
     elChoix.replaceChildren();
     if (!enChoix) {
       elAide.textContent = "[Space] continue";
+      cacherInfobulle();
       return;
     }
     choix.forEach((c, i) => {
@@ -59,6 +60,15 @@ export function ouvrirDialogue(dialogue, surFin) {
       elChoix.append(el);
     });
     elAide.textContent = choix.length ? "[Z/S] choose · [Space] confirm" : "[Space] close";
+    majApercu(); // bulle du choix sélectionné (navigation clavier)
+  }
+
+  // Montre la bulle de l'objet du choix sélectionné, à côté de la ligne (clavier).
+  function majApercu() {
+    const c = choix[sel];
+    const el = elChoix.children[sel];
+    if (enChoix && c && c.itemId && el) montrerInfobulleEl(c.itemId, el);
+    else cacherInfobulle();
   }
 
   function fermerUI() {
