@@ -87,14 +87,15 @@ export async function demarrerJeu(donneesInitiales = null) {
     xMin: 14 * TUILE - 11,
     xMax: 28 * TUILE - 11,
   });
-  // Marchand de TEST (rangée 11, près du départ). Placeholder visuel = fanatique.
+  // Marchand de TEST (rangée 11, près du départ), STATIONNAIRE (xMin == xMax).
+  // Placeholder visuel = sprite du fanatique.
   const marchand = creerPnj({
     modele: MARCHAND,
     planche: planches.get(MARCHAND.planche),
     x: 11 * TUILE - 11,
     y: 11 * TUILE - 56,
-    xMin: 9 * TUILE - 11,
-    xMax: 13 * TUILE - 11,
+    xMin: 11 * TUILE - 11,
+    xMax: 11 * TUILE - 11,
   });
   const invite = document.getElementById("invite");
 

@@ -34,6 +34,9 @@ export function mettreAJourPnj(pnj, dt, heros) {
     return;
   }
 
+  // PNJ sans trajet (xMin == xMax) : il reste planté, au repos.
+  if (pnj.xMin >= pnj.xMax) { pnj.mode = "repos"; return; }
+
   // Pause en bout de trajet
   if (pnj.pause > 0) { pnj.pause -= dt; pnj.mode = "repos"; return; }
 
