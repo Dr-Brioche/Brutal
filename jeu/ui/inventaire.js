@@ -10,7 +10,7 @@
 //   - clic sur un item équipé  → on le remet dans le sac.
 
 import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES } from "../data/items.js";
-import { rangsInventaire, equiper, desequiper, bonusStats } from "../systems/inventaire.js";
+import { rangsInventaire, equiper, desequiper } from "../systems/inventaire.js";
 import { bonusTalents } from "../systems/talents.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 
@@ -27,7 +27,7 @@ const LABELS = {
 };
 
 // Stats de base de la Chaleur de Forge (cf. systems/combat.js)
-const FORGE_SEUIL = 3, FORGE_MAX = 8;
+const FORGE_SEUIL = 3, FORGE_MAX = 8, BASE_PIOCHE = 5; // bases (matchent systems/combat.js)
 
 export function installerInventaire({ inventaire, heros, surChangement, surFermer }) {
   const overlay = document.getElementById("inventaire");
@@ -120,17 +120,15 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   }
 
   function rendreStats() {
-    const b = bonusStats(inventaire);
-    const t = bonusTalents(heros); // les talents donnent les CHIFFRES (vie, Chaleur…)
-    const seuil = FORGE_SEUIL + (b.chaleurSeuil || 0) + (t.chaleurSeuil || 0);
-    const max = FORGE_MAX + (b.chaleurMax || 0) + (t.chaleurMax || 0);
+    const t = bonusTalents(heros); // les CHIFFRES viennent de l'arbre (le stuff = cartes)
+    const seuil = FORGE_SEUIL + (t.chaleurSeuil || 0);
+    const max = FORGE_MAX + (t.chaleurMax || 0);
     const lignes = [
       ["Level", `${heros.niveau}  (${heros.pointsTalent} pts)`],
-      ["Strength", heros.force + (b.force || 0)],
-      ["Agility", heros.agilite + (b.agilite || 0)],
-      ["Faith", heros.foi + (b.foi || 0)],
-      ["Wit", heros.esprit + (b.esprit || 0)],
+      ["Max HP", heros.pvMax],
+      ["Move speed", heros.vitesse],
       ["Forge Heat", `${seuil} / ${max}`],
+      ["Cards / turn", BASE_PIOCHE + (t.pioche || 0)],
     ];
     elStats.replaceChildren(...lignes.map(([nom, val]) => {
       const l = document.createElement("div");

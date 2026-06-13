@@ -18,19 +18,15 @@ export function creerHeros() {
     tempsAnimation: 0,
     plancheArmure: null, // le corps du nain : changé par le set d'armure porté
     plancheArme: null,   // l'arme tenue : dessinée par-dessus
-    pvMax: 40,           // points de vie max
+    pvMax: 40,           // vie max — RECALCULÉE par les talents (base 40)
     pv: 40,              // vie courante — PERSISTE entre les combats
-    // Progression : XP/niveau → points de talent (l'arbre de talents donne les
-    // CHIFFRES ; l'équipement donne les CARTES).
+    // Progression : XP/niveau → points de talent. L'arbre de talents donne les
+    // CHIFFRES du héros (vie max, vitesse, Chaleur, pioche…) ; l'équipement, lui,
+    // donne les CARTES. (vitesse ci-dessus est aussi recalculée par les talents.)
     niveau: 1,
     xp: 0,
     pointsTalent: 0,
     talents: {},         // { idNoeud: rang } — talents débloqués
-    // Stats de base (provisoires : non encore utilisées par le gameplay)
-    force: 14,
-    agilite: 9,
-    foi: 8,
-    esprit: 10,          // « ingéniosité »
   };
 }
 

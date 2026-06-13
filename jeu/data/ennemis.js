@@ -36,7 +36,7 @@ export const ENNEMIS = [
       or: [2, 3],
       objets: [
         { id: "pioche-de-mineur", chance: 0.45 }, // assez courant
-        { id: "anneau-de-braise", chance: 0.08 }, // rare
+        { id: "bague-de-sang", chance: 0.08 },    // rare (donne la carte Bloodletting)
       ],
     },
   },

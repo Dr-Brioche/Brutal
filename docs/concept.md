@@ -153,8 +153,8 @@ directement la **collecte** et le **marché**.
   mais au-dessus du seuil on **surchauffe** : on subit chaque tour
   **(chaleur − seuil)²** dégâts directs (ex. à 4 → 1, à 5 → 4, à 6 → 9). Tous ces
   réglages (énergie de départ, recharge, seuil, plafond) sont **modifiés par
-  l'équipement** (`bonusStats`) — ex. le *Magma Hammer* monte le seuil à **4/8** et
-  donne **+1 d'énergie de départ**. Monter en chaleur = jouer plus fort, mais
+  l'arbre de talents** — ex. *Stoked Coals* monte le seuil, *Deep Reserves* le
+  plafond, *Ready Forge* l'énergie de départ. Monter en chaleur = jouer plus fort, mais
   brûler. La jauge est une
   **barre horizontale** posée à gauche du deck ; elle rougeoie et **pulse** en
   surchauffe (un **cadre en image fixe** viendra l'habiller plus tard).
@@ -164,7 +164,8 @@ directement la **collecte** et le **marché**.
   les tours** (≠ Blocage qui disparaît chaque tour). Les nains sont coriaces →
   le jeu défensif/tank devient une vraie stratégie.
 - **Statuts (1er jet)** : effets qui durent dans le temps, affichés **sous la
-  barre de vie**, apportés par l'équipement. Implémentés :
+  barre de vie**, apportés par des **cartes** (que l'équipement ajoute au deck).
+  Implémentés :
   - **Poison** : ronge la cible en début de son tour, baisse de 1/tour, ignore la
     Pierre (ex. *Croc de basilic* → carte *Venom Stab*).
   - **Enflammé (feu)** : même principe que le poison, **mais se propage aux
@@ -180,17 +181,19 @@ directement la **collecte** et le **marché**.
 
 - **Butin par monstre** : chaque ennemi a une table (`butin`) — de l'**or** + des
   **objets**, chacun avec une **rareté de drop** (probabilité). Le gobelin lâche
-  2–3 or, parfois sa pioche, rarement un anneau.
+  2–3 or et de l'**XP**, parfois sa pioche, rarement une bague. Le loot s'affiche
+  dans une **fenêtre de butin** en fin de combat (clic / Espace pour récupérer).
 - **Inventaire façon Diablo** (touche **B**) : un **sac** en cases ; chaque objet
   a une **empreinte** (l×h) et prend de la place. Le sac est **petit au départ**
   et s'**agrandira** avec des sacs (loot/craft). Rangement automatique pour l'instant.
 - **Poupée d'équipement** (« sur soi ») : **arme1 + arme2** (2 mains, ou 1 main +
   bouclier), **armure** (= skin), **gants**, **bottes**, **collier**, **5 bagues**,
   **sac à dos**. Catalogue dans `jeu/data/items.js`.
-- **L'équipement est la source de puissance** : il définit le **skin** (armure),
-  les **cartes** injectées dans le deck (deck = miroir de l'équipement) et les
-  **stats** (ex. bague qui monte le seuil de surchauffe). On part avec un stuff de
-  base ; on s'équipe ensuite **via le sac** (plus de touches R/E).
+- **L'équipement = des CARTES** (décision du 13/06/2026) : il définit le **skin**
+  (armure) et les **cartes** injectées dans le deck (deck = miroir de l'équipement).
+  Il ne donne **pas de stats chiffrées** — les CHIFFRES viennent de l'**arbre de
+  talents** (voir section *Progression*). La bulle d'un objet montre **ses cartes**.
+  On part avec un stuff de base ; on s'équipe ensuite **via le sac** (plus de touches R/E).
 - *À venir* : glisser-déposer, navigation clavier, vraies icônes pixel art,
   agrandissement du sac, vente au Deep-Market.
 

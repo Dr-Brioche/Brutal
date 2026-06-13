@@ -61,11 +61,12 @@ function creerEnnemiCombat(def) {
 export function ennemiVivant(e) { return e && e.pv > 0; }
 
 // `ennemisDefs` : tableau de définitions d'ennemis (data/ennemis.js).
-// `opts` : { pv, pvMax, cartes } — vie du héros (persiste) + cartes de l'équipement.
+// `opts` : { pv, pvMax, cartes, stats } — vie (persiste) + cartes de l'équipement
+// + réglages chiffrés (`stats`) venant de l'arbre de talents.
 export function creerCombat(ennemisDefs, opts = {}) {
   const { pv = 40, pvMax = 40, cartes = [], stats = {} } = opts;
-  // L'équipement modifie les réglages de la Chaleur de Forge (seuil, plafond,
-  // recharge, énergie de départ) — cf. bonusStats() de l'inventaire.
+  // Les TALENTS modifient les réglages de la Chaleur de Forge (seuil, plafond,
+  // recharge, énergie de départ) — cf. bonusTalents() de l'arbre de talents.
   const chaleurSeuil = CHALEUR_SEUIL + (stats.chaleurSeuil || 0);
   const chaleurMax = CHALEUR_MAX + (stats.chaleurMax || 0);
   const chaleurRecharge = CHALEUR_RECHARGE + (stats.chaleurRecharge || 0);

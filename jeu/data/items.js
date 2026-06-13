@@ -13,11 +13,13 @@ import { CARTES } from "./cartes.js";
 //   -- selon la catégorie --
 //   planche   : arme (calque) / armure (skin du nain)
 //   degats    : arme
-//   cartes    : arme → cartes injectées dans le deck
+//   cartes    : cartes ajoutées au deck — le STUFF DONNE DES CARTES (armes, bagues…)
 //   mains     : arme → 1 (une main) ou 2 (deux mains, occupe les 2 slots d'arme)
 //   defense   : armure
-//   stats     : bonus divers (ex. { chaleurMax: 1 }) — appliqués plus tard
 //   rangsBonus: sac → rangées d'inventaire ajoutées
+//
+// Le stuff ne donne PAS de stats chiffrées : les CHIFFRES (vie, Chaleur, vitesse…)
+// viennent de l'arbre de talents (data/talents.js).
 
 export const RARETES = {
   commun:     { nom: "Common",    couleur: "#9aa0a6" },
@@ -59,15 +61,13 @@ export const ITEMS = {
   "croc-de-basilic": {
     id: "croc-de-basilic", nom: "Basilisk Fang", categorie: "arme", rarete: "rare",
     taille: { l: 1, h: 2 }, icone: "#4f7a3a",
-    degats: 4, mains: 1, cartes: ["coup-venimeux"], stats: { poison: 4 },
+    degats: 4, mains: 1, cartes: ["coup-venimeux"],
   },
   // Marteau de lave : arme de feu (pas encore de sprite). Injecte « Lava Hammer ».
-  // Monte le seuil de surchauffe (4/8) et offre +1 d'énergie de départ.
   "marteau-de-lave": {
     id: "marteau-de-lave", nom: "Magma Hammer", categorie: "arme", rarete: "epique",
     taille: { l: 1, h: 2 }, icone: "#c0431e",
     degats: 6, mains: 1, cartes: ["coup-de-lave"],
-    stats: { feu: 4, chaleurSeuil: 1, chaleurDepart: 1 },
   },
 
   // ---- Armures (changent le skin du nain) ----
@@ -87,25 +87,16 @@ export const ITEMS = {
     planche: "images/heros/nain-forge.png", defense: 3,
   },
 
-  // ---- Bijoux & divers (effets de stats : pour l'instant cosmétiques) ----
-  "anneau-de-braise": {
-    id: "anneau-de-braise", nom: "Ember Ring", categorie: "bague", rarete: "rare",
-    taille: { l: 1, h: 1 }, icone: "#d9603a", stats: { chaleurSeuil: 1 },
-  },
+  // ---- Bijoux & divers (donnent des CARTES, ou une utilité comme le sac) ----
   // Bague de sang : injecte « Bloodletting » (saignement qui soigne le héros).
   "bague-de-sang": {
     id: "bague-de-sang", nom: "Blood Ring", categorie: "bague", rarete: "rare",
     taille: { l: 1, h: 1 }, icone: "#7a1f2b", cartes: ["coup-de-sang"],
   },
-  // Collier de lave : monte le PLAFOND de Chaleur (plus d'énergie en réserve →
-  // plus de crans sur la jauge, sans changer sa taille).
-  "collier-de-lave": {
-    id: "collier-de-lave", nom: "Molten Core", categorie: "collier", rarete: "epique",
-    taille: { l: 1, h: 1 }, icone: "#b83218", stats: { chaleurMax: 2 },
-  },
+  // Gants de mineur : slot « gant » libre ; recevront des cartes plus tard.
   "gants-de-mineur": {
     id: "gants-de-mineur", nom: "Miner's Gloves", categorie: "gant", rarete: "commun",
-    taille: { l: 2, h: 1 }, icone: "#7a6a4a", stats: {},
+    taille: { l: 2, h: 1 }, icone: "#7a6a4a",
   },
   "sac-en-cuir": {
     id: "sac-en-cuir", nom: "Leather Pouch", categorie: "sac", rarete: "commun",
@@ -124,15 +115,6 @@ export function couleurRarete(id) {
 }
 
 // Noms lisibles (anglais) pour les bulles d'info.
-const NOM_STAT = {
-  chaleurSeuil: "Forge Heat threshold",
-  chaleurMax: "Forge Heat cap",
-  chaleurDepart: "Start energy",
-  chaleurRecharge: "Heat / turn",
-  poison: "Poison",
-  feu: "Burning",
-  force: "Strength", agilite: "Agility", foi: "Faith", esprit: "Wit",
-};
 const NOM_CATEGORIE = {
   arme: "Weapon", bouclier: "Shield", armure: "Armor", gant: "Gloves",
   botte: "Boots", collier: "Amulet", bague: "Ring", sac: "Bag",
@@ -144,8 +126,9 @@ export function categorieLisible(id) {
   return d ? (NOM_CATEGORIE[d.categorie] ?? d.categorie) : "";
 }
 
-// Les effets d'un item en lignes de texte prêtes à afficher (ATK, DEF, stats,
-// cartes injectées dans le deck…). Vide si l'objet n'apporte rien de chiffré.
+// Les effets d'un item en lignes de texte prêtes à afficher : ATK/DEF, utilité,
+// et surtout les CARTES qu'il ajoute au deck (le stuff = des cartes). Une ligne
+// par carte, avec son effet. Vide si l'objet n'apporte rien.
 export function statsLisibles(id) {
   const d = ITEMS[id];
   if (!d) return [];
@@ -154,13 +137,9 @@ export function statsLisibles(id) {
   if (d.defense != null) lignes.push(`+${d.defense} DEF`);
   if (d.mains === 2) lignes.push("Two-handed");
   if (d.rangsBonus) lignes.push(`+${d.rangsBonus} bag rows`);
-  if (d.stats) {
-    for (const [k, v] of Object.entries(d.stats)) {
-      lignes.push(`${v >= 0 ? "+" : ""}${v} ${NOM_STAT[k] ?? k}`);
-    }
-  }
-  if (d.cartes?.length) {
-    lignes.push(`Cards: ${d.cartes.map((c) => CARTES[c]?.nom ?? c).join(", ")}`);
+  for (const cid of d.cartes ?? []) {
+    const c = CARTES[cid];
+    lignes.push(c ? `🃏 ${c.nom} — ${c.texte}` : `🃏 ${cid}`);
   }
   return lignes;
 }
