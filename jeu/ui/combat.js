@@ -55,6 +55,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   const HEROS = { x: versOrigine(HEROS_ECRAN_CX) - (64 * ECHELLE_HEROS) / 2, y: SOL_Y - 64 * ECHELLE_HEROS };
   const heroEcran = { cx: HEROS_ECRAN_CX, sol: SOL_Y, haut: SOL_Y - 64 * ECHELLE_HEROS * ECHELLE_SCENE };
   heroEcran.milieu = (heroEcran.haut + heroEcran.sol) / 2;
+  heroEcran.sommet = heroEcran.haut - 10; // au-dessus de la tête du héros (nombres flottants)
 
   // État d'AFFICHAGE de chaque ennemi (le moteur tient l'état de jeu dans
   // combat.ennemis ; ici on tient le sprite, la position, les animations).
@@ -63,6 +64,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     const spr = e.def.sprite;
     const ecran = { cx: cxs[i], sol: SOL_Y, haut: SOL_Y - spr.caseH * ECHELLE_SCENE };
     ecran.milieu = (ecran.haut + ecran.sol) / 2;
+    ecran.sommet = ecran.haut - 22; // au-dessus de la tête ET de l'intention (nombres flottants)
     return {
       e, spr,
       planche: planches?.get(e.def.planche) ?? null,
@@ -295,10 +297,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
       u.secousse = 0.3;
       if (eCible.pv <= 0) exploser(u);
       else jouerAnim(u, "touche");
-      ajouterFlottant(`-${pvAvant - eCible.pv}`, u.ecran.cx, u.ecran.milieu, "#ffe27a");
+      ajouterFlottant(`-${pvAvant - eCible.pv}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
     }
     if (combat.pierre > pierreAvant) {
-      ajouterFlottant(`+${combat.pierre - pierreAvant}`, heroEcran.cx, heroEcran.milieu, "#9cd3ff");
+      ajouterFlottant(`+${combat.pierre - pierreAvant}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
     }
     phaseCiblage = false;
     recalerCible();
@@ -384,15 +386,15 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
       const e = u.e;
       if (e.dernierPoison > 0) {
         u.secousse = 0.3;
-        ajouterFlottant(`☠ ${e.dernierPoison}`, u.ecran.cx, u.ecran.milieu, "#7ec850");
+        ajouterFlottant(`☠ ${e.dernierPoison}`, u.ecran.cx, u.ecran.sommet, "#7ec850");
       }
       if (e.dernierFeu > 0) {
         u.secousse = 0.3;
-        ajouterFlottant(`🔥 ${e.dernierFeu}`, u.ecran.cx, u.ecran.milieu - 16, "#ff8a2c");
+        ajouterFlottant(`🔥 ${e.dernierFeu}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c");
       }
       if (e.dernierSang > 0) {
         u.secousse = 0.3;
-        ajouterFlottant(`🩸 ${e.dernierSang}`, u.ecran.cx, u.ecran.milieu - 32, "#e05a5a");
+        ajouterFlottant(`🩸 ${e.dernierSang}`, u.ecran.cx, u.ecran.sommet - 32, "#e05a5a");
       }
       if (e.pv <= 0 && !u.mort.actif && !u.partis) exploser(u);       // mort par statut
       else if (e.pv > 0 && e.intention?.type === "attaque") jouerAnim(u, "attaque");
@@ -407,18 +409,18 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     const degats = (pvHerosAvant - combat.pvHeros) - brulure - poison - feu + soin;
     if (degats > 0) {
       secousseHeros = 0.3;
-      ajouterFlottant(`-${degats}`, heroEcran.cx, heroEcran.milieu, "#ff7a7a");
+      ajouterFlottant(`-${degats}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
     }
     if (soin > 0) {
-      ajouterFlottant(`+${soin}`, heroEcran.cx, heroEcran.milieu - 16, "#86e08a"); // saignement → vie
+      ajouterFlottant(`+${soin}`, heroEcran.cx, heroEcran.sommet - 16, "#86e08a"); // saignement → vie
     }
     if (poison > 0) {
       secousseHeros = 0.3;
-      ajouterFlottant(`☠ ${poison}`, heroEcran.cx, heroEcran.milieu - 32, "#7ec850");
+      ajouterFlottant(`☠ ${poison}`, heroEcran.cx, heroEcran.sommet - 32, "#7ec850");
     }
     if (feu > 0) {
       secousseHeros = 0.3;
-      ajouterFlottant(`🔥 ${feu}`, heroEcran.cx, heroEcran.milieu - 48, "#ff8a2c");
+      ajouterFlottant(`🔥 ${feu}`, heroEcran.cx, heroEcran.sommet - 48, "#ff8a2c");
     }
     if (brulure > 0) {
       secousseHeros = 0.3;
@@ -589,13 +591,18 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     barreVieAuSol(ctx, heroEcran, aff.pvHeros / combat.pvHerosMax,
       `${Math.round(combat.pvHeros)}/${combat.pvHerosMax}`, "#2e8b57", etatsHeros(), combat.pierre);
 
-    // Nombres de dégâts qui montent (coords scène)
+    // Nombres flottants (dégâts/soins) AU-DESSUS des persos : gros + contour noir
+    // pour rester lisibles sur n'importe quel fond. Ils montent en s'estompant.
+    ctx.font = "bold 16px ui-monospace, monospace";
+    ctx.textAlign = "center";
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.9)";
     for (const f of flottants) {
       ctx.globalAlpha = Math.max(0, Math.min(1, f.t));
+      const y = f.y - (1 - f.t) * 20;
+      ctx.strokeText(f.texte, f.x, y);
       ctx.fillStyle = f.couleur;
-      ctx.font = "bold 13px ui-monospace, monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(f.texte, f.x, f.y - (1 - f.t) * 14);
+      ctx.fillText(f.texte, f.x, y);
     }
     ctx.globalAlpha = 1;
     ctx.textAlign = "left";
