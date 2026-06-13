@@ -6,6 +6,10 @@
 //   - texte : pages affichées l'une après l'autre (Espace pour avancer)
 //   - choix : proposés après la dernière page ; l'`action` du choix retenu est
 //             exécutée, puis `surFin` est appelé (ex. pour reprendre le jeu).
+//             Un choix peut porter `itemId` : au survol, on montre la bulle de
+//             l'objet (effets + visuel des cartes) — utilisé par le marchand.
+
+import { montrerInfobulle, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
 
 // Touches captées par le dialogue (bloquées pour le reste du jeu pendant qu'il
 // est ouvert : pas de menu pause, pas de déplacement parasite).
@@ -47,6 +51,11 @@ export function ouvrirDialogue(dialogue, surFin) {
       el.className = "dialogue-option" + (i === sel ? " sel" : "");
       el.textContent = (i === sel ? "▶ " : "   ") + c.texte;
       el.addEventListener("click", () => choisir(i));
+      if (c.itemId) { // bulle de l'objet au survol (marchand)
+        el.addEventListener("mouseenter", (e) => montrerInfobulle(c.itemId, e));
+        el.addEventListener("mousemove", suivreInfobulle);
+        el.addEventListener("mouseleave", cacherInfobulle);
+      }
       elChoix.append(el);
     });
     elAide.textContent = choix.length ? "[Z/S] choose · [Space] confirm" : "[Space] close";
@@ -55,6 +64,7 @@ export function ouvrirDialogue(dialogue, surFin) {
   function fermerUI() {
     actif = false;
     window.removeEventListener("keydown", surTouche, true);
+    cacherInfobulle();
     overlay.hidden = true;
   }
 

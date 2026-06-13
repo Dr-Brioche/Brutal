@@ -9,9 +9,10 @@
 //   - clic sur un item du sac  → on l'équipe ;
 //   - clic sur un item équipé  → on le remet dans le sac.
 
-import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES } from "../data/items.js";
+import { itemDef, couleurRarete } from "../data/items.js";
 import { rangsInventaire, equiper, desequiper } from "../systems/inventaire.js";
 import { bonusTalents } from "../systems/talents.js";
+import { montrerInfobulle, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 
 const CASE = 34;            // taille d'une case du sac (doit matcher le fond CSS)
@@ -39,40 +40,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   const elOr = document.getElementById("inv-or");
   const elPv = document.getElementById("inv-pv");
   const canvasHero = document.getElementById("inv-hero");
-  const tip = document.getElementById("inv-tip");
   document.getElementById("inv-fermer").onclick = () => surFermer();
-
-  // -- La bulle d'info (nom + rareté + stats), affichée au survol d'un objet --
-  function montrerTip(id, e) {
-    const d = itemDef(id);
-    const nom = document.createElement("div");
-    nom.className = "inv-tip-nom";
-    nom.textContent = d.nom;
-    nom.style.color = couleurRarete(id);
-    const rarete = document.createElement("div");
-    rarete.className = "inv-tip-rarete";
-    rarete.textContent = `${RARETES[d.rarete]?.nom ?? ""} · ${categorieLisible(id)}`;
-    const lignes = statsLisibles(id).map((txt) => {
-      const l = document.createElement("div");
-      l.className = "inv-tip-ligne";
-      l.textContent = txt;
-      return l;
-    });
-    tip.replaceChildren(nom, rarete, ...lignes);
-    tip.hidden = false;
-    placerTip(e);
-  }
-  // La bulle suit la souris, en restant dans l'écran.
-  function placerTip(e) {
-    const m = 14;
-    const r = tip.getBoundingClientRect();
-    let x = e.clientX + m, y = e.clientY + m;
-    if (x + r.width + 8 > innerWidth) x = e.clientX - r.width - m;
-    if (y + r.height + 8 > innerHeight) y = e.clientY - r.height - m;
-    tip.style.left = Math.max(8, x) + "px";
-    tip.style.top = Math.max(8, y) + "px";
-  }
-  function cacherTip() { tip.hidden = true; }
 
   function iconeItem(id) {
     const d = itemDef(id);
@@ -83,9 +51,10 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const t = document.createElement("span");
     t.textContent = d.nom;
     el.append(t);
-    el.addEventListener("mouseenter", (e) => montrerTip(id, e));
-    el.addEventListener("mousemove", placerTip);
-    el.addEventListener("mouseleave", cacherTip);
+    // Bulle d'info au survol (nom, effets, visuel des cartes) — module partagé.
+    el.addEventListener("mouseenter", (e) => montrerInfobulle(id, e));
+    el.addEventListener("mousemove", suivreInfobulle);
+    el.addEventListener("mouseleave", cacherInfobulle);
     return el;
   }
 
@@ -157,7 +126,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   }
 
   function rendre() {
-    cacherTip(); // une icône survolée peut disparaître (équip/déséquip)
+    cacherInfobulle(); // une icône survolée peut disparaître (équip/déséquip)
     elOr.textContent = inventaire.or;
     elPv.textContent = `${heros.pv}/${heros.pvMax}`;
     rendreColonne(elGauche, COL_GAUCHE);
@@ -170,7 +139,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   return {
     ouvrir() { rendre(); overlay.hidden = false; },
-    fermer() { cacherTip(); overlay.hidden = true; },
+    fermer() { cacherInfobulle(); overlay.hidden = true; },
     rendre,
   };
 }

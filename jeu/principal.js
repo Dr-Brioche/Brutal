@@ -180,6 +180,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       .map((it) => it.id);
     const choix = ids.map((id) => ({
       texte: `${ITEMS[id].nom}  ·  free`,
+      itemId: id, // survol → bulle avec les cartes de l'objet
       action: () => {
         prochainMenu = () => menuCategorie(c); // on reste dans la catégorie
         if (ajouterObjet(inventaire, id)) afficherMessage(`🛒 ${ITEMS[id].nom} added to your bag.`);

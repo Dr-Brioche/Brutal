@@ -1,7 +1,5 @@
 // Catalogue des ITEMS : armes, armures, bijoux, sacs… tout ce qui se loote,
 // se range dans l'inventaire et s'équipe. (Contenu pur, comme les cartes.)
-
-import { CARTES } from "./cartes.js";
 //
 // Champs d'un item :
 //   id        : identifiant interne
@@ -126,9 +124,9 @@ export function categorieLisible(id) {
   return d ? (NOM_CATEGORIE[d.categorie] ?? d.categorie) : "";
 }
 
-// Les effets d'un item en lignes de texte prêtes à afficher : ATK/DEF, utilité,
-// et surtout les CARTES qu'il ajoute au deck (le stuff = des cartes). Une ligne
-// par carte, avec son effet. Vide si l'objet n'apporte rien.
+// Les effets CHIFFRÉS d'un item en lignes de texte (ATK/DEF, deux mains, sac…).
+// Les CARTES, elles, ne sont plus en texte : la bulle d'info les affiche en VRAI
+// (visuel) — voir ui/infobulle.js. Vide si l'objet n'apporte rien de chiffré.
 export function statsLisibles(id) {
   const d = ITEMS[id];
   if (!d) return [];
@@ -137,9 +135,5 @@ export function statsLisibles(id) {
   if (d.defense != null) lignes.push(`+${d.defense} DEF`);
   if (d.mains === 2) lignes.push("Two-handed");
   if (d.rangsBonus) lignes.push(`+${d.rangsBonus} bag rows`);
-  for (const cid of d.cartes ?? []) {
-    const c = CARTES[cid];
-    lignes.push(c ? `🃏 ${c.nom} — ${c.texte}` : `🃏 ${cid}`);
-  }
   return lignes;
 }
