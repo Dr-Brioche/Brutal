@@ -126,12 +126,15 @@ export async function demarrerJeu(donneesInitiales = null) {
     }, () => { enPause = false; });
   }
 
-  // Marchand de TEST : toutes les armes et armures, gratuites, ajoutées au sac
-  // (on choisit ensuite quoi équiper via l'inventaire). Le menu reste ouvert
-  // tant qu'on n'a pas choisi « Leave », pour en prendre plusieurs d'affilée.
-  const articlesTest = Object.values(ITEMS)
-    .filter((it) => it.categorie === "arme" || it.categorie === "armure")
-    .map((it) => it.id);
+  // Marchand de TEST : propose TOUS les items du jeu, gratuits, rangés par
+  // sous-catégories (armes / armures / bijoux / autres). On choisit ensuite quoi
+  // équiper via l'inventaire (ouvert à côté). Échap ou « Leave » ferme la boutique.
+  const CATEGORIES_BOUTIQUE = [
+    { nom: "Weapons", icone: "⚔",  cats: ["arme"] },
+    { nom: "Armor",   icone: "🛡", cats: ["armure"] },
+    { nom: "Jewelry", icone: "💍", cats: ["bague", "collier"] },
+    { nom: "Other",   icone: "🎒", cats: ["gant", "botte", "sac"] },
+  ];
 
   function parlerAuMarchand() {
     if (dialogueActif() || combatEnCours || enPause) return;
@@ -139,28 +142,50 @@ export async function demarrerJeu(donneesInitiales = null) {
     invite.hidden = true;
     document.body.classList.add("en-boutique"); // inventaire à côté (feedback des achats)
     inventaireUI.ouvrir();
-    ouvrirBoutique();
+    menuBoutique();
   }
-  function ouvrirBoutique() {
-    let reouvrir = false;
-    const choix = articlesTest.map((id) => ({
-      texte: `${ITEMS[id].nom}  ·  free`,
-      action: () => {
-        reouvrir = true;
-        if (ajouterObjet(inventaire, id)) {
-          afficherMessage(`🛒 ${ITEMS[id].nom} added to your bag.`);
-        } else {
-          afficherMessage("Your bag is full — equip or drop something first.");
-        }
-        inventaireUI.rendre(); // l'objet apparaît tout de suite dans le sac
-      },
-    }));
-    choix.push({ texte: "Leave", action: () => { reouvrir = false; } });
-    ouvrirDialogue({ nom: "Test Merchant", choix }, () => {
-      if (reouvrir) ouvrirBoutique(); // on reste à la boutique pour en reprendre
+
+  // `prochainMenu` : ce qu'on rouvre après la fermeture du dialogue courant
+  // (posé par l'action du choix). null = on quitte la boutique (Leave / Échap).
+  let prochainMenu = null;
+  function ouvrirMenuMarchand(nom, choix) {
+    prochainMenu = null;
+    ouvrirDialogue({ nom, choix }, () => {
+      const suite = prochainMenu;
+      prochainMenu = null;
+      if (suite) suite();
       else fermerBoutique();
     });
   }
+
+  // Menu racine : choisir une catégorie.
+  function menuBoutique() {
+    const choix = CATEGORIES_BOUTIQUE.map((c) => ({
+      texte: `${c.icone}  ${c.nom}`,
+      action: () => { prochainMenu = () => menuCategorie(c); },
+    }));
+    choix.push({ texte: "Leave", action: () => { prochainMenu = null; } });
+    ouvrirMenuMarchand("Test Merchant", choix);
+  }
+
+  // Menu d'une catégorie : ses items (gratuits) + retour aux catégories.
+  function menuCategorie(c) {
+    const ids = Object.values(ITEMS)
+      .filter((it) => c.cats.includes(it.categorie))
+      .map((it) => it.id);
+    const choix = ids.map((id) => ({
+      texte: `${ITEMS[id].nom}  ·  free`,
+      action: () => {
+        prochainMenu = () => menuCategorie(c); // on reste dans la catégorie
+        if (ajouterObjet(inventaire, id)) afficherMessage(`🛒 ${ITEMS[id].nom} added to your bag.`);
+        else afficherMessage("Your bag is full — equip or drop something first.");
+        inventaireUI.rendre();
+      },
+    }));
+    choix.push({ texte: "←  Back", action: () => { prochainMenu = menuBoutique; } });
+    ouvrirMenuMarchand(`Test Merchant — ${c.nom}`, choix);
+  }
+
   function fermerBoutique() {
     document.body.classList.remove("en-boutique");
     inventaireUI.fermer();
