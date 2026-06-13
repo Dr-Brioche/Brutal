@@ -217,12 +217,33 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   }
   function disposerEventail() {
     const cartes = [...conteneurMain.children];
+    resserrerMain(cartes);
     const milieu = (cartes.length - 1) / 2;
     cartes.forEach((el, i) => {
       const ecart = i - milieu;
       el.style.setProperty("--rot", (ecart * 4).toFixed(2) + "deg");
       el.style.setProperty("--dy", (ecart * ecart * 5).toFixed(1) + "px");
     });
+  }
+
+  // Resserre les cartes (chevauchement adaptatif) pour que la main, CENTRÉE, ne
+  // déborde JAMAIS sur la jauge de Chaleur — quel que soit le nombre de cartes.
+  function resserrerMain(cartes) {
+    const n = cartes.length;
+    if (n === 0) return;
+    const carteL = cartes[0].offsetWidth || 150;
+    const zone = conteneurMain.parentElement.getBoundingClientRect();
+    const jaugeR = jauge.getBoundingClientRect();
+    const centre = zone.left + zone.width / 2;
+    // Demi-largeur max : le bord gauche de la main doit rester à droite de la jauge.
+    const demiMax = Math.max(carteL / 2, centre - jaugeR.right - 20);
+    let avance = carteL * 0.82; // pas par défaut (léger chevauchement)
+    if (n > 1) {
+      avance = Math.min(avance, (2 * demiMax - carteL) / (n - 1));
+      avance = Math.max(avance, carteL * 0.2); // garde au moins le coin (le coût) visible
+    }
+    const margeH = (avance - carteL) / 2; // négatif = chevauchement
+    for (const el of cartes) el.style.margin = `0 ${margeH.toFixed(1)}px`;
   }
 
   // Navigation clavier (phase capture + stopPropagation : pas de menu/déplacement).
