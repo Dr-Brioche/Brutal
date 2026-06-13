@@ -19,7 +19,7 @@ export const ENNEMIS = [
     id: "gobelin",
     nom: "Cave Goblin",
     pv: 24,
-    attaque: 6,
+    attaque: 4,
     planche: "images/ennemis/gobelin.png",
     sprite: {
       caseL: 204,
