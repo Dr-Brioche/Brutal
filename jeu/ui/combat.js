@@ -14,7 +14,7 @@
 import {
   creerCombat, jouerCarte, finirTour, degatsSurchauffe, carteVise, ennemiVivant,
 } from "../systems/combat.js";
-import { cartesEquipees } from "../systems/inventaire.js";
+import { cartesEquipees, bonusStats } from "../systems/inventaire.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 import { garnirCarte } from "./carte.js";
 import { alerteVie } from "./effets.js";
@@ -45,7 +45,8 @@ const ETATS_SOUS = 10;         // écart bas de la barre → rangée d'états
 // `ennemis` : tableau de définitions d'ennemis (data/ennemis.js).
 export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surFin }) {
   const combat = creerCombat(ennemis, {
-    pv: heros.pv, pvMax: heros.pvMax, cartes: cartesEquipees(inventaire),
+    pv: heros.pv, pvMax: heros.pvMax,
+    cartes: cartesEquipees(inventaire), stats: bonusStats(inventaire),
   });
 
   // Héros : coin haut-gauche du sprite (pieds sur le sol) + repère écran.

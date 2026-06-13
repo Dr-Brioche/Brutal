@@ -62,10 +62,12 @@ export const ITEMS = {
     degats: 4, mains: 1, cartes: ["coup-venimeux"], stats: { poison: 4 },
   },
   // Marteau de lave : arme de feu (pas encore de sprite). Injecte « Lava Hammer ».
+  // Monte le seuil de surchauffe (4/8) et offre +1 d'énergie de départ.
   "marteau-de-lave": {
     id: "marteau-de-lave", nom: "Magma Hammer", categorie: "arme", rarete: "epique",
     taille: { l: 1, h: 2 }, icone: "#c0431e",
-    degats: 6, mains: 1, cartes: ["coup-de-lave"], stats: { feu: 4 },
+    degats: 6, mains: 1, cartes: ["coup-de-lave"],
+    stats: { feu: 4, chaleurSeuil: 1, chaleurDepart: 1 },
   },
 
   // ---- Armures (changent le skin du nain) ----
@@ -114,6 +116,8 @@ export function couleurRarete(id) {
 const NOM_STAT = {
   chaleurSeuil: "Forge Heat threshold",
   chaleurMax: "Forge Heat cap",
+  chaleurDepart: "Start energy",
+  chaleurRecharge: "Heat / turn",
   poison: "Poison",
   feu: "Burning",
   force: "Strength", agilite: "Agility", foi: "Faith", esprit: "Wit",
