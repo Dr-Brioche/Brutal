@@ -192,6 +192,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     combat.main.forEach((carte, i) => {
       const el = creerCarteDOM(carte, combat);
       el.addEventListener("pointerdown", (ev) => debutDrag(i, el, ev));
+      // Survol souris : la surbrillance « clavier » saute sur cette carte.
+      el.addEventListener("pointerenter", () => { if (!drag) { selection = i; majSelection(); } });
       conteneurMain.append(el);
     });
     disposerEventail();
@@ -265,10 +267,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   function jouer(i, cible = combat.cible) {
     const carte = combat.main[i];
     if (!carte) return;
+    const elJouee = conteneurMain.children[i] || null; // carte à animer
     const eCible = combat.ennemis[cible];
     const pvAvant = eCible ? eCible.pv : 0;
     const pierreAvant = combat.pierre;
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
+
+    if (elJouee) animerCarteJouee(elJouee); // la carte sort, grandit, puis disparaît
 
     // Animation sur l'ennemi touché (s'il a perdu des PV)
     const u = ennemisUI[cible];
@@ -420,6 +425,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   }
 
   boutonFin.addEventListener("click", finDeTour);
+  boutonFin.addEventListener("pointerenter", () => {
+    if (!drag) { selection = elementsNavigables().length - 1; majSelection(); }
+  });
   boutonContinuer.addEventListener("click", fermer);
   window.addEventListener("keydown", surTouche, true);
   panneauResultat.hidden = true;
@@ -532,11 +540,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
       dessinerIntention(ctx, u.e.intention, u.ecran.cx, u.ecran.haut - 8);
     });
 
-    // Flèche rouge animée au-dessus de la cible clavier (dès qu'il y a un choix).
-    const vivants = indicesVivants();
-    if (!drag && vivants.length >= 2 && combat.tourJoueur && !combat.fini) {
+    // Flèche rouge au-dessus de la cible : UNIQUEMENT quand une carte d'attaque
+    // est armée au clavier (sinon rien). La souris a sa propre flèche (drag).
+    if (!drag && phaseCiblage && combat.tourJoueur && !combat.fini) {
       const u = ennemisUI[combat.cible];
-      if (u && u.e.pv > 0) dessinerFlecheCible(ctx, u.ecran, temps, phaseCiblage);
+      if (u && u.e.pv > 0) dessinerFlecheCible(ctx, u.ecran, temps, true);
     }
 
     // Flèche de DRAG souris : de la carte vers le pointeur (ou l'ennemi survolé).
@@ -756,6 +764,32 @@ function dessinerFlecheDrag(ctx, x0, y0, x1, y1) {
 }
 
 // ----- Une carte en HTML ---------------------------------------------------
+
+// Anime la carte qu'on vient de jouer : un clone sort de la main, grandit au
+// centre de l'écran (bien visible), puis s'estompe et disparaît. Le clone est
+// indépendant (la main, elle, se referme tout de suite).
+function animerCarteJouee(el) {
+  const r = el.getBoundingClientRect();
+  const clone = el.cloneNode(true);
+  clone.classList.remove("sel");
+  clone.disabled = false;
+  Object.assign(clone.style, {
+    position: "fixed", left: r.left + "px", top: r.top + "px",
+    width: r.width + "px", height: r.height + "px",
+    margin: "0", zIndex: "30", pointerEvents: "none", transformOrigin: "center center",
+  });
+  clone.style.setProperty("--carte-l", r.width + "px"); // garde la bonne taille de texte
+  document.body.appendChild(clone);
+
+  const dx = innerWidth / 2 - (r.left + r.width / 2);
+  const dy = innerHeight / 2 - (r.top + r.height / 2);
+  clone.animate([
+    { transform: "translate(0px, 0px) rotate(0deg) scale(1)", opacity: 1 },
+    { transform: `translate(${dx}px, ${dy - 30}px) rotate(0deg) scale(1.7)`, opacity: 1, offset: 0.5 },
+    { transform: `translate(${dx}px, ${dy - 30}px) rotate(0deg) scale(1.7)`, opacity: 1, offset: 0.72 },
+    { transform: `translate(${dx}px, ${dy - 80}px) rotate(0deg) scale(1.9)`, opacity: 0, offset: 1 },
+  ], { duration: 620, easing: "cubic-bezier(.2, .7, .3, 1)" }).onfinish = () => clone.remove();
+}
 
 function creerCarteDOM(carte, combat) {
   const el = document.createElement("button");
