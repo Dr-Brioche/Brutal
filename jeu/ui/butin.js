@@ -8,6 +8,7 @@
 // `surFin()` (applique XP+or et reprend le jeu). (Un visuel de fond viendra.)
 
 import { ITEMS, couleurRarete } from "../data/items.js";
+import { demanderConfirmation, confirmationActive } from "./confirmation.js";
 
 export function installerButin() {
   const overlay = document.getElementById("butin");
@@ -79,17 +80,33 @@ export function installerButin() {
     cb();
   }
 
+  // Quitter en laissant des objets → on confirme (ne pas perdre du loot par erreur).
+  function tenterFermer() {
+    if (restants > 0) {
+      demanderConfirmation({
+        titre: "Leave loot behind?",
+        message: `${restants} item${restants > 1 ? "s" : ""} will be lost for good.`,
+        texteOui: "Leave it",
+        texteNon: "Keep looting",
+        danger: true,
+      }, fermer);
+    } else {
+      fermer();
+    }
+  }
+
   function surTouche(e) {
+    if (confirmationActive()) return; // une confirmation est ouverte : on l'ignore
     if (e.code === "Space" || e.code === "Enter") {
       e.preventDefault(); e.stopPropagation();
       if (pretClavier) prendreTout(); // sinon ignoré : appui maintenu depuis le combat
     } else if (e.code === "Escape") {
-      e.preventDefault(); e.stopPropagation(); fermer();
+      e.preventDefault(); e.stopPropagation(); tenterFermer();
     }
   }
 
   btnTout.addEventListener("click", (e) => { e.stopPropagation(); prendreTout(); });
-  btnLaisser.addEventListener("click", (e) => { e.stopPropagation(); fermer(); });
+  btnLaisser.addEventListener("click", (e) => { e.stopPropagation(); tenterFermer(); });
 
   return {
     // `loot` = { or, xp, items: [idObjet…] }. `opts` = { prendre, surFin }.
