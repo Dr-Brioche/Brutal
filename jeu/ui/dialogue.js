@@ -80,10 +80,11 @@ export function ouvrirDialogue(dialogue, surFin) {
     e.preventDefault();
     e.stopPropagation();              // bloque menu pause / déplacement pendant le dialogue
     const n = Math.max(1, choix.length);
-    if (e.code === "Space" || e.code === "Enter") avancer();
+    if (e.code === "Escape") { fermerUI(); if (surFin) surFin(); } // Échap : on sort
+    else if (e.code === "Space" || e.code === "Enter") avancer();
     else if (enChoix && (e.code === "KeyW" || e.code === "ArrowUp")) { sel = (sel - 1 + n) % n; rendre(); }
     else if (enChoix && (e.code === "KeyS" || e.code === "ArrowDown")) { sel = (sel + 1) % n; rendre(); }
-    // Escape, Q/D… : simplement bloqués (aucune action)
+    // Q/D… : simplement bloqués (aucune action)
   }
 
   window.addEventListener("keydown", surTouche, true); // phase capture : on passe avant le reste
