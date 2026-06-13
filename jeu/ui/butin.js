@@ -17,6 +17,9 @@ export function installerButin() {
   let prendre = null;   // (id) => bool : tente de ranger l'objet dans le sac
   let surFin = null;    // () => void  : applique XP/or + reprend le jeu
   let restants = 0;     // objets pas encore pris
+  let pretClavier = false; // Espace/Entrée n'agit qu'après un court délai…
+  let timerPret = null;    // …pour ne PAS valider à cause d'un appui maintenu depuis le combat
+  const DELAI_CLAVIER = 1500; // ms : le temps de voir le butin
 
   function ligneInfo(html) {
     const d = document.createElement("div");
@@ -70,6 +73,7 @@ export function installerButin() {
     const cb = surFin;
     surFin = null;
     prendre = null;
+    clearTimeout(timerPret);
     overlay.hidden = true;
     window.removeEventListener("keydown", surTouche, true);
     cb();
@@ -77,7 +81,8 @@ export function installerButin() {
 
   function surTouche(e) {
     if (e.code === "Space" || e.code === "Enter") {
-      e.preventDefault(); e.stopPropagation(); prendreTout();
+      e.preventDefault(); e.stopPropagation();
+      if (pretClavier) prendreTout(); // sinon ignoré : appui maintenu depuis le combat
     } else if (e.code === "Escape") {
       e.preventDefault(); e.stopPropagation(); fermer();
     }
@@ -103,6 +108,11 @@ export function installerButin() {
       // Sans objet à trier, un seul bouton « Close » (XP/or seulement).
       btnTout.textContent = restants ? "Take all" : "Close";
       btnLaisser.hidden = restants === 0;
+      // Espace/Entrée bloqué un court instant (le temps de voir le butin, et pour
+      // qu'un appui maintenu pendant le combat ne ramasse pas tout d'un coup).
+      pretClavier = false;
+      clearTimeout(timerPret);
+      timerPret = setTimeout(() => { pretClavier = true; }, DELAI_CLAVIER);
       overlay.hidden = false;
       window.addEventListener("keydown", surTouche, true);
     },
