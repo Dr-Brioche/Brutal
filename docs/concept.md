@@ -192,7 +192,21 @@ directement la **collecte** et le **marché**.
   **stats** (ex. bague qui monte le seuil de surchauffe). On part avec un stuff de
   base ; on s'équipe ensuite **via le sac** (plus de touches R/E).
 - *À venir* : glisser-déposer, navigation clavier, vraies icônes pixel art,
-  effets des bijoux/gants, agrandissement du sac, vente au Deep-Market.
+  agrandissement du sac, vente au Deep-Market.
+
+## Progression : niveaux & arbre de talents (décision du 13/06/2026)
+
+**Séparation nette pour « ne pas tout mélanger »** :
+- **L'équipement définit les CARTES** (le deck) — au survol d'un objet, on voit
+  les cartes qu'il débloque, pas des stats.
+- **L'arbre de talents définit les CHIFFRES** — vie, vitesse, ingéniosité (pioche),
+  réglages de Chaleur (seuil, plafond, énergie de départ, recharge)…
+
+On gagne de l'**XP en combat** (chaque ennemi en donne) ; un palier d'XP fait
+**monter de niveau** et donne **1 point de talent**. On dépense ces points dans
+l'**arbre** (écran touche **T**) : des nœuds reliés en arborescence, débloqués
+selon leurs prérequis. *(1er jet implémenté : XP/niveau/points sauvegardés, écran
+de l'arbre, effets appliqués. À venir : plus de nœuds, rangs multiples.)*
 
 ## La grande boucle (le moteur d'addiction)
 

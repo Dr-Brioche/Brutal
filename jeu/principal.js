@@ -15,6 +15,8 @@ import {
 } from "./systems/inventaire.js";
 import { installerInventaire } from "./ui/inventaire.js";
 import { installerDeck } from "./ui/deck.js";
+import { installerTalents } from "./ui/talents.js";
+import { appliquerTalents } from "./systems/talents.js";
 import { installerMenu } from "./ui/menu.js";
 import { afficherMessage, flashCombat, fondu, alerteVie } from "./ui/effets.js";
 import { ouvrirDialogue, dialogueActif } from "./ui/dialogue.js";
@@ -73,6 +75,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   inventaire.slots.arme1 = "hache-rouillee";      // équipement de base
   inventaire.slots.armure = "tenue-de-voyageur";
   appliquerEquipement(heros, inventaire, planches);
+  appliquerTalents(heros); // vie max / vitesse selon les talents (aucun au départ)
 
   let enPause = false;
   let enTransition = false;
@@ -232,14 +235,16 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (["bas", "gauche", "droite", "haut"].includes(donnees.direction)) {
       heros.direction = donnees.direction;
     }
-    if (Number.isFinite(donnees.pv)) {
-      heros.pv = Math.max(1, Math.min(heros.pvMax, donnees.pv)); // jamais 0 ni au-delà du max
-    }
-    // Progression (validée champ par champ)
+    // Progression (validée champ par champ), PUIS on recalcule pvMax/vitesse
+    // selon les talents AVANT de borner la vie.
     if (Number.isFinite(donnees.niveau) && donnees.niveau >= 1) heros.niveau = Math.floor(donnees.niveau);
     if (Number.isFinite(donnees.xp) && donnees.xp >= 0) heros.xp = Math.floor(donnees.xp);
     if (Number.isFinite(donnees.pointsTalent) && donnees.pointsTalent >= 0) heros.pointsTalent = Math.floor(donnees.pointsTalent);
     if (donnees.talents && typeof donnees.talents === "object") heros.talents = { ...donnees.talents };
+    appliquerTalents(heros);
+    if (Number.isFinite(donnees.pv)) {
+      heros.pv = Math.max(1, Math.min(heros.pvMax, donnees.pv)); // jamais 0 ni au-delà du max
+    }
     appliquerEquipement(heros, inventaire, planches);
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
   }
@@ -300,14 +305,32 @@ export async function demarrerJeu(donneesInitiales = null) {
   });
   document.getElementById("inv-deck").addEventListener("click", basculerDeck);
 
-  // Échap : ferme d'abord l'écran ouvert (inventaire, deck, menu pause) ; si rien
-  // n'est ouvert, ouvre le menu pause (sauvegarder / quitter).
+  // L'arbre de talents (touche T) : on y dépense les points gagnés en niveau.
+  const talentsUI = installerTalents({
+    heros,
+    surChangement: () => {}, // debloquer() met le héros à jour ; l'écran se rafraîchit seul
+    surFermer: () => basculerTalents(),
+  });
+  let talentsOuvert = false;
+  function basculerTalents() {
+    if (combatEnCours || dialogueActif() || enTransition) return;
+    if (talentsOuvert) { talentsOuvert = false; enPause = false; talentsUI.fermer(); return; }
+    if (enPause) return; // un autre écran est déjà ouvert
+    talentsOuvert = true; enPause = true; invite.hidden = true; talentsUI.ouvrir();
+  }
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "KeyT" && !e.repeat) { e.preventDefault(); basculerTalents(); }
+  });
+
+  // Échap : ferme d'abord l'écran ouvert (inventaire, deck, talents, menu pause) ;
+  // si rien n'est ouvert, ouvre le menu pause (sauvegarder / quitter).
   window.addEventListener("keydown", (e) => {
     if (e.code !== "Escape" || e.repeat) return;
     if (combatEnCours || dialogueActif()) return; // gérés ailleurs (le combat capte Échap)
     e.preventDefault();
     if (inventaireOuvert) { basculerInventaire(); return; }
     if (deckOuvert) { basculerDeck(); return; }
+    if (talentsOuvert) { basculerTalents(); return; }
     if (menuPauseOuvert) { menu.fermer(); return; }
     if (enPause) return;          // état transitoire (transition de zone, flash) : on ignore
     menu.ouvrir();

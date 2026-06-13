@@ -728,6 +728,63 @@
     }
     .inv-tip-ligne { color: #d9c08a; padding: 1px 0; }
 
+    /* ---- L'arbre de talents (touche T) ---- */
+    .talents {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5, 5, 8, 0.72);
+      z-index: 16;
+    }
+    .tal-panneau {
+      width: min(540px, 94vw); max-height: 94vh; overflow: auto;
+      padding: 16px 18px 18px;
+      background: #14121a; border: 1px solid #3b2030; border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    }
+    .tal-entete { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .tal-titre { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+    .tal-meta { color: #cbd0d6; font-family: ui-monospace, monospace; font-size: 0.9rem; }
+    .tal-meta b { color: #ffcf57; }
+    #tal-fermer {
+      padding: 4px 12px; color: #f3f4f6; background: #2f2d3a;
+      border: 1px solid #45424f; border-radius: 6px; cursor: pointer; font-weight: 700;
+    }
+    .tal-xp {
+      position: relative; height: 15px; margin: 12px 0 8px;
+      background: #100e16; border: 1px solid #2c2a36; border-radius: 999px; overflow: hidden;
+    }
+    .tal-xp-fill {
+      position: absolute; left: 0; top: 0; bottom: 0; width: 0%;
+      background: linear-gradient(90deg, #6b4ea8, #b07be0); transition: width 0.2s ease;
+    }
+    .tal-xp-txt {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 0.66rem; color: #e9e0f5; font-family: ui-monospace, monospace;
+    }
+    .tal-arbre { position: relative; margin: 8px auto 10px; }
+    .tal-liens { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .tal-lien { stroke: #3a3550; stroke-width: 3; }
+    .tal-lien--actif { stroke: #b07be0; }
+    .tal-noeud {
+      position: absolute; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; cursor: pointer;
+      border: 2px solid #45424f; background: #1d1b25; color: #e5e7eb;
+    }
+    .tal-debloque { border-color: #e08a1e; background: #3a2a12; box-shadow: 0 0 10px rgba(224, 138, 30, 0.5); }
+    .tal-disponible {
+      border-color: #b07be0; background: #251c33;
+      animation: tal-pulse 1.2s ease-in-out infinite;
+    }
+    .tal-bloque { opacity: 0.5; cursor: default; }
+    @keyframes tal-pulse {
+      0%, 100% { box-shadow: 0 0 7px rgba(176, 123, 224, 0.4); }
+      50%      { box-shadow: 0 0 16px rgba(176, 123, 224, 0.85); }
+    }
+    .tal-desc { min-height: 1.4em; text-align: center; color: #cbd0d6; font-size: 0.86rem; }
+    .tal-desc-cout { color: #9aa0a6; }
+    .tal-aide { margin-top: 10px; font-size: 0.72rem; color: #6b7280; text-align: center; }
+
     /* Le bouton « voir le deck » dans l'en-tête de l'inventaire */
     #inv-deck {
       padding: 4px 12px; color: #f3f4f6; background: #2f2d3a;
@@ -892,6 +949,26 @@
     </div>
   </div>
 
+  <!-- L'arbre de talents (touche T) : niveau, XP, points, nœuds à débloquer -->
+  <div class="talents" id="talents" hidden>
+    <div class="tal-panneau">
+      <div class="tal-entete">
+        <span class="tal-titre">Talents</span>
+        <span class="tal-meta">Lvl <b id="tal-niveau">1</b> &nbsp;·&nbsp; 🔹 <b id="tal-points">0</b> pts</span>
+        <button id="tal-fermer">✕</button>
+      </div>
+      <div class="tal-xp">
+        <div class="tal-xp-fill" id="tal-xp-fill"></div>
+        <span class="tal-xp-txt" id="tal-xp-txt"></span>
+      </div>
+      <div class="tal-arbre" id="tal-arbre">
+        <svg class="tal-liens" id="tal-liens" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="tal-desc" id="tal-desc"></div>
+      <p class="tal-aide">Click a lit-up talent to unlock · [T] to close</p>
+    </div>
+  </div>
+
   <!-- La bulle d'info au survol d'un objet (suit la souris, posée sur tout) -->
   <div class="inv-tip" id="inv-tip" hidden></div>
 
@@ -933,7 +1010,7 @@
       <div class="menu-slots" id="demarrage-slots"></div>
     </div>
 
-    <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; Space: talk / confirm &nbsp;·&nbsp; B: inventory &nbsp;·&nbsp; N: deck &nbsp;·&nbsp; Esc: menu</p>
+    <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; Space: talk / confirm &nbsp;·&nbsp; B: inventory &nbsp;·&nbsp; N: deck &nbsp;·&nbsp; T: talents &nbsp;·&nbsp; Esc: menu</p>
 
     <footer class="pied">v0.9 — steel meets stone</footer>
   </main>

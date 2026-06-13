@@ -11,6 +11,7 @@
 
 import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES } from "../data/items.js";
 import { rangsInventaire, equiper, desequiper, bonusStats } from "../systems/inventaire.js";
+import { bonusTalents } from "../systems/talents.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 
 const CASE = 34;            // taille d'une case du sac (doit matcher le fond CSS)
@@ -120,12 +121,16 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   function rendreStats() {
     const b = bonusStats(inventaire);
+    const t = bonusTalents(heros); // les talents donnent les CHIFFRES (vie, Chaleur…)
+    const seuil = FORGE_SEUIL + (b.chaleurSeuil || 0) + (t.chaleurSeuil || 0);
+    const max = FORGE_MAX + (b.chaleurMax || 0) + (t.chaleurMax || 0);
     const lignes = [
+      ["Level", `${heros.niveau}  (${heros.pointsTalent} pts)`],
       ["Strength", heros.force + (b.force || 0)],
       ["Agility", heros.agilite + (b.agilite || 0)],
       ["Faith", heros.foi + (b.foi || 0)],
       ["Wit", heros.esprit + (b.esprit || 0)],
-      ["Forge Heat", `${FORGE_SEUIL + (b.chaleurSeuil || 0)} / ${FORGE_MAX + (b.chaleurMax || 0)}`],
+      ["Forge Heat", `${seuil} / ${max}`],
     ];
     elStats.replaceChildren(...lignes.map(([nom, val]) => {
       const l = document.createElement("div");

@@ -93,6 +93,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     pioche: melanger(composerDeck(cartes)),
     main: [],
     defausse: [],
+    tailleMain: TAILLE_MAIN + (stats.pioche || 0), // cartes piochées/tour (+ talents)
     // Déroulé
     tourJoueur: true,
     fini: false,
@@ -120,7 +121,7 @@ function piocherUne(combat) {
 }
 
 function piocherMain(combat) {
-  for (let i = 0; i < TAILLE_MAIN; i++) {
+  for (let i = 0; i < combat.tailleMain; i++) {
     const carte = piocherUne(combat);
     if (carte) combat.main.push(carte);
   }
