@@ -161,6 +161,10 @@ directement la **collecte** et le **marché**.
 - **Défense « Pierre » — CONFIRMÉ et implémenté** : la Pierre **persiste entre
   les tours** (≠ Blocage qui disparaît chaque tour). Les nains sont coriaces →
   le jeu défensif/tank devient une vraie stratégie.
+- **Statuts (1er jet)** : effets qui durent dans le temps, affichés **sous la
+  barre de vie**. **Poison** implémenté (ronge la cible en début de son tour,
+  baisse de 1 par tour, ignore la Pierre) — apporté par l'équipement, ex. le
+  *Croc de basilic* qui injecte la carte *Venom Stab*. À venir : stun, saignement…
 
 ## Items, butin & inventaire (1er jet implémenté)
 

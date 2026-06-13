@@ -64,16 +64,20 @@ export function creerCombat(ennemi, opts = {}) {
     pvHerosMax: pvMax,
     pvHeros: pv,
     pierre: 0,
+    poisonHeros: 0,         // poison sur le héros (subi en début de SON tour)
     // Chaleur de Forge (persiste, comme la Pierre) + ses stats de surchauffe
     chaleur: CHALEUR_DEPART,
     chaleurRecharge: CHALEUR_RECHARGE,
     chaleurSeuil: CHALEUR_SEUIL,
     chaleurMax: CHALEUR_MAX,
     derniereBrulure: 0,        // dégâts de surchauffe au dernier tour (pour l'UI)
+    dernierPoisonHeros: 0,     // dégâts de poison au dernier tour (pour l'UI)
+    dernierPoisonEnnemi: 0,
     // Ennemi
     ennemi,
     pvEnnemiMax: ennemi.pv,
     pvEnnemi: ennemi.pv,
+    poisonEnnemi: 0,        // poison sur l'ennemi (subi en début de SON tour)
     intention: null,        // ce que l'ennemi prépare (télégraphié au joueur)
     // Deck
     pioche: melanger(composerDeck(cartes)),
@@ -115,7 +119,21 @@ function appliquerEffet(combat, effet) {
     combat.pvEnnemi = Math.max(0, combat.pvEnnemi - effet.valeur);
   } else if (effet.type === "pierre") {
     combat.pierre += effet.valeur;
+  } else if (effet.type === "poison") {
+    combat.poisonEnnemi += effet.valeur; // empoisonne l'ennemi
   }
+}
+
+// Le poison agit en DÉBUT du tour de sa cible : elle perd `poison` PV (ignore la
+// Pierre, c'est du venin), puis le poison baisse de 1. Renvoie les dégâts subis.
+function appliquerPoison(combat, cible) {
+  const cle = cible === "ennemi" ? "poisonEnnemi" : "poisonHeros";
+  const n = combat[cle];
+  if (n <= 0) return 0;
+  if (cible === "ennemi") combat.pvEnnemi = Math.max(0, combat.pvEnnemi - n);
+  else combat.pvHeros = Math.max(0, combat.pvHeros - n);
+  combat[cle] = n - 1;
+  return n;
 }
 
 // Le héros encaisse : la Pierre absorbe d'abord, le reste entame les PV.
@@ -162,10 +180,17 @@ export function jouerCarte(combat, index) {
 export function finirTour(combat) {
   if (combat.fini || !combat.tourJoueur) return;
   combat.tourJoueur = false;
+  combat.dernierPoisonEnnemi = 0;
+  combat.dernierPoisonHeros = 0;
 
   // Les cartes encore en main repartent à la défausse
   combat.defausse.push(...combat.main);
   combat.main = [];
+
+  // Début du tour de l'ENNEMI : son poison agit d'abord (il peut en mourir).
+  combat.dernierPoisonEnnemi = appliquerPoison(combat, "ennemi");
+  verifierFin(combat);
+  if (combat.fini) return;
 
   // L'ennemi exécute son intention
   if (combat.intention?.type === "attaque") {
@@ -174,9 +199,10 @@ export function finirTour(combat) {
   verifierFin(combat);
   if (combat.fini) return;
 
-  // Nouveau tour : on recharge la Chaleur (elle persiste et peut surchauffer),
-  // puis la surchauffe brûle le héros — dégâts DIRECTS, la Pierre ne protège
-  // pas du feu intérieur. (La Pierre, elle, n'est jamais remise à zéro.)
+  // Nouveau tour du HÉROS : on recharge la Chaleur (elle persiste et peut
+  // surchauffer), la surchauffe brûle (dégâts DIRECTS, la Pierre ne protège pas
+  // du feu intérieur), puis le poison du héros agit. (La Pierre n'est jamais
+  // remise à zéro.)
   combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + combat.chaleurRecharge);
   combat.derniereBrulure = degatsSurchauffe(combat);
   if (combat.derniereBrulure > 0) {
@@ -184,6 +210,10 @@ export function finirTour(combat) {
     verifierFin(combat);
     if (combat.fini) return;
   }
+  combat.dernierPoisonHeros = appliquerPoison(combat, "heros");
+  verifierFin(combat);
+  if (combat.fini) return;
+
   piocherMain(combat);
   prevoirIntention(combat);
   combat.tourJoueur = true;

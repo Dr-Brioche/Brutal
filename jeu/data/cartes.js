@@ -17,6 +17,8 @@
 //   effets : liste d'effets appliqués dans l'ordre, chacun { type, valeur }
 //            - "degats" : retire `valeur` PV à l'ennemi
 //            - "pierre" : ajoute `valeur` de défense "Pierre" au héros
+//            - "poison" : ajoute `valeur` de Poison à l'ennemi (dégâts/tour qui
+//                         baissent de 1 par tour, ignorent la Pierre)
 
 export const CARTES = {
   // ---- Deck de base commun : cartes à 0 Chaleur, mais FAIBLES --------------
@@ -90,5 +92,16 @@ export const CARTES = {
     type: "attaque",
     texte: "Deal 3 damage twice.",
     effets: [{ type: "degats", valeur: 3 }, { type: "degats", valeur: 3 }],
+  },
+
+  // Croc de basilic : morsure venimeuse → un peu de dégâts + du Poison qui
+  // ronge l'ennemi sur la durée.
+  "coup-venimeux": {
+    id: "coup-venimeux",
+    nom: "Venom Stab",
+    cout: 1,
+    type: "attaque",
+    texte: "Deal 4 damage. Apply 4 Poison.",
+    effets: [{ type: "degats", valeur: 4 }, { type: "poison", valeur: 4 }],
   },
 };

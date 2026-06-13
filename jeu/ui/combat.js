@@ -246,14 +246,27 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
   function finDeTour() {
     const pvAvant = combat.pvHeros;
     finirTour(combat);
+
+    // Poison sur l'ennemi (vert), en début de son tour — il a pu en mourir.
+    if (combat.dernierPoisonEnnemi > 0) {
+      secousseEnnemi = 0.3;
+      ajouterFlottant(`☠ ${combat.dernierPoisonEnnemi}`, ennemiEcran.cx, ennemiEcran.milieu, "#7ec850");
+      if (combat.pvEnnemi <= 0 && !mortEnnemi.actif) exploserEnnemi();
+    }
     if (combat.pvEnnemi > 0) jouerAnimEnnemi("attaque"); // le gobelin frappe
-    // On distingue les dégâts de l'ennemi (sur le héros) de la brûlure de
-    // surchauffe (sur la jauge).
+
+    // On distingue les dégâts de l'ennemi (sur le héros), la brûlure de
+    // surchauffe (sur la jauge) et le poison du héros.
     const brulure = combat.derniereBrulure;
-    const degatsEnnemi = (pvAvant - combat.pvHeros) - brulure;
+    const poison = combat.dernierPoisonHeros;
+    const degatsEnnemi = (pvAvant - combat.pvHeros) - brulure - poison;
     if (degatsEnnemi > 0) {
       secousseHeros = 0.3;
       ajouterFlottant(`-${degatsEnnemi}`, heroEcran.cx, heroEcran.milieu, "#ff7a7a");
+    }
+    if (poison > 0) {
+      secousseHeros = 0.3;
+      ajouterFlottant(`☠ ${poison}`, heroEcran.cx, heroEcran.milieu - 16, "#7ec850");
     }
     if (brulure > 0) {
       secousseHeros = 0.3;
@@ -334,13 +347,17 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     alerteVie(combat.pvHeros / combat.pvHerosMax); // liseré rouge si vie basse
   }
 
-  // États affichés sous la barre (poison, stun, saignement… à venir). L'armure
-  // (Pierre) n'est PAS ici : elle a son bouclier bleu à gauche de la barre.
+  // États affichés sous la barre. L'armure (Pierre) n'est PAS ici : elle a son
+  // bouclier bleu à gauche de la barre. (Stun, saignement… viendront ici aussi.)
   function etatsHeros() {
-    return [];
+    const l = [];
+    if (combat.poisonHeros > 0) l.push({ texte: `☠ ${combat.poisonHeros}`, couleur: "#7ec850" });
+    return l;
   }
   function etatsEnnemi() {
-    return []; // aucun état ennemi pour l'instant
+    const l = [];
+    if (combat.poisonEnnemi > 0) l.push({ texte: `☠ ${combat.poisonEnnemi}`, couleur: "#7ec850" });
+    return l;
   }
 
   function dessiner() {

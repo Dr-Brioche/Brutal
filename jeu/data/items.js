@@ -55,6 +55,12 @@ export const ITEMS = {
     taille: { l: 1, h: 2 }, icone: "#7d7a72",
     planche: "images/armes/pioche.png", degats: 3, mains: 1, cartes: ["coup-de-pioche"],
   },
+  // Croc de basilic : arme à poison (pas encore de sprite). Injecte « Venom Stab ».
+  "croc-de-basilic": {
+    id: "croc-de-basilic", nom: "Basilisk Fang", categorie: "arme", rarete: "rare",
+    taille: { l: 1, h: 2 }, icone: "#4f7a3a",
+    degats: 4, mains: 1, cartes: ["coup-venimeux"], stats: { poison: 4 },
+  },
 
   // ---- Armures (changent le skin du nain) ----
   "tenue-de-voyageur": {
@@ -102,6 +108,7 @@ export function couleurRarete(id) {
 const NOM_STAT = {
   chaleurSeuil: "Forge Heat threshold",
   chaleurMax: "Forge Heat cap",
+  poison: "Poison",
   force: "Strength", agilite: "Agility", foi: "Faith", esprit: "Wit",
 };
 const NOM_CATEGORIE = {
