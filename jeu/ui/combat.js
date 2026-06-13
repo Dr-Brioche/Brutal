@@ -306,10 +306,6 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     const r = el.getBoundingClientRect();
     return pointerVersScene(r.left + r.width / 2, r.top); // haut-centre de la carte
   }
-  function dansElement(el, x, y) {
-    const r = el.getBoundingClientRect();
-    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
-  }
   // Quel ennemi vivant est sous ce point (coords scène) ? -1 sinon.
   function ennemiSousPoint(sx, sy) {
     for (let i = 0; i < ennemisUI.length; i++) {
@@ -352,8 +348,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     if (d.vise) {
       if (d.cibleSurvol >= 0) jouer(d.i, d.cibleSurvol); // lâché SUR un ennemi → joue
       // lâché ailleurs → annulé (la carte reste en main)
-    } else if (dansElement(d.el, ev.clientX, ev.clientY)) {
-      jouer(d.i); // carte sans cible : un simple clic la joue
+    } else {
+      // Carte sans cible (défense) : jouée par un clic dessus OU en la tirant
+      // vers le haut (lâcher au niveau de la carte ou plus haut). Vers le bas = annulé.
+      const r = d.el.getBoundingClientRect();
+      if (ev.clientY <= r.bottom) jouer(d.i);
     }
   }
 
