@@ -131,15 +131,14 @@ export function categorieLisible(id) {
   return d ? (NOM_CATEGORIE[d.categorie] ?? d.categorie) : "";
 }
 
-// Les effets CHIFFRÉS d'un item en lignes de texte (ATK/DEF, deux mains, sac…).
-// Les CARTES, elles, ne sont plus en texte : la bulle d'info les affiche en VRAI
-// (visuel) — voir ui/infobulle.js. Vide si l'objet n'apporte rien de chiffré.
+// Les infos chiffrées « utiles » d'un item (deux mains, rangées de sac). L'ATK/DEF
+// ne sont PLUS affichés : ils ne servaient à rien (le combat est piloté par les
+// CARTES, pas par degats/defense). La bulle montre les cartes en VRAI (visuel) —
+// voir ui/infobulle.js. Vide si l'objet n'apporte rien de chiffré.
 export function statsLisibles(id) {
   const d = ITEMS[id];
   if (!d) return [];
   const lignes = [];
-  if (d.degats != null) lignes.push(`+${d.degats} ATK`);
-  if (d.defense != null) lignes.push(`+${d.defense} DEF`);
   if (d.mains === 2) lignes.push("Two-handed");
   if (d.rangsBonus) lignes.push(`+${d.rangsBonus} bag rows`);
   return lignes;
