@@ -152,8 +152,10 @@ directement la **collecte** et le **marché**.
   Seuil de base **3** ; on peut le dépasser jusqu'à un plafond (**8**),
   mais au-dessus du seuil on **surchauffe** : on subit chaque tour
   **(chaleur − seuil)²** dégâts directs (ex. à 4 → 1, à 5 → 4, à 6 → 9). Tous ces
-  réglages (recharge, seuil, plafond) seront **modifiés par l'équipement/les
-  items** : monter en chaleur = jouer plus fort, mais brûler. La jauge est une
+  réglages (énergie de départ, recharge, seuil, plafond) sont **modifiés par
+  l'équipement** (`bonusStats`) — ex. le *Magma Hammer* monte le seuil à **4/8** et
+  donne **+1 d'énergie de départ**. Monter en chaleur = jouer plus fort, mais
+  brûler. La jauge est une
   **barre horizontale** posée à gauche du deck ; elle rougeoie et **pulse** en
   surchauffe (un **cadre en image fixe** viendra l'habiller plus tard).
 - Gardés en réserve comme **archétypes de cartes** (pas la ressource générale) :
@@ -166,8 +168,9 @@ directement la **collecte** et le **marché**.
   - **Poison** : ronge la cible en début de son tour, baisse de 1/tour, ignore la
     Pierre (ex. *Croc de basilic* → carte *Venom Stab*).
   - **Enflammé (feu)** : même principe que le poison, **mais se propage aux
-    ennemis adjacents** à la fin du tour ennemi (avec son nombre de ticks courant,
-    déjà décrémenté). Ex. *Magma Hammer* → carte *Lava Hammer*.
+    ennemis adjacents NON encore enflammés** à la fin du tour ennemi (ils prennent
+    le feu du voisin le plus ardent ; un ennemi déjà en feu ne se ré-enflamme pas,
+    il continue de brûler). Ex. *Magma Hammer* → carte *Lava Hammer*.
   - À venir : stun, saignement…
 
 ## Items, butin & inventaire (1er jet implémenté)

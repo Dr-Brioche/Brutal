@@ -63,7 +63,13 @@ export function ennemiVivant(e) { return e && e.pv > 0; }
 // `ennemisDefs` : tableau de définitions d'ennemis (data/ennemis.js).
 // `opts` : { pv, pvMax, cartes } — vie du héros (persiste) + cartes de l'équipement.
 export function creerCombat(ennemisDefs, opts = {}) {
-  const { pv = 40, pvMax = 40, cartes = [] } = opts;
+  const { pv = 40, pvMax = 40, cartes = [], stats = {} } = opts;
+  // L'équipement modifie les réglages de la Chaleur de Forge (seuil, plafond,
+  // recharge, énergie de départ) — cf. bonusStats() de l'inventaire.
+  const chaleurSeuil = CHALEUR_SEUIL + (stats.chaleurSeuil || 0);
+  const chaleurMax = CHALEUR_MAX + (stats.chaleurMax || 0);
+  const chaleurRecharge = CHALEUR_RECHARGE + (stats.chaleurRecharge || 0);
+  const chaleurDepart = Math.min(chaleurMax, CHALEUR_DEPART + (stats.chaleurDepart || 0));
   const combat = {
     // Héros
     pvHerosMax: pvMax,
@@ -71,11 +77,11 @@ export function creerCombat(ennemisDefs, opts = {}) {
     pierre: 0,
     poisonHeros: 0,
     feuHeros: 0,
-    // Chaleur de Forge + surchauffe
-    chaleur: CHALEUR_DEPART,
-    chaleurRecharge: CHALEUR_RECHARGE,
-    chaleurSeuil: CHALEUR_SEUIL,
-    chaleurMax: CHALEUR_MAX,
+    // Chaleur de Forge + surchauffe (réglages modifiés par l'équipement)
+    chaleur: chaleurDepart,
+    chaleurRecharge,
+    chaleurSeuil,
+    chaleurMax,
     derniereBrulure: 0,
     dernierPoisonHeros: 0,
     dernierFeuHeros: 0,
@@ -216,14 +222,20 @@ function tiquerHeros(combat, nom) {
 function propagerFeu(combat) {
   const es = combat.ennemis;
   if (es.length < 2) return; // pas de voisin → rien à propager
-  const ajouts = es.map(() => 0);
+  // État du feu AVANT propagation : un ennemi DÉJÀ en feu ne se ré-enflamme pas
+  // (il continue juste à brûler) ; seuls les voisins NON enflammés prennent feu.
+  // Calcul simultané (pas de cascade le même tour) → la flamme avance d'un cran.
+  const avant = es.map((e) => e.feu);
   es.forEach((e, i) => {
-    if (e.pv <= 0 || e.feu <= 0) return;
+    if (e.pv <= 0 || avant[i] > 0) return; // mort, ou déjà en feu → ne reçoit rien
+    let recu = 0;
     for (const j of [i - 1, i + 1]) {
-      if (j >= 0 && j < es.length && es[j].pv > 0) ajouts[j] += e.feu;
+      if (j >= 0 && j < es.length && es[j].pv > 0 && avant[j] > 0) {
+        recu = Math.max(recu, avant[j]); // prend le feu du voisin le plus ardent
+      }
     }
+    if (recu > 0) e.feu = recu;
   });
-  es.forEach((e, i) => { if (ajouts[i] > 0) e.feu += ajouts[i]; });
 }
 
 // Fin du tour du joueur : chaque ennemi agit, le feu se propage, puis nouveau tour.
