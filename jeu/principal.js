@@ -320,9 +320,11 @@ export async function demarrerJeu(donneesInitiales = null) {
   async function declencherRencontre() {
     enPause = true;                 // le monde se fige pendant le flash
     await flashCombat();
-    const ennemi = ennemiParId("gobelin");
+    // Un groupe de 1 à 3 gobelins (même définition, mais chacun son état de combat).
+    const nb = 1 + Math.floor(Math.random() * 3);
+    const ennemis = Array.from({ length: nb }, () => ennemiParId("gobelin"));
     combatEnCours = demarrerCombat({
-      ctx, heros, inventaire, planches, ennemi,
+      ctx, heros, inventaire, planches, ennemis,
       surFin: (resultat) => {
         combatEnCours = null;
         if (resultat === "defaite") {
@@ -332,14 +334,18 @@ export async function demarrerJeu(donneesInitiales = null) {
           allerVersZone("ville", VILLE.depart); // retour sûr (gère le fondu + la pause)
         } else {
           enPause = false;
-          // Butin : de l'or + des objets (selon leur rareté de drop)
-          const butin = tirerButin(ennemi);
-          ajouterOr(inventaire, butin.or);
+          // Butin : chaque ennemi vaincu lâche son or + ses objets (selon rareté).
+          let or = 0;
           const recus = [];
-          for (const id of butin.objets) {
-            if (ajouterObjet(inventaire, id)) recus.push(ITEMS[id].nom);
+          for (const e of ennemis) {
+            const butin = tirerButin(e);
+            or += butin.or;
+            for (const id of butin.objets) {
+              if (ajouterObjet(inventaire, id)) recus.push(ITEMS[id].nom);
+            }
           }
-          let msg = `⚔ The goblin falls.  +${butin.or} 🪙`;
+          ajouterOr(inventaire, or);
+          let msg = `⚔ ${nb > 1 ? "The goblins fall" : "The goblin falls"}.  +${or} 🪙`;
           if (recus.length) msg += `  ·  ${recus.join(", ")}`;
           afficherMessage(msg);
         }

@@ -166,10 +166,9 @@ directement la **collecte** et le **marché**.
   - **Poison** : ronge la cible en début de son tour, baisse de 1/tour, ignore la
     Pierre (ex. *Croc de basilic* → carte *Venom Stab*).
   - **Enflammé (feu)** : même principe que le poison, **mais se propage aux
-    ennemis adjacents** à la fin du tour ennemi (avec son nombre de ticks courant)
-    — n'aura d'effet qu'en **combat à plusieurs ennemis** (à venir). Ex. *Magma
-    Hammer* → carte *Lava Hammer*.
-  - À venir : stun, saignement… et le **combat multi-ennemis** (prérequis du feu).
+    ennemis adjacents** à la fin du tour ennemi (avec son nombre de ticks courant,
+    déjà décrémenté). Ex. *Magma Hammer* → carte *Lava Hammer*.
+  - À venir : stun, saignement…
 
 ## Items, butin & inventaire (1er jet implémenté)
 
@@ -216,11 +215,13 @@ que c'est addictif, **puis** on empile le suivant.
    qui suit, collisions, point d'intérêt, rencontres-flash), puis transitions
    entre zones, décor montagne, et zone de minage procédurale.
 1. **Combat** (deck-builder) — *premier jet jouable fait* : écran de combat
-   (nain de profil agrandi + ennemi placeholder), main de cartes piochée,
-   **Chaleur de Forge** comme énergie, défense **Pierre** persistante,
-   intention ennemie télégraphée, victoire/défaite. Chaque arme injecte sa
-   carte signature (hache / marteau / pioche). *À enrichir* : pioche/deck plus
-   riche, butin, plusieurs ennemis, animations & sons.
+   (nain de profil agrandi + ennemis), main de cartes piochée, **Chaleur de
+   Forge** comme énergie, défense **Pierre** persistante, statuts (poison, feu),
+   intentions télégraphées, victoire/défaite. Chaque arme injecte sa carte
+   signature. **Combat à plusieurs ennemis** : 1 à 3 monstres, les cartes
+   d'attaque visent une **cible** (au clavier : on arme la carte puis on choisit
+   la cible avec les flèches, une flèche rouge la pointe). *À enrichir* :
+   ciblage à la souris, pioche/deck plus riche, variété d'ennemis, sons.
 2. **Craft / Forge** — second.
 3. **Économie / bourse** — en dernier.
 
