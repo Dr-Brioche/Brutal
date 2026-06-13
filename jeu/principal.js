@@ -415,16 +415,14 @@ export async function demarrerJeu(donneesInitiales = null) {
             xp += e.xp || 0;
             items.push(...butin.objets);
           }
-          butinUI.ouvrir({ or, xp, items }, () => {
-            ajouterOr(inventaire, or);
-            const niveaux = gagnerXp(heros, xp);
-            const pleins = [];
-            for (const id of items) {
-              if (!ajouterObjet(inventaire, id)) pleins.push(ITEMS[id].nom);
-            }
-            if (niveaux > 0) afficherMessage(`⬆ Lvl ${heros.niveau} (+${niveaux} talent pt)`);
-            else if (pleins.length) afficherMessage("🎒 Bag full — some loot was left behind.");
-            enPause = false;
+          butinUI.ouvrir({ or, xp, items }, {
+            prendre: (id) => ajouterObjet(inventaire, id), // range l'objet, false si sac plein
+            surFin: () => {
+              ajouterOr(inventaire, or);
+              const niveaux = gagnerXp(heros, xp);
+              if (niveaux > 0) afficherMessage(`⬆ Lvl ${heros.niveau} (+${niveaux} talent pt)`);
+              enPause = false;
+            },
           });
         }
       },
