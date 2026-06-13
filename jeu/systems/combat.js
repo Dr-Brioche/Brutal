@@ -65,19 +65,23 @@ export function creerCombat(ennemi, opts = {}) {
     pvHeros: pv,
     pierre: 0,
     poisonHeros: 0,         // poison sur le héros (subi en début de SON tour)
+    feuHeros: 0,            // Enflammé sur le héros (idem ; se propage entre ennemis)
     // Chaleur de Forge (persiste, comme la Pierre) + ses stats de surchauffe
     chaleur: CHALEUR_DEPART,
     chaleurRecharge: CHALEUR_RECHARGE,
     chaleurSeuil: CHALEUR_SEUIL,
     chaleurMax: CHALEUR_MAX,
     derniereBrulure: 0,        // dégâts de surchauffe au dernier tour (pour l'UI)
-    dernierPoisonHeros: 0,     // dégâts de poison au dernier tour (pour l'UI)
+    dernierPoisonHeros: 0,     // dégâts de poison/feu au dernier tour (pour l'UI)
     dernierPoisonEnnemi: 0,
+    dernierFeuHeros: 0,
+    dernierFeuEnnemi: 0,
     // Ennemi
     ennemi,
     pvEnnemiMax: ennemi.pv,
     pvEnnemi: ennemi.pv,
     poisonEnnemi: 0,        // poison sur l'ennemi (subi en début de SON tour)
+    feuEnnemi: 0,           // Enflammé sur l'ennemi
     intention: null,        // ce que l'ennemi prépare (télégraphié au joueur)
     // Deck
     pioche: melanger(composerDeck(cartes)),
@@ -121,19 +125,33 @@ function appliquerEffet(combat, effet) {
     combat.pierre += effet.valeur;
   } else if (effet.type === "poison") {
     combat.poisonEnnemi += effet.valeur; // empoisonne l'ennemi
+  } else if (effet.type === "feu") {
+    combat.feuEnnemi += effet.valeur;    // enflamme l'ennemi
   }
 }
 
-// Le poison agit en DÉBUT du tour de sa cible : elle perd `poison` PV (ignore la
-// Pierre, c'est du venin), puis le poison baisse de 1. Renvoie les dégâts subis.
-function appliquerPoison(combat, cible) {
-  const cle = cible === "ennemi" ? "poisonEnnemi" : "poisonHeros";
+// Un statut « dégâts dans le temps » (poison, feu…) agit en DÉBUT du tour de sa
+// cible : elle perd `n` PV (ignore la Pierre), puis le statut baisse de 1.
+// `nom` = "poison" | "feu" ; `cible` = "ennemi" | "heros". Renvoie les dégâts.
+function tiquerStatut(combat, cible, nom) {
+  const cle = nom + (cible === "ennemi" ? "Ennemi" : "Heros");
   const n = combat[cle];
   if (n <= 0) return 0;
   if (cible === "ennemi") combat.pvEnnemi = Math.max(0, combat.pvEnnemi - n);
   else combat.pvHeros = Math.max(0, combat.pvHeros - n);
   combat[cle] = n - 1;
   return n;
+}
+
+// Propagation de l'Enflammé aux ennemis ADJACENTS, à la FIN du tour ennemi.
+// INERTE pour l'instant : le combat n'a qu'UN ennemi (pas de voisin). Quand les
+// combats à plusieurs ennemis arriveront, on parcourra ici chaque ennemi en feu
+// et on appliquera à ses voisins son nombre de ticks COURANT (déjà décrémenté ce
+// tour). C'est le point d'accroche prévu — rien à faire tant qu'on est seul.
+function propagerFeu(combat) {
+  const ennemis = combat.ennemis; // futur : tableau d'ennemis
+  if (!ennemis || ennemis.length < 2) return;
+  // … propagation aux voisins (à implémenter avec le multi-ennemis) …
 }
 
 // Le héros encaisse : la Pierre absorbe d'abord, le reste entame les PV.
@@ -180,15 +198,16 @@ export function jouerCarte(combat, index) {
 export function finirTour(combat) {
   if (combat.fini || !combat.tourJoueur) return;
   combat.tourJoueur = false;
-  combat.dernierPoisonEnnemi = 0;
-  combat.dernierPoisonHeros = 0;
+  combat.dernierPoisonEnnemi = combat.dernierPoisonHeros = 0;
+  combat.dernierFeuEnnemi = combat.dernierFeuHeros = 0;
 
   // Les cartes encore en main repartent à la défausse
   combat.defausse.push(...combat.main);
   combat.main = [];
 
-  // Début du tour de l'ENNEMI : son poison agit d'abord (il peut en mourir).
-  combat.dernierPoisonEnnemi = appliquerPoison(combat, "ennemi");
+  // Début du tour de l'ENNEMI : poison + feu agissent d'abord (il peut en mourir).
+  combat.dernierPoisonEnnemi = tiquerStatut(combat, "ennemi", "poison");
+  combat.dernierFeuEnnemi = tiquerStatut(combat, "ennemi", "feu");
   verifierFin(combat);
   if (combat.fini) return;
 
@@ -199,10 +218,13 @@ export function finirTour(combat) {
   verifierFin(combat);
   if (combat.fini) return;
 
+  // FIN du tour ennemi : le feu se propagerait ici aux voisins (inerte à 1 ennemi).
+  propagerFeu(combat);
+
   // Nouveau tour du HÉROS : on recharge la Chaleur (elle persiste et peut
   // surchauffer), la surchauffe brûle (dégâts DIRECTS, la Pierre ne protège pas
-  // du feu intérieur), puis le poison du héros agit. (La Pierre n'est jamais
-  // remise à zéro.)
+  // du feu intérieur), puis le poison et le feu du héros agissent. (La Pierre
+  // n'est jamais remise à zéro.)
   combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + combat.chaleurRecharge);
   combat.derniereBrulure = degatsSurchauffe(combat);
   if (combat.derniereBrulure > 0) {
@@ -210,7 +232,8 @@ export function finirTour(combat) {
     verifierFin(combat);
     if (combat.fini) return;
   }
-  combat.dernierPoisonHeros = appliquerPoison(combat, "heros");
+  combat.dernierPoisonHeros = tiquerStatut(combat, "heros", "poison");
+  combat.dernierFeuHeros = tiquerStatut(combat, "heros", "feu");
   verifierFin(combat);
   if (combat.fini) return;
 

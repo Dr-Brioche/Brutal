@@ -162,9 +162,14 @@ directement la **collecte** et le **marché**.
   les tours** (≠ Blocage qui disparaît chaque tour). Les nains sont coriaces →
   le jeu défensif/tank devient une vraie stratégie.
 - **Statuts (1er jet)** : effets qui durent dans le temps, affichés **sous la
-  barre de vie**. **Poison** implémenté (ronge la cible en début de son tour,
-  baisse de 1 par tour, ignore la Pierre) — apporté par l'équipement, ex. le
-  *Croc de basilic* qui injecte la carte *Venom Stab*. À venir : stun, saignement…
+  barre de vie**, apportés par l'équipement. Implémentés :
+  - **Poison** : ronge la cible en début de son tour, baisse de 1/tour, ignore la
+    Pierre (ex. *Croc de basilic* → carte *Venom Stab*).
+  - **Enflammé (feu)** : même principe que le poison, **mais se propage aux
+    ennemis adjacents** à la fin du tour ennemi (avec son nombre de ticks courant)
+    — n'aura d'effet qu'en **combat à plusieurs ennemis** (à venir). Ex. *Magma
+    Hammer* → carte *Lava Hammer*.
+  - À venir : stun, saignement… et le **combat multi-ennemis** (prérequis du feu).
 
 ## Items, butin & inventaire (1er jet implémenté)
 

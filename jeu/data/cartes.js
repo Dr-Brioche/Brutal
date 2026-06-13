@@ -19,6 +19,8 @@
 //            - "pierre" : ajoute `valeur` de défense "Pierre" au héros
 //            - "poison" : ajoute `valeur` de Poison à l'ennemi (dégâts/tour qui
 //                         baissent de 1 par tour, ignorent la Pierre)
+//            - "feu"    : ajoute `valeur` d'Enflammé à l'ennemi (comme le poison ;
+//                         se propagera aux ennemis adjacents — combat multi à venir)
 
 export const CARTES = {
   // ---- Deck de base commun : cartes à 0 Chaleur, mais FAIBLES --------------
@@ -103,5 +105,16 @@ export const CARTES = {
     type: "attaque",
     texte: "Deal 4 damage. Apply 4 Poison.",
     effets: [{ type: "degats", valeur: 4 }, { type: "poison", valeur: 4 }],
+  },
+
+  // Marteau de lave : un coup lourd + de l'Enflammé (feu dans le temps, prévu
+  // pour se propager aux ennemis adjacents quand les combats seront à plusieurs).
+  "coup-de-lave": {
+    id: "coup-de-lave",
+    nom: "Lava Hammer",
+    cout: 2,
+    type: "attaque",
+    texte: "Deal 5 damage. Apply 4 Burning.",
+    effets: [{ type: "degats", valeur: 5 }, { type: "feu", valeur: 4 }],
   },
 };

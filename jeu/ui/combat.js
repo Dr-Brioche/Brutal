@@ -244,22 +244,27 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
   }
 
   function finDeTour() {
-    const pvAvant = combat.pvHeros;
+    const pvHerosAvant = combat.pvHeros;
     finirTour(combat);
 
-    // Poison sur l'ennemi (vert), en début de son tour — il a pu en mourir.
+    // Statuts sur l'ennemi (début de son tour) : poison (vert) + feu (orange).
     if (combat.dernierPoisonEnnemi > 0) {
       secousseEnnemi = 0.3;
       ajouterFlottant(`☠ ${combat.dernierPoisonEnnemi}`, ennemiEcran.cx, ennemiEcran.milieu, "#7ec850");
-      if (combat.pvEnnemi <= 0 && !mortEnnemi.actif) exploserEnnemi();
     }
+    if (combat.dernierFeuEnnemi > 0) {
+      secousseEnnemi = 0.3;
+      ajouterFlottant(`🔥 ${combat.dernierFeuEnnemi}`, ennemiEcran.cx, ennemiEcran.milieu - 16, "#ff8a2c");
+    }
+    if (combat.pvEnnemi <= 0 && !mortEnnemi.actif) exploserEnnemi(); // mort par statut
     if (combat.pvEnnemi > 0) jouerAnimEnnemi("attaque"); // le gobelin frappe
 
-    // On distingue les dégâts de l'ennemi (sur le héros), la brûlure de
-    // surchauffe (sur la jauge) et le poison du héros.
+    // Dégâts subis par le héros : on sépare l'attaque ennemie, la brûlure de
+    // surchauffe (jauge) et les statuts (poison/feu).
     const brulure = combat.derniereBrulure;
     const poison = combat.dernierPoisonHeros;
-    const degatsEnnemi = (pvAvant - combat.pvHeros) - brulure - poison;
+    const feu = combat.dernierFeuHeros;
+    const degatsEnnemi = (pvHerosAvant - combat.pvHeros) - brulure - poison - feu;
     if (degatsEnnemi > 0) {
       secousseHeros = 0.3;
       ajouterFlottant(`-${degatsEnnemi}`, heroEcran.cx, heroEcran.milieu, "#ff7a7a");
@@ -267,6 +272,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
     if (poison > 0) {
       secousseHeros = 0.3;
       ajouterFlottant(`☠ ${poison}`, heroEcran.cx, heroEcran.milieu - 16, "#7ec850");
+    }
+    if (feu > 0) {
+      secousseHeros = 0.3;
+      ajouterFlottant(`🔥 ${feu}`, heroEcran.cx, heroEcran.milieu - 32, "#ff8a2c");
     }
     if (brulure > 0) {
       secousseHeros = 0.3;
@@ -352,11 +361,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemi, surFi
   function etatsHeros() {
     const l = [];
     if (combat.poisonHeros > 0) l.push({ texte: `☠ ${combat.poisonHeros}`, couleur: "#7ec850" });
+    if (combat.feuHeros > 0) l.push({ texte: `🔥 ${combat.feuHeros}`, couleur: "#ff8a2c" });
     return l;
   }
   function etatsEnnemi() {
     const l = [];
     if (combat.poisonEnnemi > 0) l.push({ texte: `☠ ${combat.poisonEnnemi}`, couleur: "#7ec850" });
+    if (combat.feuEnnemi > 0) l.push({ texte: `🔥 ${combat.feuEnnemi}`, couleur: "#ff8a2c" });
     return l;
   }
 
