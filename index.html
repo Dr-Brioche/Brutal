@@ -303,28 +303,30 @@
        s'aligner sur un futur calque de fond à toute résolution. */
     .combat-jauge {
       position: absolute;
-      left: 3cqw; bottom: 6cqh;
+      left: 4cqw; bottom: 6cqh;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 0.8cqh;
-      width: 22cqh;
+      gap: 1cqh;
+      width: 44cqh;                /* jauge ×2 (la TAILLE ; le nb de crans suit le max) */
       font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
       color: #ffcaa0;
     }
     .combat-jauge-titre {
-      font-size: 1.4cqh;
+      font-size: 1.8cqh;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: #b88;
     }
+    /* Rangée barre + pastille d'énergie (qui déborde à gauche de la barre). */
+    .combat-jauge-rangee { position: relative; width: 100%; }
     .combat-jauge-bar {
       position: relative;
       width: 100%;
-      height: 3.2cqh;
+      height: 6.4cqh;              /* ×2 */
       background: #17110d;
-      border: 0.25cqh solid #3a2f26;
-      border-radius: 0.6cqh;
+      border: 0.4cqh solid #3a2f26;
+      border-radius: 1cqh;
       overflow: hidden;
     }
     .combat-jauge-fill {
@@ -333,6 +335,13 @@
       width: 0%;
       background: linear-gradient(90deg, #963012, #ff8e1a);
       transition: width 0.08s linear;
+    }
+    /* Les divisions : 1 trait vertical par cran d'énergie (nombre posé en JS
+       selon le max → si un item monte le max, il y a plus de crans, même taille). */
+    .combat-jauge-divisions { position: absolute; inset: 0; pointer-events: none; }
+    .combat-jauge-div {
+      position: absolute; top: 0; bottom: 0; width: 1px;
+      background: rgba(0, 0, 0, 0.55);
     }
     /* Au-delà du seuil : la jauge rougeoie et pulse (surchauffe). */
     .combat-jauge-bar.surchauffe { animation: chauffe 0.7s ease-in-out infinite; }
@@ -345,18 +354,25 @@
     }
     /* Le repère du seuil de surchauffe (position en % posée en JS). */
     .combat-jauge-seuil {
-      position: absolute; top: -0.3cqh; bottom: -0.3cqh; width: 0.3cqh;
+      position: absolute; top: -0.4cqh; bottom: -0.4cqh; width: 0.4cqh;
       background: #ffe2b0; box-shadow: 0 0 4px rgba(255, 226, 176, 0.8);
       transform: translateX(-50%);
     }
+    /* Le chiffre d'énergie : pastille (façon coût de carte) à l'extrême gauche. */
     .combat-jauge-valeur {
-      position: absolute; right: 0.8cqh; top: 50%; transform: translateY(-50%);
-      font-size: 2cqh; font-weight: 800; color: #fff;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+      position: absolute; left: 0; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 7cqh; height: 7cqh;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.4cqh; font-weight: 800;
+      color: #1a1208; background: #ffb454;
+      border-radius: 50%;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.7);
+      z-index: 3;
     }
     .combat-jauge-brulure {
-      min-height: 1.6cqh;
-      font-size: 1.5cqh; font-weight: 700; color: #ff8a3c;
+      min-height: 2cqh;
+      font-size: 1.8cqh; font-weight: 700; color: #ff8a3c;
     }
     /* Flash + secousse au moment où la surchauffe brûle. */
     .combat-jauge.brule .combat-jauge-bar { animation: brule 0.45s ease-out; }
@@ -806,9 +822,12 @@
       <!-- La jauge de Chaleur de Forge : place fixe en bas à gauche de la zone -->
       <div class="combat-jauge" id="combat-jauge">
         <div class="combat-jauge-titre">Forge Heat</div>
-        <div class="combat-jauge-bar" id="combat-jauge-bar">
-          <div class="combat-jauge-fill" id="combat-jauge-fill"></div>
-          <div class="combat-jauge-seuil" id="combat-jauge-seuil"></div>
+        <div class="combat-jauge-rangee">
+          <div class="combat-jauge-bar" id="combat-jauge-bar">
+            <div class="combat-jauge-fill" id="combat-jauge-fill"></div>
+            <div class="combat-jauge-divisions" id="combat-jauge-divisions"></div>
+            <div class="combat-jauge-seuil" id="combat-jauge-seuil"></div>
+          </div>
           <span class="combat-jauge-valeur" id="combat-jauge-valeur">1</span>
         </div>
         <div class="combat-jauge-brulure" id="combat-jauge-brulure"></div>

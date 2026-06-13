@@ -89,7 +89,17 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   const jaugeSeuil = document.getElementById("combat-jauge-seuil");
   const jaugeValeur = document.getElementById("combat-jauge-valeur");
   const jaugeBrulure = document.getElementById("combat-jauge-brulure");
+  const jaugeDivisions = document.getElementById("combat-jauge-divisions");
   jaugeSeuil.style.left = (combat.chaleurSeuil / combat.chaleurMax) * 100 + "%";
+  // Divisions : un trait vertical par cran d'énergie (le nombre suit le max
+  // courant ; un item qui monte le max ajoute des crans, sans changer la taille).
+  jaugeDivisions.replaceChildren();
+  for (let k = 1; k < combat.chaleurMax; k++) {
+    const trait = document.createElement("div");
+    trait.className = "combat-jauge-div";
+    trait.style.left = (k / combat.chaleurMax) * 100 + "%";
+    jaugeDivisions.append(trait);
+  }
 
   // Valeurs « affichées » côté héros (glissent vers les vraies)
   const aff = { pvHeros: combat.pvHeros, pierre: 0, chaleur: combat.chaleur };
