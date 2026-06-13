@@ -38,16 +38,25 @@ export function montrerInfobulle(id, e) {
   const enfants = [nom, rarete, ...lignes];
 
   // Le visuel des cartes ajoutées par l'objet (comme dans le deck, en mini).
+  // On regroupe les exemplaires d'une même carte → badge « ×N » en haut à droite.
   const cartes = d.cartes ?? [];
   if (cartes.length) {
     const cont = document.createElement("div");
     cont.className = "inv-tip-cartes";
-    for (const cid of cartes) {
+    const groupes = new Map();
+    for (const cid of cartes) groupes.set(cid, (groupes.get(cid) || 0) + 1);
+    for (const [cid, n] of groupes) {
       const c = CARTES[cid];
       if (!c) continue;
       const carte = document.createElement("div");
       carte.className = "combat-carte";
       garnirCarte(carte, c);
+      if (n > 1) {
+        const badge = document.createElement("span");
+        badge.className = "inv-tip-nombre";
+        badge.textContent = `×${n}`;
+        carte.append(badge);
+      }
       cont.append(carte);
     }
     enfants.push(cont);
