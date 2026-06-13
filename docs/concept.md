@@ -194,8 +194,13 @@ directement la **collecte** et le **marché**.
   Il ne donne **pas de stats chiffrées** — les CHIFFRES viennent de l'**arbre de
   talents** (voir section *Progression*). La bulle d'un objet montre **ses cartes**.
   On part avec un stuff de base ; on s'équipe ensuite **via le sac** (plus de touches R/E).
+- **Bulle d'info** : au survol d'un objet (sac OU marchand), on voit le **visuel
+  des cartes** qu'il ajoute au deck (mini-cartes, même rendu que le deck) → on sait
+  ce qu'on récupère / achète.
+- **Vente au marchand** : on peut revendre les objets du sac contre de l'**or**
+  (prix selon la rareté : commun 2, rare 6, épique 15, légendaire 40).
 - *À venir* : glisser-déposer, navigation clavier, vraies icônes pixel art,
-  agrandissement du sac, vente au Deep-Market.
+  agrandissement du sac, prix d'**achat** (le marchand de test est encore gratuit).
 
 ## Progression : niveaux & arbre de talents (décision du 13/06/2026)
 

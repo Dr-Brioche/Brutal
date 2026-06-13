@@ -6,7 +6,7 @@
 //   5 bagues, sac). Le sac équipé agrandit la grille.
 // - or     : la monnaie.
 
-import { itemDef, SLOT_PAR_CATEGORIE } from "../data/items.js";
+import { itemDef, SLOT_PAR_CATEGORIE, prixVente } from "../data/items.js";
 
 const COLS = 6;          // largeur du sac
 const RANGS_BASE = 4;    // hauteur de base (petite : s'agrandit avec un sac)
@@ -114,6 +114,15 @@ export function desequiper(inv, slot) {
 }
 
 export function ajouterOr(inv, n) { inv.or += n; }
+
+// Vend un objet du SAC au marchand : il quitte le sac, son prix est crédité en
+// or. Renvoie le prix obtenu.
+export function vendreObjet(inv, objet) {
+  const prix = prixVente(objet.id);
+  retirerObjet(inv, objet);
+  inv.or += prix;
+  return prix;
+}
 
 // ---- Liens avec le reste du jeu ------------------------------------------
 

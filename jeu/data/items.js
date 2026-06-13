@@ -112,6 +112,13 @@ export function couleurRarete(id) {
   return (it && RARETES[it.rarete]?.couleur) || "#9aa0a6";
 }
 
+// Prix de revente d'un item au marchand (or), selon sa rareté.
+const PRIX_VENTE = { commun: 2, rare: 6, epique: 15, legendaire: 40 };
+export function prixVente(id) {
+  const it = ITEMS[id];
+  return it ? (PRIX_VENTE[it.rarete] ?? 1) : 0;
+}
+
 // Noms lisibles (anglais) pour les bulles d'info.
 const NOM_CATEGORIE = {
   arme: "Weapon", bouclier: "Shield", armure: "Armor", gant: "Gloves",

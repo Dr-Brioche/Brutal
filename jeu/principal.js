@@ -8,10 +8,10 @@ import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js
 import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, TUILE } from "./world/carte.js";
 import { VILLE, ZONES } from "./data/zones.js";
 import { tuileDef, estPorte } from "./data/tuiles.js";
-import { ITEMS } from "./data/items.js";
+import { ITEMS, prixVente } from "./data/items.js";
 import {
   creerInventaire, appliquerEquipement, armeEquipee, armureEquipee,
-  ajouterObjet, ajouterOr, etatInventaire, chargerInventaire,
+  ajouterObjet, ajouterOr, vendreObjet, etatInventaire, chargerInventaire,
 } from "./systems/inventaire.js";
 import { installerInventaire } from "./ui/inventaire.js";
 import { installerDeck } from "./ui/deck.js";
@@ -163,14 +163,32 @@ export async function demarrerJeu(donneesInitiales = null) {
     });
   }
 
-  // Menu racine : choisir une catégorie.
+  // Menu racine : choisir une catégorie (acheter) ou vendre.
   function menuBoutique() {
     const choix = CATEGORIES_BOUTIQUE.map((c) => ({
       texte: `${c.icone}  ${c.nom}`,
       action: () => { prochainMenu = () => menuCategorie(c); },
     }));
+    choix.push({ texte: "💰  Sell items", action: () => { prochainMenu = menuVendre; } });
     choix.push({ texte: "Leave", action: () => { prochainMenu = null; } });
     ouvrirMenuMarchand("Test Merchant", choix);
+  }
+
+  // Menu de vente : les objets du SAC, chacun revendable contre de l'or.
+  function menuVendre() {
+    const choix = inventaire.objets.map((o) => ({
+      texte: `Sell ${ITEMS[o.id].nom}  ·  +${prixVente(o.id)} 🪙`,
+      itemId: o.id, // survol → bulle (on voit ce qu'on vend)
+      action: () => {
+        prochainMenu = menuVendre; // on reste dans le menu de vente
+        const prix = vendreObjet(inventaire, o);
+        afficherMessage(`💰 Sold ${ITEMS[o.id].nom} for ${prix} 🪙.`);
+        inventaireUI.rendre();
+      },
+    }));
+    if (!choix.length) afficherMessage("Your bag is empty — nothing to sell.");
+    choix.push({ texte: "←  Back", action: () => { prochainMenu = menuBoutique; } });
+    ouvrirMenuMarchand("Test Merchant — Sell", choix);
   }
 
   // Menu d'une catégorie : ses items (gratuits) + retour aux catégories.
