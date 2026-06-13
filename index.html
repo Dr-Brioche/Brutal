@@ -785,6 +785,42 @@
     .tal-desc-cout { color: #9aa0a6; }
     .tal-aide { margin-top: 10px; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
+    /* ---- La fenêtre de butin (fin de combat gagné) ---- */
+    .butin {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5, 5, 8, 0.6);
+      z-index: 22;
+    }
+    .butin-panneau {
+      width: min(360px, 90vw);
+      padding: 18px 22px 20px;
+      background: #14121a; border: 1px solid #4a2f1a; border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+      text-align: center; cursor: pointer;
+    }
+    .butin-titre {
+      font-size: 1.6rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #ffcf57; text-shadow: 0 0 24px rgba(255, 200, 80, 0.4);
+      margin-bottom: 12px;
+    }
+    .butin-liste { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .butin-ligne {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; font-size: 0.98rem; color: #e5e7eb;
+      background: #1d1b25; border: 1px solid #2c2a36; border-radius: 8px;
+    }
+    .butin-ligne b { color: #ffcf57; }
+    .butin-pastille {
+      width: 18px; height: 18px; border-radius: 4px; border: 2px solid #9aa0a6; flex-shrink: 0;
+    }
+    .butin-prendre {
+      width: 100%; padding: 11px;
+      font-weight: 700; letter-spacing: 0.06em; color: #fff;
+      background: linear-gradient(135deg, #b45309, #7c2d12);
+      border: none; border-radius: 8px; cursor: pointer;
+    }
+
     /* Le bouton « voir le deck » dans l'en-tête de l'inventaire */
     #inv-deck {
       padding: 4px 12px; color: #f3f4f6; background: #2f2d3a;
@@ -966,6 +1002,15 @@
       </div>
       <div class="tal-desc" id="tal-desc"></div>
       <p class="tal-aide">Click a lit-up talent to unlock · [T] to close</p>
+    </div>
+  </div>
+
+  <!-- La fenêtre de butin (au centre, à la fin d'un combat gagné) -->
+  <div class="butin" id="butin" hidden>
+    <div class="butin-panneau">
+      <div class="butin-titre">Victory!</div>
+      <div class="butin-liste" id="butin-liste"></div>
+      <button class="butin-prendre" id="butin-prendre">Take all &nbsp;·&nbsp; [Space]</button>
     </div>
   </div>
 

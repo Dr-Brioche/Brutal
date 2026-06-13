@@ -501,7 +501,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
 
     if (delaiFin >= 0 && !termine) {
       delaiFin -= dt;
-      if (delaiFin <= 0) { termine = true; terminer(); }
+      if (delaiFin <= 0) {
+        termine = true;
+        // Victoire : on enchaîne direct sur la fenêtre de butin (côté principal,
+        // via surFin). Défaite : on montre l'écran « Defeat ».
+        if (combat.resultat === "victoire") fermer();
+        else terminer();
+      }
     }
     alerteVie(combat.pvHeros / combat.pvHerosMax);
   }

@@ -17,6 +17,7 @@ import { installerInventaire } from "./ui/inventaire.js";
 import { installerDeck } from "./ui/deck.js";
 import { installerTalents } from "./ui/talents.js";
 import { appliquerTalents } from "./systems/talents.js";
+import { installerButin } from "./ui/butin.js";
 import { installerMenu } from "./ui/menu.js";
 import { afficherMessage, flashCombat, fondu, alerteVie } from "./ui/effets.js";
 import { ouvrirDialogue, dialogueActif } from "./ui/dialogue.js";
@@ -322,6 +323,9 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (e.code === "KeyT" && !e.repeat) { e.preventDefault(); basculerTalents(); }
   });
 
+  // La fenêtre de butin (fin de combat gagné) : on récupère le loot d'un clic / Espace.
+  const butinUI = installerButin();
+
   // Échap : ferme d'abord l'écran ouvert (inventaire, deck, talents, menu pause) ;
   // si rien n'est ouvert, ouvre le menu pause (sauvegarder / quitter).
   window.addEventListener("keydown", (e) => {
@@ -400,24 +404,28 @@ export async function demarrerJeu(donneesInitiales = null) {
           afficherMessage("💀 You collapse... and wake up back in Brütàl.");
           allerVersZone("ville", VILLE.depart); // retour sûr (gère le fondu + la pause)
         } else {
-          enPause = false;
-          // Butin : chaque ennemi vaincu lâche son or, ses objets et de l'XP.
+          // Victoire : on calcule le butin (sans l'appliquer) et on l'affiche dans
+          // une fenêtre centrée. Le joueur le récupère (clic / Espace). Le monde
+          // reste figé (enPause) tant qu'il n'a pas récupéré.
           let or = 0, xp = 0;
-          const recus = [];
+          const items = [];
           for (const e of ennemis) {
             const butin = tirerButin(e);
             or += butin.or;
             xp += e.xp || 0;
-            for (const id of butin.objets) {
-              if (ajouterObjet(inventaire, id)) recus.push(ITEMS[id].nom);
-            }
+            items.push(...butin.objets);
           }
-          ajouterOr(inventaire, or);
-          const niveaux = gagnerXp(heros, xp);
-          let msg = `⚔ ${nb > 1 ? "The goblins fall" : "The goblin falls"}.  +${or} 🪙  +${xp} XP`;
-          if (recus.length) msg += `  ·  ${recus.join(", ")}`;
-          if (niveaux > 0) msg += `  ·  ⬆ Lvl ${heros.niveau} (+${niveaux} talent pt)`;
-          afficherMessage(msg);
+          butinUI.ouvrir({ or, xp, items }, () => {
+            ajouterOr(inventaire, or);
+            const niveaux = gagnerXp(heros, xp);
+            const pleins = [];
+            for (const id of items) {
+              if (!ajouterObjet(inventaire, id)) pleins.push(ITEMS[id].nom);
+            }
+            if (niveaux > 0) afficherMessage(`⬆ Lvl ${heros.niveau} (+${niveaux} talent pt)`);
+            else if (pleins.length) afficherMessage("🎒 Bag full — some loot was left behind.");
+            enPause = false;
+          });
         }
       },
     });
