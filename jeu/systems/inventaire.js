@@ -124,6 +124,11 @@ export function vendreObjet(inv, objet) {
   return prix;
 }
 
+// Jette un objet du SAC (le retire, sans rien rendre).
+export function jeterObjet(inv, objet) {
+  retirerObjet(inv, objet);
+}
+
 // ---- Liens avec le reste du jeu ------------------------------------------
 
 // Le nain porte toujours au moins ses habits de base (pour avoir un corps).

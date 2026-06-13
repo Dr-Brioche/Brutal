@@ -8,11 +8,12 @@ import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js
 import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, TUILE } from "./world/carte.js";
 import { VILLE, ZONES } from "./data/zones.js";
 import { tuileDef, estPorte } from "./data/tuiles.js";
-import { ITEMS, prixVente } from "./data/items.js";
+import { ITEMS, prixVente, RARETES } from "./data/items.js";
 import {
   creerInventaire, appliquerEquipement, armeEquipee, armureEquipee,
-  ajouterObjet, ajouterOr, vendreObjet, etatInventaire, chargerInventaire,
+  ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
 } from "./systems/inventaire.js";
+import { demanderConfirmation } from "./ui/confirmation.js";
 import { installerInventaire } from "./ui/inventaire.js";
 import { installerDeck } from "./ui/deck.js";
 import { installerTalents } from "./ui/talents.js";
@@ -354,6 +355,22 @@ export async function demarrerJeu(donneesInitiales = null) {
       appliquerEquipement(heros, inventaire, planches);
     },
     surFermer: () => basculerInventaire(),
+    // Jeter un objet glissé hors du sac. Au-dessus de « commun » → on confirme.
+    surJeter: (objet) => {
+      const d = ITEMS[objet.id];
+      const jeter = () => { jeterObjet(inventaire, objet); inventaireUI.rendre(); };
+      if (d.rarete !== "commun") {
+        demanderConfirmation({
+          titre: "Drop this item?",
+          message: `${d.nom} (${RARETES[d.rarete]?.nom ?? d.rarete}) will be lost for good.`,
+          texteOui: "Drop it",
+          texteNon: "Keep it",
+          danger: true,
+        }, jeter);
+      } else {
+        jeter();
+      }
+    },
   });
   let inventaireOuvert = false;
   function basculerInventaire() {

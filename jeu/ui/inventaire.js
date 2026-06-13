@@ -13,6 +13,7 @@ import { itemDef, couleurRarete } from "../data/items.js";
 import { rangsInventaire, equiper, desequiper } from "../systems/inventaire.js";
 import { bonusTalents } from "../systems/talents.js";
 import { montrerInfobulle, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
+import { confirmationActive } from "./confirmation.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 
 const CASE = 34;            // taille d'une case du sac (doit matcher le fond CSS)
@@ -30,7 +31,7 @@ const LABELS = {
 // Stats de base de la Chaleur de Forge (cf. systems/combat.js)
 const FORGE_SEUIL = 3, FORGE_MAX = 8, BASE_PIOCHE = 5; // bases (matchent systems/combat.js)
 
-export function installerInventaire({ inventaire, heros, surChangement, surFermer }) {
+export function installerInventaire({ inventaire, heros, surChangement, surFermer, surJeter }) {
   const overlay = document.getElementById("inventaire");
   const elGauche = document.getElementById("inv-gauche");
   const elDroite = document.getElementById("inv-droite");
@@ -42,6 +43,54 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   const canvasHero = document.getElementById("inv-hero");
   document.getElementById("inv-fermer").onclick = () => surFermer();
 
+  // Glisser un objet du sac : un simple clic l'équipe ; le glisser HORS du
+  // panneau (dans le vide) le JETTE (via surJeter, qui gère la confirmation).
+  let drag = null; // { objet, ic, startX, startY, moved, ghost }
+  function surDragMove(ev) {
+    if (!drag) return;
+    const dx = ev.clientX - drag.startX, dy = ev.clientY - drag.startY;
+    if (!drag.moved && Math.hypot(dx, dy) > 6) {
+      drag.moved = true;
+      cacherInfobulle();
+      drag.ic.style.opacity = "0.3";
+      const g = drag.ic.cloneNode(true);
+      Object.assign(g.style, {
+        position: "fixed", zIndex: "50", pointerEvents: "none", opacity: "0.9", margin: "0",
+        width: drag.ic.offsetWidth + "px", height: drag.ic.offsetHeight + "px",
+      });
+      document.body.append(g);
+      drag.ghost = g;
+    }
+    if (drag.ghost) {
+      drag.ghost.style.left = (ev.clientX - drag.ghost.offsetWidth / 2) + "px";
+      drag.ghost.style.top = (ev.clientY - drag.ghost.offsetHeight / 2) + "px";
+    }
+  }
+  function surDragUp(ev) {
+    window.removeEventListener("pointermove", surDragMove);
+    window.removeEventListener("pointerup", surDragUp);
+    const d = drag; drag = null;
+    if (!d) return;
+    d.ghost?.remove();
+    d.ic.style.opacity = "";
+    if (!d.moved) { // pas bougé = simple clic → équiper
+      if (equiper(inventaire, d.objet)) { surChangement(); rendre(); }
+      return;
+    }
+    // Relâché HORS du panneau (le vide) → jeter ; à l'intérieur → on annule.
+    const r = overlay.querySelector(".inv-panneau").getBoundingClientRect();
+    const dehors = ev.clientX < r.left || ev.clientX > r.right ||
+                   ev.clientY < r.top || ev.clientY > r.bottom;
+    if (dehors && surJeter) surJeter(d.objet);
+  }
+  function debutDragSac(o, ic, ev) {
+    if (confirmationActive() || ev.button === 2) return;
+    ev.preventDefault();
+    drag = { objet: o, ic, startX: ev.clientX, startY: ev.clientY, moved: false, ghost: null };
+    window.addEventListener("pointermove", surDragMove);
+    window.addEventListener("pointerup", surDragUp);
+  }
+
   function iconeItem(id) {
     const d = itemDef(id);
     const el = document.createElement("div");
@@ -51,9 +100,9 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const t = document.createElement("span");
     t.textContent = d.nom;
     el.append(t);
-    // Bulle d'info au survol (nom, effets, visuel des cartes) — module partagé.
-    el.addEventListener("mouseenter", (e) => montrerInfobulle(id, e));
-    el.addEventListener("mousemove", suivreInfobulle);
+    // Bulle d'info au survol (nom, effets, visuel des cartes) — sauf en plein drag.
+    el.addEventListener("mouseenter", (e) => { if (!drag) montrerInfobulle(id, e); });
+    el.addEventListener("mousemove", (e) => { if (!drag) suivreInfobulle(e); });
     el.addEventListener("mouseleave", cacherInfobulle);
     return el;
   }
@@ -120,7 +169,8 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       ic.style.top = o.y * CASE + 1 + "px";
       ic.style.width = d.taille.l * CASE - 4 + "px";
       ic.style.height = d.taille.h * CASE - 4 + "px";
-      ic.onclick = () => { if (equiper(inventaire, o)) { surChangement(); rendre(); } };
+      ic.style.touchAction = "none"; // le drag capte le geste (pas de scroll parasite)
+      ic.addEventListener("pointerdown", (ev) => debutDragSac(o, ic, ev));
       elGrille.append(ic);
     }
   }
@@ -139,7 +189,16 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   return {
     ouvrir() { rendre(); overlay.hidden = false; },
-    fermer() { cacherInfobulle(); overlay.hidden = true; },
+    fermer() {
+      cacherInfobulle();
+      if (drag) { // un drag en cours : on nettoie
+        drag.ghost?.remove();
+        window.removeEventListener("pointermove", surDragMove);
+        window.removeEventListener("pointerup", surDragUp);
+        drag = null;
+      }
+      overlay.hidden = true;
+    },
     rendre,
   };
 }
