@@ -28,6 +28,7 @@ export const TALENTS = {
   esprit2: { id: "esprit2", nom: "Bellows Lungs",   x: 4, y: 2, cout: 1, requis: ["esprit1"], effet: { chaleurRecharge: 1 } },
 
   forge4:  { id: "forge4",  nom: "Molten Veins",    x: 0, y: 3, cout: 1, requis: ["forge2"],  effet: { chaleurMax: 2 } },
+  agile1:  { id: "agile1",  nom: "Fleet Strikes",   x: 3, y: 3, cout: 1, requis: ["corps3"],  effet: { agilite: 5 } },
 };
 
 // Taille de la grille (pour dimensionner l'écran).
@@ -46,6 +47,7 @@ const NOM_EFFET = {
   chaleurDepart: "Start energy",
   chaleurRecharge: "Heat / turn",
   pioche: "Cards drawn / turn",
+  agilite: "Attack speed",
 };
 
 // Décrit l'effet d'un nœud, ex. "+10 Max HP".

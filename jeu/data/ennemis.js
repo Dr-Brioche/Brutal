@@ -44,6 +44,34 @@ export const ENNEMIS = [
       ],
     },
   },
+  // Gobelin véloce : fragile mais TRÈS rapide → il peut jouer 2× contre un héros
+  // lent. Réutilise le sprite/portrait du gobelin.
+  {
+    id: "gobelin-vif",
+    nom: "Goblin Skirmisher",
+    pv: 16,
+    attaque: 3,
+    xp: 7,
+    vitesse: 18,
+    planche: "images/ennemis/gobelin.png",
+    portrait: { sx: 54, sy: 4, sw: 96, sh: 96 },
+    sprite: {
+      caseL: 204,
+      caseH: 150,
+      anims: {
+        idle:    { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 8,  boucle: true },
+        attaque: { frames: [8, 9, 10],              ips: 10, boucle: false },
+        touche:  { frames: [11, 12],                ips: 12, boucle: false },
+        ko:      { frames: [11, 12, 13],            ips: 8,  boucle: false },
+      },
+    },
+    butin: {
+      or: [2, 4],
+      objets: [
+        { id: "bottes-vives", chance: 0.10 }, // rare (donne la carte Quicken)
+      ],
+    },
+  },
 ];
 
 // Renvoie un ennemi par son id (ou le premier de la liste par défaut).

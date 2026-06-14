@@ -110,6 +110,16 @@ export const ITEMS = {
     id: "gants-de-mineur", nom: "Miner's Gloves", categorie: "gant", rarete: "commun",
     taille: { l: 2, h: 1 }, icone: "#7a6a4a",
   },
+  // Bottes vives : injectent « Quicken » (accélère le héros — vitesse d'initiative).
+  "bottes-vives": {
+    id: "bottes-vives", nom: "Swift Boots", categorie: "botte", rarete: "rare",
+    taille: { l: 2, h: 1 }, icone: "#3a7a5a", cartes: ["celerite-vive"],
+  },
+  // Anneau de givre : injecte « Frostbite » (ralentit un ennemi).
+  "anneau-de-givre": {
+    id: "anneau-de-givre", nom: "Frost Ring", categorie: "bague", rarete: "rare",
+    taille: { l: 1, h: 1 }, icone: "#5aa6d9", cartes: ["givre-lent"],
+  },
   "sac-en-cuir": {
     id: "sac-en-cuir", nom: "Leather Pouch", categorie: "sac", rarete: "commun",
     taille: { l: 2, h: 2 }, icone: "#6b4a2b", rangsBonus: 2,

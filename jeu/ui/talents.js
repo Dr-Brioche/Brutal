@@ -14,7 +14,7 @@ const COL_W = 92, ROW_H = 78, NODE = 46; // pas de la grille + taille d'un nœud
 function iconeNoeud(n) {
   const k = Object.keys(n.effet || {})[0];
   return {
-    pvMax: "❤", vitesse: "👟", pioche: "🃏",
+    pvMax: "❤", vitesse: "👟", pioche: "🃏", agilite: "⚡",
     chaleurSeuil: "🔥", chaleurMax: "🔥", chaleurDepart: "🔥", chaleurRecharge: "🔥",
   }[k] || "★";
 }

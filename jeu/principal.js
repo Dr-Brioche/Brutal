@@ -517,7 +517,9 @@ export async function demarrerJeu(donneesInitiales = null) {
     await flashCombat();
     // Un groupe de 1 à 3 gobelins (même définition, mais chacun son état de combat).
     const nb = 1 + Math.floor(Math.random() * 3);
-    const ennemis = Array.from({ length: nb }, () => ennemiParId("gobelin"));
+    // ~30% des ennemis sont des gobelins VÉLOCES (rapides → testent l'initiative).
+    const ennemis = Array.from({ length: nb }, () =>
+      ennemiParId(Math.random() < 0.3 ? "gobelin-vif" : "gobelin"));
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis,
       surFin: (resultat) => {
