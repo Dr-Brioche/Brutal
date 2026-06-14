@@ -81,7 +81,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const r = overlay.querySelector(".inv-panneau").getBoundingClientRect();
     const dehors = ev.clientX < r.left || ev.clientX > r.right ||
                    ev.clientY < r.top || ev.clientY > r.bottom;
-    if (dehors && surJeter) surJeter(d.objet);
+    if (dehors && surJeter) surJeter({ objet: d.objet });
   }
   function debutDragSac(o, ic, ev) {
     if (confirmationActive() || ev.button === 2) return;
@@ -90,6 +90,33 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     window.addEventListener("pointermove", surDragMove);
     window.addEventListener("pointerup", surDragUp);
   }
+
+  // -- Menu contextuel (clic droit) : Equip/Unequip + Discard (pour ceux qui ne
+  //    pensent pas à glisser l'objet hors du sac) ----------------------------
+  const elMenu = document.getElementById("inv-menu");
+  function fermerContexte() { elMenu.hidden = true; elMenu.replaceChildren(); }
+  function ouvrirContexte(x, y, actions) {
+    cacherInfobulle();
+    elMenu.replaceChildren(...actions.map((a) => {
+      const b = document.createElement("button");
+      b.className = "inv-menu-btn" + (a.danger ? " inv-menu-danger" : "");
+      b.textContent = a.label;
+      b.addEventListener("click", () => { fermerContexte(); a.fn(); });
+      return b;
+    }));
+    elMenu.hidden = false;
+    const r = elMenu.getBoundingClientRect(); // clampé à l'écran
+    elMenu.style.left = Math.max(8, Math.min(x, innerWidth - r.width - 8)) + "px";
+    elMenu.style.top = Math.max(8, Math.min(y, innerHeight - r.height - 8)) + "px";
+  }
+  // Fermer : clic ailleurs, Échap (avale la touche pour ne pas fermer l'inventaire), molette.
+  window.addEventListener("pointerdown", (e) => {
+    if (!elMenu.hidden && !elMenu.contains(e.target)) fermerContexte();
+  }, true);
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Escape" && !elMenu.hidden) { e.stopPropagation(); fermerContexte(); }
+  }, true);
+  window.addEventListener("wheel", () => { if (!elMenu.hidden) fermerContexte(); });
 
   function iconeItem(id) {
     const d = itemDef(id);
@@ -115,6 +142,13 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     if (id) {
       const ic = iconeItem(id);
       ic.onclick = () => { if (desequiper(inventaire, slot)) { surChangement(); rendre(); } };
+      ic.addEventListener("contextmenu", (ev) => {
+        ev.preventDefault();
+        ouvrirContexte(ev.clientX, ev.clientY, [
+          { label: "Unequip", fn: () => { if (desequiper(inventaire, slot)) { surChangement(); rendre(); } } },
+          { label: "Discard", danger: true, fn: () => surJeter && surJeter({ slot }) },
+        ]);
+      });
       cell.append(ic);
     } else {
       cell.classList.add("vide");
@@ -171,12 +205,20 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       ic.style.height = d.taille.h * CASE - 4 + "px";
       ic.style.touchAction = "none"; // le drag capte le geste (pas de scroll parasite)
       ic.addEventListener("pointerdown", (ev) => debutDragSac(o, ic, ev));
+      ic.addEventListener("contextmenu", (ev) => {
+        ev.preventDefault();
+        ouvrirContexte(ev.clientX, ev.clientY, [
+          { label: "Equip", fn: () => { if (equiper(inventaire, o)) { surChangement(); rendre(); } } },
+          { label: "Discard", danger: true, fn: () => surJeter && surJeter({ objet: o }) },
+        ]);
+      });
       elGrille.append(ic);
     }
   }
 
   function rendre() {
     cacherInfobulle(); // une icône survolée peut disparaître (équip/déséquip)
+    fermerContexte();
     elOr.textContent = inventaire.or;
     elPv.textContent = `${heros.pv}/${heros.pvMax}`;
     rendreColonne(elGauche, COL_GAUCHE);
@@ -191,6 +233,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     ouvrir() { rendre(); overlay.hidden = false; },
     fermer() {
       cacherInfobulle();
+      fermerContexte();
       if (drag) { // un drag en cours : on nettoie
         drag.ghost?.remove();
         window.removeEventListener("pointermove", surDragMove);

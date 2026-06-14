@@ -738,6 +738,23 @@
     .inv-aide { margin-top: 12px; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
     /* La bulle d'info au survol d'un objet (nom + rareté + stats). */
+    /* Menu contextuel (clic droit sur un objet) */
+    .inv-menu {
+      position: fixed; z-index: 36;
+      display: flex; flex-direction: column;
+      min-width: 132px; padding: 4px;
+      background: #14121a; border: 1px solid #45424f; border-radius: 8px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    }
+    .inv-menu-btn {
+      padding: 8px 12px; text-align: left;
+      color: #e5e7eb; background: transparent; border: none; border-radius: 5px;
+      cursor: pointer; font-size: 0.9rem; font-weight: 600;
+    }
+    .inv-menu-btn:hover { background: #2a2735; }
+    .inv-menu-danger { color: #ff9a8a; }
+    .inv-menu-danger:hover { background: #3a1f1a; }
+
     .inv-tip {
       position: fixed; z-index: 30; pointer-events: none;
       max-width: 260px; padding: 8px 11px;
@@ -1102,6 +1119,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Menu contextuel (clic droit sur un objet de l'inventaire) -->
+  <div class="inv-menu" id="inv-menu" hidden></div>
 
   <!-- La bulle d'info au survol d'un objet (suit la souris, posée sur tout) -->
   <div class="inv-tip" id="inv-tip" hidden></div>

@@ -369,10 +369,18 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (surChangementMenu) surChangementMenu(); // rafraîchit le menu marchand (vente)
     },
     surFermer: () => basculerInventaire(),
-    // Jeter un objet glissé hors du sac. Au-dessus de « commun » → on confirme.
-    surJeter: (objet) => {
-      const d = ITEMS[objet.id];
-      const jeter = () => { jeterObjet(inventaire, objet); inventaireUI.rendre(); };
+    // Jeter un objet — du sac ({ objet }) ou d'un slot équipé ({ slot }). Au-dessus
+    // de « commun » → on confirme (pour ne pas perdre un objet rare par erreur).
+    surJeter: (cible) => {
+      const id = cible.objet ? cible.objet.id : inventaire.slots[cible.slot];
+      if (!id) return;
+      const d = ITEMS[id];
+      const jeter = () => {
+        if (cible.objet) jeterObjet(inventaire, cible.objet);
+        else inventaire.slots[cible.slot] = null;
+        appliquerEquipement(heros, inventaire, planches); // si c'était une arme/armure portée
+        inventaireUI.rendre();
+      };
       if (d.rarete !== "commun") {
         demanderConfirmation({
           titre: "Drop this item?",
