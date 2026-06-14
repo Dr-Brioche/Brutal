@@ -13,7 +13,8 @@
 
 import {
   creerCombat, jouerCarte, degatsSurchauffe, carteVise, ennemiVivant,
-  commencerTourEnnemi, agirEnnemi, terminerTourEnnemi,
+  agirEnnemi, commencerTourHeros, finirTourHeros, avancerInitiative,
+  simulerFile, ratioInitiativeHeros, ratioInitiativeEnnemi,
 } from "../systems/combat.js";
 import { cartesEquipees } from "../systems/inventaire.js";
 import { bonusTalents } from "../systems/talents.js";
@@ -114,8 +115,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   const flottants = [];  // nombres de dégâts qui montent et s'estompent
   const particules = []; // braises de mort (partagées, positionnées par ennemi)
   let delaiFin = -1, termine = false;
-  // Tour ennemi JOUÉ au ralenti : { ordre, idx, vivantAvant, minuterie } ou null.
-  let tourEnnemi = null;
+  let minuterie = 0; // compte à rebours entre les pas de la timeline (ATB)
 
   // Ciblage clavier : carte « armée » en attente de cible.
   let phaseCiblage = false;
@@ -405,32 +405,41 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     }
   }
 
-  // Fin du tour joueur : on LANCE le tour ennemi, qui se joue ensuite au ralenti
-  // (un ennemi après l'autre, gauche→droite) dans la boucle (avancerTourEnnemi).
-  const DELAI_AVANT = 0.35; // pause avant le 1er ennemi
-  const PAS_ENNEMI = 0.55;  // pause entre deux ennemis (le temps de voir l'attaque)
+  // Boucle de combat ATB : l'initiative (jauges de vitesse) désigne QUI agit.
+  // Héros désigné → on attend qu'il joue (End Turn) ; ennemi désigné → il agit,
+  // puis on enchaîne après une courte pause (lisibilité).
+  const PAS_AVANT = 0.3;   // pause après End Turn avant que la timeline reprenne
+  const PAS_ENNEMI = 0.55; // pause après une action ennemie
 
   function finDeTour() {
-    if (phaseCiblage || tourEnnemi || combat.fini || !combat.tourJoueur) return;
-    const { vivantAvant, ordre } = commencerTourEnnemi(combat);
-    tourEnnemi = { ordre, idx: 0, vivantAvant, minuterie: DELAI_AVANT };
-    rafraichir(); // la main se vide, boutons grisés pendant le tour ennemi
+    if (phaseCiblage || combat.fini || !combat.tourJoueur) return;
+    finirTourHeros(combat); // défausse la main → l'initiative reprend
+    minuterie = PAS_AVANT;
+    rafraichir();           // main vide, boutons grisés
   }
 
-  // Avance le tour ennemi : quand la minuterie tombe à 0, l'ennemi suivant agit.
-  function avancerTourEnnemi(dt) {
-    const t = tourEnnemi;
-    t.minuterie -= dt;
-    if (t.minuterie > 0) return;
-    if (t.idx < t.ordre.length && !combat.fini) {
-      const i = t.ordre[t.idx];
-      animerEnnemi(i, agirEnnemi(combat, i));
-      t.idx += 1;
-      t.minuterie = PAS_ENNEMI;
-      if (combat.fini) finirSequence(); // dernier ennemi mort, ou héros mort
-      return;
+  // Un pas de la timeline : désigne le prochain acteur et le fait agir.
+  function traiterProchain() {
+    if (combat.fini) { verifierFin(); return; }
+    const acteur = avancerInitiative(combat);
+    if (acteur.id === "heros") {
+      commencerTourHeros(combat); // recharge Chaleur + statuts du héros + pioche
+      animerDebutTourHeros();
+      recalerCible();
+      rafraichir();               // nouvelle main, input réactivé
+      if (combat.fini) verifierFin(); // mort de surchauffe/poison au début du tour
+    } else {
+      animerEnnemi(acteur.i, agirEnnemi(combat, acteur.i));
+      minuterie = PAS_ENNEMI;
+      if (combat.fini) { rafraichir(); verifierFin(); }
     }
-    finirSequence();
+  }
+
+  // Statuts du héros au début de SON tour (surchauffe / poison / feu).
+  function animerDebutTourHeros() {
+    if (combat.derniereBrulure > 0) { secousseHeros = 0.3; pulserJauge(); }
+    if (combat.dernierPoisonHeros > 0) { secousseHeros = 0.3; ajouterFlottant(`☠${combat.dernierPoisonHeros}`, heroEcran.cx, heroEcran.sommet - 32, "#7ec850"); }
+    if (combat.dernierFeuHeros > 0) { secousseHeros = 0.3; ajouterFlottant(`🔥${combat.dernierFeuHeros}`, heroEcran.cx, heroEcran.sommet - 48, "#ff8a2c"); }
   }
 
   // Anime l'action d'UN ennemi (statuts, mort, ou attaque). Étourdi → rien.
@@ -448,22 +457,6 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
       ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
     }
     // evt.stun → on n'affiche AUCUNE animation d'attaque
-  }
-
-  // Après le dernier ennemi : feu propagé + tour du héros (surchauffe, poison/feu),
-  // nouvelle main. Puis on rend la main au joueur (ou on déclenche la fin).
-  function finirSequence() {
-    const t = tourEnnemi;
-    tourEnnemi = null;
-    if (!combat.fini) {
-      terminerTourEnnemi(combat, t.vivantAvant);
-      if (combat.dernierPoisonHeros > 0) { secousseHeros = 0.3; ajouterFlottant(`☠${combat.dernierPoisonHeros}`, heroEcran.cx, heroEcran.sommet - 32, "#7ec850"); }
-      if (combat.dernierFeuHeros > 0) { secousseHeros = 0.3; ajouterFlottant(`🔥${combat.dernierFeuHeros}`, heroEcran.cx, heroEcran.sommet - 48, "#ff8a2c"); }
-      if (combat.derniereBrulure > 0) { secousseHeros = 0.3; pulserJauge(); }
-    }
-    recalerCible();
-    rafraichir();
-    verifierFin();
   }
 
   function terminer() {
@@ -491,6 +484,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   window.addEventListener("keydown", surTouche, true);
   panneauResultat.hidden = true;
   overlay.hidden = false;
+  traiterProchain(); // l'initiative désigne le 1er acteur (le héros au départ) → 1re main
   rafraichir();
   majJauge();
 
@@ -532,7 +526,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
       if (particules[i].vie <= 0) particules.splice(i, 1);
     }
 
-    if (tourEnnemi) avancerTourEnnemi(dt); // le tour ennemi se joue au ralenti
+    // Timeline ATB : tant que ce n'est pas au héros de jouer, on enchaîne les
+    // acteurs (ennemis) après une courte pause.
+    if (!combat.fini && !combat.tourJoueur && panneauResultat.hidden) {
+      minuterie -= dt;
+      if (minuterie <= 0) traiterProchain();
+    }
 
     if (delaiFin >= 0 && !termine) {
       delaiFin -= dt;

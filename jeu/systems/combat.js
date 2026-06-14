@@ -29,6 +29,11 @@ const CHALEUR_DEPART = 1;     // forge FROIDE au départ (montée en puissance)
 const CHALEUR_RECHARGE = 1;   // +1 par tour
 const CHALEUR_SEUIL = 3;      // au-delà = surchauffe
 const CHALEUR_MAX = 8;        // plafond absolu
+
+// Initiative (ATB) : chacun remplit une jauge à sa VITESSE ; le 1er à SEUIL agit.
+// Vitesse égale → on alterne 1:1 ; 2× plus rapide → 2 tours pour 1 de l'autre.
+const VITESSE_HEROS_BASE = 10; // vitesse de base du héros (modifiée par talents/célérité)
+const SEUIL_INIT = 100;        // jauge d'initiative à remplir pour agir
 // ---------------------------------------------------------------------------
 
 // Mélange une copie du tableau (Fisher-Yates : chaque ordre est équiprobable).
@@ -57,6 +62,9 @@ function creerEnnemiCombat(def) {
     stun: 0,                       // étourdissement : nb de SES tours encore sautés
     dernierPoison: 0, dernierFeu: 0, dernierSang: 0, // dégâts subis au dernier tour (UI)
     intention: null,              // ce qu'il prépare (télégraphié)
+    vitesse: def.vitesse ?? VITESSE_HEROS_BASE, // vitesse d'initiative (agilité)
+    ralenti: 0,                   // « Slow » : réduit la vitesse effective
+    init: 0,                      // jauge d'initiative courante
   };
 }
 export function ennemiVivant(e) { return e && e.pv > 0; }
@@ -88,6 +96,11 @@ export function creerCombat(ennemisDefs, opts = {}) {
     dernierPoisonHeros: 0,
     dernierFeuHeros: 0,
     dernierSoinSang: 0,    // PV rendus au héros par le saignement ce tour (pour l'UI)
+    // Initiative (ATB)
+    vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0), // + talents d'agilité
+    celeriteHeros: 0,      // bonus de vitesse temporaire (cartes de Célérité)
+    initHeros: 0,          // jauge d'initiative du héros
+    premierTourHeros: true, // le 1er tour ne recharge pas la Chaleur (forge froide)
     // Ennemis (liste) + l'ennemi visé
     ennemis: ennemisDefs.map(creerEnnemiCombat),
     cible: 0,
@@ -97,14 +110,21 @@ export function creerCombat(ennemisDefs, opts = {}) {
     defausse: [],
     tailleMain: TAILLE_MAIN + (stats.pioche || 0), // cartes piochées/tour (+ talents)
     // Déroulé
-    tourJoueur: true,
+    tourJoueur: false,     // devient true au 1er tour du héros (commencerTourHeros)
     fini: false,
     resultat: null,
   };
-  piocherMain(combat);
   prevoirIntentions(combat);
   combat.cible = premierVivant(combat);
-  return combat;
+  return combat; // la 1re main est piochée par le 1er commencerTourHeros (via l'initiative)
+}
+
+// Vitesse EFFECTIVE (après célérité / ralentissement). Jamais < 1.
+export function vitesseHeros(combat) {
+  return Math.max(1, combat.vitesseHerosBase + combat.celeriteHeros);
+}
+export function vitesseEnnemi(e) {
+  return Math.max(1, e.vitesse - e.ralenti);
 }
 
 // Index du premier ennemi vivant (0 par défaut s'il n'y en a plus).
@@ -141,7 +161,7 @@ function prevoirIntentions(combat) {
 export function carteVise(carte) {
   return (carte?.effets ?? []).some(
     (e) => e.type === "degats" || e.type === "poison" || e.type === "feu" ||
-           e.type === "sang" || e.type === "stun"
+           e.type === "sang" || e.type === "stun" || e.type === "lenteur"
   );
 }
 
@@ -164,6 +184,10 @@ function appliquerEffet(combat, effet, ennemi) {
     // Régénère de l'énergie (Chaleur). Peut dépasser le SEUIL → surchauffe au
     // tour suivant : énergie immédiate, mais risque de brûlure (choix tactique).
     combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + effet.valeur);
+  } else if (effet.type === "celerite") {
+    combat.celeriteHeros += effet.valeur; // + vitesse d'initiative du héros (le reste du combat)
+  } else if (effet.type === "lenteur") {
+    if (ennemi) ennemi.ralenti += effet.valeur; // - vitesse d'initiative de l'ennemi visé
   }
 }
 
@@ -229,62 +253,29 @@ function tiquerHeros(combat, nom) {
   return n;
 }
 
-// Propagation de l'Enflammé aux ennemis ADJACENTS, à la FIN du tour ennemi :
-// chaque ennemi en feu transmet son nombre de ticks COURANT (déjà décrémenté ce
-// tour) à ses voisins vivants. Calcul SIMULTANÉ pour ne pas cascader le même tour.
-//
-// `vivantAvant[i]` = l'ennemi i était-il vivant AU DÉBUT du tour ennemi ? Un
-// ennemi qui vient de mourir de SON feu ce tour-ci propage quand même ses
-// flammes avant de disparaître (« il brûle, propage, puis meurt ») — alors qu'un
-// ennemi mort à un tour précédent, lui, ne propage plus.
-function propagerFeu(combat, vivantAvant) {
-  const es = combat.ennemis;
-  if (es.length < 2) return; // pas de voisin → rien à propager
-  // État du feu AVANT propagation : un ennemi DÉJÀ en feu ne se ré-enflamme pas
-  // (il continue juste à brûler) ; seuls les voisins NON enflammés prennent feu.
-  // Calcul simultané (pas de cascade le même tour) → la flamme avance d'un cran.
-  const avant = es.map((e) => e.feu);
-  es.forEach((e, i) => {
-    if (e.pv <= 0 || avant[i] > 0) return; // mort, ou déjà en feu → ne reçoit rien
-    let recu = 0;
-    for (const j of [i - 1, i + 1]) {
-      if (j >= 0 && j < es.length && vivantAvant[j] && avant[j] > 0) {
-        recu = Math.max(recu, avant[j]); // prend le feu du voisin le plus ardent
-      }
-    }
-    if (recu > 0) e.feu = recu;
-  });
+// Propagation de l'Enflammé : quand un ennemi agit, s'il était en feu il enflamme
+// ses voisins VIVANTS non encore enflammés (de sa valeur de feu après tick). Il
+// propage même s'il vient de mourir de son feu (« il brûle, propage, puis meurt »).
+function propagerDepuis(combat, i, force) {
+  if (force <= 0) return;
+  for (const j of [i - 1, i + 1]) {
+    const v = combat.ennemis[j];
+    if (v && v.pv > 0 && v.feu <= 0) v.feu = force;
+  }
 }
 
-// ----- Le tour ENNEMI, en 3 étapes pour pouvoir le JOUER au ralenti -----------
-// (l'écran de combat appelle ces étapes une par une, ennemi par ennemi, de
-//  gauche à droite, pour qu'on voie chaque attaque ; `finirTour` plus bas fait
-//  tout d'un coup pour les usages instantanés.)
-
-// Début du tour ennemi : on défausse la main, on remet à zéro les compteurs
-// d'affichage. Renvoie l'ORDRE des ennemis qui agissent (vivants, gauche→droite)
-// et l'instantané `vivantAvant` (pour la propagation du feu).
-export function commencerTourEnnemi(combat) {
-  combat.tourJoueur = false;
-  combat.dernierPoisonHeros = combat.dernierFeuHeros = combat.dernierSoinSang = 0;
-  for (const e of combat.ennemis) { e.dernierPoison = 0; e.dernierFeu = 0; e.dernierSang = 0; }
-  combat.defausse.push(...combat.main);
-  combat.main = [];
-  const vivantAvant = combat.ennemis.map((e) => e.pv > 0);
-  const ordre = combat.ennemis.map((_, i) => i).filter((i) => combat.ennemis[i].pv > 0);
-  return { vivantAvant, ordre };
-}
-
-// Un ennemi agit : poison + feu + saignement (le sang SOIGNE le héros), puis il
-// attaque — SAUF s'il est étourdi (il saute son tour, le stun baisse). Renvoie ce
-// qui s'est passé, pour que l'écran l'anime.
+// Un ennemi agit : poison + feu (+ propagation) + saignement (le sang SOIGNE le
+// héros), puis il attaque — SAUF s'il est étourdi (il saute, le stun baisse).
+// Renvoie ce qui s'est passé, pour que l'écran l'anime.
 export function agirEnnemi(combat, i) {
   const e = combat.ennemis[i];
   const evt = { poison: 0, feu: 0, sang: 0, soin: 0, mortStatut: false, attaque: 0, stun: false };
   if (!e || e.pv <= 0) return evt;
+  const enFeuAvant = e.feu > 0;
   evt.poison = e.dernierPoison = tiquerEnnemi(e, "poison");
   evt.feu = e.dernierFeu = tiquerEnnemi(e, "feu");
   evt.sang = e.dernierSang = tiquerEnnemi(e, "sang");
+  if (enFeuAvant) propagerDepuis(combat, i, e.feu); // enflamme les voisins (même s'il meurt)
   if (evt.sang > 0) {
     const avant = combat.pvHeros;
     combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + evt.sang);
@@ -302,39 +293,92 @@ export function agirEnnemi(combat, i) {
   return evt;
 }
 
-// Fin du tour ennemi : le feu se propage, puis nouveau tour du HÉROS (Chaleur +
-// surchauffe + poison/feu du héros), pioche d'une main et intentions.
-export function terminerTourEnnemi(combat, vivantAvant) {
-  verifierFin(combat);
-  if (combat.fini) return;
-  propagerFeu(combat, vivantAvant);
-
-  // Chaleur + surchauffe (dégâts DIRECTS, la Pierre ne protège pas du feu intérieur).
-  combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + combat.chaleurRecharge);
-  combat.derniereBrulure = degatsSurchauffe(combat);
-  if (combat.derniereBrulure > 0) {
-    combat.pvHeros = Math.max(0, combat.pvHeros - combat.derniereBrulure);
+// Début d'un TOUR DU HÉROS (désigné par l'initiative) : la Chaleur recharge +
+// surchauffe, le poison/feu du héros tiquent, puis on pioche une main et on
+// prévoit les intentions. Le TOUT 1er tour ne recharge pas (forge froide).
+export function commencerTourHeros(combat) {
+  combat.dernierSoinSang = 0;
+  if (combat.premierTourHeros) {
+    combat.premierTourHeros = false;
+    combat.derniereBrulure = combat.dernierPoisonHeros = combat.dernierFeuHeros = 0;
+  } else {
+    combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + combat.chaleurRecharge);
+    combat.derniereBrulure = degatsSurchauffe(combat);
+    if (combat.derniereBrulure > 0) {
+      combat.pvHeros = Math.max(0, combat.pvHeros - combat.derniereBrulure);
+      verifierFin(combat);
+      if (combat.fini) return;
+    }
+    combat.dernierPoisonHeros = tiquerHeros(combat, "poison");
+    combat.dernierFeuHeros = tiquerHeros(combat, "feu");
     verifierFin(combat);
     if (combat.fini) return;
   }
-  combat.dernierPoisonHeros = tiquerHeros(combat, "poison");
-  combat.dernierFeuHeros = tiquerHeros(combat, "feu");
-  verifierFin(combat);
-  if (combat.fini) return;
-
   piocherMain(combat);
   prevoirIntentions(combat);
-  combat.cible = premierVivant(combat); // la cible peut être morte ce tour
+  combat.cible = premierVivant(combat);
   combat.tourJoueur = true;
 }
 
-// Tout le tour ennemi d'un coup (instantané). L'écran, lui, préfère séquencer.
-export function finirTour(combat) {
-  if (combat.fini || !combat.tourJoueur) return;
-  const { vivantAvant, ordre } = commencerTourEnnemi(combat);
-  for (const i of ordre) {
-    agirEnnemi(combat, i);
-    if (combat.pvHeros <= 0) break;
+// Fin du tour du héros : la main repart en défausse. L'initiative désignera la suite.
+export function finirTourHeros(combat) {
+  combat.tourJoueur = false;
+  combat.defausse.push(...combat.main);
+  combat.main = [];
+}
+
+// ----- Initiative (ATB) : qui agit, et la file des prochains -------------------
+
+// Photo de l'état d'initiative (héros + ennemis vivants) — vitesses EFFECTIVES.
+function snapshotInit(combat) {
+  return {
+    heros: { init: combat.initHeros, vit: vitesseHeros(combat) },
+    ennemis: combat.ennemis.map((e) => ({ pv: e.pv, init: e.init, vit: vitesseEnnemi(e) })),
+  };
+}
+function ecrireInit(combat, s) {
+  combat.initHeros = s.heros.init;
+  combat.ennemis.forEach((e, i) => { e.init = s.ennemis[i].init; });
+}
+
+// Avance les jauges jusqu'au prochain acteur, le CONSOMME (init -= SEUIL) et le
+// renvoie. Priorité au héros à égalité, puis aux ennemis de gauche à droite.
+function etapeInit(s) {
+  const acts = [{ id: "heros" }];
+  s.ennemis.forEach((e, i) => { if (e.pv > 0) acts.push({ id: "ennemi", i }); });
+  const inf = (a) => (a.id === "heros" ? s.heros : s.ennemis[a.i]);
+  let dt = Infinity;
+  for (const a of acts) {
+    const o = inf(a);
+    dt = Math.min(dt, Math.max(0, (SEUIL_INIT - o.init) / o.vit));
   }
-  terminerTourEnnemi(combat, vivantAvant);
+  for (const a of acts) { const o = inf(a); o.init += o.vit * dt; }
+  const acteur = acts.find((a) => inf(a).init >= SEUIL_INIT - 1e-6) || acts[0];
+  inf(acteur).init -= SEUIL_INIT;
+  return acteur;
+}
+
+// Désigne le prochain acteur ("heros" ou {ennemi:i}) et met à jour le combat.
+export function avancerInitiative(combat) {
+  const s = snapshotInit(combat);
+  const acteur = etapeInit(s);
+  ecrireInit(combat, s);
+  return acteur;
+}
+
+// La FILE des `n` prochains acteurs, SANS modifier le combat (pour l'affichage).
+// Chaque élément : { id:"heros" } ou { id:"ennemi", i }.
+export function simulerFile(combat, n) {
+  const s = snapshotInit(combat);
+  const file = [];
+  for (let k = 0; k < n; k++) file.push(etapeInit(s));
+  return file;
+}
+
+// Fraction de remplissage de la jauge d'initiative d'un combattant (0..1, pour l'UI).
+export function ratioInitiativeHeros(combat) {
+  return Math.max(0, Math.min(1, combat.initHeros / SEUIL_INIT));
+}
+export function ratioInitiativeEnnemi(e) {
+  return Math.max(0, Math.min(1, e.init / SEUIL_INIT));
 }
