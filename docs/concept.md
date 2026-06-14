@@ -114,6 +114,25 @@ définit ce que font les cartes, donc les items, donc le craft.)
 Grammaire de base éprouvée : **ressource par tour + défense + intentions ennemies
 télégraphées**. Mise en scène : **héros à gauche, ennemis à droite**, on joue ses cartes.
 
+### Initiative / vitesse (ATB) — implémenté le 14/06/2026
+
+Le combat n'est PLUS un simple « je joue tout / ils jouent tout » : chacun (héros
++ chaque ennemi) a une **vitesse** et une **jauge d'initiative** qui se remplit à
+cette vitesse ; **le premier à la remplir agit**. Vitesse égale → alternance 1:1
+(comme avant) ; **2× plus rapide → 2 tours pour 1** de l'autre, réparti
+proportionnellement (≠ tout-ou-rien). « Agir » = un **tour** pour le héros (pioche,
+joue, End Turn) ou **une attaque** pour un ennemi.
+- **Agilité** = la vitesse. Le héros a une base (10), montée par des **talents**
+  (*Fleet Strikes*), des cartes de **Célérité** (*Quicken*, +vitesse le combat) et
+  baissée chez l'ennemi par des cartes de **Lenteur** (*Frostbite*). Des monstres
+  **véloces** (ex. *Goblin Skirmisher*, vitesse 18) peuvent jouer 2× contre un héros lent.
+- **Tension** : chaque tour du héros recharge la Chaleur **et** subit la surchauffe
+  → foncer vite quand on est en surchauffe, ça brûle plus souvent.
+- **Affichage** : une **file d'ordre des tours** en haut (carrés-portraits : tête
+  de chaque combattant, acteur courant en doré) + une fine **barre d'initiative
+  orange** sous chaque barre de vie. Le tour ennemi se joue au ralenti (une action
+  à la fois) pour rester lisible.
+
 ### Mise en scène du combat (validé 10/06/2026)
 
 - **Le nain est visible**, de profil à gauche : on **réutilise son sprite de carte**
@@ -187,10 +206,9 @@ directement la **collecte** et le **marché**.
     plusieurs tours). Affiché en badge `💫 N` sous l'ennemi (N = tours restants), et
     son intention d'attaque est masquée. Ex. *Tower Shield* (bouclier) → carte
     *Shield Bash* (3 dégâts + stun 2).
-- **Le tour ennemi se joue au RALENTI** : les ennemis agissent **un par un, de
-  gauche à droite**, avec une petite pause entre chacun (au lieu de tout résoudre
-  d'un coup) — on comprend ce qui arrive. Le moteur expose le tour en 3 étapes
-  (début / un ennemi agit / fin) ; l'écran les enchaîne avec une minuterie.
+- **Actions au RALENTI** : chaque action (ennemi qui attaque, etc.) se joue **une
+  à la fois**, avec une petite pause, pilotée par l'**initiative** (voir la section
+  *Initiative / vitesse* plus haut) — on comprend ce qui arrive.
 
 ## Items, butin & inventaire (1er jet implémenté)
 
