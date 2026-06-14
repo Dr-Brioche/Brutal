@@ -23,6 +23,8 @@
 //                         se propage aux ennemis adjacents non encore enflammés)
 //            - "sang"   : ajoute `valeur` de Saignement à l'ennemi (comme le poison,
 //                         mais le sang absorbé SOIGNE le héros à chaque tick)
+//            - "chaleur": régénère `valeur` d'énergie (Chaleur) — peut dépasser le
+//                         seuil et donc faire surchauffer (risque de brûlure)
 
 export const CARTES = {
   // ---- Deck de base commun : cartes à 0 Chaleur, mais FAIBLES --------------
@@ -118,6 +120,17 @@ export const CARTES = {
     type: "attaque",
     texte: "Deal 5 damage. Apply 4 Burning.",
     effets: [{ type: "degats", valeur: 5 }, { type: "feu", valeur: 4 }],
+  },
+
+  // Collier de saphir : régénère de l'énergie (Chaleur). Sans cible, joué sur soi.
+  // Attention : pousser au-dessus du seuil fait surchauffer au tour suivant.
+  "surge-saphir": {
+    id: "surge-saphir",
+    nom: "Sapphire Surge",
+    cout: 0,
+    type: "defense",
+    texte: "Gain 2 Forge Heat (energy).",
+    effets: [{ type: "chaleur", valeur: 2 }],
   },
 
   // Bague de sang : saignement qui te SOIGNE à chaque tick (vol de vie lent).

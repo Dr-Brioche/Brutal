@@ -156,6 +156,10 @@ function appliquerEffet(combat, effet, ennemi) {
     if (ennemi) ennemi.feu += effet.valeur;
   } else if (effet.type === "sang") {
     if (ennemi) ennemi.sang += effet.valeur; // saignement : soigne le héros à chaque tick
+  } else if (effet.type === "chaleur") {
+    // Régénère de l'énergie (Chaleur). Peut dépasser le SEUIL → surchauffe au
+    // tour suivant : énergie immédiate, mais risque de brûlure (choix tactique).
+    combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + effet.valeur);
   }
 }
 

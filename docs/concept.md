@@ -160,6 +160,10 @@ directement la **collecte** et le **marché**.
   surchauffe (un **cadre en image fixe** viendra l'habiller plus tard).
 - Gardés en réserve comme **archétypes de cartes** (pas la ressource générale) :
   **Runes-à-charger** et **Élan-de-l'Enclume**.
+- **Régénération d'énergie (effet `chaleur`) — implémenté** : des cartes rendent
+  de la Chaleur (énergie). 1re carte : *Sapphire Surge* (du *Sapphire Amulet*,
+  collier), +2 Chaleur à 0 coût. Tension de design : pousser au-dessus du seuil
+  donne de l'énergie tout de suite mais **fait surchauffer** au tour suivant.
 - **Défense « Pierre » — CONFIRMÉ et implémenté** : la Pierre **persiste entre
   les tours** (≠ Blocage qui disparaît chaque tour). Les nains sont coriaces →
   le jeu défensif/tank devient une vraie stratégie.

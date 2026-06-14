@@ -91,6 +91,11 @@ export const ITEMS = {
     id: "bague-de-sang", nom: "Blood Ring", categorie: "bague", rarete: "rare",
     taille: { l: 1, h: 1 }, icone: "#7a1f2b", cartes: ["coup-de-sang"],
   },
+  // Collier de saphir énergisant : injecte « Sapphire Surge » (régénère l'énergie).
+  "collier-de-saphir": {
+    id: "collier-de-saphir", nom: "Sapphire Amulet", categorie: "collier", rarete: "epique",
+    taille: { l: 1, h: 1 }, icone: "#2f6fb0", cartes: ["surge-saphir"],
+  },
   // Gants de mineur : slot « gant » libre ; recevront des cartes plus tard.
   "gants-de-mineur": {
     id: "gants-de-mineur", nom: "Miner's Gloves", categorie: "gant", rarete: "commun",
