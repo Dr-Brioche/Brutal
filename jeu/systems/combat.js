@@ -99,7 +99,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     // Initiative (ATB)
     vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0), // + talents d'agilité
     celeriteHeros: 0,      // bonus de vitesse temporaire (cartes de Célérité)
-    initHeros: 0,          // jauge d'initiative du héros
+    initHeros: SEUIL_INIT / 2, // petite avance : le héros OUVRE le combat (jamais frappé avant d'agir)
     premierTourHeros: true, // le 1er tour ne recharge pas la Chaleur (forge froide)
     // Ennemis (liste) + l'ennemi visé
     ennemis: ennemisDefs.map(creerEnnemiCombat),
