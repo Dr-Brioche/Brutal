@@ -562,8 +562,23 @@ export async function demarrerJeu(donneesInitiales = null) {
     });
   }
 
+  // La barre de menu (bas-droite, façon RPG) : raccourcis vers les écrans. Chaque
+  // bascule vérifie elle-même si l'action est possible (combat, etc.). Sa
+  // visibilité est gérée par image dans la boucle (cachée en combat / écran ouvert).
+  const barreMenu = document.getElementById("barre-menu");
+  document.getElementById("barre-inv").addEventListener("click", basculerInventaire);
+  document.getElementById("barre-talents").addEventListener("click", basculerTalents);
+  document.getElementById("barre-deck").addEventListener("click", basculerDeck);
+  document.getElementById("barre-menu-pause").addEventListener("click", () => {
+    if (combatEnCours || dialogueActif() || enPause) return;
+    menu.ouvrir();
+  });
+
   lancerBoucle({
     mettreAJour(dt) {
+      // La barre de menu n'est visible qu'en exploration libre (pas en combat,
+      // pas quand un écran/menu est ouvert).
+      barreMenu.hidden = Boolean(combatEnCours) || enPause;
       // Pendant un combat, c'est lui qui pilote tout (le monde est figé)
       if (combatEnCours) { combatEnCours.mettreAJour(dt); return; }
       if (enPause) return;          // figé : menu ouvert ou transition en cours

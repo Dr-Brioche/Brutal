@@ -755,6 +755,25 @@
     .inv-menu-danger { color: #ff9a8a; }
     .inv-menu-danger:hover { background: #3a1f1a; }
 
+    /* ---- La barre de menu (bas-droite, façon micro-menu RPG) ---- */
+    .barre-menu {
+      position: fixed; right: 14px; bottom: 14px; z-index: 11;
+      display: flex; gap: 6px; padding: 6px;
+      background: rgba(20, 18, 26, 0.82);
+      border: 1px solid #45424f; border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    }
+    .barre-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      min-width: 50px; padding: 6px 8px;
+      color: #e5e7eb; background: rgba(40, 36, 50, 0.7);
+      border: 1px solid #3a3645; border-radius: 8px; cursor: pointer;
+    }
+    .barre-btn:hover { background: rgba(180, 83, 9, 0.55); border-color: #b45309; }
+    .barre-btn:active { transform: translateY(1px); }
+    .barre-ico { font-size: 1.25rem; line-height: 1; }
+    .barre-lbl { font-size: 0.6rem; letter-spacing: 0.04em; color: #b9bec6; text-transform: uppercase; }
+
     .inv-tip {
       position: fixed; z-index: 30; pointer-events: none;
       max-width: 260px; padding: 8px 11px;
@@ -1122,6 +1141,22 @@
 
   <!-- Menu contextuel (clic droit sur un objet de l'inventaire) -->
   <div class="inv-menu" id="inv-menu" hidden></div>
+
+  <!-- La barre de menu (bas-droite) : raccourcis vers les écrans (façon RPG) -->
+  <div class="barre-menu" id="barre-menu" hidden>
+    <button class="barre-btn" id="barre-inv" title="Inventory (B)">
+      <span class="barre-ico">🎒</span><span class="barre-lbl">Bag</span>
+    </button>
+    <button class="barre-btn" id="barre-talents" title="Talents (T)">
+      <span class="barre-ico">🌟</span><span class="barre-lbl">Talents</span>
+    </button>
+    <button class="barre-btn" id="barre-deck" title="Deck (N)">
+      <span class="barre-ico">🃏</span><span class="barre-lbl">Deck</span>
+    </button>
+    <button class="barre-btn" id="barre-menu-pause" title="Menu (Esc)">
+      <span class="barre-ico">☰</span><span class="barre-lbl">Menu</span>
+    </button>
+  </div>
 
   <!-- La bulle d'info au survol d'un objet (suit la souris, posée sur tout) -->
   <div class="inv-tip" id="inv-tip" hidden></div>
