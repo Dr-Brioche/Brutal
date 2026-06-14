@@ -20,7 +20,14 @@ const TOUCHES = new Set([
 ]);
 
 let actif = false;
+let rafraichirActif = null; // (nouveauxChoix) => void : met à jour le dialogue en cours
 export function dialogueActif() { return actif; }
+
+// Met à jour les CHOIX du dialogue courant à chaud (ex. l'inventaire a changé
+// pendant le menu de vente). Sans effet si aucun dialogue n'est ouvert.
+export function rafraichirChoix(nouveauxChoix) {
+  rafraichirActif?.(nouveauxChoix);
+}
 
 export function ouvrirDialogue(dialogue, surFin) {
   if (actif) return;
@@ -33,7 +40,7 @@ export function ouvrirDialogue(dialogue, surFin) {
   const elAide = document.getElementById("dialogue-aide");
 
   const pages = dialogue.texte ?? [];
-  const choix = dialogue.choix ?? [];
+  let choix = dialogue.choix ?? []; // peut être remplacé à chaud (rafraichirChoix)
   let page = 0;
   let enChoix = pages.length === 0;
   let sel = 0;
@@ -89,10 +96,18 @@ export function ouvrirDialogue(dialogue, surFin) {
 
   function fermerUI() {
     actif = false;
+    rafraichirActif = null;
     window.removeEventListener("keydown", surTouche, true);
     cacherInfobulle();
     overlay.hidden = true;
   }
+
+  // Remplace la liste de choix sans rouvrir le dialogue (clampe la sélection).
+  rafraichirActif = (nouveaux) => {
+    choix = nouveaux ?? [];
+    if (sel >= choix.length) sel = Math.max(0, choix.length - 1);
+    if (enChoix) rendre();
+  };
 
   // Valide le choix `i` : on ferme, on exécute son action, puis surFin.
   function choisir(i) {

@@ -21,7 +21,7 @@ import { appliquerTalents } from "./systems/talents.js";
 import { installerButin } from "./ui/butin.js";
 import { installerMenu } from "./ui/menu.js";
 import { afficherMessage, flashCombat, fondu, alerteVie } from "./ui/effets.js";
-import { ouvrirDialogue, dialogueActif } from "./ui/dialogue.js";
+import { ouvrirDialogue, dialogueActif, rafraichirChoix } from "./ui/dialogue.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { gagnerXp } from "./systems/progression.js";
 import { demarrerCombat } from "./ui/combat.js";
@@ -219,8 +219,12 @@ export async function demarrerJeu(donneesInitiales = null) {
   // `prochainMenu` : ce qu'on rouvre après la fermeture du dialogue courant
   // (posé par l'action du choix). null = on quitte la boutique (Leave / Échap).
   let prochainMenu = null;
+  // Quand l'inventaire change (équiper/déséquiper) pendant un menu marchand, on
+  // rafraîchit la liste à chaud (utile dans « Sell items »). null = pas de refresh.
+  let surChangementMenu = null;
   function ouvrirMenuMarchand(nom, choix) {
     prochainMenu = null;
+    surChangementMenu = null; // chaque menu repose son propre refresh (cf. menuVendre)
     ouvrirDialogue({ nom, choix }, () => {
       const suite = prochainMenu;
       prochainMenu = null;
@@ -240,8 +244,9 @@ export async function demarrerJeu(donneesInitiales = null) {
     ouvrirMenuMarchand("Test Merchant", choix);
   }
 
-  // Menu de vente : les objets du SAC, chacun revendable contre de l'or.
-  function menuVendre() {
+  // Les choix du menu de vente : un par objet du SAC + retour. Recalculé à chaque
+  // changement d'inventaire pour rester à jour (déséquiper ajoute un objet).
+  function choixVente() {
     const choix = inventaire.objets.map((o) => ({
       texte: `Sell ${ITEMS[o.id].nom}  ·  +${prixVente(o.id)} 🪙`,
       itemId: o.id, // survol → bulle (on voit ce qu'on vend)
@@ -252,9 +257,16 @@ export async function demarrerJeu(donneesInitiales = null) {
         inventaireUI.rendre();
       },
     }));
-    if (!choix.length) afficherMessage("Your bag is empty — nothing to sell.");
     choix.push({ texte: "←  Back", action: () => { prochainMenu = menuBoutique; } });
-    ouvrirMenuMarchand("Test Merchant — Sell", choix);
+    return choix;
+  }
+
+  // Menu de vente : les objets du SAC, chacun revendable contre de l'or. Se met à
+  // jour à chaud si on (dés)équipe dans l'inventaire ouvert à côté.
+  function menuVendre() {
+    if (!inventaire.objets.length) afficherMessage("Your bag is empty — nothing to sell.");
+    ouvrirMenuMarchand("Test Merchant — Sell", choixVente());
+    surChangementMenu = () => rafraichirChoix(choixVente());
   }
 
   // Menu d'une catégorie : ses items (gratuits) + retour aux catégories.
@@ -278,6 +290,7 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   function fermerBoutique() {
     document.body.classList.remove("en-boutique");
+    surChangementMenu = null;
     inventaireUI.fermer();
     enPause = false;
   }
@@ -353,6 +366,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     heros,
     surChangement: () => {
       appliquerEquipement(heros, inventaire, planches);
+      if (surChangementMenu) surChangementMenu(); // rafraîchit le menu marchand (vente)
     },
     surFermer: () => basculerInventaire(),
     // Jeter un objet glissé hors du sac. Au-dessus de « commun » → on confirme.
