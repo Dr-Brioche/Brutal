@@ -808,6 +808,7 @@
       animation: tal-pulse 1.2s ease-in-out infinite;
     }
     .tal-bloque { opacity: 0.5; cursor: default; }
+    .tal-noeud--sel { outline: 3px solid #ffcf57; outline-offset: 3px; } /* curseur clavier */
     @keyframes tal-pulse {
       0%, 100% { box-shadow: 0 0 7px rgba(176, 123, 224, 0.4); }
       50%      { box-shadow: 0 0 16px rgba(176, 123, 224, 0.85); }
@@ -1065,7 +1066,7 @@
         <svg class="tal-liens" id="tal-liens" preserveAspectRatio="none"></svg>
       </div>
       <div class="tal-desc" id="tal-desc"></div>
-      <p class="tal-aide">Click a lit-up talent to unlock · [T] to close</p>
+      <p class="tal-aide">Click or move with arrows / WASD · Space to unlock · [T] to close</p>
     </div>
   </div>
 
