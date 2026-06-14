@@ -902,6 +902,12 @@
       25% { transform: translateX(-5px); }
       75% { transform: translateX(5px); }
     }
+    /* La barre qui se remplit avant l'apparition des boutons (justifie l'attente) */
+    .butin-attente {
+      height: 5px; margin-bottom: 14px; overflow: hidden;
+      background: #1d1b25; border: 1px solid #2c2a36; border-radius: 999px;
+    }
+    .butin-attente-fill { height: 100%; width: 0; background: linear-gradient(90deg, #b45309, #ffcf57); }
     .butin-boutons { display: flex; gap: 10px; }
     .butin-btn {
       flex: 1; padding: 11px; font-weight: 700; letter-spacing: 0.04em; color: #fff;
@@ -1119,11 +1125,12 @@
     <div class="butin-panneau">
       <div class="butin-titre">Victory!</div>
       <div class="butin-liste" id="butin-liste"></div>
-      <div class="butin-boutons">
+      <div class="butin-attente" id="butin-attente"><div class="butin-attente-fill" id="butin-attente-fill"></div></div>
+      <div class="butin-boutons" id="butin-boutons">
         <button class="butin-btn butin-btn--tout" id="butin-tout">Take all</button>
         <button class="butin-btn butin-btn--laisser" id="butin-laisser">Discard rest</button>
       </div>
-      <p class="butin-aide">Click an item to take it &nbsp;·&nbsp; Space: take all &nbsp;·&nbsp; Esc: leave</p>
+      <p class="butin-aide" id="butin-aide">Click an item to take it &nbsp;·&nbsp; Space: take all &nbsp;·&nbsp; Esc: leave</p>
     </div>
   </div>
 

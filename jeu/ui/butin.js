@@ -13,14 +13,22 @@ import { demanderConfirmation, confirmationActive } from "./confirmation.js";
 export function installerButin() {
   const overlay = document.getElementById("butin");
   const liste = document.getElementById("butin-liste");
+  const boutons = document.getElementById("butin-boutons");
+  const aide = document.getElementById("butin-aide");
+  const attente = document.getElementById("butin-attente");
+  const attenteFill = document.getElementById("butin-attente-fill");
   const btnTout = document.getElementById("butin-tout");
   const btnLaisser = document.getElementById("butin-laisser");
   let prendre = null;   // (id) => bool : tente de ranger l'objet dans le sac
   let surFin = null;    // () => void  : applique XP/or + reprend le jeu
   let restants = 0;     // objets pas encore pris
-  let pretClavier = false; // Espace/Entrée n'agit qu'après un court délai…
-  let timerPret = null;    // …pour ne PAS valider à cause d'un appui maintenu depuis le combat
-  const DELAI_CLAVIER = 1500; // ms : le temps de voir le butin
+  // Les BOUTONS (Take all / Discard) et Espace/Échap n'apparaissent qu'après un
+  // court délai (une barre se remplit pour le justifier) : on a le temps de voir
+  // le butin, et un appui maintenu depuis le combat ne valide pas tout d'un coup.
+  // Les clics sur les objets, eux, restent immédiats.
+  let pret = false;
+  let timerPret = null;
+  const DELAI = 1500; // ms
 
   function ligneInfo(html) {
     const d = document.createElement("div");
@@ -95,13 +103,22 @@ export function installerButin() {
     }
   }
 
+  // Fin du délai : on révèle les boutons (et Espace/Échap deviennent actifs).
+  function reveler() {
+    pret = true;
+    attente.hidden = true;
+    boutons.hidden = false;
+    aide.hidden = false;
+  }
+
   function surTouche(e) {
     if (confirmationActive()) return; // une confirmation est ouverte : on l'ignore
     if (e.code === "Space" || e.code === "Enter") {
       e.preventDefault(); e.stopPropagation();
-      if (pretClavier) prendreTout(); // sinon ignoré : appui maintenu depuis le combat
+      if (pret) prendreTout(); // sinon ignoré : boutons pas encore apparus
     } else if (e.code === "Escape") {
-      e.preventDefault(); e.stopPropagation(); tenterFermer();
+      e.preventDefault(); e.stopPropagation();
+      if (pret) tenterFermer();
     }
   }
 
@@ -125,11 +142,20 @@ export function installerButin() {
       // Sans objet à trier, un seul bouton « Close » (XP/or seulement).
       btnTout.textContent = restants ? "Take all" : "Close";
       btnLaisser.hidden = restants === 0;
-      // Espace/Entrée bloqué un court instant (le temps de voir le butin, et pour
-      // qu'un appui maintenu pendant le combat ne ramasse pas tout d'un coup).
-      pretClavier = false;
+
+      // Phase d'attente : boutons cachés, la barre se remplit, puis on révèle.
+      pret = false;
+      boutons.hidden = true;
+      aide.hidden = true;
+      attente.hidden = false;
+      attenteFill.style.transition = "none";
+      attenteFill.style.width = "0%";
+      void attenteFill.offsetWidth;            // reflow : repart de 0 à chaque combat
+      attenteFill.style.transition = `width ${DELAI}ms linear`;
+      attenteFill.style.width = "100%";
       clearTimeout(timerPret);
-      timerPret = setTimeout(() => { pretClavier = true; }, DELAI_CLAVIER);
+      timerPret = setTimeout(reveler, DELAI);
+
       overlay.hidden = false;
       window.addEventListener("keydown", surTouche, true);
     },
