@@ -201,8 +201,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   // sous-catégories (armes / armures / bijoux / autres). On choisit ensuite quoi
   // équiper via l'inventaire (ouvert à côté). Échap ou « Leave » ferme la boutique.
   const CATEGORIES_BOUTIQUE = [
-    { nom: "Weapons", icone: "⚔",  cats: ["arme"] },
-    { nom: "Armor",   icone: "🛡", cats: ["armure", "bouclier"] },
+    { nom: "Weapons", icone: "⚔",  cats: ["arme", "bouclier"] },
+    { nom: "Armor",   icone: "🛡", cats: ["armure"] },
     { nom: "Jewelry", icone: "💍", cats: ["bague", "collier"] },
     { nom: "Other",   icone: "🎒", cats: ["gant", "botte", "sac"] },
   ];
