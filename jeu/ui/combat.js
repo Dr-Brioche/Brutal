@@ -43,6 +43,10 @@ function poserEnnemis(n) {
 const BAR_L = 80, BAR_H = 11;
 const VIE_SOUS = 7;            // écart pieds (sol) → haut de la barre
 const ETATS_SOUS = 14;         // écart bas de la barre → rangée d'états (laisse place à l'init)
+// File d'ordre des tours (en haut) : carrés-portraits des prochains acteurs.
+const FILE_N = 5, FILE_TAILLE = 40, FILE_ESPACE = 8, FILE_Y = 12;
+// Portrait du héros = zone de la tête dans la planche du nain (frame face, à ajuster).
+const PORTRAIT_HEROS = { sx: 17, sy: 4, sw: 30, sh: 30 };
 // ---------------------------------------------------------------------------
 
 // `ennemis` : tableau de définitions d'ennemis (data/ennemis.js).
@@ -116,7 +120,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   const flottants = [];  // nombres de dégâts qui montent et s'estompent
   const particules = []; // braises de mort (partagées, positionnées par ennemi)
   let delaiFin = -1, termine = false;
-  let minuterie = 0; // compte à rebours entre les pas de la timeline (ATB)
+  let minuterie = 0;          // compte à rebours entre les pas de la timeline (ATB)
+  let acteurCourant = null;   // qui agit en ce moment (pour la file des tours)
 
   // Ciblage clavier : carte « armée » en attente de cible.
   let phaseCiblage = false;
@@ -423,6 +428,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   function traiterProchain() {
     if (combat.fini) { verifierFin(); return; }
     const acteur = avancerInitiative(combat);
+    acteurCourant = acteur; // pour la file des tours (1re case = acteur courant)
     if (acteur.id === "heros") {
       commencerTourHeros(combat); // recharge Chaleur + statuts du héros + pioche
       animerDebutTourHeros();
@@ -565,6 +571,21 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     return l;
   }
 
+  // La file d'ordre des tours, en haut : acteur courant + prochains (initiative).
+  function dessinerFile(ctx) {
+    const file = [acteurCourant, ...simulerFile(combat, FILE_N - 1)].filter(Boolean);
+    if (!file.length) return;
+    const largeur = file.length * FILE_TAILLE + (file.length - 1) * FILE_ESPACE;
+    let x = 320 - largeur / 2;
+    file.forEach((a, k) => {
+      let planche = null, portrait = null;
+      if (a.id === "heros") { planche = heros.plancheArmure; portrait = PORTRAIT_HEROS; }
+      else { const u = ennemisUI[a.i]; if (u) { planche = u.planche; portrait = u.e.def.portrait; } }
+      dessinerCarreTete(ctx, x, FILE_Y, FILE_TAILLE, planche, portrait, k === 0);
+      x += FILE_TAILLE + FILE_ESPACE;
+    });
+  }
+
   function dessiner() {
     const W = ctx.canvas.width, H = ctx.canvas.height;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -574,6 +595,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     ctx.setTransform(s, 0, 0, s, Math.round((W - 640 * s) / 2), Math.round((H - 360 * s) / 2));
 
     dessinerFond(ctx);
+    dessinerFile(ctx); // l'ordre des tours, en haut
 
     // SPRITES (héros + ennemis + braises) : réduits VERS le sol (pieds ancrés).
     ctx.save();
@@ -741,6 +763,36 @@ function dessinerBarreInit(ctx, x, y, l, ratio) {
   ctx.fillRect(x, y, l, h);
   ctx.fillStyle = "#ff9a2c"; // orange (initiative)
   ctx.fillRect(x, y, l * r, h);
+}
+
+// Tracé d'un rectangle à coins arrondis (pour les carrés de la file des tours).
+function cheminArrondi(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// Un carré-portrait de la file : fond, tête (planche découpée au `portrait`),
+// bordure blanche (dorée + épaisse pour l'acteur courant).
+function dessinerCarreTete(ctx, x, y, t, planche, portrait, courant) {
+  ctx.save();
+  cheminArrondi(ctx, x, y, t, t, 6);
+  ctx.fillStyle = "#15110c";
+  ctx.fill();
+  ctx.clip(); // la tête reste dans le carré arrondi
+  if (planche && portrait) {
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(planche, portrait.sx, portrait.sy, portrait.sw, portrait.sh, x, y, t, t);
+  }
+  ctx.restore();
+  cheminArrondi(ctx, x, y, t, t, 6);
+  ctx.lineWidth = courant ? 3 : 2;
+  ctx.strokeStyle = courant ? "#ffcf57" : "#ffffff";
+  ctx.stroke();
 }
 
 function dessinerBarreVie(ctx, x, y, l, h, ratio, couleur, texte) {

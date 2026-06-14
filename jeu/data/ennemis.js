@@ -21,7 +21,11 @@ export const ENNEMIS = [
     pv: 24,
     attaque: 4,
     xp: 6,            // XP donnée au héros à sa mort
+    vitesse: 10,      // vitesse d'initiative (ATB) ; héros de base = 10
     planche: "images/ennemis/gobelin.png",
+    // Portrait = zone de la TÊTE dans la planche (frame 0), pour la file des tours.
+    // (Valeurs à ajuster à l'œil si la tête n'est pas bien cadrée.)
+    portrait: { sx: 54, sy: 4, sw: 96, sh: 96 },
     sprite: {
       caseL: 204,
       caseH: 150,
