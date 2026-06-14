@@ -55,12 +55,10 @@ function construire(id) {
       const carte = document.createElement("div");
       carte.className = "combat-carte";
       garnirCarte(carte, c);
-      if (n > 1) {
-        const badge = document.createElement("span");
-        badge.className = "inv-tip-nombre";
-        badge.textContent = `×${n}`;
-        carte.append(badge);
-      }
+      const badge = document.createElement("span"); // toujours affiché (×1, ×2, ×3…)
+      badge.className = "inv-tip-nombre";
+      badge.textContent = `×${n}`;
+      carte.append(badge);
       cont.append(carte);
     }
     enfants.push(cont);
