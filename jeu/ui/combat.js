@@ -23,7 +23,7 @@ import { alerteVie } from "./effets.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
 const ECHELLE_HEROS = 3;            // 64×64 → 192×192 (avant dézoom de scène)
-const SOL_Y = 240;                  // ligne de sol au 1/3 DU BAS (2/3 libres au-dessus)
+const SOL_Y = 200;                  // ligne de sol remontée (cartes/barres ne se chevauchent plus)
 const ECHELLE_SCENE = 0.4;          // dézoom global des sprites (vers le sol)
 const PIVOT_SCENE = { x: 320, y: SOL_Y };
 const HEROS_ECRAN_CX = 165;         // centre du héros à l'écran (scène)

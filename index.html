@@ -308,7 +308,7 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 1cqh;
-      width: 44cqh;                /* jauge ×2 (la TAILLE ; le nb de crans suit le max) */
+      width: 35cqh;                /* TAILLE de la jauge (le nb de crans suit le max) */
       font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
       color: #ffcaa0;
     }
@@ -323,7 +323,7 @@
     .combat-jauge-bar {
       position: relative;
       width: 100%;
-      height: 6.4cqh;              /* ×2 */
+      height: 5.1cqh;
       background: #17110d;
       border: 0.4cqh solid #3a2f26;
       border-radius: 1cqh;
@@ -362,9 +362,9 @@
     .combat-jauge-valeur {
       position: absolute; left: 0; top: 50%;
       transform: translate(-50%, -50%);
-      width: 7cqh; height: 7cqh;
+      width: 5.6cqh; height: 5.6cqh;
       display: flex; align-items: center; justify-content: center;
-      font-size: 3.4cqh; font-weight: 800;
+      font-size: 2.7cqh; font-weight: 800;
       color: #1a1208; background: #ffb454;
       border-radius: 50%;
       box-shadow: 0 1px 5px rgba(0, 0, 0, 0.7);
@@ -414,12 +414,14 @@
       border-radius: calc(var(--carte-l, 150px) * 0.05);
       cursor: pointer;
       transform-origin: bottom center;
-      transform: translateY(var(--dy, 0px)) rotate(var(--rot, 0deg));
+      /* Au repos : la carte est DESCENDUE (~moitié sous le bord) → on ne voit que
+         son HAUT (coût + nom). On la remonte en entier au survol / à la sélection. */
+      transform: translateY(calc(var(--dy, 0px) + var(--carte-l, 150px) * 0.68)) rotate(var(--rot, 0deg));
       transition: transform 0.14s ease, box-shadow 0.14s ease;
     }
-    /* Carte survolée / sélectionnée : elle se redresse, grandit, passe devant. */
+    /* Carte survolée / sélectionnée : elle remonte ENTIÈRE, se redresse, grandit. */
     .combat-carte:hover:not(:disabled) {
-      transform: translateY(calc(var(--dy, 0px) - var(--carte-l, 150px) * 0.11)) rotate(0deg) scale(1.06);
+      transform: translateY(calc(var(--dy, 0px) - var(--carte-l, 150px) * 0.08)) rotate(0deg) scale(1.07);
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
       z-index: 10;
     }
@@ -499,7 +501,7 @@
       box-shadow: 0 0 18px rgba(255, 180, 60, 0.55);
     }
     .combat-carte.sel {
-      transform: translateY(calc(var(--dy, 0px) - var(--carte-l, 150px) * 0.10)) rotate(0deg) scale(1.06);
+      transform: translateY(calc(var(--dy, 0px) - var(--carte-l, 150px) * 0.08)) rotate(0deg) scale(1.07);
       z-index: 10;
     }
 
