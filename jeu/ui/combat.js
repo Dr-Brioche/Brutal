@@ -539,16 +539,16 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   // États sous la barre (poison/feu). L'armure (Pierre, héros) = bouclier bleu.
   function etatsHeros() {
     const l = [];
-    if (combat.poisonHeros > 0) l.push({ texte: `☠ ${combat.poisonHeros}`, couleur: "#7ec850" });
-    if (combat.feuHeros > 0) l.push({ texte: `🔥 ${combat.feuHeros}`, couleur: "#ff8a2c" });
+    if (combat.poisonHeros > 0) l.push({ texte: `☠${combat.poisonHeros}`, couleur: "#7ec850" });
+    if (combat.feuHeros > 0) l.push({ texte: `🔥${combat.feuHeros}`, couleur: "#ff8a2c" });
     return l;
   }
   function etatsEnnemi(e) {
     const l = [];
-    if (e.poison > 0) l.push({ texte: `☠ ${e.poison}`, couleur: "#7ec850" });
-    if (e.feu > 0) l.push({ texte: `🔥 ${e.feu}`, couleur: "#ff8a2c" });
-    if (e.sang > 0) l.push({ texte: `🩸 ${e.sang}`, couleur: "#e05a5a" });
-    if (e.stun > 0) l.push({ texte: `💫 ${e.stun}`, couleur: "#ffd966" }); // tours d'étourdissement restants
+    if (e.poison > 0) l.push({ texte: `☠${e.poison}`, couleur: "#7ec850" });
+    if (e.feu > 0) l.push({ texte: `🔥${e.feu}`, couleur: "#ff8a2c" });
+    if (e.sang > 0) l.push({ texte: `🩸${e.sang}`, couleur: "#e05a5a" });
+    if (e.stun > 0) l.push({ texte: `💫${e.stun}`, couleur: "#ffd966" }); // tours d'étourdissement restants
     return l;
   }
 
@@ -777,7 +777,7 @@ function dessinerEtats(ctx, etats, cx, y) {
   if (!etats || etats.length === 0) return;
   ctx.font = "bold 9px ui-monospace, monospace";
   ctx.textAlign = "center";
-  const espace = 22;
+  const espace = 28; // écart entre badges (le chiffre colle à SON icône, cf. etats)
   const x0 = cx - ((etats.length - 1) * espace) / 2;
   etats.forEach((etat, i) => {
     ctx.fillStyle = etat.couleur;
