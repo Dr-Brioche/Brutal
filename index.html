@@ -602,6 +602,14 @@
       background: #3a2030;
       border-color: #b45309;
     }
+    /* Option d'item au marchand : pastille (ou image) + nom */
+    .dialogue-option--item { display: flex; align-items: center; }
+    .dialogue-icone {
+      width: 26px; height: 26px; flex-shrink: 0;
+      margin: 0 10px 0 0; border-radius: 5px;
+      border: 2px solid #9aa0a6; object-fit: cover;
+      image-rendering: pixelated;
+    }
     .dialogue-aide {
       margin-top: 12px;
       font-size: 0.72rem;

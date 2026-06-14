@@ -10,6 +10,7 @@
 //             l'objet (effets + visuel des cartes) — utilisé par le marchand.
 
 import { montrerInfobulle, suivreInfobulle, cacherInfobulle, montrerInfobulleEl } from "./infobulle.js";
+import { itemDef, couleurRarete } from "../data/items.js";
 
 // Touches captées par le dialogue (bloquées pour le reste du jeu pendant qu'il
 // est ouvert : pas de menu pause, pas de déplacement parasite).
@@ -50,13 +51,28 @@ export function ouvrirDialogue(dialogue, surFin) {
     choix.forEach((c, i) => {
       const el = document.createElement("div");
       el.className = "dialogue-option" + (i === sel ? " sel" : "");
-      el.textContent = (i === sel ? "▶ " : "   ") + c.texte;
-      el.addEventListener("click", () => choisir(i));
-      if (c.itemId) { // bulle de l'objet au survol (marchand)
+      const fleche = i === sel ? "▶ " : "   ";
+      const d = c.itemId ? itemDef(c.itemId) : null;
+      if (d) {
+        // Item : on montre son VISUEL (vraie image si elle existe un jour, sinon
+        // la pastille colorée placeholder) + son nom, et sa bulle au survol.
+        el.classList.add("dialogue-option--item");
+        const marque = document.createElement("span");
+        marque.textContent = fleche;
+        const ic = document.createElement(d.image ? "img" : "span");
+        ic.className = "dialogue-icone";
+        if (d.image) ic.src = d.image;
+        else { ic.style.background = d.icone; ic.style.borderColor = couleurRarete(c.itemId); }
+        const txt = document.createElement("span");
+        txt.textContent = c.texte;
+        el.append(marque, ic, txt);
         el.addEventListener("mouseenter", (e) => montrerInfobulle(c.itemId, e));
         el.addEventListener("mousemove", suivreInfobulle);
         el.addEventListener("mouseleave", cacherInfobulle);
+      } else {
+        el.textContent = fleche + c.texte;
       }
+      el.addEventListener("click", () => choisir(i));
       elChoix.append(el);
     });
     elAide.textContent = choix.length ? "[Z/S] choose · [Space] confirm" : "[Space] close";
