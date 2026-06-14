@@ -306,6 +306,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     const elJouee = conteneurMain.children[i] || null; // carte à animer
     const eCible = combat.ennemis[cible];
     const pvAvant = eCible ? eCible.pv : 0;
+    const stunAvant = eCible ? eCible.stun : 0;
     const pierreAvant = combat.pierre;
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
 
@@ -319,6 +320,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
       if (eCible.pv <= 0) exploser(u);
       else jouerAnim(u, "touche");
       ajouterFlottant(`-${pvAvant - eCible.pv}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
+    }
+    if (u && eCible && eCible.stun > stunAvant) { // étourdissement appliqué
+      u.secousse = Math.max(u.secousse, 0.3);
+      ajouterFlottant(`💫 ${eCible.stun}`, u.ecran.cx, u.ecran.sommet - 16, "#ffd966");
     }
     if (combat.pierre > pierreAvant) {
       ajouterFlottant(`+${combat.pierre - pierreAvant}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
@@ -543,6 +548,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     if (e.poison > 0) l.push({ texte: `☠ ${e.poison}`, couleur: "#7ec850" });
     if (e.feu > 0) l.push({ texte: `🔥 ${e.feu}`, couleur: "#ff8a2c" });
     if (e.sang > 0) l.push({ texte: `🩸 ${e.sang}`, couleur: "#e05a5a" });
+    if (e.stun > 0) l.push({ texte: `💫 ${e.stun}`, couleur: "#ffd966" }); // tours d'étourdissement restants
     return l;
   }
 
@@ -589,7 +595,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
       if (u.e.pv <= 0 || u.mort.actif) return;
       barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
         `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), 0);
-      dessinerIntention(ctx, u.e.intention, u.ecran.cx, u.ecran.haut - 8);
+      // Étourdi : il ne prépare pas d'attaque → on masque l'intention (le badge 💫 le dit).
+      if (u.e.stun <= 0) dessinerIntention(ctx, u.e.intention, u.ecran.cx, u.ecran.haut - 8);
     });
 
     // Flèche rouge au-dessus de la cible : UNIQUEMENT quand une carte d'attaque

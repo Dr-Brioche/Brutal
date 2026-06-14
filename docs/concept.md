@@ -179,7 +179,11 @@ directement la **collecte** et le **marché**.
   - **Saignement (sang)** : comme le poison, mais le sang absorbé **soigne le
     héros** du même montant à chaque tick (vol de vie lent). Ex. *Blood Ring* →
     carte *Bloodletting*.
-  - À venir : stun…
+  - **Étourdissement (stun) — implémenté** : l'ennemi **saute ses tours** (n'attaque
+    pas) tant que son compteur de stun > 0 ; il baisse de 1 à chaque tour sauté.
+    **Cumulable** (les ticks s'additionnent → plusieurs tours). Affiché en badge
+    `💫 N` sous l'ennemi (N = tours restants), et son intention d'attaque est
+    masquée. Ex. *Tower Shield* (bouclier) → carte *Shield Bash* (3 dégâts + stun 2).
 
 ## Items, butin & inventaire (1er jet implémenté)
 

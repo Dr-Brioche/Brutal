@@ -54,6 +54,7 @@ function creerEnnemiCombat(def) {
   return {
     def, pv: def.pv, pvMax: def.pv,
     poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps ; sang = vol de vie)
+    stun: 0,                       // étourdissement : nb de SES tours encore sautés
     dernierPoison: 0, dernierFeu: 0, dernierSang: 0, // dégâts subis au dernier tour (UI)
     intention: null,              // ce qu'il prépare (télégraphié)
   };
@@ -139,7 +140,8 @@ function prevoirIntentions(combat) {
 // directement sur soi (Pierre…), sans choix de cible.
 export function carteVise(carte) {
   return (carte?.effets ?? []).some(
-    (e) => e.type === "degats" || e.type === "poison" || e.type === "feu" || e.type === "sang"
+    (e) => e.type === "degats" || e.type === "poison" || e.type === "feu" ||
+           e.type === "sang" || e.type === "stun"
   );
 }
 
@@ -156,6 +158,8 @@ function appliquerEffet(combat, effet, ennemi) {
     if (ennemi) ennemi.feu += effet.valeur;
   } else if (effet.type === "sang") {
     if (ennemi) ennemi.sang += effet.valeur; // saignement : soigne le héros à chaque tick
+  } else if (effet.type === "stun") {
+    if (ennemi) ennemi.stun += effet.valeur; // étourdit : l'ennemi saute ses prochains tours (cumulable)
   } else if (effet.type === "chaleur") {
     // Régénère de l'énergie (Chaleur). Peut dépasser le SEUIL → surchauffe au
     // tour suivant : énergie immédiate, mais risque de brûlure (choix tactique).
@@ -271,6 +275,7 @@ export function finirTour(combat) {
       combat.dernierSoinSang += combat.pvHeros - avant; // soin réellement appliqué
     }
     if (e.pv <= 0) continue;            // mort par statut → il n'attaque pas
+    if (e.stun > 0) { e.stun -= 1; continue; } // étourdi : il saute son tour (et le stun baisse)
     if (e.intention?.type === "attaque") subirDegats(combat, e.intention.valeur);
     if (combat.pvHeros <= 0) break;     // héros mort → on arrête là
   }

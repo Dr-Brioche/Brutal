@@ -25,6 +25,8 @@
 //                         mais le sang absorbé SOIGNE le héros à chaque tick)
 //            - "chaleur": régénère `valeur` d'énergie (Chaleur) — peut dépasser le
 //                         seuil et donc faire surchauffer (risque de brûlure)
+//            - "stun"   : étourdit l'ennemi `valeur` tours (il saute ses tours).
+//                         Cumulable : rejouer en ajoute (les ticks s'additionnent)
 
 export const CARTES = {
   // ---- Deck de base commun : cartes à 0 Chaleur, mais FAIBLES --------------
@@ -120,6 +122,24 @@ export const CARTES = {
     type: "attaque",
     texte: "Deal 5 damage. Apply 4 Burning.",
     effets: [{ type: "degats", valeur: 5 }, { type: "feu", valeur: 4 }],
+  },
+
+  // Bouclier-tour : 2 cartes de Pierre (blocage) + 1 carte qui étourdit.
+  "mur-bouclier": {
+    id: "mur-bouclier",
+    nom: "Shield Wall",
+    cout: 1,
+    type: "defense",
+    texte: "Gain 5 Stone.",
+    effets: [{ type: "pierre", valeur: 5 }],
+  },
+  "coup-de-bouclier": {
+    id: "coup-de-bouclier",
+    nom: "Shield Bash",
+    cout: 2,
+    type: "attaque",
+    texte: "Deal 3 damage. Stun the enemy for 2 turns.",
+    effets: [{ type: "degats", valeur: 3 }, { type: "stun", valeur: 2 }],
   },
 
   // Collier de saphir : régénère de l'énergie (Chaleur). Sans cible, joué sur soi.

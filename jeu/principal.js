@@ -202,7 +202,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // équiper via l'inventaire (ouvert à côté). Échap ou « Leave » ferme la boutique.
   const CATEGORIES_BOUTIQUE = [
     { nom: "Weapons", icone: "⚔",  cats: ["arme"] },
-    { nom: "Armor",   icone: "🛡", cats: ["armure"] },
+    { nom: "Armor",   icone: "🛡", cats: ["armure", "bouclier"] },
     { nom: "Jewelry", icone: "💍", cats: ["bague", "collier"] },
     { nom: "Other",   icone: "🎒", cats: ["gant", "botte", "sac"] },
   ];

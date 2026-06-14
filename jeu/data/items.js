@@ -68,6 +68,15 @@ export const ITEMS = {
     degats: 6, mains: 1, cartes: ["coup-de-lave"],
   },
 
+  // ---- Boucliers (slot off-hand) ----
+  // Bouclier-tour : 2× « Shield Wall » (Pierre/blocage) + « Shield Bash » (étourdit
+  // l'ennemi 2 tours). Build défensif/contrôle.
+  "bouclier-tour": {
+    id: "bouclier-tour", nom: "Tower Shield", categorie: "bouclier", rarete: "epique",
+    taille: { l: 2, h: 2 }, icone: "#5a6b7a",
+    cartes: ["mur-bouclier", "mur-bouclier", "coup-de-bouclier"],
+  },
+
   // ---- Armures (changent le skin du nain) ----
   "tenue-de-voyageur": {
     id: "tenue-de-voyageur", nom: "Traveler's Garb", categorie: "armure", rarete: "commun",
