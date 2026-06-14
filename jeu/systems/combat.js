@@ -232,7 +232,12 @@ function tiquerHeros(combat, nom) {
 // Propagation de l'Enflammé aux ennemis ADJACENTS, à la FIN du tour ennemi :
 // chaque ennemi en feu transmet son nombre de ticks COURANT (déjà décrémenté ce
 // tour) à ses voisins vivants. Calcul SIMULTANÉ pour ne pas cascader le même tour.
-function propagerFeu(combat) {
+//
+// `vivantAvant[i]` = l'ennemi i était-il vivant AU DÉBUT du tour ennemi ? Un
+// ennemi qui vient de mourir de SON feu ce tour-ci propage quand même ses
+// flammes avant de disparaître (« il brûle, propage, puis meurt ») — alors qu'un
+// ennemi mort à un tour précédent, lui, ne propage plus.
+function propagerFeu(combat, vivantAvant) {
   const es = combat.ennemis;
   if (es.length < 2) return; // pas de voisin → rien à propager
   // État du feu AVANT propagation : un ennemi DÉJÀ en feu ne se ré-enflamme pas
@@ -243,7 +248,7 @@ function propagerFeu(combat) {
     if (e.pv <= 0 || avant[i] > 0) return; // mort, ou déjà en feu → ne reçoit rien
     let recu = 0;
     for (const j of [i - 1, i + 1]) {
-      if (j >= 0 && j < es.length && es[j].pv > 0 && avant[j] > 0) {
+      if (j >= 0 && j < es.length && vivantAvant[j] && avant[j] > 0) {
         recu = Math.max(recu, avant[j]); // prend le feu du voisin le plus ardent
       }
     }
@@ -261,6 +266,10 @@ export function finirTour(combat) {
   // Les cartes encore en main repartent à la défausse
   combat.defausse.push(...combat.main);
   combat.main = [];
+
+  // Qui était vivant AU DÉBUT du tour (pour la propagation du feu : un ennemi qui
+  // meurt de son feu ce tour-ci propage quand même avant de disparaître).
+  const vivantAvant = combat.ennemis.map((e) => e.pv > 0);
 
   // Chaque ennemi vivant : poison + feu + saignement en début de SON tour, puis
   // il attaque. Le saignement absorbé SOIGNE le héros du même montant.
@@ -283,7 +292,7 @@ export function finirTour(combat) {
   if (combat.fini) return;
 
   // FIN du tour ennemi : le feu se propage aux voisins.
-  propagerFeu(combat);
+  propagerFeu(combat, vivantAvant);
 
   // Nouveau tour du HÉROS : Chaleur + surchauffe (dégâts DIRECTS, la Pierre ne
   // protège pas du feu intérieur), puis poison + feu du héros. (La Pierre persiste.)

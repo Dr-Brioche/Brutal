@@ -175,7 +175,9 @@ directement la **collecte** et le **marché**.
   - **Enflammé (feu)** : même principe que le poison, **mais se propage aux
     ennemis adjacents NON encore enflammés** à la fin du tour ennemi (ils prennent
     le feu du voisin le plus ardent ; un ennemi déjà en feu ne se ré-enflamme pas,
-    il continue de brûler). Ex. *Magma Hammer* → carte *Lava Hammer*.
+    il continue de brûler). Un ennemi qui **meurt de son propre feu** ce tour-ci
+    **propage quand même** ses flammes avant de disparaître. Ex. *Magma Hammer* →
+    carte *Lava Hammer*.
   - **Saignement (sang)** : comme le poison, mais le sang absorbé **soigne le
     héros** du même montant à chaque tick (vol de vie lent). Ex. *Blood Ring* →
     carte *Bloodletting*.
