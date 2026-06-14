@@ -12,7 +12,8 @@
 // deux fonctions tant que le combat est actif.
 
 import {
-  creerCombat, jouerCarte, finirTour, degatsSurchauffe, carteVise, ennemiVivant,
+  creerCombat, jouerCarte, degatsSurchauffe, carteVise, ennemiVivant,
+  commencerTourEnnemi, agirEnnemi, terminerTourEnnemi,
 } from "../systems/combat.js";
 import { cartesEquipees } from "../systems/inventaire.js";
 import { bonusTalents } from "../systems/talents.js";
@@ -113,6 +114,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   const flottants = [];  // nombres de dégâts qui montent et s'estompent
   const particules = []; // braises de mort (partagées, positionnées par ennemi)
   let delaiFin = -1, termine = false;
+  // Tour ennemi JOUÉ au ralenti : { ordre, idx, vivantAvant, minuterie } ou null.
+  let tourEnnemi = null;
 
   // Ciblage clavier : carte « armée » en attente de cible.
   let phaseCiblage = false;
@@ -402,55 +405,61 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     }
   }
 
+  // Fin du tour joueur : on LANCE le tour ennemi, qui se joue ensuite au ralenti
+  // (un ennemi après l'autre, gauche→droite) dans la boucle (avancerTourEnnemi).
+  const DELAI_AVANT = 0.35; // pause avant le 1er ennemi
+  const PAS_ENNEMI = 0.55;  // pause entre deux ennemis (le temps de voir l'attaque)
+
   function finDeTour() {
-    if (phaseCiblage) return; // on choisit une cible : End Turn attend
-    const pvHerosAvant = combat.pvHeros;
-    finirTour(combat);
+    if (phaseCiblage || tourEnnemi || combat.fini || !combat.tourJoueur) return;
+    const { vivantAvant, ordre } = commencerTourEnnemi(combat);
+    tourEnnemi = { ordre, idx: 0, vivantAvant, minuterie: DELAI_AVANT };
+    rafraichir(); // la main se vide, boutons grisés pendant le tour ennemi
+  }
 
-    // Statuts sur chaque ennemi (poison vert / feu orange) + mort + anim d'attaque.
-    ennemisUI.forEach((u) => {
-      const e = u.e;
-      if (e.dernierPoison > 0) {
-        u.secousse = 0.3;
-        ajouterFlottant(`☠ ${e.dernierPoison}`, u.ecran.cx, u.ecran.sommet, "#7ec850");
-      }
-      if (e.dernierFeu > 0) {
-        u.secousse = 0.3;
-        ajouterFlottant(`🔥 ${e.dernierFeu}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c");
-      }
-      if (e.dernierSang > 0) {
-        u.secousse = 0.3;
-        ajouterFlottant(`🩸 ${e.dernierSang}`, u.ecran.cx, u.ecran.sommet - 32, "#e05a5a");
-      }
-      if (e.pv <= 0 && !u.mort.actif && !u.partis) exploser(u);       // mort par statut
-      else if (e.pv > 0 && e.intention?.type === "attaque") jouerAnim(u, "attaque");
-    });
+  // Avance le tour ennemi : quand la minuterie tombe à 0, l'ennemi suivant agit.
+  function avancerTourEnnemi(dt) {
+    const t = tourEnnemi;
+    t.minuterie -= dt;
+    if (t.minuterie > 0) return;
+    if (t.idx < t.ordre.length && !combat.fini) {
+      const i = t.ordre[t.idx];
+      animerEnnemi(i, agirEnnemi(combat, i));
+      t.idx += 1;
+      t.minuterie = PAS_ENNEMI;
+      if (combat.fini) finirSequence(); // dernier ennemi mort, ou héros mort
+      return;
+    }
+    finirSequence();
+  }
 
-    // Vie du héros : attaques cumulées, moins le soin du saignement, séparés de
-    // la brûlure (jauge) et des statuts du héros.
-    const brulure = combat.derniereBrulure;
-    const poison = combat.dernierPoisonHeros;
-    const feu = combat.dernierFeuHeros;
-    const soin = combat.dernierSoinSang;
-    const degats = (pvHerosAvant - combat.pvHeros) - brulure - poison - feu + soin;
-    if (degats > 0) {
+  // Anime l'action d'UN ennemi (statuts, mort, ou attaque). Étourdi → rien.
+  function animerEnnemi(i, evt) {
+    const u = ennemisUI[i];
+    if (!u) return;
+    if (evt.poison > 0) { u.secousse = 0.3; ajouterFlottant(`☠${evt.poison}`, u.ecran.cx, u.ecran.sommet, "#7ec850"); }
+    if (evt.feu > 0) { u.secousse = 0.3; ajouterFlottant(`🔥${evt.feu}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c"); }
+    if (evt.sang > 0) { u.secousse = 0.3; ajouterFlottant(`🩸${evt.sang}`, u.ecran.cx, u.ecran.sommet - 32, "#e05a5a"); }
+    if (evt.soin > 0) ajouterFlottant(`+${evt.soin}`, heroEcran.cx, heroEcran.sommet - 16, "#86e08a");
+    if (evt.mortStatut) { if (!u.mort.actif && !u.partis) exploser(u); return; }
+    if (evt.attaque > 0) { // il frappe : son anim d'attaque + le héros encaisse
+      jouerAnim(u, "attaque");
       secousseHeros = 0.3;
-      ajouterFlottant(`-${degats}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
+      ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
     }
-    if (soin > 0) {
-      ajouterFlottant(`+${soin}`, heroEcran.cx, heroEcran.sommet - 16, "#86e08a"); // saignement → vie
-    }
-    if (poison > 0) {
-      secousseHeros = 0.3;
-      ajouterFlottant(`☠ ${poison}`, heroEcran.cx, heroEcran.sommet - 32, "#7ec850");
-    }
-    if (feu > 0) {
-      secousseHeros = 0.3;
-      ajouterFlottant(`🔥 ${feu}`, heroEcran.cx, heroEcran.sommet - 48, "#ff8a2c");
-    }
-    if (brulure > 0) {
-      secousseHeros = 0.3;
-      pulserJauge();
+    // evt.stun → on n'affiche AUCUNE animation d'attaque
+  }
+
+  // Après le dernier ennemi : feu propagé + tour du héros (surchauffe, poison/feu),
+  // nouvelle main. Puis on rend la main au joueur (ou on déclenche la fin).
+  function finirSequence() {
+    const t = tourEnnemi;
+    tourEnnemi = null;
+    if (!combat.fini) {
+      terminerTourEnnemi(combat, t.vivantAvant);
+      if (combat.dernierPoisonHeros > 0) { secousseHeros = 0.3; ajouterFlottant(`☠${combat.dernierPoisonHeros}`, heroEcran.cx, heroEcran.sommet - 32, "#7ec850"); }
+      if (combat.dernierFeuHeros > 0) { secousseHeros = 0.3; ajouterFlottant(`🔥${combat.dernierFeuHeros}`, heroEcran.cx, heroEcran.sommet - 48, "#ff8a2c"); }
+      if (combat.derniereBrulure > 0) { secousseHeros = 0.3; pulserJauge(); }
     }
     recalerCible();
     rafraichir();
@@ -522,6 +531,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     for (let i = particules.length - 1; i >= 0; i--) {
       if (particules[i].vie <= 0) particules.splice(i, 1);
     }
+
+    if (tourEnnemi) avancerTourEnnemi(dt); // le tour ennemi se joue au ralenti
 
     if (delaiFin >= 0 && !termine) {
       delaiFin -= dt;

@@ -182,10 +182,15 @@ directement la **collecte** et le **marché**.
     héros** du même montant à chaque tick (vol de vie lent). Ex. *Blood Ring* →
     carte *Bloodletting*.
   - **Étourdissement (stun) — implémenté** : l'ennemi **saute ses tours** (n'attaque
-    pas) tant que son compteur de stun > 0 ; il baisse de 1 à chaque tour sauté.
-    **Cumulable** (les ticks s'additionnent → plusieurs tours). Affiché en badge
-    `💫 N` sous l'ennemi (N = tours restants), et son intention d'attaque est
-    masquée. Ex. *Tower Shield* (bouclier) → carte *Shield Bash* (3 dégâts + stun 2).
+    pas, **aucune animation d'attaque**) tant que son compteur de stun > 0 ; il
+    baisse de 1 à chaque tour sauté. **Cumulable** (les ticks s'additionnent →
+    plusieurs tours). Affiché en badge `💫 N` sous l'ennemi (N = tours restants), et
+    son intention d'attaque est masquée. Ex. *Tower Shield* (bouclier) → carte
+    *Shield Bash* (3 dégâts + stun 2).
+- **Le tour ennemi se joue au RALENTI** : les ennemis agissent **un par un, de
+  gauche à droite**, avec une petite pause entre chacun (au lieu de tout résoudre
+  d'un coup) — on comprend ce qui arrive. Le moteur expose le tour en 3 étapes
+  (début / un ennemi agit / fin) ; l'écran les enchaîne avec une minuterie.
 
 ## Items, butin & inventaire (1er jet implémenté)
 

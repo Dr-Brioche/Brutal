@@ -256,46 +256,60 @@ function propagerFeu(combat, vivantAvant) {
   });
 }
 
-// Fin du tour du joueur : chaque ennemi agit, le feu se propage, puis nouveau tour.
-export function finirTour(combat) {
-  if (combat.fini || !combat.tourJoueur) return;
+// ----- Le tour ENNEMI, en 3 étapes pour pouvoir le JOUER au ralenti -----------
+// (l'écran de combat appelle ces étapes une par une, ennemi par ennemi, de
+//  gauche à droite, pour qu'on voie chaque attaque ; `finirTour` plus bas fait
+//  tout d'un coup pour les usages instantanés.)
+
+// Début du tour ennemi : on défausse la main, on remet à zéro les compteurs
+// d'affichage. Renvoie l'ORDRE des ennemis qui agissent (vivants, gauche→droite)
+// et l'instantané `vivantAvant` (pour la propagation du feu).
+export function commencerTourEnnemi(combat) {
   combat.tourJoueur = false;
   combat.dernierPoisonHeros = combat.dernierFeuHeros = combat.dernierSoinSang = 0;
   for (const e of combat.ennemis) { e.dernierPoison = 0; e.dernierFeu = 0; e.dernierSang = 0; }
-
-  // Les cartes encore en main repartent à la défausse
   combat.defausse.push(...combat.main);
   combat.main = [];
-
-  // Qui était vivant AU DÉBUT du tour (pour la propagation du feu : un ennemi qui
-  // meurt de son feu ce tour-ci propage quand même avant de disparaître).
   const vivantAvant = combat.ennemis.map((e) => e.pv > 0);
+  const ordre = combat.ennemis.map((_, i) => i).filter((i) => combat.ennemis[i].pv > 0);
+  return { vivantAvant, ordre };
+}
 
-  // Chaque ennemi vivant : poison + feu + saignement en début de SON tour, puis
-  // il attaque. Le saignement absorbé SOIGNE le héros du même montant.
-  for (const e of combat.ennemis) {
-    if (e.pv <= 0) continue;
-    e.dernierPoison = tiquerEnnemi(e, "poison");
-    e.dernierFeu = tiquerEnnemi(e, "feu");
-    e.dernierSang = tiquerEnnemi(e, "sang");
-    if (e.dernierSang > 0) {
-      const avant = combat.pvHeros;
-      combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + e.dernierSang);
-      combat.dernierSoinSang += combat.pvHeros - avant; // soin réellement appliqué
-    }
-    if (e.pv <= 0) continue;            // mort par statut → il n'attaque pas
-    if (e.stun > 0) { e.stun -= 1; continue; } // étourdi : il saute son tour (et le stun baisse)
-    if (e.intention?.type === "attaque") subirDegats(combat, e.intention.valeur);
-    if (combat.pvHeros <= 0) break;     // héros mort → on arrête là
+// Un ennemi agit : poison + feu + saignement (le sang SOIGNE le héros), puis il
+// attaque — SAUF s'il est étourdi (il saute son tour, le stun baisse). Renvoie ce
+// qui s'est passé, pour que l'écran l'anime.
+export function agirEnnemi(combat, i) {
+  const e = combat.ennemis[i];
+  const evt = { poison: 0, feu: 0, sang: 0, soin: 0, mortStatut: false, attaque: 0, stun: false };
+  if (!e || e.pv <= 0) return evt;
+  evt.poison = e.dernierPoison = tiquerEnnemi(e, "poison");
+  evt.feu = e.dernierFeu = tiquerEnnemi(e, "feu");
+  evt.sang = e.dernierSang = tiquerEnnemi(e, "sang");
+  if (evt.sang > 0) {
+    const avant = combat.pvHeros;
+    combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + evt.sang);
+    evt.soin = combat.pvHeros - avant;
+    combat.dernierSoinSang += evt.soin;
+  }
+  if (e.pv <= 0) { evt.mortStatut = true; verifierFin(combat); return evt; }
+  if (e.stun > 0) { e.stun -= 1; evt.stun = true; return evt; } // étourdi : pas d'attaque
+  if (e.intention?.type === "attaque") {
+    const avant = combat.pvHeros;
+    subirDegats(combat, e.intention.valeur);
+    evt.attaque = avant - combat.pvHeros; // PV réellement perdus (après la Pierre)
   }
   verifierFin(combat);
-  if (combat.fini) return;
+  return evt;
+}
 
-  // FIN du tour ennemi : le feu se propage aux voisins.
+// Fin du tour ennemi : le feu se propage, puis nouveau tour du HÉROS (Chaleur +
+// surchauffe + poison/feu du héros), pioche d'une main et intentions.
+export function terminerTourEnnemi(combat, vivantAvant) {
+  verifierFin(combat);
+  if (combat.fini) return;
   propagerFeu(combat, vivantAvant);
 
-  // Nouveau tour du HÉROS : Chaleur + surchauffe (dégâts DIRECTS, la Pierre ne
-  // protège pas du feu intérieur), puis poison + feu du héros. (La Pierre persiste.)
+  // Chaleur + surchauffe (dégâts DIRECTS, la Pierre ne protège pas du feu intérieur).
   combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + combat.chaleurRecharge);
   combat.derniereBrulure = degatsSurchauffe(combat);
   if (combat.derniereBrulure > 0) {
@@ -312,4 +326,15 @@ export function finirTour(combat) {
   prevoirIntentions(combat);
   combat.cible = premierVivant(combat); // la cible peut être morte ce tour
   combat.tourJoueur = true;
+}
+
+// Tout le tour ennemi d'un coup (instantané). L'écran, lui, préfère séquencer.
+export function finirTour(combat) {
+  if (combat.fini || !combat.tourJoueur) return;
+  const { vivantAvant, ordre } = commencerTourEnnemi(combat);
+  for (const i of ordre) {
+    agirEnnemi(combat, i);
+    if (combat.pvHeros <= 0) break;
+  }
+  terminerTourEnnemi(combat, vivantAvant);
 }
