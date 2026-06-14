@@ -42,7 +42,7 @@ function poserEnnemis(n) {
 // Barre de vie sous chaque perso (unités SCÈNE, taille réelle, PV chiffrés dedans).
 const BAR_L = 80, BAR_H = 11;
 const VIE_SOUS = 7;            // écart pieds (sol) → haut de la barre
-const ETATS_SOUS = 10;         // écart bas de la barre → rangée d'états
+const ETATS_SOUS = 14;         // écart bas de la barre → rangée d'états (laisse place à l'init)
 // ---------------------------------------------------------------------------
 
 // `ennemis` : tableau de définitions d'ennemis (data/ennemis.js).
@@ -76,6 +76,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
       anim: { nom: "idle", t: 0 },
       secousse: 0,
       affPv: e.pv,
+      affInit: 0,            // jauge d'initiative affichée (glisse vers la vraie)
       mort: { actif: false, t: 0 },
       partis: false, // sprite totalement disparu (après l'estompage)
     };
@@ -108,7 +109,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   }
 
   // Valeurs « affichées » côté héros (glissent vers les vraies)
-  const aff = { pvHeros: combat.pvHeros, pierre: 0, chaleur: combat.chaleur };
+  const aff = { pvHeros: combat.pvHeros, pierre: 0, chaleur: combat.chaleur, initHeros: 0 };
   let animAttaque = 0;   // le nain pousse son arme vers l'avant
   let secousseHeros = 0;
   let temps = 0;         // horloge (animation de la flèche de cible)
@@ -493,11 +494,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     aff.pvHeros += (combat.pvHeros - aff.pvHeros) * Math.min(1, dt * 8);
     aff.pierre += (combat.pierre - aff.pierre) * Math.min(1, dt * 10);
     aff.chaleur += (combat.chaleur - aff.chaleur) * Math.min(1, dt * 9);
+    aff.initHeros += (ratioInitiativeHeros(combat) - aff.initHeros) * Math.min(1, dt * 6);
     majJauge();
     temps += dt;
 
     for (const u of ennemisUI) {
       u.affPv += (u.e.pv - u.affPv) * Math.min(1, dt * 8);
+      u.affInit += (ratioInitiativeEnnemi(u.e) - u.affInit) * Math.min(1, dt * 6);
       u.anim.t += dt;
       const def = u.spr.anims[u.anim.nom] ?? u.spr.anims.idle;
       if (!def.boucle && u.anim.t * def.ips >= def.frames.length &&
@@ -604,7 +607,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     ennemisUI.forEach((u) => {
       if (u.e.pv <= 0 || u.mort.actif) return;
       barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
-        `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), 0);
+        `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), 0, u.affInit);
       // Étourdi : il ne prépare pas d'attaque → on masque l'intention (le badge 💫 le dit).
       if (u.e.stun <= 0) dessinerIntention(ctx, u.e.intention, u.ecran.cx, u.ecran.haut - 8);
     });
@@ -627,7 +630,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
 
     // Vie du héros (avec son bouclier d'armure = la Pierre).
     barreVieAuSol(ctx, heroEcran, aff.pvHeros / combat.pvHerosMax,
-      `${Math.round(combat.pvHeros)}/${combat.pvHerosMax}`, "#2e8b57", etatsHeros(), combat.pierre);
+      `${Math.round(combat.pvHeros)}/${combat.pvHerosMax}`, "#2e8b57", etatsHeros(), combat.pierre, aff.initHeros);
 
     // Nombres flottants (dégâts/soins) AU-DESSUS des persos : gros + contour noir
     // pour rester lisibles sur n'importe quel fond. Ils montent en s'estompant.
@@ -719,12 +722,25 @@ function dessinerEnnemi(ctx, planche, spr, frame, x, y) {
 
 // La vie d'un perso posée à son repère-écran : bouclier d'armure (Pierre) à
 // GAUCHE, barre + PV chiffrés au centre, états (poison/feu…) en DESSOUS.
-function barreVieAuSol(ctx, perso, ratio, texte, couleur, etats, pierre) {
+function barreVieAuSol(ctx, perso, ratio, texte, couleur, etats, pierre, initRatio) {
   const x = perso.cx - BAR_L / 2;
   const y = perso.sol + VIE_SOUS;
   if (pierre > 0) dessinerBouclier(ctx, x - BAR_H * 0.95, y + BAR_H / 2, BAR_H + 6, pierre);
   dessinerBarreVie(ctx, x, y, BAR_L, BAR_H, ratio, couleur, texte);
+  // Barre d'INITIATIVE (orange, ~1/4 de la hauteur, même longueur), collée dessous.
+  if (initRatio != null) dessinerBarreInit(ctx, x, y + BAR_H + 1, BAR_L, initRatio);
   dessinerEtats(ctx, etats, perso.cx, y + BAR_H + ETATS_SOUS);
+}
+
+function dessinerBarreInit(ctx, x, y, l, ratio) {
+  const h = Math.max(2, Math.round(BAR_H / 4)); // 1/4 de la barre de vie
+  const r = Math.max(0, Math.min(1, ratio));
+  ctx.fillStyle = "#000";
+  ctx.fillRect(x - 1, y - 1, l + 2, h + 2);
+  ctx.fillStyle = "#2a2218";
+  ctx.fillRect(x, y, l, h);
+  ctx.fillStyle = "#ff9a2c"; // orange (initiative)
+  ctx.fillRect(x, y, l * r, h);
 }
 
 function dessinerBarreVie(ctx, x, y, l, h, ratio, couleur, texte) {
