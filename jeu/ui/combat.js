@@ -319,7 +319,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     // Snapshot AVANT jouerCarte (pour calculer les deltas d'animation).
     const pvAvants   = combat.ennemis.map((e) => e.pv);
     const stunAvants = combat.ennemis.map((e) => e.stun);
+    const gelAvants  = combat.ennemis.map((e) => e.gel);
     const pierreAvant = combat.pierre;
+    const hateAvant = combat.hate;
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
 
     if (elJouee) animerCarteJouee(elJouee); // la carte sort, grandit, puis disparaît
@@ -341,9 +343,16 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
         u.secousse = Math.max(u.secousse, 0.3);
         ajouterFlottant(`💫 ${e.stun}`, u.ecran.cx, u.ecran.sommet - 16, "#ffd966");
       }
+      if (e.gel > gelAvants[idx]) { // Gel posé (−30% vitesse) → flocon au-dessus de l'ennemi
+        u.secousse = Math.max(u.secousse, 0.3);
+        ajouterFlottant(`❄ ${e.gel}`, u.ecran.cx, u.ecran.sommet - 32, "#9fdfff");
+      }
     }
     if (combat.pierre > pierreAvant) {
       ajouterFlottant(`+${combat.pierre - pierreAvant}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
+    }
+    if (combat.hate > hateAvant) { // Hâte posée (+30% agilité) → éclair au-dessus du héros
+      ajouterFlottant(`⚡ ${combat.hate}`, heroEcran.cx, heroEcran.sommet, "#dff4ff");
     }
     phaseCiblage = false;
     recalerCible();
@@ -567,18 +576,22 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   }
 
   // États sous la barre (poison/feu). L'armure (Pierre, héros) = bouclier bleu.
+  // Chaque état porte une `nature` : "buff" (bonus, pastille verte, rangée du
+  // HAUT) ou "malus" (debuff, pastille rouge, rangée du BAS) — cf. dessinerEtats.
   function etatsHeros() {
     const l = [];
-    if (combat.poisonHeros > 0) l.push({ texte: `☠${combat.poisonHeros}`, couleur: "#7ec850" });
-    if (combat.feuHeros > 0) l.push({ texte: `🔥${combat.feuHeros}`, couleur: "#ff8a2c" });
+    if (combat.hate > 0) l.push({ texte: `⚡${combat.hate}`, couleur: "#dff4ff", nature: "buff" }); // Hâte (+30% agilité)
+    if (combat.poisonHeros > 0) l.push({ texte: `☠${combat.poisonHeros}`, couleur: "#7ec850", nature: "malus" });
+    if (combat.feuHeros > 0) l.push({ texte: `🔥${combat.feuHeros}`, couleur: "#ff8a2c", nature: "malus" });
     return l;
   }
   function etatsEnnemi(e) {
     const l = [];
-    if (e.poison > 0) l.push({ texte: `☠${e.poison}`, couleur: "#7ec850" });
-    if (e.feu > 0) l.push({ texte: `🔥${e.feu}`, couleur: "#ff8a2c" });
-    if (e.sang > 0) l.push({ texte: `🩸${e.sang}`, couleur: "#e05a5a" });
-    if (e.stun > 0) l.push({ texte: `💫${e.stun}`, couleur: "#ffd966" }); // tours d'étourdissement restants
+    if (e.poison > 0) l.push({ texte: `☠${e.poison}`, couleur: "#7ec850", nature: "malus" });
+    if (e.feu > 0) l.push({ texte: `🔥${e.feu}`, couleur: "#ff8a2c", nature: "malus" });
+    if (e.sang > 0) l.push({ texte: `🩸${e.sang}`, couleur: "#e05a5a", nature: "malus" });
+    if (e.stun > 0) l.push({ texte: `💫${e.stun}`, couleur: "#ffd966", nature: "malus" }); // tours d'étourdissement restants
+    if (e.gel > 0) l.push({ texte: `❄${e.gel}`, couleur: "#9fdfff", nature: "malus" });   // Gel (−30% vitesse)
     return l;
   }
 
@@ -760,7 +773,12 @@ function barreVieAuSol(ctx, perso, ratio, texte, couleur, etats, pierre, initRat
   dessinerBarreVie(ctx, x, y, BAR_L, BAR_H, ratio, couleur, texte);
   // Barre d'INITIATIVE (orange, ~1/4 de la hauteur, même longueur), collée dessous.
   if (initRatio != null) dessinerBarreInit(ctx, x, y + BAR_H + 1, BAR_L, initRatio);
-  dessinerEtats(ctx, etats, perso.cx, y + BAR_H + ETATS_SOUS);
+  // États séparés en DEUX zones : les BONUS (buffs) au-dessus de la barre, les
+  // MALUS (debuffs) en dessous (sous la barre d'initiative).
+  const buffs = (etats ?? []).filter((e) => e.nature === "buff");
+  const malus = (etats ?? []).filter((e) => e.nature !== "buff");
+  dessinerEtats(ctx, buffs, perso.cx, y - 9);                  // au-dessus de la barre
+  dessinerEtats(ctx, malus, perso.cx, y + BAR_H + ETATS_SOUS); // en dessous
 }
 
 function dessinerBarreInit(ctx, x, y, l, ratio) {
@@ -859,18 +877,32 @@ function dessinerIntention(ctx, intention, cx, y) {
   ctx.textAlign = "left";
 }
 
-// Une rangée de petits badges d'état (poison, feu, stun… à venir), centrée.
+// Une rangée de badges d'état, centrée en `cx` sur la ligne `y`. Chaque badge a
+// une PASTILLE arrondie de fond qui dit sa nature : VERTE pour un bonus (buff),
+// ROUGE pour un malus (debuff) — pour distinguer d'un coup d'œil ce qui aide de
+// ce qui nuit (convention « vert = bon / rouge = mauvais pour le porteur »).
 function dessinerEtats(ctx, etats, cx, y) {
   if (!etats || etats.length === 0) return;
   ctx.font = "bold 9px ui-monospace, monospace";
   ctx.textAlign = "center";
-  const espace = 28; // écart entre badges (le chiffre colle à SON icône, cf. etats)
+  ctx.textBaseline = "middle";
+  const espace = 26;        // écart entre deux pastilles
+  const lw = 22, lh = 13;   // taille d'une pastille
   const x0 = cx - ((etats.length - 1) * espace) / 2;
   etats.forEach((etat, i) => {
+    const bx = x0 + i * espace;
+    const buff = etat.nature === "buff";
+    cheminArrondi(ctx, bx - lw / 2, y - lh / 2, lw, lh, 4);
+    ctx.fillStyle = buff ? "rgba(34, 84, 40, 0.78)" : "rgba(96, 28, 28, 0.78)";
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = buff ? "#5fd06e" : "#e36a6a";
+    ctx.stroke();
     ctx.fillStyle = etat.couleur;
-    ctx.fillText(etat.texte, x0 + i * espace, y);
+    ctx.fillText(etat.texte, bx, y + 0.5);
   });
   ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
 }
 
 // Une flèche rouge qui pointe la CIBLE, au-dessus de sa tête, avec un petit
