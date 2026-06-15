@@ -27,6 +27,9 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
   document.getElementById("deck-fermer").onclick = () => surFermer();
 
   let ongletActif = "deck";
+  // Navigation clavier de l'onglet Maîtrise : carte au curseur + liste à plat.
+  let selBiblio = null;   // id de la carte sélectionnée au clavier (null = aucune)
+  let cartesNav = [];     // [{ id, el, actionnable }] dans l'ordre d'affichage
 
   function basculerOnglet(nom) {
     ongletActif = nom;
@@ -71,6 +74,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
 
   // -- Onglet Maîtrise ------------------------------------------------------
   function rendreMaitrise() {
+    cartesNav = []; // reconstruit plus bas si des cartes sont affichées
     const debloque = (heros?.talents?.maitrise1 || 0) > 0;
     ongletMaitrise.textContent = debloque ? "Ancestral Mastery" : "Ancestral Mastery 🔒";
 
@@ -199,10 +203,99 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
       titre.textContent = TITRES[t] || "Other";
       const rangee = document.createElement("div");
       rangee.className = "maitrise-biblio-rangee";
-      rangee.append(...parType.get(t).sort(parProgression).map(creerCarteMaitrise).filter(Boolean));
+      for (const id of parType.get(t).sort(parProgression)) {
+        const wrap = creerCarteMaitrise(id);
+        if (!wrap) continue;
+        rangee.append(wrap);
+        cartesNav.push({ id, el: wrap.querySelector(".combat-carte"),
+                         actionnable: carteMaitrisee(maitrise, id) && enVille });
+      }
       contenu.push(titre, rangee);
     }
+    // Aide clavier (en ville, là où l'on peut modifier sa sélection).
+    if (enVille && cartesNav.length) {
+      const aide = document.createElement("p");
+      aide.className = "maitrise-aide";
+      aide.innerHTML = "⌨ <b>Arrows</b> move · <b>Space</b> add/remove · <b>Tab</b> switch tab";
+      contenu.push(aide);
+    }
     elBiblio.replaceChildren(...contenu);
+
+    if (selBiblio && !cartesNav.some((c) => c.id === selBiblio)) selBiblio = null;
+    appliquerCurseur();
+  }
+
+  // -- Navigation clavier de l'onglet Maîtrise ------------------------------
+  function centreEl(el) {
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }
+
+  // Pose le curseur visuel sur la carte sélectionnée (et la garde à l'écran).
+  function appliquerCurseur() {
+    for (const c of cartesNav) c.el.classList.toggle("maitrise-carte--curseur", c.id === selBiblio);
+    const cur = cartesNav.find((c) => c.id === selBiblio);
+    if (cur) cur.el.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
+
+  // Déplace le curseur vers la carte voisine la plus proche dans la direction.
+  function naviguer(dir) {
+    if (!cartesNav.length) return;
+    const cur = cartesNav.find((c) => c.id === selBiblio);
+    if (!cur) { selBiblio = cartesNav[0].id; appliquerCurseur(); return; } // 1re flèche
+    const o = centreEl(cur.el);
+    let best = null, meilleur = Infinity;
+    for (const c of cartesNav) {
+      if (c.id === selBiblio) continue;
+      const p = centreEl(c.el);
+      const dx = p.x - o.x, dy = p.y - o.y;
+      let ok = false, principal = 0, lateral = 0;
+      if (dir === "droite")      { ok = dx > 1;  principal = dx;  lateral = Math.abs(dy); }
+      else if (dir === "gauche") { ok = dx < -1; principal = -dx; lateral = Math.abs(dy); }
+      else if (dir === "bas")    { ok = dy > 1;  principal = dy;  lateral = Math.abs(dx); }
+      else if (dir === "haut")   { ok = dy < -1; principal = -dy; lateral = Math.abs(dx); }
+      if (!ok) continue;
+      const score = principal + lateral * 3; // on privilégie l'alignement
+      if (score < meilleur) { meilleur = score; best = c.id; }
+    }
+    if (best) { selBiblio = best; appliquerCurseur(); }
+  }
+
+  // Espace/Entrée sur la carte au curseur : l'ajoute / la retire du deck.
+  function validerSelection() {
+    const cur = cartesNav.find((c) => c.id === selBiblio);
+    if (!cur || !cur.actionnable) return; // hors ville ou non maîtrisée : rien
+    const dejaChoisie = maitrise.choisies.includes(cur.id);
+    if (!toggleCarteChoisie(maitrise, cur.id) && !dejaChoisie) {
+      cur.el.style.outline = "2px solid #cc4444"; // 3 slots pleins : refus
+      setTimeout(() => { cur.el.style.outline = ""; }, 500);
+      return;
+    }
+    rendreMaitrise(); rendreDeck();
+  }
+
+  const DIRS = {
+    ArrowLeft: "gauche", KeyA: "gauche", KeyQ: "gauche",
+    ArrowRight: "droite", KeyD: "droite",
+    ArrowUp: "haut", KeyW: "haut", KeyZ: "haut",
+    ArrowDown: "bas", KeyS: "bas",
+  };
+  // Clavier de l'écran deck : Tab change d'onglet ; dans la Maîtrise, les flèches
+  // déplacent le curseur et Espace/Entrée ajoute/retire la carte visée.
+  function surTouche(e) {
+    if (e.code === "Tab") {
+      e.preventDefault(); e.stopPropagation();
+      basculerOnglet(ongletActif === "deck" ? "maitrise" : "deck");
+      return;
+    }
+    if (ongletActif !== "maitrise") return; // la navigation ne concerne que la Maîtrise
+    if (DIRS[e.code]) {
+      e.preventDefault(); e.stopPropagation();
+      naviguer(DIRS[e.code]);
+    } else if (e.code === "Space" || e.code === "Enter") {
+      e.preventDefault(); e.stopPropagation();
+      validerSelection();
+    }
   }
 
   function rendre() {
@@ -211,8 +304,16 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
   }
 
   return {
-    ouvrir() { rendre(); overlay.hidden = false; },
-    fermer() { overlay.hidden = true; },
+    ouvrir() {
+      rendre();
+      overlay.hidden = false;
+      window.addEventListener("keydown", surTouche, true);
+    },
+    fermer() {
+      overlay.hidden = true;
+      selBiblio = null;
+      window.removeEventListener("keydown", surTouche, true);
+    },
     rendre,
   };
 }
