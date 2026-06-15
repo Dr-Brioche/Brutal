@@ -62,6 +62,10 @@ Brutal/
 
 ## Points techniques à ne pas oublier
 
+- **Tout doit être jouable à la souris OU au clavier** : chaque action a ses
+  deux entrées. Y penser dès qu'on ajoute un écran, un menu ou un bouton.
+  C'est aussi ce qui rendra le portage **manette** simple plus tard (le clavier
+  se mappe facilement sur une manette).
 - GitHub Pages publie la branche `claude/epic-wright-69hom4` : c'est elle
   qui est en ligne. Pousser dessus = mettre à jour le jeu visible.
 - Les scores/sauvegardes du joueur se font en local dans le navigateur
