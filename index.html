@@ -735,13 +735,14 @@
 
     /* Les stats, sous le héros */
     .inv-stats {
-      width: 100%; margin-top: 4px;
+      width: 100%; min-width: 178px; margin-top: 4px;
       background: #100e16; border: 1px solid #2c2a36; border-radius: 8px;
-      padding: 10px 14px;
+      padding: 10px 16px;
       font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.82rem;
       display: flex; flex-direction: column; gap: 6px;
     }
-    .inv-stat { display: flex; justify-content: space-between; align-items: center; color: #b9c2cc; }
+    /* gap : un écart garanti entre le NOM et le CHIFFRE (sinon ils se touchent presque) */
+    .inv-stat { display: flex; justify-content: space-between; align-items: center; gap: 18px; color: #b9c2cc; }
     .inv-stat b { color: #fff; font-size: 0.88rem; }
 
     /* Le sac : grille de cases */
