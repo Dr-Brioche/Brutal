@@ -77,11 +77,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // État d'AFFICHAGE de chaque ennemi (le moteur tient l'état de jeu dans
   // combat.ennemis ; ici on tient le sprite, la position, les animations).
-  // Quinconce : indices pairs = avant-plan, indices impairs = arrière-plan.
+  // Quinconce STRICT par position : indices pairs = avant-plan, impairs =
+  // arrière-plan (1 devant, 1 derrière, 1 devant…), quel que soit l'affixe.
   const cxs = poserEnnemis(combat.ennemis.length);
   const ennemisUI = combat.ennemis.map((e, i) => {
     const spr = e.def.sprite;
-    const avant   = e.def.affix !== "range";
+    const avant   = (i % 2 === 0);
     const echelle = avant ? ECHELLE_AVANT : ECHELLE_ARRIERE;
     const solEcran = avant ? SOL_Y : SOL_ARRIERE;
     // Calcul en coordonnées monde à partir de l'échelle propre à cet ennemi.

@@ -153,17 +153,21 @@ joue, End Turn) ou **une attaque** pour un ennemi.
 > Quand deux types **partagent une même planche**, on les distingue par une
 > **teinte** (filtre couleur appliqué au sprite ET à son portrait dans la file).
 
-> **Affix de position `melee` / `range` (validé 15/06/2026)** : chaque type de
-> monstre porte un **affix de portée** qui dicte sa **position visuelle** dans le
-> groupe en combat.
-> - `melee` (défaut) : **avant-plan**, taille normale. Combattants de corps à corps.
-> - `range` : **arrière-plan**, 22 % plus petit et 18 px plus haut (perspective).
->   Pour caster et soigneurs qui restent derrière leurs alliés.
+> **Affix `melee` / `range` (validé 15/06/2026)** : chaque type de monstre porte
+> un **affix de portée**, qui sert à **deux** choses (et **pas** au placement
+> avant/arrière, voir plus bas) :
+> - **Spawn** : les monstres `range` n'apparaissent que dans les groupes de 3+
+>   (cf. *Rencontres par zone*).
+> - **Ordre horizontal** : le groupe est **trié** avant le combat, `melee` d'abord
+>   et `range` à la fin de l'array → les casters/soigneurs se regroupent **à
+>   droite**, en retrait du héros (qui combat à gauche).
 >
-> Le groupe est **trié avant le combat** : tous les `melee` d'abord, les `range` à
-> la fin de l'array. La caméra de combat construit le quinconce à partir de cette
-> position dans l'array, donc les `range` sont **toujours** à l'arrière, quels que
-> soient le nombre ou la composition du groupe.
+> **Placement avant/arrière = quinconce STRICT par position, PAS par affixe**
+> (revu le 15/06/2026) : indice **pair** = **avant-plan** (taille normale), indice
+> **impair** = **arrière-plan** (22 % plus petit, 18 px plus haut, perspective).
+> Soit « 1 devant, 1 derrière, 1 devant… » quel que soit le nombre de monstres et
+> leur affixe. Un `range` peut donc se retrouver à l'avant si son indice est pair :
+> l'alignement régulier prime sur l'affixe pour la lisibilité.
 
 ### Rencontres par zone (validé 15/06/2026)
 
@@ -205,7 +209,7 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 |---|---|---|---|---|
 | *Cave Goblin* | 24 | 10 | melee | Gobelin de base. |
 | *Goblin Skirmisher* | 16 | 18 | melee | Très rapide, teinte froide pour le repérer. |
-| *Goblin Shaman* | 14 | 7 | range | **Healer/caster rouge.** Actions pondérées : soigner allié (50 %), hâte de groupe (30 %), attaque (20 %). Affix `range` → groupes de 3+ uniquement, toujours à l'arrière. |
+| *Goblin Shaman* | 14 | 7 | range | **Healer/caster rouge.** Actions pondérées : soigner allié (50 %), hâte de groupe (30 %), attaque (20 %). Affix `range` → groupes de 3+ uniquement, regroupé à droite (placement en quinconce strict). |
 
 ### Mise en scène du combat (validé 10/06/2026)
 
