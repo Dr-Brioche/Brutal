@@ -183,4 +183,37 @@ export const CARTES = {
     texte: "Deal 2 damage. Apply 2 Bleed (heals you each tick).",
     effets: [{ type: "degats", valeur: 2 }, { type: "sang", valeur: 2 }],
   },
+
+  // ---- Battle Axe cards -------------------------------------------------------
+
+  // Coup de pommeau : assomme brièvement (dégâts + stun 1 tour).
+  "coup-de-pommeau": {
+    id: "coup-de-pommeau",
+    nom: "Pommel Strike",
+    cout: 1,
+    type: "attaque",
+    texte: "Deal 4 damage. Stun the target for 1 turn.",
+    effets: [{ type: "degats", valeur: 4 }, { type: "stun", valeur: 1 }],
+  },
+
+  // Giant Swing : grand arc → frappe TOUS les ennemis (AOE).
+  "giant-swing": {
+    id: "giant-swing",
+    nom: "Giant Swing",
+    cout: 3,
+    type: "attaque",
+    aoe: true,
+    texte: "Deal 9 damage to ALL enemies.",
+    effets: [{ type: "degats", valeur: 9 }],
+  },
+
+  // Couper en deux : coup lourd ; si la cible meurt, les dégâts rebondissent sur l'ennemi suivant.
+  "couper-en-deux": {
+    id: "couper-en-deux",
+    nom: "Cleave",
+    cout: 2,
+    type: "attaque",
+    texte: "Deal 12 damage. If the target dies, deal 12 damage to the next enemy.",
+    effets: [{ type: "degats", valeur: 12 }, { type: "rebond", valeur: 12 }],
+  },
 };

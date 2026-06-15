@@ -10,7 +10,7 @@
 //   - clic sur un item équipé  → on le remet dans le sac.
 
 import { itemDef, couleurRarete } from "../data/items.js";
-import { rangsInventaire, equiper, desequiper } from "../systems/inventaire.js";
+import { rangsInventaire, equiper, desequiper, arme2Bloquee } from "../systems/inventaire.js";
 import { bonusTalents } from "../systems/talents.js";
 import { montrerInfobulle, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
 import { confirmationActive } from "./confirmation.js";
@@ -138,6 +138,12 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function slotEl(slot) {
     const cell = document.createElement("div");
     cell.className = "inv-slot";
+    // Slot arme2 verrouillé si arme1 est deux mains.
+    if (slot === "arme2" && arme2Bloquee(inventaire)) {
+      cell.classList.add("bloque");
+      cell.textContent = "2H";
+      return cell;
+    }
     const id = inventaire.slots[slot];
     if (id) {
       const ic = iconeItem(id);

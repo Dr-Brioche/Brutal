@@ -43,29 +43,37 @@ export const ITEMS = {
   "hache-rouillee": {
     id: "hache-rouillee", nom: "Rusty Axe", categorie: "arme", rarete: "commun",
     taille: { l: 1, h: 2 }, icone: "#9a6b3a",
-    planche: "images/armes/hache.png", degats: 5, mains: 1, cartes: ["coup-de-hache"],
+    planche: "images/armes/hache.png", degats: 5, mains: 1, cartes: ["coup-de-hache", "coup-de-hache"],
   },
   "marteau-de-forge": {
     id: "marteau-de-forge", nom: "Forge Hammer", categorie: "arme", rarete: "commun",
     taille: { l: 1, h: 2 }, icone: "#8a8f98",
-    planche: "images/armes/marteau.png", degats: 4, mains: 1, cartes: ["ecrasement"],
+    planche: "images/armes/marteau.png", degats: 4, mains: 1, cartes: ["ecrasement", "ecrasement"],
   },
   "pioche-de-mineur": {
     id: "pioche-de-mineur", nom: "Miner's Pick", categorie: "arme", rarete: "commun",
     taille: { l: 1, h: 2 }, icone: "#7d7a72",
-    planche: "images/armes/pioche.png", degats: 3, mains: 1, cartes: ["coup-de-pioche"],
+    planche: "images/armes/pioche.png", degats: 3, mains: 1, cartes: ["coup-de-pioche", "coup-de-pioche"],
   },
   // Croc de basilic : arme à poison (pas encore de sprite). Injecte « Venom Stab ».
   "croc-de-basilic": {
     id: "croc-de-basilic", nom: "Basilisk Fang", categorie: "arme", rarete: "rare",
     taille: { l: 1, h: 2 }, icone: "#4f7a3a",
-    degats: 4, mains: 1, cartes: ["coup-venimeux"],
+    degats: 4, mains: 1, cartes: ["coup-venimeux", "coup-venimeux"],
   },
   // Marteau de lave : arme de feu (pas encore de sprite). Injecte « Lava Hammer ».
   "marteau-de-lave": {
     id: "marteau-de-lave", nom: "Magma Hammer", categorie: "arme", rarete: "epique",
     taille: { l: 1, h: 2 }, icone: "#c0431e",
-    degats: 6, mains: 1, cartes: ["coup-de-lave"],
+    degats: 6, mains: 1, cartes: ["coup-de-lave", "coup-de-lave"],
+  },
+
+  // Battle Axe : arme deux mains épique. Cartes : 2× pommeau, 1× grand arc (AOE), 2× Cleave.
+  "hache-de-guerre": {
+    id: "hache-de-guerre", nom: "War Axe", categorie: "arme", rarete: "epique",
+    taille: { l: 1, h: 3 }, icone: "#8a3a1a",
+    planche: "images/armes/hache.png", degats: 8, mains: 2,
+    cartes: ["coup-de-pommeau", "coup-de-pommeau", "giant-swing", "couper-en-deux", "couper-en-deux"],
   },
 
   // ---- Boucliers (slot off-hand) ----
@@ -98,12 +106,12 @@ export const ITEMS = {
   // Bague de sang : injecte « Bloodletting » (saignement qui soigne le héros).
   "bague-de-sang": {
     id: "bague-de-sang", nom: "Blood Ring", categorie: "bague", rarete: "rare",
-    taille: { l: 1, h: 1 }, icone: "#7a1f2b", cartes: ["coup-de-sang"],
+    taille: { l: 1, h: 1 }, icone: "#7a1f2b", cartes: ["coup-de-sang", "coup-de-sang"],
   },
   // Collier de saphir énergisant : injecte « Sapphire Surge » (régénère l'énergie).
   "collier-de-saphir": {
     id: "collier-de-saphir", nom: "Sapphire Amulet", categorie: "collier", rarete: "epique",
-    taille: { l: 1, h: 1 }, icone: "#2f6fb0", cartes: ["surge-saphir"],
+    taille: { l: 1, h: 1 }, icone: "#2f6fb0", cartes: ["surge-saphir", "surge-saphir"],
   },
   // Gants de mineur : slot « gant » libre ; recevront des cartes plus tard.
   "gants-de-mineur": {
@@ -113,12 +121,12 @@ export const ITEMS = {
   // Bottes vives : injectent « Quicken » (accélère le héros — vitesse d'initiative).
   "bottes-vives": {
     id: "bottes-vives", nom: "Swift Boots", categorie: "botte", rarete: "rare",
-    taille: { l: 2, h: 1 }, icone: "#3a7a5a", cartes: ["celerite-vive"],
+    taille: { l: 2, h: 1 }, icone: "#3a7a5a", cartes: ["celerite-vive", "celerite-vive"],
   },
   // Anneau de givre : injecte « Frostbite » (ralentit un ennemi).
   "anneau-de-givre": {
     id: "anneau-de-givre", nom: "Frost Ring", categorie: "bague", rarete: "rare",
-    taille: { l: 1, h: 1 }, icone: "#5aa6d9", cartes: ["givre-lent"],
+    taille: { l: 1, h: 1 }, icone: "#5aa6d9", cartes: ["givre-lent", "givre-lent"],
   },
   "sac-en-cuir": {
     id: "sac-en-cuir", nom: "Leather Pouch", categorie: "sac", rarete: "commun",

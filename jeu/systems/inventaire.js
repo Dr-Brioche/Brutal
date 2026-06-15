@@ -93,6 +93,8 @@ export function equiper(inv, objet) {
   const d = itemDef(objet.id);
   const slot = slotCible(inv, objet.id);
   if (!slot) return false;
+  // Bloquer arme2 si arme1 est une arme à deux mains (la seconde main est occupée).
+  if (slot === "arme2" && itemDef(inv.slots.arme1 ?? "")?.mains === 2) return false;
   retirerObjet(inv, objet);
   const ancien = inv.slots[slot];
   inv.slots[slot] = objet.id;
@@ -102,6 +104,11 @@ export function equiper(inv, objet) {
   }
   if (ancien) ajouterObjet(inv, ancien);
   return true;
+}
+
+// Vrai si arme1 est une arme deux mains → arme2 est bloquée.
+export function arme2Bloquee(inv) {
+  return itemDef(inv.slots.arme1 ?? "")?.mains === 2;
 }
 
 // Déséquipe un slot : l'item retourne au sac (refusé si le sac est plein).

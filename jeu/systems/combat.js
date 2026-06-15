@@ -55,7 +55,7 @@ function melanger(tableau) {
 // Exporté pour que l'écran de deck montre EXACTEMENT le deck joué.
 export function composerDeck(cartesEquip) {
   const ids = [...DECK_BASE];
-  for (const idCarte of cartesEquip ?? []) ids.push(idCarte, idCarte);
+  for (const idCarte of cartesEquip ?? []) ids.push(idCarte);
   return ids.map((id) => CARTES[id]).filter(Boolean);
 }
 
@@ -259,7 +259,17 @@ export function jouerCarte(combat, index, cible = combat.cible) {
     // Carte ciblée : on vise un ennemi VIVANT (sinon on retombe sur le premier vivant).
     let ennemi = combat.ennemis[cible];
     if (!ennemiVivant(ennemi)) ennemi = combat.ennemis[premierVivant(combat)];
-    for (const effet of carte.effets) appliquerEffet(combat, effet, ennemi);
+    // Les effets normaux s'appliquent à la cible (`rebond` est traité séparément).
+    for (const effet of carte.effets) {
+      if (effet.type !== "rebond") appliquerEffet(combat, effet, ennemi);
+    }
+    // Rebond : si la cible meurt, les mêmes dégâts frappent le prochain ennemi vivant.
+    const rebondEff = carte.effets.find((e) => e.type === "rebond");
+    if (rebondEff && ennemi && ennemi.pv <= 0) {
+      const idx = combat.ennemis.indexOf(ennemi);
+      const suivant = combat.ennemis.find((e, i) => i !== idx && ennemiVivant(e));
+      if (suivant) appliquerEffet(combat, { type: "degats", valeur: rebondEff.valeur }, suivant);
+    }
   }
 
   combat.main.splice(index, 1);
