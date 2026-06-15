@@ -353,6 +353,16 @@ de l'arbre, effets appliqués. À venir : plus de nœuds, rangs multiples.)*
 | `maitrise1` | **Ancestral Mastery** | forge4 + agile1 | Jouer une carte 200 fois = la maîtriser ; choisir 3 maîtrisées à ajouter définitivement au deck |
 | `ambidextrie` | **Ambidexterity** | agile1 | Équiper **deux armes à 1 main** simultanément (main + main off) ; les cartes des deux armes s'ajoutent au deck |
 
+### Règles de la Maîtrise des Ancêtres
+
+- **Maîtrisables : seulement les cartes d'ÉQUIPEMENT.** On compte les usages
+  d'une carte (une fois le talent débloqué) ; à 200 elle devient maîtrisable.
+- **Exclues du comptage** :
+  - les cartes du **deck de base** (*Tap*, *Brace* — toujours là, sans intérêt à maîtriser) ;
+  - les cartes **« unique »** (`unique: true`) : les cartes **très puissantes**
+    (à venir) sont marquées ainsi pour qu'on **ne puisse pas** les rendre
+    permanentes via la maîtrise — sinon le jeu deviendrait déséquilibré.
+
 ### Règles d'Ambidextrie
 
 - **Slot arme2** : normalement réservé aux **boucliers**. Avec le talent, une

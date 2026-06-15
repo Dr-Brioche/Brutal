@@ -9,6 +9,9 @@
 //   nom    : nom affiché sur la carte
 //   cout   : Chaleur de Forge dépensée pour la jouer (0 = gratuite)
 //   type   : "attaque" ou "defense" (sert juste à la couleur de la carte)
+//   unique : (optionnel) true = carte « unique » (très puissante). Elle NE peut
+//            PAS être maîtrisée (exclue de la Maîtrise des Ancêtres, comme les
+//            cartes du deck de base) — pour ne pas rendre le jeu déséquilibré.
 //   texte  : description affichée au joueur
 //   image  : (optionnel) PNG illustrant TOUTE la carte. S'il est présent, on
 //            n'affiche par-dessus que le COÛT (un chiffre, pour qu'il puisse

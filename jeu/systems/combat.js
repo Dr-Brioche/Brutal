@@ -22,6 +22,9 @@ const DECK_BASE = [
   "coup-faible", "coup-faible", "coup-faible", "coup-faible", "coup-faible",
   "garde-faible", "garde-faible", "garde-faible",
 ];
+// Les ids (uniques) du deck de base : ces cartes ne sont PAS maîtrisables
+// (cf. systems/maitrise.js). Source de vérité du « set de base ».
+export const CARTES_BASE = new Set(DECK_BASE);
 
 // La Chaleur de Forge (l'énergie des cartes). Persiste entre les tours, peut
 // monter en SURCHAUFFE au-dessus du seuil. Valeurs modifiables par l'équipement.

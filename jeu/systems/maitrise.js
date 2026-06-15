@@ -4,6 +4,13 @@
 // À 200 usages → carte maîtrisée → disponible dans la bibliothèque.
 // On choisit jusqu'à 3 cartes maîtrisées : elles s'ajoutent au deck en
 // combat, sans avoir besoin d'équiper l'arme correspondante.
+//
+// Seules les cartes d'ÉQUIPEMENT sont maîtrisables : on exclut les cartes du
+// deck de BASE (coup-faible, garde-faible) et les cartes « UNIQUE » (très
+// puissantes, marquées `unique: true` dans data/cartes.js).
+
+import { CARTES } from "../data/cartes.js";
+import { CARTES_BASE } from "./combat.js";
 
 export const SEUIL_MAITRISE = 10; // provisoire pour les tests (valeur finale : 200)
 const MAX_CHOISIES = 3;
@@ -12,9 +19,20 @@ export function creerMaitrise() {
   return { compteurs: {}, choisies: [] };
 }
 
-// Incrémente le compteur (uniquement si le talent est débloqué).
+// Une carte est-elle maîtrisable ? Non si elle est du deck de base ou « unique ».
+export function carteMaitrisable(carteId) {
+  const carte = CARTES[carteId];
+  if (!carte) return false;            // carte inconnue
+  if (CARTES_BASE.has(carteId)) return false; // deck de base : exclu
+  if (carte.unique) return false;      // carte « unique » : exclue
+  return true;
+}
+
+// Incrémente le compteur (uniquement si le talent est débloqué ET la carte est
+// maîtrisable — les cartes de base et « uniques » ne comptent jamais).
 export function incrementerMaitrise(maitrise, heros, carteId) {
   if (!heros?.talents?.maitrise1) return;
+  if (!carteMaitrisable(carteId)) return;
   maitrise.compteurs[carteId] = (maitrise.compteurs[carteId] || 0) + 1;
 }
 
@@ -27,7 +45,8 @@ export function carteMaitrisee(maitrise, carteId) {
 }
 
 export function cartesMaitrisees(maitrise) {
-  return Object.keys(maitrise.compteurs).filter((id) => carteMaitrisee(maitrise, id));
+  return Object.keys(maitrise.compteurs)
+    .filter((id) => carteMaitrisable(id) && carteMaitrisee(maitrise, id));
 }
 
 // Ajoute / retire une carte des slots choisis. Retourne false si les 3 slots

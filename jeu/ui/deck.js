@@ -11,7 +11,7 @@ import { CARTES } from "../data/cartes.js";
 import { garnirCarte } from "./carte.js";
 import {
   SEUIL_MAITRISE, compteurMaitrise, carteMaitrisee,
-  toggleCarteChoisie,
+  carteMaitrisable, toggleCarteChoisie,
 } from "../systems/maitrise.js";
 
 export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFermer }) {
@@ -121,8 +121,8 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
       elSlots.after(avert);
     }
 
-    // Bibliothèque
-    const idsConnus = Object.keys(maitrise.compteurs);
+    // Bibliothèque (cartes d'équipement seulement : ni base, ni « unique »)
+    const idsConnus = Object.keys(maitrise.compteurs).filter(carteMaitrisable);
     if (!idsConnus.length) {
       elBiblio.innerHTML = '<p class="maitrise-vide">Play cards in combat to master them (200 uses each).</p>';
       return;
