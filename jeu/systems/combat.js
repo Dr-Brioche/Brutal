@@ -347,18 +347,25 @@ export function agirEnnemi(combat, i) {
   };
   if (!e || e.pv <= 0) return evt;
   const enFeuAvant = e.feu > 0;
+  // Ordre des malus dans le temps : poison, puis feu, et le VOL DE VIE EN DERNIER.
   evt.poison = e.dernierPoison = tiquerEnnemi(e, "poison");
   evt.feu = e.dernierFeu = tiquerEnnemi(e, "feu");
-  evt.sang = e.dernierSang = tiquerEnnemi(e, "sang");
   if (enFeuAvant) propagerDepuis(combat, i, e.feu); // enflamme les voisins (même s'il meurt)
+  // Vol de vie (saignement) TOUJOURS en dernier : si l'ennemi est DÉJÀ MORT du
+  // poison ou du feu, il ne saigne plus → AUCUNE régénération pour le héros.
+  if (e.pv > 0) {
+    evt.sang = e.dernierSang = tiquerEnnemi(e, "sang");
+    if (evt.sang > 0) {
+      const avant = combat.pvHeros;
+      combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + evt.sang);
+      evt.soin = combat.pvHeros - avant;
+      combat.dernierSoinSang += evt.soin;
+    }
+  } else {
+    e.dernierSang = 0; // mort avant de saigner : pas de tick de sang
+  }
   if (e.gel   > 0) e.gel   -= 1; // le Gel s'écoule (1 de SES tours), même étourdi
   if (e.haste > 0) e.haste -= 1; // la Hâte s'écoule (1 de SES tours)
-  if (evt.sang > 0) {
-    const avant = combat.pvHeros;
-    combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + evt.sang);
-    evt.soin = combat.pvHeros - avant;
-    combat.dernierSoinSang += evt.soin;
-  }
   if (e.pv <= 0) { evt.mortStatut = true; verifierFin(combat); return evt; }
   if (e.stun > 0) { e.stun -= 1; evt.stun = true; return evt; } // étourdi : pas d'action
   if (e.intention?.type === "attaque") {

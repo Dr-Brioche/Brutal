@@ -296,7 +296,10 @@ directement la **collecte** et le **marché**.
     carte *Lava Hammer*.
   - **Saignement (sang)** : comme le poison, mais le sang absorbé **soigne le
     héros** du même montant à chaque tick (vol de vie lent). Ex. *Blood Ring* →
-    carte *Bloodletting*.
+    carte *Bloodletting*. **Ordre des malus dans le temps** : poison, puis feu,
+    et le **vol de vie TOUJOURS en dernier**. Conséquence : si l'ennemi **meurt
+    du poison ou du feu** avant l'étape du vol de vie, **il ne saigne plus** →
+    **aucune régénération** pour le héros (on ne vole pas la vie d'un mort).
   - **Étourdissement (stun) — implémenté** : l'ennemi **saute ses tours** (n'attaque
     pas, **aucune animation d'attaque**) tant que son compteur de stun > 0 ; il
     baisse de 1 à chaque tour sauté. **Cumulable** (les ticks s'additionnent →
