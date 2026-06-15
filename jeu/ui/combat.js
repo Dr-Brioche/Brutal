@@ -721,6 +721,32 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       ctx.restore();
     });
 
+    // Indicateurs des SORTS ennemis (soin / haste) : recalculés à chaque frame
+    // pour coller à la situation réelle (si la cible prévue meurt avant le tour
+    // du chaman, la flèche glisse automatiquement sur le nouvel allié le plus blessé).
+    for (let ci = 0; ci < ennemisUI.length; ci++) {
+      const cham = ennemisUI[ci];
+      if (!ennemiVivant(cham.e) || cham.e.stun > 0) continue;
+      if (cham.e.intention?.type === "soigner") {
+        // Trouve l'allié vivant le plus blessé (hors du chaman lui-même).
+        let cibleIdx = -1, minPv = Infinity;
+        for (let j = 0; j < ennemisUI.length; j++) {
+          if (j === ci) continue;
+          const u = ennemisUI[j];
+          if (ennemiVivant(u.e) && u.e.pv < minPv) { minPv = u.e.pv; cibleIdx = j; }
+        }
+        // Si le chaman est seul, il se soigne lui-même.
+        if (cibleIdx < 0) cibleIdx = ci;
+        dessinerFlecheSoin(ctx, ennemisUI[cibleIdx].ecran, temps);
+      } else if (cham.e.intention?.type === "haste-allie") {
+        // Éclairs sur tous les alliés vivants.
+        const ecransAlliés = ennemisUI
+          .filter((u, j) => j !== ci && ennemiVivant(u.e))
+          .map((u) => u.ecran);
+        if (ecransAlliés.length) dessinerHasteAllie(ctx, ecransAlliés, temps);
+      }
+    }
+
     // Flèche rouge au-dessus de la cible : UNIQUEMENT quand une carte d'attaque
     // est armée au clavier (sinon rien). La souris a sa propre flèche (drag).
     if (!drag && phaseCiblage && combat.tourJoueur && !combat.fini) {
@@ -997,6 +1023,43 @@ function dessinerEtats(ctx, etats, cx, y) {
     ctx.fillStyle = etat.couleur;
     ctx.fillText(etat.texte, bx, y + 0.5);
   });
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+}
+
+// Une flèche verte pointant la cible du SOIN (miroir de dessinerFlecheCible).
+function dessinerFlecheSoin(ctx, ecran, t) {
+  const bob = Math.sin(t * 6) * 3;
+  const x = ecran.cx;
+  const y = ecran.haut - 14 + bob;
+  const w = 10, h = 12;
+  ctx.globalAlpha = 0.75 + 0.25 * Math.sin(t * 6);
+  ctx.fillStyle = "#7edf82";
+  ctx.beginPath();
+  ctx.moveTo(x - w / 2, y - h);
+  ctx.lineTo(x + w / 2, y - h);
+  ctx.lineTo(x, y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+// Petits éclairs ⚡ au-dessus de TOUS les alliés vivants d'un chaman qui va
+// donner la hâte (intention "haste-allie"). Ils pulsent en boucle.
+function dessinerHasteAllie(ctx, ecrans, t) {
+  ctx.font = "bold 9px ui-monospace, monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "bottom";
+  for (const ecran of ecrans) {
+    const bob = Math.sin(t * 5 + ecran.cx * 0.05) * 2; // déphasage par position
+    ctx.globalAlpha = 0.65 + 0.35 * Math.sin(t * 5 + ecran.cx * 0.05);
+    ctx.fillStyle = "#dff4ff";
+    ctx.fillText("⚡", ecran.cx, ecran.haut - 14 + bob);
+  }
+  ctx.globalAlpha = 1;
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
 }
