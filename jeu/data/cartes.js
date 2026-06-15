@@ -8,7 +8,9 @@
 //   id     : identifiant interne (référencé par les armes, le deck…)
 //   nom    : nom affiché sur la carte
 //   cout   : Chaleur de Forge dépensée pour la jouer (0 = gratuite)
-//   type   : "attaque" ou "defense" (sert juste à la couleur de la carte)
+//   type   : "attaque", "defense" ou "buff" — sert à la COULEUR de la carte et
+//            à son rangement dans la Maîtrise des Ancêtres. "buff" = ne fait ni
+//            dégât ni bouclier (ex. hâte sur soi, régénération d'énergie).
 //   unique : (optionnel) true = carte « unique » (très puissante). Elle NE peut
 //            PAS être maîtrisée (exclue de la Maîtrise des Ancêtres, comme les
 //            cartes du deck de base) — pour ne pas rendre le jeu déséquilibré.
@@ -152,7 +154,7 @@ export const CARTES = {
     id: "celerite-vive",
     nom: "Quicken",
     cout: 1,
-    type: "defense",
+    type: "buff", // ni dégât ni bouclier : accélère le héros
     texte: "Haste: +30% attack speed for 3 turns.",
     effets: [{ type: "celerite", valeur: 3 }],
   },
@@ -172,7 +174,7 @@ export const CARTES = {
     id: "surge-saphir",
     nom: "Sapphire Surge",
     cout: 0,
-    type: "defense",
+    type: "buff", // ni dégât ni bouclier : régénère juste de l'énergie
     texte: "Gain 2 Forge Heat (energy).",
     effets: [{ type: "chaleur", valeur: 2 }],
   },
