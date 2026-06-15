@@ -196,13 +196,24 @@ Conséquence : un `range` est **plus rare** au global (il lui faut un groupe de 
 mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 
 > **Actions pondérées des ennemis (validé 15/06/2026)** : les monstres
-> « intelligents » (ex. chamanss, lanceurs de sorts) ont un tableau `actions` avec
+> « intelligents » (ex. chamans, lanceurs de sorts) ont un tableau `actions` avec
 > un champ **`poids`** par action. À chaque tour, leur intention est tirée à la
 > roulette pondérée (tirage proportionnel au poids). Les monstres sans `actions`
 > attaquent toujours (comportement par défaut). Exemples d'actions possibles :
 > `"attaque"` (frappe directe), `"soigner"` (soigne l'allié le plus blessé),
 > `"haste-allie"` (donne `N` tours de Hâte à tous les alliés vivants — +30 %
 > vitesse).
+
+> **Télégraphe visuel des sorts (validé 15/06/2026)** : pour qu'on lise d'un
+> coup d'œil qui fait quoi, deux conventions communes à tous les sorts ennemis :
+> - **Sort sur une cible alliée unique** (ex. soin) → un **fil coloré animé**
+>   part du lanceur et rejoint sa cible (sens source → cible), avec l'icône du
+>   sort posée dessus (💚 vert = soin). Le fil est **recalculé en continu** : si
+>   la cible meurt avant que le lanceur agisse, il glisse sur la nouvelle cible.
+>   Lève l'ambiguïté quand plusieurs lanceurs agissent en même temps.
+> - **Sort de groupe** (touche tous les alliés, ex. hâte) → **pas de fil** : son
+>   intention, affichée au-dessus du lanceur, porte une petite case **« ALL »**
+>   collée à l'icône (⚡ ALL). Inutile de désigner une cible puisque c'est global.
 
 ### Bestiaire actuel (1er jet)
 

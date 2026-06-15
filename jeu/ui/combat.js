@@ -721,29 +721,25 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       ctx.restore();
     });
 
-    // Indicateurs des SORTS ennemis (soin / haste) : recalculés à chaque frame
-    // pour coller à la situation réelle (si la cible prévue meurt avant le tour
-    // du chaman, la flèche glisse automatiquement sur le nouvel allié le plus blessé).
+    // Télégraphe des SORTS ennemis ciblant un ALLIÉ unique (ex. soin) : un fil
+    // coloré relie le lanceur à sa cible. Recalculé à chaque frame → si la cible
+    // prévue meurt avant le tour du lanceur, le fil glisse tout seul sur le
+    // nouvel allié le plus blessé. (Les sorts de GROUPE, eux, n'ont pas de fil :
+    // leur intention porte un badge « ALL » — cf. dessinerIntention.)
     for (let ci = 0; ci < ennemisUI.length; ci++) {
       const cham = ennemisUI[ci];
       if (!ennemiVivant(cham.e) || cham.e.stun > 0) continue;
       if (cham.e.intention?.type === "soigner") {
-        // Trouve l'allié vivant le plus blessé (hors du chaman lui-même).
+        // Cible = allié vivant le plus blessé (le chaman lui-même s'il est seul).
         let cibleIdx = -1, minPv = Infinity;
         for (let j = 0; j < ennemisUI.length; j++) {
           if (j === ci) continue;
           const u = ennemisUI[j];
           if (ennemiVivant(u.e) && u.e.pv < minPv) { minPv = u.e.pv; cibleIdx = j; }
         }
-        // Si le chaman est seul, il se soigne lui-même.
         if (cibleIdx < 0) cibleIdx = ci;
-        dessinerFlecheSoin(ctx, ennemisUI[cibleIdx].ecran, temps);
-      } else if (cham.e.intention?.type === "haste-allie") {
-        // Éclairs sur tous les alliés vivants.
-        const ecransAlliés = ennemisUI
-          .filter((u, j) => j !== ci && ennemiVivant(u.e))
-          .map((u) => u.ecran);
-        if (ecransAlliés.length) dessinerHasteAllie(ctx, ecransAlliés, temps);
+        const src = cham.ecran, dst = ennemisUI[cibleIdx].ecran;
+        dessinerLienSort(ctx, src.cx, src.milieu, dst.cx, dst.milieu, temps, "#7edf82", "💚");
       }
     }
 
@@ -961,20 +957,49 @@ function dessinerBouclier(ctx, cx, cy, taille, valeur) {
   ctx.textBaseline = "alphabetic";
 }
 
+// Sorts qui touchent TOUT le groupe allié → leur intention porte un badge « ALL »
+// collé à l'icône (convention valable pour tout futur sort de groupe).
+const SORTS_GROUPE = new Set(["haste-allie"]);
+
 function dessinerIntention(ctx, intention, cx, y) {
   if (!intention) return;
   ctx.font = "bold 12px ui-monospace, monospace";
-  ctx.textAlign = "center";
-  if (intention.type === "soigner") {
-    ctx.fillStyle = "#7edf82";
-    ctx.fillText(`💚 ${intention.valeur}`, cx, y);
-  } else if (intention.type === "haste-allie") {
-    ctx.fillStyle = "#dff4ff";
-    ctx.fillText(`⚡ ${intention.valeur}`, cx, y);
+  ctx.textBaseline = "alphabetic";
+  let icone = "⚔", couleur = "#ff8a5b";
+  if (intention.type === "soigner") { icone = "💚"; couleur = "#7edf82"; }
+  else if (intention.type === "haste-allie") { icone = "⚡"; couleur = "#dff4ff"; }
+  const txt = `${icone} ${intention.valeur}`;
+  ctx.fillStyle = couleur;
+  if (SORTS_GROUPE.has(intention.type)) {
+    // Icône + valeur, puis une petite case « ALL » à droite (bloc centré sur cx).
+    const wTxt = ctx.measureText(txt).width;
+    const wBadge = 21, gap = 4, total = wTxt + gap + wBadge;
+    const gauche = cx - total / 2;
+    ctx.textAlign = "left";
+    ctx.fillText(txt, gauche, y);
+    dessinerBadgeAll(ctx, gauche + wTxt + gap, y, wBadge);
   } else {
-    ctx.fillStyle = "#ff8a5b";
-    ctx.fillText(`⚔ ${intention.valeur}`, cx, y);
+    ctx.textAlign = "center";
+    ctx.fillText(txt, cx, y);
   }
+  ctx.textAlign = "left";
+}
+
+// Petite case « ALL » (sorts de groupe), alignée sur la ligne de texte `y`.
+function dessinerBadgeAll(ctx, x, y, w) {
+  const h = 11, top = y - 10;
+  cheminArrondi(ctx, x, top, w, h, 3);
+  ctx.fillStyle = "rgba(40, 70, 96, 0.92)";
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "#8fd6ff";
+  ctx.stroke();
+  ctx.font = "bold 8px ui-monospace, monospace";
+  ctx.fillStyle = "#dff4ff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("ALL", x + w / 2, top + h / 2 + 0.5);
+  ctx.textBaseline = "alphabetic";
   ctx.textAlign = "left";
 }
 
@@ -1027,38 +1052,36 @@ function dessinerEtats(ctx, etats, cx, y) {
   ctx.textBaseline = "alphabetic";
 }
 
-// Une flèche verte pointant la cible du SOIN (miroir de dessinerFlecheCible).
-function dessinerFlecheSoin(ctx, ecran, t) {
-  const bob = Math.sin(t * 6) * 3;
-  const x = ecran.cx;
-  const y = ecran.haut - 14 + bob;
-  const w = 10, h = 12;
-  ctx.globalAlpha = 0.75 + 0.25 * Math.sin(t * 6);
-  ctx.fillStyle = "#7edf82";
+// Fil animé reliant un lanceur de sort (x0,y0) à sa cible alliée (x1,y1) : trait
+// pointillé qui « coule » vers la cible (sens lecture source → cible) + l'icône
+// du sort posée sur la cible. Convention pour TOUT sort à cible alliée unique
+// (le `couleur`/`icone` distingue le type : 💚 vert = soin, etc.).
+function dessinerLienSort(ctx, x0, y0, x1, y1, t, couleur, icone) {
+  const pulse = 0.55 + 0.45 * Math.sin(t * 6);
+  const mx = (x0 + x1) / 2;
+  const my = Math.min(y0, y1) - 26; // léger arc vers le haut (évite les sprites)
+  ctx.save();
+  ctx.globalAlpha = pulse;
+  ctx.strokeStyle = couleur;
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = "round";
+  ctx.setLineDash([5, 6]);
+  ctx.lineDashOffset = -t * 28;     // défilement des pointillés vers la cible
   ctx.beginPath();
-  ctx.moveTo(x - w / 2, y - h);
-  ctx.lineTo(x + w / 2, y - h);
-  ctx.lineTo(x, y);
-  ctx.closePath();
-  ctx.fill();
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
+  ctx.moveTo(x0, y0);
+  ctx.quadraticCurveTo(mx, my, x1, y1);
   ctx.stroke();
-  ctx.globalAlpha = 1;
-}
-
-// Petits éclairs ⚡ au-dessus de TOUS les alliés vivants d'un chaman qui va
-// donner la hâte (intention "haste-allie"). Ils pulsent en boucle.
-function dessinerHasteAllie(ctx, ecrans, t) {
-  ctx.font = "bold 9px ui-monospace, monospace";
+  ctx.restore();
+  // Icône du sort sur la cible (halo doux + emoji).
+  ctx.globalAlpha = pulse;
+  ctx.beginPath();
+  ctx.arc(x1, y1, 11, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(20, 40, 24, 0.6)";
+  ctx.fill();
+  ctx.font = "13px ui-monospace, monospace";
   ctx.textAlign = "center";
-  ctx.textBaseline = "bottom";
-  for (const ecran of ecrans) {
-    const bob = Math.sin(t * 5 + ecran.cx * 0.05) * 2; // déphasage par position
-    ctx.globalAlpha = 0.65 + 0.35 * Math.sin(t * 5 + ecran.cx * 0.05);
-    ctx.fillStyle = "#dff4ff";
-    ctx.fillText("⚡", ecran.cx, ecran.haut - 14 + bob);
-  }
+  ctx.textBaseline = "middle";
+  ctx.fillText(icone, x1, y1 + 0.5);
   ctx.globalAlpha = 1;
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
