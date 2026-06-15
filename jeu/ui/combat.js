@@ -16,7 +16,7 @@ import {
   ennemiVivant, agirEnnemi, commencerTourHeros, finirTourHeros, avancerInitiative,
   simulerFile, ratioInitiativeHeros, ratioInitiativeEnnemi,
 } from "../systems/combat.js";
-import { cartesEquipees } from "../systems/inventaire.js";
+import { cartesEquipees, mainsOccupees } from "../systems/inventaire.js";
 import { bonusTalents } from "../systems/talents.js";
 import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
@@ -67,6 +67,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     pv: heros.pv, pvMax: heros.pvMax,
     cartes: cartesEquipees(inventaire),
     cartesSupp: maitrise?.choisies ?? [],
+    mains: mainsOccupees(inventaire), // cartes de base seulement pour les mains libres
     stats: bonusTalents(heros),
   });
 

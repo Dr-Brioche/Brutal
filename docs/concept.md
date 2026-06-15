@@ -244,10 +244,19 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 
 **Le deck est le miroir de l'équipement.**
 
-- Un **deck de base commun**, permanent : des cartes **à 0 Chaleur mais faibles**
-  (ex. *Tap* 3 dégâts, *Brace* 3 Pierre). Elles évitent les tours vides quand la
-  Chaleur est basse ; les cartes **fortes coûtent de la Chaleur** et viennent du
-  **stuff**. → sans équipement on « bricole », bien équipé on frappe fort.
+- Un **deck de base** : des cartes **à 0 Chaleur mais faibles**, présentes
+  **seulement quand une MAIN est VIDE** (filet de sécurité : toujours quelque
+  chose à jouer). → **on démarre sans arme**, donc avec le deck de base complet.
+  - ***Tap*** (5×, 3 dégâts) : tant que la **main principale** (arme1) est libre.
+    Équiper une arme principale → **Tap disparaît**.
+  - ***Brace*** (3×, 3 Pierre) : tant que la **main secondaire** est libre.
+    Équiper l'off-hand (bouclier, livre, 2e arme) **ou** une **arme à deux mains**
+    (elle occupe les deux mains) → **Brace disparaît**.
+  - **Retour automatique, MÊME EN COMBAT** : si on déséquipe / perd une arme
+    (future mécanique), la carte de base de la main libérée **revient aussitôt**
+    dans le deck en cours (`majCartesDeBase`).
+  - Les cartes **fortes coûtent de la Chaleur** et viennent du **stuff**.
+    → sans équipement on « bricole », bien équipé on frappe fort.
 - Chaque **arme / armure / rune / gemme équipée injecte ses propres cartes**,
   et les **retire au déséquipement**.
 - Changer d'arme = gagner ses cartes, perdre celles de l'ancienne
@@ -361,7 +370,7 @@ de l'arbre, effets appliqués. À venir : plus de nœuds, rangs multiples.)*
 - **Maîtrisables : seulement les cartes d'ÉQUIPEMENT.** On compte les usages
   d'une carte (une fois le talent débloqué) ; à 200 elle devient maîtrisable.
 - **Exclues du comptage** :
-  - les cartes du **deck de base** (*Tap*, *Brace* — toujours là, sans intérêt à maîtriser) ;
+  - les cartes du **deck de base** (*Tap*, *Brace* — cartes de secours, sans intérêt à maîtriser) ;
   - les cartes **« unique »** (`unique: true`) : les cartes **très puissantes**
     (à venir) sont marquées ainsi pour qu'on **ne puisse pas** les rendre
     permanentes via la maîtrise — sinon le jeu deviendrait déséquilibré.

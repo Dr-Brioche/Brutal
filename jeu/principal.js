@@ -77,8 +77,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   heros.x = carte.departX;
   heros.y = carte.departY;
   const inventaire = creerInventaire();
-  inventaire.slots.arme1 = "hache-rouillee";      // équipement de base
-  inventaire.slots.armure = "tenue-de-voyageur";
+  inventaire.slots.armure = "tenue-de-voyageur"; // habits de base (corps) ; on démarre SANS arme
+  ajouterObjet(inventaire, "hache-rouillee");    // 1re arme dans le SAC, à équiper soi-même
   appliquerEquipement(heros, inventaire, planches);
   appliquerTalents(heros); // vie max / vitesse selon les talents (aucun au départ)
   const maitrise = creerMaitrise();

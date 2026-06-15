@@ -121,6 +121,18 @@ export function arme2Bloquee(inv) {
   return itemDef(inv.slots.arme1 ?? "")?.mains === 2;
 }
 
+// État d'occupation des deux mains, pour les cartes de base du deck (cf.
+// systems/combat.js → cartesDeBase). La main PRINCIPALE est prise dès qu'une
+// arme est en arme1 ; la main SECONDAIRE dès qu'arme2 est rempli OU qu'arme1
+// est une arme à deux mains (elle occupe alors les deux mains).
+export function mainsOccupees(inv) {
+  const deuxMains = itemDef(inv.slots.arme1 ?? "")?.mains === 2;
+  return {
+    principale: Boolean(inv.slots.arme1),
+    secondaire: Boolean(inv.slots.arme2) || deuxMains,
+  };
+}
+
 // Déséquipe un slot : l'item retourne au sac (refusé si le sac est plein).
 export function desequiper(inv, slot) {
   const id = inv.slots[slot];
