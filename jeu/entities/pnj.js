@@ -79,13 +79,13 @@ export function dessinerPnj(ctx, pnj) {
     const nom = pnj.modele.nom;
     const cx = Math.round(pnj.x + s.caseL / 2);
     const cy = Math.round(pnj.y) - 2;
-    ctx.font = "bold 7px sans-serif";
+    ctx.font = "bold 10px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "bottom";
     const larg = ctx.measureText(nom).width;
     ctx.fillStyle = "rgba(10, 8, 5, 0.78)";
     ctx.beginPath();
-    ctx.roundRect(cx - larg / 2 - 4, cy - 10, larg + 8, 10, 3);
+    ctx.roundRect(cx - larg / 2 - 4, cy - 13, larg + 8, 13, 3);
     ctx.fill();
     ctx.fillStyle = "#f0e4b0";
     ctx.fillText(nom, cx, cy);
