@@ -70,6 +70,7 @@ function creerEnnemiCombat(def) {
     intention: null,              // ce qu'il prépare (télégraphié)
     vitesse: def.vitesse ?? VITESSE_HEROS_BASE, // vitesse d'initiative (agilité)
     gel: 0,                       // « Gel » : nb de SES tours encore ralentis (−30% vitesse)
+    haste: 0,                     // « Hâte alliée » : nb de SES tours encore accélérés (+30% vitesse)
     init: 0,                      // jauge d'initiative courante
   };
 }
@@ -131,7 +132,9 @@ export function vitesseHeros(combat) {
   return Math.max(1, v);
 }
 export function vitesseEnnemi(e) {
-  const v = e.gel > 0 ? e.vitesse * GEL_MULT : e.vitesse;
+  let v = e.vitesse;
+  if (e.haste > 0) v *= HATE_MULT; // Hâte alliée : +30% de vitesse
+  if (e.gel > 0)   v *= GEL_MULT;  // Gel : −30% de vitesse (cumulable avec hâte)
   return Math.max(1, v);
 }
 
@@ -157,10 +160,28 @@ function piocherMain(combat) {
   }
 }
 
-// Chaque ennemi annonce son prochain coup (v1 : il attaque, toujours).
+// Tire une action selon les poids de `def.actions` (roulette pondérée).
+function choisirAction(actions) {
+  const total = actions.reduce((s, a) => s + a.poids, 0);
+  let r = Math.random() * total;
+  for (const a of actions) {
+    r -= a.poids;
+    if (r <= 0) return a;
+  }
+  return actions[actions.length - 1];
+}
+
+// Chaque ennemi annonce son prochain coup. Les ennemis avec `def.actions` tirent
+// aléatoirement parmi leurs actions pondérées ; les autres attaquent toujours.
 function prevoirIntentions(combat) {
   for (const e of combat.ennemis) {
-    e.intention = ennemiVivant(e) ? { type: "attaque", valeur: e.def.attaque } : null;
+    if (!ennemiVivant(e)) { e.intention = null; continue; }
+    if (e.def.actions?.length) {
+      const a = choisirAction(e.def.actions);
+      e.intention = { type: a.type, valeur: a.valeur };
+    } else {
+      e.intention = { type: "attaque", valeur: e.def.attaque };
+    }
   }
 }
 
@@ -310,18 +331,25 @@ function propagerDepuis(combat, i, force) {
 }
 
 // Un ennemi agit : poison + feu (+ propagation) + saignement (le sang SOIGNE le
-// héros), puis il attaque — SAUF s'il est étourdi (il saute, le stun baisse).
+// héros), puis il exécute son intention — SAUF s'il est étourdi (stun).
 // Renvoie ce qui s'est passé, pour que l'écran l'anime.
 export function agirEnnemi(combat, i) {
   const e = combat.ennemis[i];
-  const evt = { poison: 0, feu: 0, sang: 0, soin: 0, mortStatut: false, attaque: 0, stun: false };
+  const evt = {
+    poison: 0, feu: 0, sang: 0, soin: 0, mortStatut: false,
+    attaque: 0, stun: false,
+    soin_allie: 0,  // PV soignés sur un allié
+    idx_soin: -1,   // index de l'ennemi soigné (pour le floater UI)
+    haste_allie: 0, // tours de hâte donnés aux alliés vivants
+  };
   if (!e || e.pv <= 0) return evt;
   const enFeuAvant = e.feu > 0;
   evt.poison = e.dernierPoison = tiquerEnnemi(e, "poison");
   evt.feu = e.dernierFeu = tiquerEnnemi(e, "feu");
   evt.sang = e.dernierSang = tiquerEnnemi(e, "sang");
   if (enFeuAvant) propagerDepuis(combat, i, e.feu); // enflamme les voisins (même s'il meurt)
-  if (e.gel > 0) e.gel -= 1; // le Gel s'écoule (1 de SES tours), même s'il est étourdi ce tour
+  if (e.gel   > 0) e.gel   -= 1; // le Gel s'écoule (1 de SES tours), même étourdi
+  if (e.haste > 0) e.haste -= 1; // la Hâte s'écoule (1 de SES tours)
   if (evt.sang > 0) {
     const avant = combat.pvHeros;
     combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + evt.sang);
@@ -329,11 +357,27 @@ export function agirEnnemi(combat, i) {
     combat.dernierSoinSang += evt.soin;
   }
   if (e.pv <= 0) { evt.mortStatut = true; verifierFin(combat); return evt; }
-  if (e.stun > 0) { e.stun -= 1; evt.stun = true; return evt; } // étourdi : pas d'attaque
+  if (e.stun > 0) { e.stun -= 1; evt.stun = true; return evt; } // étourdi : pas d'action
   if (e.intention?.type === "attaque") {
     const avant = combat.pvHeros;
     subirDegats(combat, e.intention.valeur);
     evt.attaque = avant - combat.pvHeros; // PV réellement perdus (après la Pierre)
+  } else if (e.intention?.type === "soigner") {
+    // Soigne l'allié le plus blessé (lui-même si seul survivant).
+    const alliés = combat.ennemis.filter((a, j) => j !== i && ennemiVivant(a));
+    const pool = alliés.length ? alliés : [e];
+    const cible = pool.reduce((b, a) => (!b || a.pv < b.pv) ? a : b, null);
+    if (cible) {
+      const avant = cible.pv;
+      cible.pv = Math.min(cible.pvMax, cible.pv + e.intention.valeur);
+      evt.soin_allie = cible.pv - avant;
+      evt.idx_soin = combat.ennemis.indexOf(cible);
+    }
+  } else if (e.intention?.type === "haste-allie") {
+    // Célérité à tous les alliés vivants (pas le chaman lui-même).
+    const alliés = combat.ennemis.filter((a, j) => j !== i && ennemiVivant(a));
+    for (const a of alliés) a.haste += e.intention.valeur;
+    evt.haste_allie = alliés.length ? e.intention.valeur : 0;
   }
   verifierFin(combat);
   return evt;

@@ -22,6 +22,7 @@ export const ENNEMIS = [
     attaque: 4,
     xp: 6,            // XP donnée au héros à sa mort
     vitesse: 10,      // vitesse d'initiative (ATB) ; héros de base = 10
+    affix: "melee",   // position visuelle : avant-plan
     planche: "images/ennemis/gobelin.png",
     // Portrait = zone de la TÊTE dans la planche (frame 0), pour la file des tours.
     // (Valeurs à ajuster à l'œil si la tête n'est pas bien cadrée.)
@@ -53,6 +54,7 @@ export const ENNEMIS = [
     attaque: 3,
     xp: 7,
     vitesse: 18,
+    affix: "melee",   // position visuelle : avant-plan
     planche: "images/ennemis/gobelin.png",
     // Même planche que le gobelin : on le distingue par une TEINTE (filtre canvas)
     // plus froide et claire → lecture immédiate « celui-là est le rapide ».
@@ -73,6 +75,42 @@ export const ENNEMIS = [
       objets: [
         { id: "bottes-vives", chance: 0.10 }, // rare (donne la carte Quicken)
       ],
+    },
+  },
+  // Gobelin chaman rouge : healer/caster. Affix "range" → toujours à l'arrière.
+  // Apparaît uniquement dans les groupes de 3+ (max 1 par groupe).
+  // Actions pondérées : soigner un allié blessé (prioritaire), célérité de groupe, ou attaque.
+  {
+    id: "gobelin-chaman",
+    nom: "Goblin Shaman",
+    pv: 14,
+    attaque: 2,
+    xp: 12,
+    vitesse: 7,       // lent : compense sa capacité à accélérer ses alliés
+    affix: "range",   // position visuelle : arrière-plan
+    // Teinte rouge sang : immédiatement reconnaissable comme cible prioritaire.
+    teinte: "hue-rotate(320deg) saturate(1.6) brightness(0.9)",
+    planche: "images/ennemis/gobelin.png",
+    portrait: { sx: 54, sy: 4, sw: 96, sh: 96 },
+    sprite: {
+      caseL: 204,
+      caseH: 150,
+      anims: {
+        idle:    { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 8,  boucle: true },
+        attaque: { frames: [8, 9, 10],              ips: 10, boucle: false },
+        touche:  { frames: [11, 12],                ips: 12, boucle: false },
+        ko:      { frames: [11, 12, 13],            ips: 8,  boucle: false },
+      },
+    },
+    // Actions pondérées : tirée aléatoirement selon le champ `poids`.
+    actions: [
+      { type: "soigner",     valeur: 10, poids: 50 }, // soigne l'allié le plus blessé
+      { type: "haste-allie", valeur: 2,  poids: 30 }, // célérité 2 tours à tous les alliés
+      { type: "attaque",     valeur: 2,  poids: 20 }, // attaque directe (rare)
+    ],
+    butin: {
+      or: [3, 6],
+      objets: [],
     },
   },
 ];

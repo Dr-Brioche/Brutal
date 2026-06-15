@@ -526,9 +526,17 @@ export async function demarrerJeu(donneesInitiales = null) {
     await flashCombat();
     // Un groupe de 1 à 3 gobelins (même définition, mais chacun son état de combat).
     const nb = 1 + Math.floor(Math.random() * 3);
-    // ~30% des ennemis sont des gobelins VÉLOCES (rapides → testent l'initiative).
+    // ~30% des ennemis de base sont des gobelins VÉLOCES (testent l'initiative).
     const ennemis = Array.from({ length: nb }, () =>
       ennemiParId(Math.random() < 0.3 ? "gobelin-vif" : "gobelin"));
+    // Dans un groupe de 3+, le chaman a ~40% de chance de remplacer un gobelin normal.
+    if (nb >= 3 && Math.random() < 0.4) {
+      const idx = ennemis.findIndex((e) => e.id === "gobelin");
+      if (idx >= 0) ennemis[idx] = ennemiParId("gobelin-chaman");
+      else ennemis[ennemis.length - 1] = ennemiParId("gobelin-chaman");
+    }
+    // Tri : melee d'abord, range à la fin → le chaman s'affiche toujours à l'arrière.
+    ennemis.sort((a, b) => (a.affix === "range" ? 1 : 0) - (b.affix === "range" ? 1 : 0));
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis, maitrise,
       surFin: (resultat) => {

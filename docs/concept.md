@@ -1,7 +1,7 @@
 # BRUTAL — Concept du jeu
 
 > Document vivant : c'est la « bible » du projet. On le modifie au fil de l'eau.
-> Dernière mise à jour : 2026-06-10.
+> Dernière mise à jour : 2026-06-15.
 
 ## Pitch
 
@@ -152,6 +152,35 @@ joue, End Turn) ou **une attaque** pour un ennemi.
 > le combat lancé**, via les **bonus/malus** (statuts : Gel −30 % vitesse, etc.).
 > Quand deux types **partagent une même planche**, on les distingue par une
 > **teinte** (filtre couleur appliqué au sprite ET à son portrait dans la file).
+
+> **Affix de position `melee` / `range` (validé 15/06/2026)** : chaque type de
+> monstre porte un **affix de portée** qui dicte sa **position visuelle** dans le
+> groupe en combat.
+> - `melee` (défaut) : **avant-plan**, taille normale. Combattants de corps à corps.
+> - `range` : **arrière-plan**, 22 % plus petit et 18 px plus haut (perspective).
+>   Pour caster et soigneurs qui restent derrière leurs alliés.
+>
+> Le groupe est **trié avant le combat** : tous les `melee` d'abord, les `range` à
+> la fin de l'array. La caméra de combat construit le quinconce à partir de cette
+> position dans l'array, donc les `range` sont **toujours** à l'arrière, quels que
+> soient le nombre ou la composition du groupe.
+
+> **Actions pondérées des ennemis (validé 15/06/2026)** : les monstres
+> « intelligents » (ex. chamanss, lanceurs de sorts) ont un tableau `actions` avec
+> un champ **`poids`** par action. À chaque tour, leur intention est tirée à la
+> roulette pondérée (tirage proportionnel au poids). Les monstres sans `actions`
+> attaquent toujours (comportement par défaut). Exemples d'actions possibles :
+> `"attaque"` (frappe directe), `"soigner"` (soigne l'allié le plus blessé),
+> `"haste-allie"` (donne `N` tours de Hâte à tous les alliés vivants — +30 %
+> vitesse).
+
+### Bestiaire actuel (1er jet)
+
+| Nom | PV | Vitesse | Affix | Notes |
+|---|---|---|---|---|
+| *Cave Goblin* | 24 | 10 | melee | Gobelin de base. |
+| *Goblin Skirmisher* | 16 | 18 | melee | Très rapide, teinte froide pour le repérer. |
+| *Goblin Shaman* | 14 | 7 | range | **Healer/caster rouge.** Actions pondérées : soigner allié (50 %), hâte de groupe (30 %), attaque (20 %). Apparaît seulement dans les groupes de 3+ (max 1 par groupe, ~40 % de chance). Toujours à l'arrière. |
 
 ### Mise en scène du combat (validé 10/06/2026)
 

@@ -77,7 +77,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const cxs = poserEnnemis(combat.ennemis.length);
   const ennemisUI = combat.ennemis.map((e, i) => {
     const spr = e.def.sprite;
-    const avant   = (i % 2 === 0);
+    const avant   = e.def.affix !== "range";
     const echelle = avant ? ECHELLE_AVANT : ECHELLE_ARRIERE;
     const solEcran = avant ? SOL_Y : SOL_ARRIERE;
     // Calcul en coordonnées monde à partir de l'échelle propre à cet ennemi.
@@ -485,7 +485,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (combat.dernierFeuHeros > 0) { secousseHeros = 0.3; ajouterFlottant(`🔥${combat.dernierFeuHeros}`, heroEcran.cx, heroEcran.sommet - 48, "#ff8a2c"); }
   }
 
-  // Anime l'action d'UN ennemi (statuts, mort, ou attaque). Étourdi → rien.
+  // Anime l'action d'UN ennemi (statuts, mort, ou attaque/sort). Étourdi → rien.
   function animerEnnemi(i, evt) {
     const u = ennemisUI[i];
     if (!u) return;
@@ -499,7 +499,18 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       secousseHeros = 0.3;
       ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
     }
-    // evt.stun → on n'affiche AUCUNE animation d'attaque
+    if (evt.soin_allie > 0) { // le chaman soigne un allié
+      jouerAnim(u, "attaque");
+      const cible = ennemisUI[evt.idx_soin];
+      const cx = cible ? cible.ecran.cx : u.ecran.cx;
+      const cy = cible ? cible.ecran.sommet : u.ecran.sommet;
+      ajouterFlottant(`💚+${evt.soin_allie}`, cx, cy, "#7edf82");
+    }
+    if (evt.haste_allie > 0) { // le chaman accélère ses alliés
+      jouerAnim(u, "attaque");
+      ajouterFlottant(`⚡×${evt.haste_allie}`, u.ecran.cx, u.ecran.sommet, "#dff4ff");
+    }
+    // evt.stun → on n'affiche AUCUNE animation
   }
 
   function terminer() {
@@ -604,6 +615,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   }
   function etatsEnnemi(e) {
     const l = [];
+    if (e.haste > 0) l.push({ texte: `⚡${e.haste}`, couleur: "#dff4ff", nature: "buff" }); // Hâte (+30% vitesse)
     if (e.poison > 0) l.push({ texte: `☠${e.poison}`, couleur: "#7ec850", nature: "malus" });
     if (e.feu > 0) l.push({ texte: `🔥${e.feu}`, couleur: "#ff8a2c", nature: "malus" });
     if (e.sang > 0) l.push({ texte: `🩸${e.sang}`, couleur: "#e05a5a", nature: "malus" });
@@ -917,10 +929,18 @@ function dessinerBouclier(ctx, cx, cy, taille, valeur) {
 
 function dessinerIntention(ctx, intention, cx, y) {
   if (!intention) return;
-  ctx.fillStyle = "#ff8a5b";
   ctx.font = "bold 12px ui-monospace, monospace";
   ctx.textAlign = "center";
-  ctx.fillText(`⚔ ${intention.valeur}`, cx, y);
+  if (intention.type === "soigner") {
+    ctx.fillStyle = "#7edf82";
+    ctx.fillText(`💚 ${intention.valeur}`, cx, y);
+  } else if (intention.type === "haste-allie") {
+    ctx.fillStyle = "#dff4ff";
+    ctx.fillText(`⚡ ${intention.valeur}`, cx, y);
+  } else {
+    ctx.fillStyle = "#ff8a5b";
+    ctx.fillText(`⚔ ${intention.valeur}`, cx, y);
+  }
   ctx.textAlign = "left";
 }
 
