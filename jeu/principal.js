@@ -551,18 +551,22 @@ export async function demarrerJeu(donneesInitiales = null) {
             xp += e.xp || 0;
             items.push(...butin.objets);
           }
+          // L'XP est appliquée TOUT DE SUITE (le héros est à jour pour la suite) ;
+          // on mémorise l'état d'avant pour que la fenêtre REJOUE la montée animée
+          // (barre d'XP qui se remplit + éclats dorés au passage de niveau).
+          const xpAvant = heros.xp, niveauAvant = heros.niveau;
+          const niveaux = gagnerXp(heros, xp);
           // On ouvre l'inventaire À CÔTÉ du butin (place restante + organisation).
           document.body.classList.add("en-butin");
           inventaireUI.ouvrir();
-          butinUI.ouvrir({ or, xp, items }, {
+          butinUI.ouvrir({ or, xp, items, xpAnim: { niveauDepart: niveauAvant, xpDepart: xpAvant, gain: xp } }, {
             prendre: (id) => {
               const ok = ajouterObjet(inventaire, id); // range l'objet, false si sac plein
               if (ok) inventaireUI.rendre();            // l'objet apparaît tout de suite
               return ok;
             },
             surFin: () => {
-              ajouterOr(inventaire, or);
-              const niveaux = gagnerXp(heros, xp);
+              ajouterOr(inventaire, or); // l'XP, elle, a déjà été appliquée (montée animée)
               if (niveaux > 0) afficherMessage(`⬆ Lvl ${heros.niveau} (+${niveaux} talent pt)`);
               document.body.classList.remove("en-butin");
               inventaireUI.fermer();

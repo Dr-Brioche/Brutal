@@ -2,33 +2,43 @@
 // liste ce qu'on a looté ; on prend les OBJETS un par un (clic), et quand on a
 // tout pris la fenêtre se ferme seule. On peut aussi tout prendre d'un coup
 // (« Take all » / Espace) ou laisser le reste (« Discard rest » / Échap).
-// L'XP et l'or sont toujours acquis : ils sont appliqués à la fermeture.
+// L'or est acquis à la fermeture ; l'XP, elle, est déjà appliquée au héros par
+// principal.js (la fenêtre ne fait que REJOUER la montée en animation).
 //
-// principal.js fournit `prendre(id)` (range l'objet, renvoie true si réussi) et
-// `surFin()` (applique XP+or et reprend le jeu). (Un visuel de fond viendra.)
+// À l'ouverture, au lieu d'une simple attente, la BARRE D'XP du héros se remplit
+// (cf. gainXp.js) : on voit le gain monter, et chaque palier « explose » en doré.
+// Les boutons (Take all / Discard) et Espace/Échap n'apparaissent qu'à la fin de
+// cette animation — qu'on peut zapper (clic / touche). Les clics sur les objets,
+// eux, restent immédiats.
 
 import { ITEMS, couleurRarete } from "../data/items.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
+import { animerGainXp } from "./gainXp.js";
 
 export function installerButin() {
   const overlay = document.getElementById("butin");
+  const panneau = overlay.querySelector(".butin-panneau");
   const liste = document.getElementById("butin-liste");
   const boutons = document.getElementById("butin-boutons");
   const aide = document.getElementById("butin-aide");
-  const attente = document.getElementById("butin-attente");
-  const attenteFill = document.getElementById("butin-attente-fill");
   const btnTout = document.getElementById("butin-tout");
   const btnLaisser = document.getElementById("butin-laisser");
+  // Les éléments de la barre d'XP animée (cf. gainXp.js).
+  const xpRefs = {
+    barre: document.getElementById("butin-xp-barre"),
+    fill: document.getElementById("butin-xp-fill"),
+    txt: document.getElementById("butin-xp-txt"),
+    niveau: document.getElementById("butin-xp-niveau"),
+    eclats: document.getElementById("butin-xp-eclats"),
+  };
+  const xpGain = document.getElementById("butin-xp-gain");
+
   let prendre = null;   // (id) => bool : tente de ranger l'objet dans le sac
-  let surFin = null;    // () => void  : applique XP/or + reprend le jeu
+  let surFin = null;    // () => void  : applique l'or + reprend le jeu
   let restants = 0;     // objets pas encore pris
-  // Les BOUTONS (Take all / Discard) et Espace/Échap n'apparaissent qu'après un
-  // court délai (une barre se remplit pour le justifier) : on a le temps de voir
-  // le butin, et un appui maintenu depuis le combat ne valide pas tout d'un coup.
-  // Les clics sur les objets, eux, restent immédiats.
-  let pret = false;
-  let timerPret = null;
-  const DELAI = 1500; // ms
+  let pret = false;     // l'animation d'XP est finie → boutons/Espace/Échap actifs
+  let anim = null;      // contrôleur de l'animation d'XP en cours (cf. gainXp.js)
+  let ouvertLe = 0;     // horodatage d'ouverture (sert au verrou anti-zap)
 
   function ligneInfo(html) {
     const d = document.createElement("div");
@@ -76,13 +86,14 @@ export function installerButin() {
     if (restants <= 0) fermer();
   }
 
-  // Ferme la fenêtre et applique XP/or (une seule fois).
+  // Ferme la fenêtre et applique l'or (une seule fois). Coupe l'animation d'XP
+  // si elle tournait encore (cas : on a tout looté avant la fin de la montée).
   function fermer() {
     if (!surFin) return;
     const cb = surFin;
     surFin = null;
     prendre = null;
-    clearTimeout(timerPret);
+    if (anim) { anim.arreter(); anim = null; }
     overlay.hidden = true;
     window.removeEventListener("keydown", surTouche, true);
     cb();
@@ -103,60 +114,69 @@ export function installerButin() {
     }
   }
 
-  // Fin du délai : on révèle les boutons (et Espace/Échap deviennent actifs).
+  // Fin de l'animation d'XP : on révèle les boutons (Espace/Échap deviennent
+  // actifs). Ignoré si la fenêtre a déjà été fermée entre-temps.
   function reveler() {
+    if (overlay.hidden) return;
     pret = true;
-    attente.hidden = true;
     boutons.hidden = false;
     aide.hidden = false;
+  }
+
+  // Tant que l'animation n'est pas finie, un geste la « zappe » (le verrou
+  // anti-accident est géré par gainXp.js via l'horodatage d'ouverture).
+  function zapper() {
+    if (anim) anim.zapper(ouvertLe);
   }
 
   function surTouche(e) {
     if (confirmationActive()) return; // une confirmation est ouverte : on l'ignore
     if (e.code === "Space" || e.code === "Enter") {
       e.preventDefault(); e.stopPropagation();
-      if (pret) prendreTout(); // sinon ignoré : boutons pas encore apparus
+      if (pret) prendreTout(); else zapper();
     } else if (e.code === "Escape") {
       e.preventDefault(); e.stopPropagation();
-      if (pret) tenterFermer();
+      if (pret) tenterFermer(); else zapper();
     }
   }
 
   btnTout.addEventListener("click", (e) => { e.stopPropagation(); prendreTout(); });
   btnLaisser.addEventListener("click", (e) => { e.stopPropagation(); tenterFermer(); });
+  // Clic dans la fenêtre pendant l'animation (les objets/boutons stoppent la
+  // propagation) → on zappe la montée d'XP.
+  panneau.addEventListener("click", () => { if (!pret) zapper(); });
 
   return {
-    // `loot` = { or, xp, items: [idObjet…] }. `opts` = { prendre, surFin }.
-    ouvrir({ or = 0, xp = 0, items = [] }, opts) {
+    // `loot` = { or, xp, items, xpAnim }. `opts` = { prendre, surFin }.
+    // `xpAnim` = { niveauDepart, xpDepart, gain } : l'état d'AVANT le gain.
+    ouvrir({ or = 0, xp = 0, items = [], xpAnim = null }, opts) {
       prendre = opts.prendre;
       surFin = opts.surFin;
       liste.replaceChildren();
-      if (xp > 0) liste.append(ligneInfo(`✨ <b>+${xp}</b> XP`));
-      if (or > 0) liste.append(ligneInfo(`🪙 <b>+${or}</b> Gold`));
+      if (or > 0) liste.append(ligneInfo(`🪙 <b>+${or}</b> Gold`)); // l'XP est dans la barre
       restants = 0;
       for (const id of items) {
         if (!ITEMS[id]) continue;
         liste.append(ligneObjet(id)); // une ligne par exemplaire (on prend 1 par 1)
         restants += 1;
       }
-      // Sans objet à trier, un seul bouton « Close » (XP/or seulement).
+      // Sans objet à trier, un seul bouton « Close » (or + XP seulement).
       btnTout.textContent = restants ? "Take all" : "Close";
       btnLaisser.hidden = restants === 0;
 
-      // Phase d'attente : boutons cachés, la barre se remplit, puis on révèle.
+      // Barre d'XP : on montre le gain total, puis on lance la montée animée.
+      // Les boutons restent cachés jusqu'à la fin de l'animation (zappable).
+      xpGain.textContent = xp > 0 ? `+${xp} XP` : "";
       pret = false;
       boutons.hidden = true;
       aide.hidden = true;
-      attente.hidden = false;
-      attenteFill.style.transition = "none";
-      attenteFill.style.width = "0%";
-      void attenteFill.offsetWidth;            // reflow : repart de 0 à chaque combat
-      attenteFill.style.transition = `width ${DELAI}ms linear`;
-      attenteFill.style.width = "100%";
-      clearTimeout(timerPret);
-      timerPret = setTimeout(reveler, DELAI);
-
+      ouvertLe = performance.now();
       overlay.hidden = false;
+
+      const etat = xpAnim || { niveauDepart: 1, xpDepart: 0, gain: 0 };
+      anim = animerGainXp(xpRefs, etat);
+      anim.promesse.then(() => { anim = null; reveler(); });
+
       window.addEventListener("keydown", surTouche, true);
     },
     fermer,

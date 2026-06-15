@@ -325,6 +325,9 @@ directement la **collecte** et le **marché**.
   **objets**, chacun avec une **rareté de drop** (probabilité). Le gobelin lâche
   2–3 or et de l'**XP**, parfois sa pioche, rarement une bague. Le loot s'affiche
   dans une **fenêtre de butin** en fin de combat (clic / Espace pour récupérer).
+  À l'ouverture, la **barre d'XP du héros se remplit** (montée animée du gain) et
+  **« explose » en doré** à chaque palier de niveau — animation zappable (clic /
+  touche) ; un son de level up se jouera dès que le fichier sera fourni.
 - **Inventaire façon Diablo** (touche **B**) : un **sac** en cases ; chaque objet
   a une **empreinte** (l×h) et prend de la place. Le sac est **petit au départ**
   et s'**agrandira** avec des sacs (loot/craft). Rangement automatique pour l'instant.
@@ -355,8 +358,10 @@ directement la **collecte** et le **marché**.
 On gagne de l'**XP en combat** (chaque ennemi en donne) ; un palier d'XP fait
 **monter de niveau** et donne **1 point de talent**. On dépense ces points dans
 l'**arbre** (écran touche **T**) : des nœuds reliés en arborescence, débloqués
-selon leurs prérequis. *(1er jet implémenté : XP/niveau/points sauvegardés, écran
-de l'arbre, effets appliqués. À venir : plus de nœuds, rangs multiples.)*
+selon leurs prérequis. La montée d'XP est **rejouée en animation** sur la fenêtre
+de fin de combat (barre qui se remplit, halo doré + éclats au passage de niveau).
+*(1er jet implémenté : XP/niveau/points sauvegardés, écran de l'arbre, effets
+appliqués. À venir : plus de nœuds, rangs multiples.)*
 
 ### Talents légendaires (coût 3, prérequis cumulés)
 
