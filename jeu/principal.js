@@ -84,30 +84,30 @@ export async function demarrerJeu(donneesInitiales = null) {
   let combatEnCours = null;        // non-null = on est en combat
   let menuPauseOuvert = false;     // le menu pause (Échap) est-il ouvert ?
 
-  // Un PNJ d'ambiance : un fanatique qui arpente la place de la ville (rangée 8).
+  // Luc l'hérétique : arpente le couloir devant la porte de sortie (rangée 13).
   const fanatique = creerPnj({
     modele: FANATIQUE,
     planche: planches.get(FANATIQUE.planche),
-    x: 18 * TUILE - 11,
-    y: 8 * TUILE - 56,
-    xMin: 14 * TUILE - 11,
-    xMax: 28 * TUILE - 11,
+    x: 37 * TUILE - 11,
+    y: 13 * TUILE - 56,
+    xMin: 34 * TUILE - 11,
+    xMax: 40 * TUILE - 11,
   });
-  // Marchand de TEST (rangée 11, près du départ), STATIONNAIRE (xMin == xMax).
+  // Renaud (marchand de TEST), STATIONNAIRE près de la sortie (rangée 11).
   // Placeholder visuel = sprite du fanatique.
   const marchand = creerPnj({
     modele: MARCHAND,
     planche: planches.get(MARCHAND.planche),
-    x: 11 * TUILE - 11,
+    x: 38 * TUILE - 11,
     y: 11 * TUILE - 56,
-    xMin: 11 * TUILE - 11,
-    xMax: 11 * TUILE - 11,
+    xMin: 38 * TUILE - 11,
+    xMax: 38 * TUILE - 11,
   });
-  // FONTAINE (build de TEST) : statique, au centre de la place. On lui parle
+  // FONTAINE (build de TEST) : près de la porte de sortie. On lui parle
   // pour gagner 1 niveau d'un coup → tester l'arbre de talents sans farmer.
   const fontaine = {
-    cx: 21 * TUILE + TUILE / 2, // centre x (monde)
-    solY: 14 * TUILE,           // base/pieds (profondeur + dessin)
+    cx: 35 * TUILE + TUILE / 2, // centre x (monde)
+    solY: 12 * TUILE,           // base/pieds (profondeur + dessin)
     proche: false,
     t: 0,
   };

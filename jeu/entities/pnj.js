@@ -73,6 +73,24 @@ export function dessinerPnj(ctx, pnj) {
     frame * s.caseL, 0, s.caseL, s.caseH,
     Math.round(pnj.x), Math.round(pnj.y), s.caseL, s.caseH
   );
+
+  if (pnj.proche && pnj.modele.nom) {
+    ctx.save();
+    const nom = pnj.modele.nom;
+    const cx = Math.round(pnj.x + s.caseL / 2);
+    const cy = Math.round(pnj.y) - 2;
+    ctx.font = "bold 7px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    const larg = ctx.measureText(nom).width;
+    ctx.fillStyle = "rgba(10, 8, 5, 0.78)";
+    ctx.beginPath();
+    ctx.roundRect(cx - larg / 2 - 4, cy - 10, larg + 8, 10, 3);
+    ctx.fill();
+    ctx.fillStyle = "#f0e4b0";
+    ctx.fillText(nom, cx, cy);
+    ctx.restore();
+  }
 }
 
 // Le « pied » du PNJ, pour ordonner l'affichage (qui passe devant qui)

@@ -17,7 +17,7 @@
 // ----- La ville de Brütàl (cité naine, sûre) -------------------------------
 export const VILLE = {
   nom: "Brütàl — the City",
-  depart: { colonne: 5, ligne: 13 },
+  depart: { colonne: 37, ligne: 14 },
   plan: [
     "############################################",
     "#..........................................#",

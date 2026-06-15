@@ -8,6 +8,7 @@
 
 export const FANATIQUE = {
   id: "fanatique",
+  nom: "Luc l'hérétique",
   planche: "images/pnj/fanatique.png",
   sprite: {
     caseL: 55,
@@ -26,6 +27,7 @@ export const FANATIQUE = {
 // fanatique en attendant un vrai sprite de marchand.
 export const MARCHAND = {
   id: "marchand",
+  nom: "Renaud",
   planche: FANATIQUE.planche,
   sprite: FANATIQUE.sprite,
 };
