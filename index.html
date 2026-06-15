@@ -1080,9 +1080,12 @@
       display: flex; align-items: center; justify-content: center;
     }
     .maitrise-retirer:hover { background: #6a2020; color: #f0c0c0; }
-    .maitrise-biblio {
-      display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
-      --carte-l: 140px;
+    .maitrise-biblio { display: flex; flex-direction: column; gap: 16px; --carte-l: 140px; }
+    .maitrise-biblio-rangee { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+    .maitrise-section-titre {
+      font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #9a8ab0; font-weight: 700; text-align: center;
+      border-bottom: 1px solid #2c2540; padding-bottom: 4px;
     }
     .maitrise-carte-wrap { display: flex; flex-direction: column; align-items: center; }
     .maitrise-carte-prog {
@@ -1099,7 +1102,10 @@
       border-radius: 2px;
     }
     .maitrise-ok { color: #c8a040; font-weight: 700; }
-    .maitrise-carte--maitrisee { box-shadow: 0 0 10px rgba(200,160,60,0.3) !important; }
+    .maitrise-carte--maitrisee {
+      border-color: #e6c24e !important;
+      box-shadow: 0 0 16px 2px rgba(224, 184, 74, 0.6), 0 0 6px rgba(255, 226, 140, 0.7) !important;
+    }
     .maitrise-carte--choisie { outline: 2px solid #c8a040; }
     .maitrise-vide { text-align: center; color: #5a4858; padding: 20px 8px; font-size: 0.82rem; }
     /* Badge légendaire dans l'arbre de talents */

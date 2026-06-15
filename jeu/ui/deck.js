@@ -129,55 +129,80 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
       return;
     }
 
-    idsConnus.sort((a, b) => {
+    // Dans un même type : les cartes maîtrisées d'abord, puis par usages décroissants.
+    const parProgression = (a, b) => {
       const ma = carteMaitrisee(maitrise, a), mb = carteMaitrisee(maitrise, b);
       if (ma !== mb) return ma ? -1 : 1;
       return compteurMaitrise(maitrise, b) - compteurMaitrise(maitrise, a);
-    });
+    };
 
-    elBiblio.replaceChildren(
-      ...idsConnus.map((id) => {
-        const carte = CARTES[id];
-        if (!carte) return null;
-        const maitrisee  = carteMaitrisee(maitrise, id);
-        const compte     = compteurMaitrise(maitrise, id);
-        const choisie    = maitrise.choisies.includes(id);
+    // La mini-carte + sa barre de progression (qui se soulève au survol).
+    function creerCarteMaitrise(id) {
+      const carte = CARTES[id];
+      if (!carte) return null;
+      const maitrisee = carteMaitrisee(maitrise, id);
+      const compte    = compteurMaitrise(maitrise, id);
+      const choisie   = maitrise.choisies.includes(id);
 
-        const wrap = document.createElement("div");
-        wrap.className = "maitrise-carte-wrap";
+      const wrap = document.createElement("div");
+      wrap.className = "maitrise-carte-wrap";
 
-        const cEl = document.createElement("div");
-        cEl.className = "combat-carte"
-          + (maitrisee ? " maitrise-carte--maitrisee" : "")
-          + (choisie   ? " maitrise-carte--choisie"   : "");
-        garnirCarte(cEl, carte);
+      const cEl = document.createElement("div");
+      cEl.className = "combat-carte"
+        + (maitrisee ? " maitrise-carte--maitrisee" : "")
+        + (choisie   ? " maitrise-carte--choisie"   : "");
+      garnirCarte(cEl, carte);
 
-        const prog = document.createElement("div");
-        prog.className = "maitrise-carte-prog";
-        if (maitrisee) {
-          prog.innerHTML = `<span class="maitrise-ok">✓ Mastered</span>`;
-        } else {
-          const pct = Math.min(100, (compte / SEUIL_MAITRISE) * 100);
-          prog.innerHTML = `<span class="maitrise-barre"><span style="width:${pct}%"></span></span> ${compte}/${SEUIL_MAITRISE}`;
-        }
+      const prog = document.createElement("div");
+      prog.className = "maitrise-carte-prog";
+      if (maitrisee) {
+        prog.innerHTML = `<span class="maitrise-ok">✓ Mastered</span>`;
+      } else {
+        const pct = Math.min(100, (compte / SEUIL_MAITRISE) * 100);
+        prog.innerHTML = `<span class="maitrise-barre"><span style="width:${pct}%"></span></span> ${compte}/${SEUIL_MAITRISE}`;
+      }
 
-        wrap.append(cEl, prog);
+      wrap.append(cEl, prog);
 
-        if (maitrisee && enVille) {
-          cEl.style.cursor = "pointer";
-          cEl.title = choisie ? "Remove from deck" : "Add to deck (max 3)";
-          cEl.addEventListener("click", () => {
-            if (!toggleCarteChoisie(maitrise, id) && !choisie) {
-              cEl.style.outline = "2px solid #cc4444";
-              setTimeout(() => { cEl.style.outline = ""; }, 500);
-              return;
-            }
-            rendreMaitrise(); rendreDeck();
-          });
-        }
-        return wrap;
-      }).filter(Boolean)
-    );
+      if (maitrisee && enVille) {
+        cEl.style.cursor = "pointer";
+        cEl.title = choisie ? "Remove from deck" : "Add to deck (max 3)";
+        cEl.addEventListener("click", () => {
+          if (!toggleCarteChoisie(maitrise, id) && !choisie) {
+            cEl.style.outline = "2px solid #cc4444";
+            setTimeout(() => { cEl.style.outline = ""; }, 500);
+            return;
+          }
+          rendreMaitrise(); rendreDeck();
+        });
+      }
+      return wrap;
+    }
+
+    // Rangement PAR TYPE de carte (attaque / défense / buff), chacun sa section.
+    const TITRES = { attaque: "⚔ Attack", defense: "🛡 Defense", buff: "✦ Buff" };
+    const ORDRE = ["attaque", "defense", "buff"];
+    const parType = new Map();
+    for (const id of idsConnus) {
+      const t = CARTES[id]?.type || "autre";
+      if (!parType.has(t)) parType.set(t, []);
+      parType.get(t).push(id);
+    }
+    // Les types connus dans l'ordre voulu, puis tout type imprévu à la fin.
+    const types = [...ORDRE.filter((t) => parType.has(t)),
+                   ...[...parType.keys()].filter((t) => !ORDRE.includes(t))];
+
+    const contenu = [];
+    for (const t of types) {
+      const titre = document.createElement("div");
+      titre.className = "maitrise-section-titre";
+      titre.textContent = TITRES[t] || "Other";
+      const rangee = document.createElement("div");
+      rangee.className = "maitrise-biblio-rangee";
+      rangee.append(...parType.get(t).sort(parProgression).map(creerCarteMaitrise).filter(Boolean));
+      contenu.push(titre, rangee);
+    }
+    elBiblio.replaceChildren(...contenu);
   }
 
   function rendre() {

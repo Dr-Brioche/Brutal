@@ -379,6 +379,12 @@ appliqués. À venir : plus de nœuds, rangs multiples.)*
   - les cartes **« unique »** (`unique: true`) : les cartes **très puissantes**
     (à venir) sont marquées ainsi pour qu'on **ne puisse pas** les rendre
     permanentes via la maîtrise — sinon le jeu deviendrait déséquilibré.
+- **Bibliothèque rangée par TYPE de carte** (Attack / Defense / **Buff**) : on
+  retrouve vite ses cartes, et les couleurs regroupent les familles. Le type
+  **« buff »** (vert) regroupe les cartes qui ne font ni dégât ni bouclier
+  (ex. *Sapphire Surge*, *Quicken*).
+- **Cartes déjà maîtrisées** : entourées d'une **lueur dorée** ; au survol, la
+  carte se soulève et montre sa progression dessous.
 
 ### Règles d'Ambidextrie
 
