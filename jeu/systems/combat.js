@@ -34,6 +34,11 @@ const CHALEUR_MAX = 8;        // plafond absolu
 // Vitesse égale → on alterne 1:1 ; 2× plus rapide → 2 tours pour 1 de l'autre.
 const VITESSE_HEROS_BASE = 10; // vitesse de base du héros (modifiée par talents/célérité)
 const SEUIL_INIT = 100;        // jauge d'initiative à remplir pour agir
+// Statuts de VITESSE (temporaires : ils tickent par tour comme le poison).
+// La VALEUR d'une carte = le NOMBRE DE TOURS d'effet (la durée), pas un montant
+// de vitesse. L'intensité, elle, est FIXE : +30% (hâte) ou −30% (gel).
+const HATE_MULT = 1.30; // « Hâte » (célérité) : agilité du héros ×1.30 pendant N tours
+const GEL_MULT  = 0.70; // « Gel » (lenteur)   : vitesse de l'ennemi ×0.70 pendant N tours
 // ---------------------------------------------------------------------------
 
 // Mélange une copie du tableau (Fisher-Yates : chaque ordre est équiprobable).
@@ -63,7 +68,7 @@ function creerEnnemiCombat(def) {
     dernierPoison: 0, dernierFeu: 0, dernierSang: 0, // dégâts subis au dernier tour (UI)
     intention: null,              // ce qu'il prépare (télégraphié)
     vitesse: def.vitesse ?? VITESSE_HEROS_BASE, // vitesse d'initiative (agilité)
-    ralenti: 0,                   // « Slow » : réduit la vitesse effective
+    gel: 0,                       // « Gel » : nb de SES tours encore ralentis (−30% vitesse)
     init: 0,                      // jauge d'initiative courante
   };
 }
@@ -98,7 +103,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     dernierSoinSang: 0,    // PV rendus au héros par le saignement ce tour (pour l'UI)
     // Initiative (ATB)
     vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0), // + talents d'agilité
-    celeriteHeros: 0,      // bonus de vitesse temporaire (cartes de Célérité)
+    hate: 0,               // « Hâte » : nb de tours du héros encore accélérés (+30% agilité)
     initHeros: SEUIL_INIT / 2, // petite avance : le héros OUVRE le combat (jamais frappé avant d'agir)
     premierTourHeros: true, // le 1er tour ne recharge pas la Chaleur (forge froide)
     // Ennemis (liste) + l'ennemi visé
@@ -119,12 +124,14 @@ export function creerCombat(ennemisDefs, opts = {}) {
   return combat; // la 1re main est piochée par le 1er commencerTourHeros (via l'initiative)
 }
 
-// Vitesse EFFECTIVE (après célérité / ralentissement). Jamais < 1.
+// Vitesse EFFECTIVE (après les statuts de vitesse Hâte/Gel). Jamais < 1.
 export function vitesseHeros(combat) {
-  return Math.max(1, combat.vitesseHerosBase + combat.celeriteHeros);
+  const v = combat.hate > 0 ? combat.vitesseHerosBase * HATE_MULT : combat.vitesseHerosBase;
+  return Math.max(1, v);
 }
 export function vitesseEnnemi(e) {
-  return Math.max(1, e.vitesse - e.ralenti);
+  const v = e.gel > 0 ? e.vitesse * GEL_MULT : e.vitesse;
+  return Math.max(1, v);
 }
 
 // Index du premier ennemi vivant (0 par défaut s'il n'y en a plus).
@@ -202,9 +209,9 @@ function appliquerEffet(combat, effet, ennemi) {
     // tour suivant : énergie immédiate, mais risque de brûlure (choix tactique).
     combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + effet.valeur);
   } else if (effet.type === "celerite") {
-    combat.celeriteHeros += effet.valeur; // + vitesse d'initiative du héros (le reste du combat)
+    combat.hate += effet.valeur;            // Hâte : +30% d'agilité pendant `valeur` tours (la durée se cumule)
   } else if (effet.type === "lenteur") {
-    if (ennemi) ennemi.ralenti += effet.valeur; // - vitesse d'initiative de l'ennemi visé
+    if (ennemi) ennemi.gel += effet.valeur; // Gel : −30% de vitesse pendant `valeur` tours (la durée se cumule)
   }
 }
 
@@ -303,6 +310,7 @@ export function agirEnnemi(combat, i) {
   evt.feu = e.dernierFeu = tiquerEnnemi(e, "feu");
   evt.sang = e.dernierSang = tiquerEnnemi(e, "sang");
   if (enFeuAvant) propagerDepuis(combat, i, e.feu); // enflamme les voisins (même s'il meurt)
+  if (e.gel > 0) e.gel -= 1; // le Gel s'écoule (1 de SES tours), même s'il est étourdi ce tour
   if (evt.sang > 0) {
     const avant = combat.pvHeros;
     combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + evt.sang);
@@ -341,6 +349,7 @@ export function commencerTourHeros(combat) {
     verifierFin(combat);
     if (combat.fini) return;
   }
+  if (combat.hate > 0) combat.hate -= 1; // la Hâte s'écoule (1 tour du héros)
   piocherMain(combat);
   prevoirIntentions(combat);
   combat.cible = premierVivant(combat);

@@ -27,8 +27,8 @@
 //                         seuil et donc faire surchauffer (risque de brûlure)
 //            - "stun"   : étourdit l'ennemi `valeur` tours (il saute ses tours).
 //                         Cumulable : rejouer en ajoute (les ticks s'additionnent)
-//            - "celerite": +`valeur` de vitesse d'initiative au HÉROS (le reste du combat)
-//            - "lenteur" : -`valeur` de vitesse d'initiative à l'ennemi visé
+//            - "celerite": HÂTE le héros (+30% d'agilité) pendant `valeur` de SES tours
+//            - "lenteur" : GÈLE l'ennemi visé (−30% de vitesse) pendant `valeur` de ses tours
 
 export const CARTES = {
   // ---- Deck de base commun : cartes à 0 Chaleur, mais FAIBLES --------------
@@ -144,23 +144,23 @@ export const CARTES = {
     effets: [{ type: "degats", valeur: 3 }, { type: "stun", valeur: 2 }],
   },
 
-  // Bottes vives : accélère le héros (vitesse d'initiative) pour le reste du combat.
+  // Bottes vives : HÂTE le héros (+30% d'agilité) pendant quelques tours.
   "celerite-vive": {
     id: "celerite-vive",
     nom: "Quicken",
     cout: 1,
     type: "defense",
-    texte: "Haste: +5 attack speed (this fight).",
-    effets: [{ type: "celerite", valeur: 5 }],
+    texte: "Haste: +30% attack speed for 3 turns.",
+    effets: [{ type: "celerite", valeur: 3 }],
   },
-  // Anneau de givre : ralentit l'ennemi visé (baisse sa vitesse d'initiative).
+  // Anneau de givre : GÈLE l'ennemi visé (−30% de vitesse) pendant quelques tours.
   "givre-lent": {
     id: "givre-lent",
     nom: "Frostbite",
     cout: 1,
     type: "attaque",
-    texte: "Deal 2 damage. Slow the enemy (-4 speed).",
-    effets: [{ type: "degats", valeur: 2 }, { type: "lenteur", valeur: 4 }],
+    texte: "Deal 2 damage. Chill: -30% speed for 3 turns.",
+    effets: [{ type: "degats", valeur: 2 }, { type: "lenteur", valeur: 3 }],
   },
 
   // Collier de saphir : régénère de l'énergie (Chaleur). Sans cible, joué sur soi.

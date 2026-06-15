@@ -122,16 +122,26 @@ cette vitesse ; **le premier à la remplir agit**. Vitesse égale → alternance
 (comme avant) ; **2× plus rapide → 2 tours pour 1** de l'autre, réparti
 proportionnellement (≠ tout-ou-rien). « Agir » = un **tour** pour le héros (pioche,
 joue, End Turn) ou **une attaque** pour un ennemi.
-- **Agilité** = la vitesse. Le héros a une base (10), montée par des **talents**
-  (*Fleet Strikes*), des cartes de **Célérité** (*Quicken*, +vitesse le combat) et
-  baissée chez l'ennemi par des cartes de **Lenteur** (*Frostbite*). Des monstres
-  **véloces** (ex. *Goblin Skirmisher*, vitesse 18) peuvent jouer 2× contre un héros lent.
+- **Agilité** = la vitesse. Le héros a une base (10), montée en permanence par des
+  **talents** (*Fleet Strikes*). Les cartes, elles, posent des **statuts de vitesse
+  TEMPORAIRES** qui tickent par tour (comme le poison) : **Hâte** (carte *Quicken*,
+  **+30 %** d'agilité) sur le héros, **Gel** (carte *Frostbite*, **−30 %** de vitesse)
+  sur l'ennemi visé. La carte donne la **durée en tours** (pas un montant de vitesse) ;
+  jouer la carte deux fois **cumule la durée**. Des monstres **véloces** (ex. *Goblin
+  Skirmisher*, vitesse 18) peuvent jouer 2× contre un héros lent.
 - **Tension** : chaque tour du héros recharge la Chaleur **et** subit la surchauffe
   → foncer vite quand on est en surchauffe, ça brûle plus souvent.
 - **Affichage** : une **file d'ordre des tours** en haut (carrés-portraits : tête
   de chaque combattant, acteur courant en doré) + une fine **barre d'initiative
   orange** sous chaque barre de vie. Le tour ennemi se joue au ralenti (une action
   à la fois) pour rester lisible.
+
+> **Statuts BONUS vs MALUS — lisibilité (validé 15/06/2026)** : les statuts sont
+> rangés en **deux zones** autour de la barre de vie. Les **bonus** (buffs, ex.
+> Hâte) au-**dessus** dans une **pastille VERTE** arrondie ; les **malus** (debuffs :
+> poison, feu, saignement, étourdissement, Gel) en-**dessous** dans une **pastille
+> ROUGE**. Convention « vert = bon / rouge = mauvais **pour le porteur** » (un malus
+> rouge sur l'ennemi = bon pour le joueur). Vaut pour tous les statuts à venir.
 
 ### Mise en scène du combat (validé 10/06/2026)
 
