@@ -128,7 +128,8 @@ joue, End Turn) ou **une attaque** pour un ennemi.
   **+30 %** d'agilité) sur le héros, **Gel** (carte *Frostbite*, **−30 %** de vitesse)
   sur l'ennemi visé. La carte donne la **durée en tours** (pas un montant de vitesse) ;
   jouer la carte deux fois **cumule la durée**. Des monstres **véloces** (ex. *Goblin
-  Skirmisher*, vitesse 18) peuvent jouer 2× contre un héros lent.
+  Skirmisher*, vitesse 18, **teinté plus froid** pour le repérer d'un coup d'œil)
+  peuvent jouer 2× contre un héros lent.
 - **Tension** : chaque tour du héros recharge la Chaleur **et** subit la surchauffe
   → foncer vite quand on est en surchauffe, ça brûle plus souvent.
 - **Affichage** : une **file d'ordre des tours** en haut (carrés-portraits : tête
@@ -142,6 +143,15 @@ joue, End Turn) ou **une attaque** pour un ennemi.
 > poison, feu, saignement, étourdissement, Gel) en-**dessous** dans une **pastille
 > ROUGE**. Convention « vert = bon / rouge = mauvais **pour le porteur** » (un malus
 > rouge sur l'ennemi = bon pour le joueur). Vaut pour tous les statuts à venir.
+
+> **Stats des monstres — FIXES en entrée de combat (validé 15/06/2026)** : chaque
+> **type** de monstre a des stats **fixes** inscrites dans sa fiche (PV, attaque,
+> vitesse, XP) — **identiques à chaque rencontre, aucun tirage aléatoire** à
+> l'apparition. Deux types peuvent différer fortement (ex. *Cave Goblin* 24 PV /
+> lent vs *Goblin Skirmisher* 16 PV / rapide). Ces valeurs ne bougent **qu'une fois
+> le combat lancé**, via les **bonus/malus** (statuts : Gel −30 % vitesse, etc.).
+> Quand deux types **partagent une même planche**, on les distingue par une
+> **teinte** (filtre couleur appliqué au sprite ET à son portrait dans la file).
 
 ### Mise en scène du combat (validé 10/06/2026)
 
