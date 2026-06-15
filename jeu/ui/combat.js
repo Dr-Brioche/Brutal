@@ -41,7 +41,7 @@ function poserEnnemis(n) {
 }
 // Barre de vie sous chaque perso (unités SCÈNE, taille réelle, PV chiffrés dedans).
 const BAR_L = 80, BAR_H = 11;
-const VIE_SOUS = 7;            // écart pieds (sol) → haut de la barre
+const VIE_SOUS = 18;           // écart pieds (sol) → haut de la barre (loge la rangée de BONUS au-dessus de la barre, sous les pieds)
 const ETATS_SOUS = 14;         // écart bas de la barre → rangée d'états (laisse place à l'init)
 // File d'ordre des tours (en haut) : carrés-portraits des prochains acteurs.
 const FILE_N = 5, FILE_TAILLE = 40, FILE_ESPACE = 8, FILE_Y = 12;
