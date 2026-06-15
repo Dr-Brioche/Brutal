@@ -28,7 +28,7 @@ import { ouvrirDialogue, dialogueActif, rafraichirChoix } from "./ui/dialogue.js
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { gagnerXp } from "./systems/progression.js";
 import { demarrerCombat } from "./ui/combat.js";
-import { ennemiParId, ENNEMIS, tirerButin } from "./data/ennemis.js";
+import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
 import { FANATIQUE, MARCHAND } from "./data/pnj.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
 
@@ -522,21 +522,13 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Les rencontres : sur les tuiles de souterrain, un monstre invisible surgit.
   // Flash façon FF9, puis bascule sur l'écran de combat.
   async function declencherRencontre() {
+    // Le groupe est composé à partir des monstres de la ZONE courante : taille
+    // (30/30/20/15/5) et types tirés au sort, range placés à l'arrière. Si la
+    // zone n'a aucun monstre déclaré, pas de combat.
+    const ennemis = composerGroupe(ZONES[zoneActuelle]?.monstres);
+    if (ennemis.length === 0) return;
     enPause = true;                 // le monde se fige pendant le flash
     await flashCombat();
-    // Un groupe de 1 à 3 gobelins (même définition, mais chacun son état de combat).
-    const nb = 1 + Math.floor(Math.random() * 3);
-    // ~30% des ennemis de base sont des gobelins VÉLOCES (testent l'initiative).
-    const ennemis = Array.from({ length: nb }, () =>
-      ennemiParId(Math.random() < 0.3 ? "gobelin-vif" : "gobelin"));
-    // Dans un groupe de 3+, le chaman a ~40% de chance de remplacer un gobelin normal.
-    if (nb >= 3 && Math.random() < 0.4) {
-      const idx = ennemis.findIndex((e) => e.id === "gobelin");
-      if (idx >= 0) ennemis[idx] = ennemiParId("gobelin-chaman");
-      else ennemis[ennemis.length - 1] = ennemiParId("gobelin-chaman");
-    }
-    // Tri : melee d'abord, range à la fin → le chaman s'affiche toujours à l'arrière.
-    ennemis.sort((a, b) => (a.affix === "range" ? 1 : 0) - (b.affix === "range" ? 1 : 0));
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis, maitrise,
       surFin: (resultat) => {

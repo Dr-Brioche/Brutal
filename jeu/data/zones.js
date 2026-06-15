@@ -14,10 +14,15 @@
 //
 // (Chaque ligne d'un plan doit garder exactement la même longueur.)
 
+// `monstres` : les IDS de monstres qui peuvent surgir dans la zone (cf.
+// data/ennemis.js). La composition d'un groupe (taille + types) est tirée par
+// composerGroupe(). Une zone sans `monstres` est sûre (aucune rencontre).
+
 // ----- La ville de Brütàl (cité naine, sûre) -------------------------------
 export const VILLE = {
   nom: "Brütàl — the City",
   depart: { colonne: 37, ligne: 14 },
+  // Aucun `monstres` : la ville est un havre, pas de combat.
   plan: [
     "############################################",
     "#..........................................#",
@@ -55,6 +60,8 @@ export const VILLE = {
 export const SOUTERRAINS = {
   nom: "The Under-tunnels",
   depart: { colonne: 2, ligne: 13 },
+  // Le repaire des gobelins : les 3 variantes (chaman "range" → groupes de 3+).
+  monstres: ["gobelin", "gobelin-vif", "gobelin-chaman"],
   plan: [
     "############################################",
     "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",

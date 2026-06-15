@@ -132,3 +132,47 @@ export function tirerButin(ennemi) {
   return { or, objets };
 }
 
+// ----- Composition d'un groupe de rencontre -------------------------------
+//
+// Distribution de la TAILLE du groupe (défaut commun à toutes les zones, sauf
+// indication contraire) : index 0 = 1 monstre … index 4 = 5 monstres.
+//   1 → 30 %   2 → 30 %   3 → 20 %   4 → 15 %   5 → 5 %
+export const DISTRIBUTION_GROUPE = [0.30, 0.30, 0.20, 0.15, 0.05];
+
+// Règle des affixes (cf. concept.md) : les monstres "range" n'apparaissent QUE
+// dans les groupes de 3 ou plus. Sinon, tous les types d'une zone ont autant de
+// chance de sortir (tirage uniforme, indépendant par emplacement).
+
+// Tire une taille de groupe selon une distribution cumulée.
+function tirerTaille(distribution) {
+  const r = Math.random();
+  let cumul = 0;
+  for (let i = 0; i < distribution.length; i++) {
+    cumul += distribution[i];
+    if (r < cumul) return i + 1;
+  }
+  return distribution.length;
+}
+
+// Compose un groupe d'ennemis pour une rencontre, à partir des IDS de monstres
+// d'une zone. Renvoie un tableau de DÉFINITIONS (data), trié melee → range pour
+// que les monstres distants soient toujours placés à l'arrière en combat.
+//   - taille < 3 : on ne tire que parmi les monstres MELEE de la zone ;
+//   - taille ≥ 3 : on tire parmi TOUS les monstres (melee + range), à chances
+//     égales → le groupe peut même être composé uniquement de monstres "range".
+// `opts.distribution` permet à une zone d'imposer sa propre courbe de tailles.
+export function composerGroupe(monstreIds, opts = {}) {
+  const defs = (monstreIds ?? []).map(ennemiParId).filter(Boolean);
+  if (defs.length === 0) return [];
+  const melee = defs.filter((d) => d.affix !== "range");
+  const taille = tirerTaille(opts.distribution ?? DISTRIBUTION_GROUPE);
+  // En groupe de 1-2 : que du melee. (Repli sur `defs` si la zone n'a aucun
+  // melee — cas théorique d'une zone 100 % distance.)
+  const pool = taille >= 3 ? defs : (melee.length ? melee : defs);
+  const groupe = Array.from({ length: taille }, () =>
+    pool[Math.floor(Math.random() * pool.length)]);
+  // Tri stable melee d'abord, range à la fin (positionnement visuel du combat).
+  groupe.sort((a, b) => (a.affix === "range" ? 1 : 0) - (b.affix === "range" ? 1 : 0));
+  return groupe;
+}
+

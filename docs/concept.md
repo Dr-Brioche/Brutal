@@ -165,6 +165,31 @@ joue, End Turn) ou **une attaque** pour un ennemi.
 > position dans l'array, donc les `range` sont **toujours** à l'arrière, quels que
 > soient le nombre ou la composition du groupe.
 
+### Rencontres par zone (validé 15/06/2026)
+
+**Chaque zone déclare sa liste de monstres** (`monstres: [...]` dans
+`data/zones.js`). La ville n'en a aucun → c'est un havre. À chaque rencontre,
+`composerGroupe()` (`data/ennemis.js`) tire un groupe parmi les monstres de la
+zone courante.
+
+**Taille du groupe** (1 à 5 monstres, défaut commun à toutes les zones *sauf
+indication contraire* — une zone peut imposer sa propre courbe) :
+
+| Taille | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| Chance | 30 % | 30 % | 20 % | 15 % | 5 % |
+
+**Types tirés** : chaque emplacement est tiré **indépendamment** et **à chances
+égales** parmi les types éligibles de la zone (*sauf indication contraire* — pas
+de poids différenciés pour l'instant). Règle des affixes :
+- **Groupe de 1-2** : uniquement des monstres **`melee`**.
+- **Groupe de 3+** : **tous** les types (melee **et** range), à chances égales →
+  un même type peut sortir plusieurs fois, et le groupe peut même être **composé
+  uniquement de monstres `range`**.
+
+Conséquence : un `range` est **plus rare** au global (il lui faut un groupe de 3+),
+mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
+
 > **Actions pondérées des ennemis (validé 15/06/2026)** : les monstres
 > « intelligents » (ex. chamanss, lanceurs de sorts) ont un tableau `actions` avec
 > un champ **`poids`** par action. À chaque tour, leur intention est tirée à la
@@ -180,7 +205,7 @@ joue, End Turn) ou **une attaque** pour un ennemi.
 |---|---|---|---|---|
 | *Cave Goblin* | 24 | 10 | melee | Gobelin de base. |
 | *Goblin Skirmisher* | 16 | 18 | melee | Très rapide, teinte froide pour le repérer. |
-| *Goblin Shaman* | 14 | 7 | range | **Healer/caster rouge.** Actions pondérées : soigner allié (50 %), hâte de groupe (30 %), attaque (20 %). Apparaît seulement dans les groupes de 3+ (max 1 par groupe, ~40 % de chance). Toujours à l'arrière. |
+| *Goblin Shaman* | 14 | 7 | range | **Healer/caster rouge.** Actions pondérées : soigner allié (50 %), hâte de groupe (30 %), attaque (20 %). Affix `range` → groupes de 3+ uniquement, toujours à l'arrière. |
 
 ### Mise en scène du combat (validé 10/06/2026)
 
@@ -331,7 +356,8 @@ que c'est addictif, **puis** on empile le suivant.
    (nain de profil agrandi + ennemis), main de cartes piochée, **Chaleur de
    Forge** comme énergie, défense **Pierre** persistante, statuts (poison, feu),
    intentions télégraphées, victoire/défaite. Chaque arme injecte sa carte
-   signature. **Combat à plusieurs ennemis** : 1 à 3 monstres, les cartes
+   signature. **Combat à plusieurs ennemis** : 1 à 5 monstres (composés par zone,
+   cf. *Rencontres par zone*), les cartes
    d'attaque visent une **cible** — au **clavier** (on arme la carte puis on
    choisit la cible aux flèches, une flèche rouge la pointe) ou à la **souris**
    (on tire une flèche de la carte vers le monstre et on lâche dessus).
