@@ -77,8 +77,9 @@ export async function demarrerJeu(donneesInitiales = null) {
   heros.x = carte.departX;
   heros.y = carte.departY;
   const inventaire = creerInventaire();
-  inventaire.slots.armure = "tenue-de-voyageur"; // habits de base (corps) ; on démarre SANS arme
-  ajouterObjet(inventaire, "hache-rouillee");    // 1re arme dans le SAC, à équiper soi-même
+  inventaire.slots.armure = "tenue-de-voyageur"; // habits de base (corps)
+  // On démarre VRAIMENT sans arme (sac vide) : il faut looter/forger sa 1re arme.
+  // En attendant, le deck de base (Tap + Brace) sert de filet (cf. cartesDeBase).
   appliquerEquipement(heros, inventaire, planches);
   appliquerTalents(heros); // vie max / vitesse selon les talents (aucun au départ)
   const maitrise = creerMaitrise();
