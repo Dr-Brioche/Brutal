@@ -15,7 +15,7 @@ function iconeNoeud(n) {
   if (n.legendaire) return "✦";
   const k = Object.keys(n.effet || {})[0];
   return {
-    pvMax: "❤", vitesse: "👟", pioche: "🃏", agilite: "⚡",
+    pvMax: "❤", vitesse: "👟", pioche: "🃏", agilite: "⚡", evasion: "🐾",
     chaleurSeuil: "🔥", chaleurMax: "🔥", chaleurDepart: "🔥", chaleurRecharge: "🔥",
   }[k] || "★";
 }

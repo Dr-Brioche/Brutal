@@ -65,8 +65,9 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   **flash d'écran façon FF9** → bascule sur l'écran de combat.
   Un ennemi n'a donc qu'un **skin de combat**.
 - **Taux de rencontre = variable d'équilibrage clé** : ville 0 %, taux qui
-  monte avec la profondeur, période de grâce après un combat ; plus tard,
-  objets/talents pour le réduire (nourrit la progression).
+  monte avec la profondeur, période de grâce après un combat. Le talent
+  **Tunnel Sense** (branche forge) le réduit déjà de 35 % ; d'autres objets/
+  talents pourront s'y ajouter (nourrit la progression).
 - **Les 3 piliers (combat, forge, marché) = écrans dédiés plein écran.**
   La carte sert à circuler, explorer et déclencher — l'activité prend tout
   l'écran.

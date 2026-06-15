@@ -19,7 +19,7 @@ export function creerRencontres() {
 }
 
 // À appeler à chaque image. Renvoie true si une rencontre se déclenche.
-export function avancerRencontres(etat, tuile) {
+export function avancerRencontres(etat, tuile, reduction = 0) {
   const cle = tuile.colonne + "," + tuile.ligne;
   if (cle === etat.derniereTuile) return false; // toujours sur la même tuile
   etat.derniereTuile = cle;
@@ -31,7 +31,8 @@ export function avancerRencontres(etat, tuile) {
     return false;
   }
 
-  if (Math.random() < CHANCE_PAR_PAS) {
+  // Certains talents (ex. « Tunnel Sense ») réduisent la chance de rencontre.
+  if (Math.random() < CHANCE_PAR_PAS * (1 - reduction)) {
     etat.grace = PAS_DE_GRACE; // période tranquille avant le prochain danger
     return true;
   }

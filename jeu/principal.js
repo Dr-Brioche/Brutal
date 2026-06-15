@@ -625,7 +625,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       const tuile = tuileSousLesPieds(carte, heros);
       verifierPointsInteret(tuile);
       verifierPorte(tuile);
-      if (avancerRencontres(rencontres, tuile)) declencherRencontre();
+      if (avancerRencontres(rencontres, tuile, heros.evasionRencontre || 0)) declencherRencontre();
       if (zoneActuelle === "ville") {
         mettreAJourPnj(fanatique, dt, heros);
         mettreAJourPnj(marchand, dt, heros);

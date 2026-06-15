@@ -43,6 +43,8 @@ export function appliquerTalents(heros) {
   const b = bonusTalents(heros);
   heros.pvMax = PV_BASE + (b.pvMax || 0);
   heros.vitesse = VITESSE_BASE + (b.vitesse || 0);
+  // Réduction des rencontres (0..0.8), alimentée par les talents type « Tunnel Sense ».
+  heros.evasionRencontre = Math.min(0.8, (b.evasion || 0) / 100);
   if (heros.pv > heros.pvMax) heros.pv = heros.pvMax;
 }
 

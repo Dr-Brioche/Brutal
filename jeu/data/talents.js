@@ -12,7 +12,8 @@
 //   effet   : bonus appliqué, ex. { pvMax: 10 } ou { chaleurSeuil: 1 }
 //
 // Effets reconnus : pvMax, vitesse (déplacement), chaleurSeuil, chaleurMax,
-// chaleurDepart, chaleurRecharge, pioche (cartes piochées par tour).
+// chaleurDepart, chaleurRecharge, pioche (cartes piochées par tour),
+// agilite (vitesse d'attaque), evasion (% de rencontres en moins).
 
 export const TALENTS = {
   racine:  { id: "racine",  nom: "Dwarf's Resolve", x: 2, y: 0, cout: 1, requis: [],         effet: { pvMax: 5 } },
@@ -28,6 +29,12 @@ export const TALENTS = {
   esprit2: { id: "esprit2", nom: "Bellows Lungs",   x: 4, y: 2, cout: 1, requis: ["esprit1"], effet: { chaleurRecharge: 1 } },
 
   forge4:  { id: "forge4",  nom: "Molten Veins",    x: 0, y: 3, cout: 1, requis: ["forge2"],  effet: { chaleurMax: 2 } },
+  // Branche forge : le nain mineur connaît les galeries et évite les bestioles.
+  evasion1: {
+    id: "evasion1", nom: "Tunnel Sense", x: 1, y: 3, cout: 1, requis: ["forge3"],
+    effet: { evasion: 35 },
+    description: "Hostile tiles stay quieter: -35% chance of random encounters.",
+  },
   agile1:  { id: "agile1",  nom: "Fleet Strikes",   x: 3, y: 3, cout: 1, requis: ["corps3"],  effet: { agilite: 5 } },
 
   // Talent LÉGENDAIRE : nécessite toute la branche Forge ET la branche Agilité.
@@ -68,6 +75,7 @@ const NOM_EFFET = {
   chaleurRecharge: "Heat / turn",
   pioche: "Cards drawn / turn",
   agilite: "Attack speed",
+  evasion: "Fewer encounters",
   maitrise: "Ancestral Mastery",
   ambidextrie: "Ambidexterity",
 };
