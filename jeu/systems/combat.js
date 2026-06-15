@@ -333,11 +333,14 @@ export function jouerCarte(combat, index, cible = combat.cible) {
     for (const effet of carte.effets) {
       if (effet.type !== "rebond") appliquerEffet(combat, effet, ennemi);
     }
-    // Rebond : si la cible meurt, les mêmes dégâts frappent le prochain ennemi vivant.
+    // Rebond (Cleave) : si la cible meurt, les mêmes dégâts frappent le prochain
+    // ennemi vivant DERRIÈRE elle (vers la droite = index suivant). Si personne
+    // n'est derrière (cible tout au bout de la file), le rebond se perd — il ne
+    // « boucle » plus sur le premier ennemi.
     const rebondEff = carte.effets.find((e) => e.type === "rebond");
     if (rebondEff && ennemi && ennemi.pv <= 0) {
       const idx = combat.ennemis.indexOf(ennemi);
-      const suivant = combat.ennemis.find((e, i) => i !== idx && ennemiVivant(e));
+      const suivant = combat.ennemis.find((e, i) => i > idx && ennemiVivant(e));
       if (suivant) appliquerEffet(combat, { type: "degats", valeur: rebondEff.valeur }, suivant);
     }
   }
