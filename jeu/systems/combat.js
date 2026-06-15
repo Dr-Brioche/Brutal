@@ -51,11 +51,12 @@ function melanger(tableau) {
   return t;
 }
 
-// Construit le deck de départ : deck de base + cartes de l'équipement (×2).
-// Exporté pour que l'écran de deck montre EXACTEMENT le deck joué.
-export function composerDeck(cartesEquip) {
+// Construit le deck de départ : deck de base + cartes de l'équipement + cartes
+// de maîtrise choisies (facultatif). Exporté pour que le deck UI soit fidèle.
+export function composerDeck(cartesEquip, cartesSupp = []) {
   const ids = [...DECK_BASE];
   for (const idCarte of cartesEquip ?? []) ids.push(idCarte);
+  for (const idCarte of cartesSupp ?? []) ids.push(idCarte);
   return ids.map((id) => CARTES[id]).filter(Boolean);
 }
 
@@ -78,7 +79,7 @@ export function ennemiVivant(e) { return e && e.pv > 0; }
 // `opts` : { pv, pvMax, cartes, stats } — vie (persiste) + cartes de l'équipement
 // + réglages chiffrés (`stats`) venant de l'arbre de talents.
 export function creerCombat(ennemisDefs, opts = {}) {
-  const { pv = 40, pvMax = 40, cartes = [], stats = {} } = opts;
+  const { pv = 40, pvMax = 40, cartes = [], cartesSupp = [], stats = {} } = opts;
   // Les TALENTS modifient les réglages de la Chaleur de Forge (seuil, plafond,
   // recharge, énergie de départ) — cf. bonusTalents() de l'arbre de talents.
   const chaleurSeuil = CHALEUR_SEUIL + (stats.chaleurSeuil || 0);
@@ -110,7 +111,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     ennemis: ennemisDefs.map(creerEnnemiCombat),
     cible: 0,
     // Deck
-    pioche: melanger(composerDeck(cartes)),
+    pioche: melanger(composerDeck(cartes, cartesSupp)),
     main: [],
     defausse: [],
     tailleMain: TAILLE_MAIN + (stats.pioche || 0), // cartes piochées/tour (+ talents)

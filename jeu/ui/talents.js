@@ -12,6 +12,7 @@ const COL_W = 92, ROW_H = 78, NODE = 46; // pas de la grille + taille d'un nœud
 
 // Une petite icône selon le 1er effet du nœud.
 function iconeNoeud(n) {
+  if (n.legendaire) return "✦";
   const k = Object.keys(n.effet || {})[0];
   return {
     pvMax: "❤", vitesse: "👟", pioche: "🃏", agilite: "⚡",
@@ -87,7 +88,9 @@ export function installerTalents({ heros, surChangement, surFermer }) {
   function decrire(n) {
     const etat = etatNoeud(heros, n.id);
     const cout = etat === "debloque" ? "owned" : `${n.cout} pt`;
-    elDesc.innerHTML = `<b>${n.nom}</b> — ${descEffet(n.effet)} <span class="tal-desc-cout">(${cout})</span>`;
+    const texteEffet = n.description || descEffet(n.effet);
+    const badge = n.legendaire ? ' <span class="tal-legendaire">✦ Legendary</span>' : "";
+    elDesc.innerHTML = `<b>${n.nom}</b>${badge} — ${texteEffet} <span class="tal-desc-cout">(${cout})</span>`;
   }
 
   function rendreLiens() {

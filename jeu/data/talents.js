@@ -29,10 +29,20 @@ export const TALENTS = {
 
   forge4:  { id: "forge4",  nom: "Molten Veins",    x: 0, y: 3, cout: 1, requis: ["forge2"],  effet: { chaleurMax: 2 } },
   agile1:  { id: "agile1",  nom: "Fleet Strikes",   x: 3, y: 3, cout: 1, requis: ["corps3"],  effet: { agilite: 5 } },
+
+  // Talent LÉGENDAIRE : nécessite toute la branche Forge ET la branche Agilité.
+  maitrise1: {
+    id: "maitrise1", nom: "Ancestral Mastery",
+    x: 2, y: 4, cout: 3,
+    requis: ["forge4", "agile1"],
+    legendaire: true,
+    effet: { maitrise: 1 },
+    description: "Unlock Ancestral Mastery — master cards by playing them 200 times, then add up to 3 to your deck permanently.",
+  },
 };
 
 // Taille de la grille (pour dimensionner l'écran).
-export const TALENT_GRILLE = { cols: 5, lignes: 4 };
+export const TALENT_GRILLE = { cols: 5, lignes: 5 };
 
 export function talentDef(id) {
   return TALENTS[id] ?? null;
@@ -48,6 +58,7 @@ const NOM_EFFET = {
   chaleurRecharge: "Heat / turn",
   pioche: "Cards drawn / turn",
   agilite: "Attack speed",
+  maitrise: "Ancestral Mastery",
 };
 
 // Décrit l'effet d'un nœud, ex. "+10 Max HP".

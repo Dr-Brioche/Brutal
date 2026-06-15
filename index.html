@@ -1009,6 +1009,63 @@
       color: #1a1208; background: #ffcf57;
       border-radius: 999px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     }
+    /* --- Onglets du panneau de deck --- */
+    .deck-onglets { display: flex; gap: 6px; flex: 1; align-items: center; }
+    .deck-onglet {
+      padding: 5px 14px;
+      background: #1a1624; border: 1px solid #2e2040; border-radius: 8px;
+      color: #7a6870; font-size: 0.82rem; cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    .deck-onglet:hover { background: #241d30; color: #b09a80; }
+    .deck-onglet--actif { background: #2e2040; color: #f0e4b0; border-color: #5a3070; }
+    /* --- Vue Maîtrise des Ancêtres --- */
+    .maitrise-slots {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+      padding: 14px 0; border-bottom: 1px solid #2a2030; margin-bottom: 14px;
+    }
+    .maitrise-slot {
+      --carte-l: 130px;
+      width: var(--carte-l); min-height: 70px;
+      border: 2px dashed #3a2840; border-radius: 10px;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 4px;
+      color: #5a4858; font-size: 0.78rem; text-align: center;
+      padding: 4px; position: relative;
+    }
+    .maitrise-slot--rempli { border-style: solid; border-color: #7a5030; }
+    .maitrise-retirer {
+      position: absolute; top: 3px; right: 3px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(80, 40, 40, 0.8); border: 1px solid #6a2020;
+      color: #c08080; font-size: 0.65rem; cursor: pointer; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .maitrise-retirer:hover { background: #6a2020; color: #f0c0c0; }
+    .maitrise-biblio {
+      display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
+      --carte-l: 140px;
+    }
+    .maitrise-carte-wrap { display: flex; flex-direction: column; align-items: center; }
+    .maitrise-carte-prog {
+      font-size: 0.68rem; color: #7a6868; margin-top: 5px;
+      text-align: center; display: flex; align-items: center; gap: 5px;
+    }
+    .maitrise-barre {
+      display: inline-block; width: 60px; height: 4px;
+      background: #2a2030; border-radius: 2px; overflow: hidden; flex-shrink: 0;
+    }
+    .maitrise-barre > span {
+      display: block; height: 100%;
+      background: linear-gradient(to right, #6a3090, #b060f0);
+      border-radius: 2px;
+    }
+    .maitrise-ok { color: #c8a040; font-weight: 700; }
+    .maitrise-carte--maitrisee { box-shadow: 0 0 10px rgba(200,160,60,0.3) !important; }
+    .maitrise-carte--choisie { outline: 2px solid #c8a040; }
+    .maitrise-vide { text-align: center; color: #5a4858; padding: 20px 8px; font-size: 0.82rem; }
+    /* Badge légendaire dans l'arbre de talents */
+    .tal-legendaire { color: #c8a040; font-size: 0.75rem; font-weight: 700; }
 
     /* ---- Contrôles tactiles (test mobile uniquement) ---- */
     .tactile { position: fixed; inset: 0; z-index: 9; pointer-events: none; }
@@ -1122,15 +1179,26 @@
     </div>
   </div>
 
-  <!-- La consultation du deck (touche N) : composition actuelle, hors combat -->
+  <!-- La consultation du deck (touche N) : deck actuel + maîtrise des ancêtres -->
   <div class="deck" id="deck" hidden>
     <div class="deck-panneau">
       <div class="inv-entete">
-        <span class="inv-titre">Deck · <span id="deck-total">0</span> cards</span>
+        <div class="deck-onglets">
+          <button class="deck-onglet deck-onglet--actif" id="deck-onglet-deck">Deck · <span id="deck-total">0</span> cards</button>
+          <button class="deck-onglet" id="deck-onglet-maitrise">Ancestral Mastery</button>
+        </div>
         <button id="deck-fermer">✕</button>
       </div>
-      <div class="deck-liste" id="deck-liste"></div>
-      <p class="inv-aide">Your deck mirrors your gear · not shown in combat — remember it! · [N] to close</p>
+      <!-- Vue Deck -->
+      <div id="deck-vue-deck">
+        <div class="deck-liste" id="deck-liste"></div>
+        <p class="inv-aide">Your deck mirrors your gear · not shown in combat — remember it! · [N] to close</p>
+      </div>
+      <!-- Vue Maîtrise des Ancêtres -->
+      <div id="deck-vue-maitrise" hidden>
+        <div class="maitrise-slots" id="deck-maitrise-slots"></div>
+        <div class="maitrise-biblio" id="deck-maitrise-biblio"></div>
+      </div>
     </div>
   </div>
 

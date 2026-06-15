@@ -1,28 +1,50 @@
-// La consultation du deck (touche N + bouton dans l'inventaire).
+// La consultation du deck (touche N) : deux onglets.
 //
-// Le deck est le MIROIR de l'équipement : on l'étudie ici, à tête reposée,
-// hors combat. EN COMBAT ce menu reste fermé — se souvenir de son deck fait
-// partie du jeu (effort de mémoire voulu).
-//
-// On réutilise la composition exacte du combat (composerDeck) pour ne jamais
-// montrer un deck différent de celui réellement joué.
+//  Onglet "Deck" : le miroir de l'équipement + les cartes de maîtrise choisies.
+//  Onglet "Ancestral Mastery" : visible dès le talent débloqué — bibliothèque
+//    des cartes maîtrisées (≥ 200 usages) + 3 slots de sélection.
+//    Modifier la sélection n'est possible qu'en ville.
 
 import { composerDeck } from "../systems/combat.js";
 import { cartesEquipees } from "../systems/inventaire.js";
+import { CARTES } from "../data/cartes.js";
 import { garnirCarte } from "./carte.js";
+import {
+  SEUIL_MAITRISE, compteurMaitrise, carteMaitrisee,
+  toggleCarteChoisie,
+} from "../systems/maitrise.js";
 
-export function installerDeck({ inventaire, surFermer }) {
-  const overlay = document.getElementById("deck");
-  const liste = document.getElementById("deck-liste");
-  const total = document.getElementById("deck-total");
+export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFermer }) {
+  const overlay  = document.getElementById("deck");
+  const liste    = document.getElementById("deck-liste");
+  const total    = document.getElementById("deck-total");
+  const ongletDeck     = document.getElementById("deck-onglet-deck");
+  const ongletMaitrise = document.getElementById("deck-onglet-maitrise");
+  const vueDeck     = document.getElementById("deck-vue-deck");
+  const vueMaitrise = document.getElementById("deck-vue-maitrise");
+  const elSlots  = document.getElementById("deck-maitrise-slots");
+  const elBiblio = document.getElementById("deck-maitrise-biblio");
   document.getElementById("deck-fermer").onclick = () => surFermer();
 
-  // Une carte affichée (même rendu qu'en combat) + un badge ×N quand la même
-  // carte est présente en plusieurs exemplaires.
+  let ongletActif = "deck";
+
+  function basculerOnglet(nom) {
+    ongletActif = nom;
+    ongletDeck.classList.toggle("deck-onglet--actif", nom === "deck");
+    ongletMaitrise.classList.toggle("deck-onglet--actif", nom === "maitrise");
+    vueDeck.hidden = nom !== "deck";
+    vueMaitrise.hidden = nom !== "maitrise";
+    if (nom === "maitrise") rendreMaitrise();
+    else rendreDeck();
+  }
+  ongletDeck.addEventListener("click", () => basculerOnglet("deck"));
+  ongletMaitrise.addEventListener("click", () => basculerOnglet("maitrise"));
+
+  // -- Onglet Deck ----------------------------------------------------------
   function carteDOM(carte, nombre) {
     const el = document.createElement("div");
     el.className = "combat-carte";
-    garnirCarte(el, carte); // coût + (illustration OU nom/texte)
+    garnirCarte(el, carte);
     if (nombre > 1) {
       const badge = document.createElement("span");
       badge.className = "deck-nombre";
@@ -32,9 +54,8 @@ export function installerDeck({ inventaire, surFermer }) {
     return el;
   }
 
-  function rendre() {
-    const cartes = composerDeck(cartesEquipees(inventaire));
-    // Regrouper par carte en conservant l'ordre d'apparition (base puis stuff).
+  function rendreDeck() {
+    const cartes = composerDeck(cartesEquipees(inventaire), maitrise?.choisies ?? []);
     const groupes = new Map();
     for (const c of cartes) {
       const g = groupes.get(c.id);
@@ -47,8 +68,125 @@ export function installerDeck({ inventaire, surFermer }) {
     total.textContent = cartes.length;
   }
 
+  // -- Onglet Maîtrise ------------------------------------------------------
+  function rendreMaitrise() {
+    const debloque = (heros?.talents?.maitrise1 || 0) > 0;
+    ongletMaitrise.textContent = debloque ? "Ancestral Mastery" : "Ancestral Mastery 🔒";
+
+    if (!debloque) {
+      elSlots.replaceChildren();
+      elBiblio.innerHTML = '<p class="maitrise-vide">🔒 Unlock the <b>Ancestral Mastery</b> legendary talent to access this feature.</p>';
+      return;
+    }
+
+    const enVille = estEnVille ? estEnVille() : true;
+
+    // 3 slots de sélection
+    const slotEls = [0, 1, 2].map((i) => {
+      const carteId = maitrise.choisies[i];
+      const el = document.createElement("div");
+      el.className = "maitrise-slot" + (carteId ? " maitrise-slot--rempli" : "");
+      if (carteId) {
+        const carte = CARTES[carteId];
+        if (carte) {
+          const cEl = document.createElement("div");
+          cEl.className = "combat-carte";
+          garnirCarte(cEl, carte);
+          el.append(cEl);
+        }
+        if (enVille) {
+          const retirer = document.createElement("button");
+          retirer.className = "maitrise-retirer";
+          retirer.textContent = "✕";
+          retirer.title = "Remove from deck";
+          retirer.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleCarteChoisie(maitrise, carteId);
+            rendreMaitrise(); rendreDeck();
+          });
+          el.append(retirer);
+        }
+      } else {
+        el.textContent = `Empty slot`;
+      }
+      return el;
+    });
+    elSlots.replaceChildren(...slotEls);
+
+    if (!enVille) {
+      const avert = document.createElement("p");
+      avert.className = "maitrise-vide";
+      avert.style.marginTop = "8px";
+      avert.textContent = "⚔ Return to Brütàl to change your selection.";
+      elSlots.after(avert);
+    }
+
+    // Bibliothèque
+    const idsConnus = Object.keys(maitrise.compteurs);
+    if (!idsConnus.length) {
+      elBiblio.innerHTML = '<p class="maitrise-vide">Play cards in combat to master them (200 uses each).</p>';
+      return;
+    }
+
+    idsConnus.sort((a, b) => {
+      const ma = carteMaitrisee(maitrise, a), mb = carteMaitrisee(maitrise, b);
+      if (ma !== mb) return ma ? -1 : 1;
+      return compteurMaitrise(maitrise, b) - compteurMaitrise(maitrise, a);
+    });
+
+    elBiblio.replaceChildren(
+      ...idsConnus.map((id) => {
+        const carte = CARTES[id];
+        if (!carte) return null;
+        const maitrisee  = carteMaitrisee(maitrise, id);
+        const compte     = compteurMaitrise(maitrise, id);
+        const choisie    = maitrise.choisies.includes(id);
+
+        const wrap = document.createElement("div");
+        wrap.className = "maitrise-carte-wrap";
+
+        const cEl = document.createElement("div");
+        cEl.className = "combat-carte"
+          + (maitrisee ? " maitrise-carte--maitrisee" : "")
+          + (choisie   ? " maitrise-carte--choisie"   : "");
+        garnirCarte(cEl, carte);
+
+        const prog = document.createElement("div");
+        prog.className = "maitrise-carte-prog";
+        if (maitrisee) {
+          prog.innerHTML = `<span class="maitrise-ok">✓ Mastered</span>`;
+        } else {
+          const pct = Math.min(100, (compte / SEUIL_MAITRISE) * 100);
+          prog.innerHTML = `<span class="maitrise-barre"><span style="width:${pct}%"></span></span> ${compte}/${SEUIL_MAITRISE}`;
+        }
+
+        wrap.append(cEl, prog);
+
+        if (maitrisee && enVille) {
+          cEl.style.cursor = "pointer";
+          cEl.title = choisie ? "Remove from deck" : "Add to deck (max 3)";
+          cEl.addEventListener("click", () => {
+            if (!toggleCarteChoisie(maitrise, id) && !choisie) {
+              cEl.style.outline = "2px solid #cc4444";
+              setTimeout(() => { cEl.style.outline = ""; }, 500);
+              return;
+            }
+            rendreMaitrise(); rendreDeck();
+          });
+        }
+        return wrap;
+      }).filter(Boolean)
+    );
+  }
+
+  function rendre() {
+    if (ongletActif === "deck") rendreDeck();
+    else rendreMaitrise();
+  }
+
   return {
     ouvrir() { rendre(); overlay.hidden = false; },
     fermer() { overlay.hidden = true; },
+    rendre,
   };
 }

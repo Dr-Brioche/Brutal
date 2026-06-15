@@ -13,6 +13,9 @@ import {
   creerInventaire, appliquerEquipement, armeEquipee, armureEquipee,
   ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
 } from "./systems/inventaire.js";
+import {
+  creerMaitrise, etatMaitrise, chargerMaitrise,
+} from "./systems/maitrise.js";
 import { demanderConfirmation } from "./ui/confirmation.js";
 import { installerInventaire } from "./ui/inventaire.js";
 import { installerDeck } from "./ui/deck.js";
@@ -78,6 +81,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   inventaire.slots.armure = "tenue-de-voyageur";
   appliquerEquipement(heros, inventaire, planches);
   appliquerTalents(heros); // vie max / vitesse selon les talents (aucun au départ)
+  const maitrise = creerMaitrise();
 
   let enPause = false;
   let enTransition = false;
@@ -308,7 +312,8 @@ export async function demarrerJeu(donneesInitiales = null) {
       talents: { ...heros.talents },
       direction: heros.direction,
       inventaire: etatInventaire(inventaire),
-      armeNom: armeEquipee(inventaire)?.nom ?? "Unarmed", // pour l'affichage du slot
+      maitrise: etatMaitrise(maitrise),
+      armeNom: armeEquipee(inventaire)?.nom ?? "Unarmed",
       armureNom: armureEquipee(inventaire).nom,
     };
   }
@@ -344,6 +349,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (Number.isFinite(donnees.pv)) {
       heros.pv = Math.max(1, Math.min(heros.pvMax, donnees.pv)); // jamais 0 ni au-delà du max
     }
+    if (donnees.maitrise) chargerMaitrise(maitrise, donnees.maitrise);
     appliquerEquipement(heros, inventaire, planches);
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
   }
@@ -412,6 +418,9 @@ export async function demarrerJeu(donneesInitiales = null) {
   // de l'équipement ; on l'étudie ici, JAMAIS en combat (effort de mémoire voulu).
   const deckUI = installerDeck({
     inventaire,
+    heros,
+    maitrise,
+    estEnVille: () => zoneActuelle === "ville",
     surFermer: () => basculerDeck(),
   });
   let deckOuvert = false;
@@ -521,7 +530,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     const ennemis = Array.from({ length: nb }, () =>
       ennemiParId(Math.random() < 0.3 ? "gobelin-vif" : "gobelin"));
     combatEnCours = demarrerCombat({
-      ctx, heros, inventaire, planches, ennemis,
+      ctx, heros, inventaire, planches, ennemis, maitrise,
       surFin: (resultat) => {
         combatEnCours = null;
         if (resultat === "defaite") {

@@ -18,6 +18,7 @@ import {
 } from "../systems/combat.js";
 import { cartesEquipees } from "../systems/inventaire.js";
 import { bonusTalents } from "../systems/talents.js";
+import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 import { garnirCarte } from "./carte.js";
 import { alerteVie } from "./effets.js";
@@ -50,14 +51,15 @@ const PORTRAIT_HEROS = { sx: 17, sy: 4, sw: 30, sh: 30 };
 // ---------------------------------------------------------------------------
 
 // `ennemis` : tableau de définitions d'ennemis (data/ennemis.js).
-export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surFin }) {
+export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, maitrise, surFin }) {
   const fondCombat = document.getElementById("fond-combat");
   fondCombat.hidden = false;
 
   const combat = creerCombat(ennemis, {
     pv: heros.pv, pvMax: heros.pvMax,
-    // Réglages de combat (Chaleur, pioche) = arbre de talents (le stuff = cartes).
-    cartes: cartesEquipees(inventaire), stats: bonusTalents(heros),
+    cartes: cartesEquipees(inventaire),
+    cartesSupp: maitrise?.choisies ?? [],
+    stats: bonusTalents(heros),
   });
 
   // Héros : coin haut-gauche du sprite (pieds sur le sol) + repère écran.
@@ -323,6 +325,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     const pierreAvant = combat.pierre;
     const hateAvant = combat.hate;
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
+    if (maitrise) incrementerMaitrise(maitrise, heros, carte.id);
 
     if (elJouee) animerCarteJouee(elJouee); // la carte sort, grandit, puis disparaît
 
