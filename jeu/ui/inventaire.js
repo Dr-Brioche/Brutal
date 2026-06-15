@@ -175,12 +175,13 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const t = bonusTalents(heros); // les CHIFFRES viennent de l'arbre (le stuff = cartes)
     const seuil = FORGE_SEUIL + (t.chaleurSeuil || 0);
     const max = FORGE_MAX + (t.chaleurMax || 0);
+    const agility = 10 + (t.agilite || 0); // vitesse ATB de base (10) + talents
     const lignes = [
-      ["Level", `${heros.niveau}  (${heros.pointsTalent} pts)`],
-      ["Max HP", heros.pvMax],
-      ["Move speed", heros.vitesse],
+      ["Level",      `${heros.niveau}  (${heros.pointsTalent} pts)`],
+      ["Max HP",     heros.pvMax],
+      ["Agility",    agility],
       ["Forge Heat", `${seuil} / ${max}`],
-      ["Cards / turn", BASE_PIOCHE + (t.pioche || 0)],
+      ["Cards/turn", BASE_PIOCHE + (t.pioche || 0)],
     ];
     elStats.replaceChildren(...lignes.map(([nom, val]) => {
       const l = document.createElement("div");
