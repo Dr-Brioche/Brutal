@@ -39,9 +39,13 @@ function versOrigine(cxEcran) {
   return PIVOT_SCENE.x + (cxEcran - PIVOT_SCENE.x) / ECHELLE_SCENE;
 }
 // Centres horizontaux (écran) de N ennemis, centrés sur ENNEMIS_CX.
+// Au-delà de 3 monstres, on RESSERRE l'écart pour que 4-5 sprites tiennent dans
+// le cadre (640 px) sans déborder à droite. À 1-3 monstres, l'écart est inchangé.
+const ENNEMIS_LARGEUR = 250;        // largeur max occupée par le groupe (écran)
 function poserEnnemis(n) {
-  const x0 = ENNEMIS_CX - ((n - 1) * ENNEMIS_ESPACE) / 2;
-  return Array.from({ length: n }, (_, i) => x0 + i * ENNEMIS_ESPACE);
+  const espace = Math.min(ENNEMIS_ESPACE, ENNEMIS_LARGEUR / Math.max(1, n - 1));
+  const x0 = ENNEMIS_CX - ((n - 1) * espace) / 2;
+  return Array.from({ length: n }, (_, i) => x0 + i * espace);
 }
 // Barre de vie sous chaque perso (unités SCÈNE, taille réelle, PV chiffrés dedans).
 const BAR_L = 80, BAR_H = 11;
