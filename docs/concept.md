@@ -164,7 +164,8 @@ joue, End Turn) ou **une attaque** pour un ennemi.
 >
 > **Placement avant/arrière = quinconce STRICT par position, PAS par affixe**
 > (revu le 15/06/2026) : indice **pair** = **avant-plan** (taille normale), indice
-> **impair** = **arrière-plan** (22 % plus petit, 18 px plus haut, perspective).
+> **impair** = **arrière-plan** (15 % plus petit, 18 px plus haut, perspective).
+> Barre de vie / états / intention de l'arrière sont mis à la même échelle.
 > Soit « 1 devant, 1 derrière, 1 devant… » quel que soit le nombre de monstres et
 > leur affixe. Un `range` peut donc se retrouver à l'avant si son indice est pair :
 > l'alignement régulier prime sur l'affixe pour la lisibilité.
