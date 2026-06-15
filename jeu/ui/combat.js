@@ -26,7 +26,10 @@ import { alerteVie } from "./effets.js";
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
 const ECHELLE_HEROS = 3;            // 64×64 → 192×192 (avant dézoom de scène)
 const SOL_Y = 240;                  // sol à 2/3 de la hauteur (1/3 depuis le bas)
-const ECHELLE_SCENE = 0.4;          // dézoom global des sprites (vers le sol)
+const ECHELLE_SCENE = 0.4;          // dézoom de référence (avant-plan)
+const ECHELLE_AVANT   = ECHELLE_SCENE;        // rang avant  : taille normale
+const ECHELLE_ARRIERE = ECHELLE_SCENE * 0.78; // rang arrière : 22 % plus petit
+const SOL_ARRIERE = SOL_Y - 18;              // pieds des ennemis arrière, 18 px plus hauts
 const PIVOT_SCENE = { x: 320, y: SOL_Y };
 const HEROS_ECRAN_CX = 165;         // centre du héros à l'écran (scène)
 // Le groupe d'ennemis est centré à droite ; ils s'étalent autour de ce centre.
@@ -70,24 +73,30 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // État d'AFFICHAGE de chaque ennemi (le moteur tient l'état de jeu dans
   // combat.ennemis ; ici on tient le sprite, la position, les animations).
+  // Quinconce : indices pairs = avant-plan, indices impairs = arrière-plan.
   const cxs = poserEnnemis(combat.ennemis.length);
   const ennemisUI = combat.ennemis.map((e, i) => {
     const spr = e.def.sprite;
-    const ecran = { cx: cxs[i], sol: SOL_Y, haut: SOL_Y - spr.caseH * ECHELLE_SCENE };
+    const avant   = (i % 2 === 0);
+    const echelle = avant ? ECHELLE_AVANT : ECHELLE_ARRIERE;
+    const solEcran = avant ? SOL_Y : SOL_ARRIERE;
+    // Calcul en coordonnées monde à partir de l'échelle propre à cet ennemi.
+    const solMonde = PIVOT_SCENE.y + (solEcran - PIVOT_SCENE.y) / echelle;
+    const ecran = { cx: cxs[i], sol: solEcran, haut: solEcran - spr.caseH * echelle };
     ecran.milieu = (ecran.haut + ecran.sol) / 2;
-    ecran.sommet = ecran.haut - 22; // au-dessus de la tête ET de l'intention (nombres flottants)
+    ecran.sommet = ecran.haut - 22;
     return {
-      e, spr,
+      e, spr, avant, echelle,
       planche: planches?.get(e.def.planche) ?? null,
-      localX: versOrigine(cxs[i]) - spr.caseL / 2, // dans le groupe dézoomé
-      localY: SOL_Y - spr.caseH,
+      localX: PIVOT_SCENE.x + (cxs[i] - PIVOT_SCENE.x) / echelle - spr.caseL / 2,
+      localY: solMonde - spr.caseH,
       ecran,
       anim: { nom: "idle", t: 0 },
       secousse: 0,
       affPv: e.pv,
-      affInit: 0,            // jauge d'initiative affichée (glisse vers la vraie)
+      affInit: 0,
       mort: { actif: false, t: 0 },
-      partis: false, // sprite totalement disparu (après l'estompage)
+      partis: false,
     };
   });
 
@@ -160,25 +169,30 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     u.mort.actif = true;
     u.mort.t = 0;
     jouerAnim(u, "ko");
-    const ox = u.localX + u.spr.caseL / 2;
-    const oy = u.localY + u.spr.caseH * 0.5;
-    particules.push({ type: "flash", x: ox, y: oy, vx: 0, vy: 0, taille: 12, vie: 0.18, vieMax: 0.18 });
+    // Conversion centre du sprite : coords monde → coords écran (espace virtuel 640×360).
+    const e = u.echelle;
+    const wx = u.localX + u.spr.caseL / 2, wy = u.localY + u.spr.caseH * 0.5;
+    const ox = PIVOT_SCENE.x + (wx - PIVOT_SCENE.x) * e;
+    const oy = PIVOT_SCENE.y + (wy - PIVOT_SCENE.y) * e;
+    particules.push({ type: "flash", x: ox, y: oy, vx: 0, vy: 0,
+      taille: 12 * e, g: 180 * e, vie: 0.18, vieMax: 0.18 });
     for (let i = 0; i < 26; i++) {
       const a = Math.random() * Math.PI * 2;
-      const v = 40 + Math.random() * 130;
+      const v = (40 + Math.random() * 130) * e;
       particules.push({
         type: "braise",
-        x: ox + (Math.random() - 0.5) * 40, y: oy + (Math.random() - 0.5) * 50,
-        vx: Math.cos(a) * v, vy: Math.sin(a) * v - 50,
-        taille: 2 + Math.random() * 2, vie: 0.5 + Math.random() * 0.6, vieMax: 1.1,
+        x: ox + (Math.random() - 0.5) * 40 * e, y: oy + (Math.random() - 0.5) * 50 * e,
+        vx: Math.cos(a) * v, vy: Math.sin(a) * v - 50 * e,
+        taille: (2 + Math.random() * 2) * e, g: 90 * e, vie: 0.5 + Math.random() * 0.6, vieMax: 1.1,
       });
     }
     for (let i = 0; i < 8; i++) {
       particules.push({
         type: "fumee",
-        x: ox + (Math.random() - 0.5) * 30, y: oy + (Math.random() - 0.5) * 40,
-        vx: (Math.random() - 0.5) * 24, vy: -22 - Math.random() * 28,
-        taille: 8 + Math.random() * 10, vie: 0.7 + Math.random() * 0.5, vieMax: 1.2,
+        x: ox + (Math.random() - 0.5) * 30 * e, y: oy + (Math.random() - 0.5) * 40 * e,
+        vx: (Math.random() - 0.5) * 24 * e, vy: (-22 - Math.random() * 28) * e,
+        taille: (8 + Math.random() * 10) * e, g: 6 * e, gs: 14 * e,
+        vie: 0.7 + Math.random() * 0.5, vieMax: 1.2,
       });
     }
   }
@@ -386,7 +400,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     for (let i = 0; i < ennemisUI.length; i++) {
       const u = ennemisUI[i];
       if (u.e.pv <= 0 || u.partis) continue;
-      const dl = (u.spr.caseL * ECHELLE_SCENE) / 2 + 8;
+      const dl = (u.spr.caseL * u.echelle) / 2 + 8;
       if (Math.abs(sx - u.ecran.cx) <= dl && sy >= u.ecran.haut - 12 && sy <= u.ecran.sol + 12) return i;
     }
     return -1;
@@ -549,9 +563,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
     for (const p of particules) {
       p.x += p.vx * dt; p.y += p.vy * dt;
-      if (p.type === "braise") { p.vy += 90 * dt; p.vx *= 0.96; }
-      else if (p.type === "fumee") { p.vy -= 6 * dt; p.taille += 14 * dt; }
-      else if (p.type === "flash") { p.taille += 180 * dt; }
+      if (p.type === "braise") { p.vy += (p.g ?? 36) * dt; p.vx *= 0.96; }
+      else if (p.type === "fumee") { p.vy -= (p.g ?? 2.4) * dt; p.taille += (p.gs ?? 5.6) * dt; }
+      else if (p.type === "flash") { p.taille += (p.g ?? 72) * dt; }
       p.vie -= dt;
     }
     for (let i = particules.length - 1; i >= 0; i--) {
@@ -633,33 +647,40 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     dessinerFond(ctx);
     dessinerFile(ctx); // l'ordre des tours, en haut
 
-    // SPRITES (héros + ennemis + braises) : réduits VERS le sol (pieds ancrés).
-    ctx.save();
-    ctx.translate(PIVOT_SCENE.x, PIVOT_SCENE.y);
-    ctx.scale(ECHELLE_SCENE, ECHELLE_SCENE);
-    ctx.translate(-PIVOT_SCENE.x, -PIVOT_SCENE.y);
-
-    for (const u of ennemisUI) {
+    // SPRITES ennemis : du plus loin au plus proche (arrière-plan d'abord).
+    // Chaque ennemi a sa propre échelle — on ne peut pas utiliser un transform global.
+    const ordreDessin = [...ennemisUI].sort((a, b) => a.ecran.sol - b.ecran.sol);
+    for (const u of ordreDessin) {
       if (u.partis) continue;
       const def = u.spr.anims[u.anim.nom] ?? u.spr.anims.idle;
       const frame = frameAnim(def, u.anim.t);
       const tr = u.secousse > 0 ? (Math.random() - 0.5) * 6 : 0;
       const alpha = u.mort.actif ? Math.max(0, 1 - u.mort.t / 0.35) : 1;
       if (alpha > 0) {
+        ctx.save();
         ctx.globalAlpha = alpha;
+        ctx.translate(PIVOT_SCENE.x, PIVOT_SCENE.y);
+        ctx.scale(u.echelle, u.echelle);
+        ctx.translate(-PIVOT_SCENE.x, -PIVOT_SCENE.y);
         dessinerEnnemi(ctx, u.planche, u.spr, frame, u.localX + tr, u.localY);
-        ctx.globalAlpha = 1;
+        ctx.restore();
       }
     }
 
+    // SPRITE héros (avant-plan, ECHELLE_AVANT inchangée).
+    ctx.save();
+    ctx.translate(PIVOT_SCENE.x, PIVOT_SCENE.y);
+    ctx.scale(ECHELLE_AVANT, ECHELLE_AVANT);
+    ctx.translate(-PIVOT_SCENE.x, -PIVOT_SCENE.y);
     const avance = Math.sin((1 - animAttaque / 0.25) * Math.PI) * 14;
     const trHeros = secousseHeros > 0 ? (Math.random() - 0.5) * 8 : 0;
     const hx = HEROS.x + (animAttaque > 0 ? avance : 0) + trHeros;
     if (heros.plancheArmure) dessinerCaseEchelle(ctx, heros.plancheArmure, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
     if (heros.plancheArme) dessinerCaseEchelle(ctx, heros.plancheArme, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
+    ctx.restore();
 
+    // PARTICULES (braises, fumée) : stockées en coords écran → pas de transform.
     dessinerParticules(ctx, particules);
-    ctx.restore(); // fin du dézoom des sprites
 
     // Vie + états + intention de chaque ennemi vivant (taille réelle, lisible).
     ennemisUI.forEach((u) => {
