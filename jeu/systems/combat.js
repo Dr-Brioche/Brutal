@@ -16,7 +16,7 @@
 import { CARTES } from "../data/cartes.js";
 
 // ----- Réglages (équilibrage, valeurs provisoires) -------------------------
-const TAILLE_MAIN = 5;        // cartes piochées par tour
+const TAILLE_MAIN = 3;        // cartes piochées par tour (de base ; monte avec les talents)
 // Deck de base commun : des cartes FAIBLES à 0 Chaleur (toujours jouables).
 const DECK_BASE = [
   "coup-faible", "coup-faible", "coup-faible", "coup-faible", "coup-faible",

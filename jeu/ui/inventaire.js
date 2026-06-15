@@ -29,7 +29,7 @@ const LABELS = {
 };
 
 // Stats de base de la Chaleur de Forge (cf. systems/combat.js)
-const FORGE_SEUIL = 3, FORGE_MAX = 8, BASE_PIOCHE = 5; // bases (matchent systems/combat.js)
+const FORGE_SEUIL = 3, FORGE_MAX = 8, BASE_PIOCHE = 3; // bases (matchent systems/combat.js)
 
 export function installerInventaire({ inventaire, heros, surChangement, surFermer, surJeter }) {
   const overlay = document.getElementById("inventaire");
