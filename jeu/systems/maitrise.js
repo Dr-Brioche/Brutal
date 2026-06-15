@@ -5,7 +5,7 @@
 // On choisit jusqu'à 3 cartes maîtrisées : elles s'ajoutent au deck en
 // combat, sans avoir besoin d'équiper l'arme correspondante.
 
-export const SEUIL_MAITRISE = 200;
+export const SEUIL_MAITRISE = 10; // provisoire pour les tests (valeur finale : 200)
 const MAX_CHOISIES = 3;
 
 export function creerMaitrise() {
