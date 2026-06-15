@@ -26,7 +26,21 @@
     /* ---- Le canvas du jeu (caché tant qu'on n'a pas cliqué Play) ---- */
     canvas {
       image-rendering: pixelated;   /* pixels nets, jamais de flou */
-      background: #14110f;
+      background: transparent;      /* le fond derrière peut transparaître (ciel combat) */
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ---- Fond plein écran pour le combat ---- */
+    /* Masqué hors combat ; PNG couvre tout (cover), gradient CSS en secours si
+       images/fonds/combat.png n'existe pas encore. Placé sous le canvas (z 0). */
+    #fond-combat {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        url("images/fonds/combat.png") center / cover no-repeat,
+        radial-gradient(ellipse at 50% 40%, #2a1a10 0%, #0c0907 100%);
     }
 
     [hidden] { display: none !important; }
@@ -1011,6 +1025,10 @@
   </style>
 </head>
 <body>
+  <!-- Fond plein écran pour le combat : PNG cover derrière le canvas 16:9.
+       Caché hors combat. Mettre images/fonds/combat.png pour remplacer le gradient. -->
+  <div id="fond-combat" hidden></div>
+
   <!-- L'écran du jeu : 640x360 pixels internes, agrandi sans flou -->
   <canvas id="jeu" width="640" height="360" hidden></canvas>
 

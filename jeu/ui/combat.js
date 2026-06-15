@@ -51,6 +51,9 @@ const PORTRAIT_HEROS = { sx: 17, sy: 4, sw: 30, sh: 30 };
 
 // `ennemis` : tableau de définitions d'ennemis (data/ennemis.js).
 export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surFin }) {
+  const fondCombat = document.getElementById("fond-combat");
+  fondCombat.hidden = false;
+
   const combat = creerCombat(ennemis, {
     pv: heros.pv, pvMax: heros.pvMax,
     // Réglages de combat (Chaleur, pioche) = arbre de talents (le stuff = cartes).
@@ -472,6 +475,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   }
 
   function fermer() {
+    fondCombat.hidden = true;
     overlay.hidden = true;
     panneauResultat.hidden = true;
     boutonFin.removeEventListener("click", finDeTour);
@@ -589,8 +593,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   function dessiner() {
     const W = ctx.canvas.width, H = ctx.canvas.height;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = "#0c0907";
-    ctx.fillRect(0, 0, W, H);
+    ctx.clearRect(0, 0, W, H); // transparent → le PNG derrière transparaît (ciel + bandes)
     const s = Math.min(W / 640, H / 360);
     ctx.setTransform(s, 0, 0, s, Math.round((W - 640 * s) / 2), Math.round((H - 360 * s) / 2));
 
@@ -718,11 +721,10 @@ function dessinerParticules(ctx, particules) {
 // ----- Dessin de la scène --------------------------------------------------
 
 function dessinerFond(ctx) {
-  const grad = ctx.createLinearGradient(0, 0, 0, 360);
-  grad.addColorStop(0, "#1a1410");
-  grad.addColorStop(1, "#0c0907");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 640, 360);
+  // Le ciel est géré par #fond-combat (PNG cover + gradient CSS en secours) ;
+  // on efface juste la zone pour la rendre transparente.
+  ctx.clearRect(0, 0, 640, SOL_Y);
+  // Le sol reste dessiné dans le canvas pour ancrer les sprites.
   ctx.fillStyle = "#241c16";
   ctx.fillRect(0, SOL_Y, 640, 360 - SOL_Y);
   ctx.fillStyle = "#2e241b";
