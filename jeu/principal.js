@@ -262,6 +262,11 @@ export async function demarrerJeu(donneesInitiales = null) {
         inventaireUI.rendre();
       },
     }));
+    // « Tout vendre » : proposé dès 2 objets et JAMAIS en 1re position (le défaut
+    // du dialogue) — en plus, il passe par un sous-menu de confirmation.
+    if (inventaire.objets.length > 1) {
+      choix.push({ texte: "💰  Sell all…", action: () => { prochainMenu = menuVendreTout; } });
+    }
     choix.push({ texte: "←  Back", action: () => { prochainMenu = menuBoutique; } });
     return choix;
   }
@@ -272,6 +277,24 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (!inventaire.objets.length) afficherMessage("Your bag is empty — nothing to sell.");
     ouvrirMenuMarchand("Test Merchant — Sell", choixVente());
     surChangementMenu = () => rafraichirChoix(choixVente());
+  }
+
+  // Confirmation « tout vendre » : le choix par DÉFAUT est « Non » (le choix
+  // dangereux est en 2e position) → aucune vente massive par mégarde.
+  function menuVendreTout() {
+    const objets = [...inventaire.objets];
+    const total = objets.reduce((s, o) => s + prixVente(o.id), 0);
+    ouvrirMenuMarchand("Sell EVERYTHING in your bag?", [
+      { texte: "←  No, keep my items", action: () => { prochainMenu = menuVendre; } },
+      { texte: `⚠  Yes, sell all ${objets.length} · +${total} 🪙`, action: () => {
+          prochainMenu = menuVendre; // on revient au menu de vente après coup
+          const aVendre = [...inventaire.objets];
+          let somme = 0;
+          for (const o of aVendre) somme += vendreObjet(inventaire, o);
+          afficherMessage(`💰 Sold ${aVendre.length} items for ${somme} 🪙.`);
+          inventaireUI.rendre();
+        } },
+    ]);
   }
 
   // Menu d'une catégorie : ses items (gratuits) + retour aux catégories.
