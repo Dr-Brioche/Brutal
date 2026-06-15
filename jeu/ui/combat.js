@@ -595,6 +595,16 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     return l;
   }
 
+  // Index de l'ennemi vivant qui agira le prochain (premier dans la file après
+  // l'acteur courant). Renvoie -1 si aucun ennemi n'est en file.
+  function prochainEnnemiIndex() {
+    const file = acteurCourant
+      ? [acteurCourant, ...simulerFile(combat, FILE_N)]
+      : simulerFile(combat, FILE_N);
+    const prochain = file.slice(1).find((a) => a.id === "ennemi");
+    return prochain ? prochain.i : -1;
+  }
+
   // La file d'ordre des tours, en haut : acteur courant + prochains (initiative).
   function dessinerFile(ctx) {
     const file = [acteurCourant, ...simulerFile(combat, FILE_N - 1)].filter(Boolean);
@@ -656,6 +666,16 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
       // Étourdi : il ne prépare pas d'attaque → on masque l'intention (le badge 💫 le dit).
       if (u.e.stun <= 0) dessinerIntention(ctx, u.e.intention, u.ecran.cx, u.ecran.haut - 8);
     });
+
+    // Tag « NEXT » sur l'ennemi qui agira le prochain (utile quand plusieurs
+    // ennemis identiques sont en jeu). Masqué si le combat est fini.
+    if (!combat.fini) {
+      const pi = prochainEnnemiIndex();
+      if (pi >= 0) {
+        const u = ennemisUI[pi];
+        if (u && u.e.pv > 0 && !u.partis) dessinerTagProchain(ctx, u.ecran, temps);
+      }
+    }
 
     // Flèche rouge au-dessus de la cible : UNIQUEMENT quand une carte d'attaque
     // est armée au clavier (sinon rien). La souris a sa propre flèche (drag).
@@ -875,6 +895,27 @@ function dessinerIntention(ctx, intention, cx, y) {
   ctx.textAlign = "center";
   ctx.fillText(`⚔ ${intention.valeur}`, cx, y);
   ctx.textAlign = "left";
+}
+
+// Petit tag ambre « NEXT » au-dessus de l'ennemi qui agira le prochain.
+function dessinerTagProchain(ctx, ecran, t) {
+  const bob = Math.sin(t * 4) * 2;
+  const cx = ecran.cx;
+  const y = ecran.haut - 36 + bob;
+  const tw = 34, th = 13;
+  cheminArrondi(ctx, cx - tw / 2, y - th / 2, tw, th, 3);
+  ctx.fillStyle = "rgba(255, 188, 30, 0.88)";
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(255, 220, 100, 0.6)";
+  ctx.stroke();
+  ctx.font = "bold 7px ui-monospace, monospace";
+  ctx.fillStyle = "#1a0f00";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("NEXT ▼", cx, y + 0.5);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
 }
 
 // Une rangée de badges d'état, centrée en `cx` sur la ligne `y`. Chaque badge a
