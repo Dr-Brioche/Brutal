@@ -54,6 +54,9 @@ export const ENNEMIS = [
     xp: 7,
     vitesse: 18,
     planche: "images/ennemis/gobelin.png",
+    // Même planche que le gobelin : on le distingue par une TEINTE (filtre canvas)
+    // plus froide et claire → lecture immédiate « celui-là est le rapide ».
+    teinte: "hue-rotate(65deg) saturate(1.35) brightness(1.18)",
     portrait: { sx: 54, sy: 4, sw: 96, sh: 96 },
     sprite: {
       caseL: 204,

@@ -629,10 +629,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const largeur = file.length * FILE_TAILLE + (file.length - 1) * FILE_ESPACE;
     let x = 320 - largeur / 2;
     file.forEach((a, k) => {
-      let planche = null, portrait = null;
+      let planche = null, portrait = null, teinte = null;
       if (a.id === "heros") { planche = heros.plancheArmure; portrait = PORTRAIT_HEROS; }
-      else { const u = ennemisUI[a.i]; if (u) { planche = u.planche; portrait = u.e.def.portrait; } }
-      dessinerCarreTete(ctx, x, FILE_Y, FILE_TAILLE, planche, portrait, k === 0);
+      else { const u = ennemisUI[a.i]; if (u) { planche = u.planche; portrait = u.e.def.portrait; teinte = u.e.def.teinte; } }
+      dessinerCarreTete(ctx, x, FILE_Y, FILE_TAILLE, planche, portrait, k === 0, teinte);
       x += FILE_TAILLE + FILE_ESPACE;
     });
   }
@@ -662,7 +662,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         ctx.translate(PIVOT_SCENE.x, PIVOT_SCENE.y);
         ctx.scale(u.echelle, u.echelle);
         ctx.translate(-PIVOT_SCENE.x, -PIVOT_SCENE.y);
-        dessinerEnnemi(ctx, u.planche, u.spr, frame, u.localX + tr, u.localY);
+        dessinerEnnemi(ctx, u.planche, u.spr, frame, u.localX + tr, u.localY, u.e.def.teinte);
         ctx.restore();
       }
     }
@@ -795,17 +795,19 @@ function dessinerFond(ctx) {
   ctx.fillRect(0, SOL_Y, 640, 4);
 }
 
-function dessinerEnnemi(ctx, planche, spr, frame, x, y) {
+function dessinerEnnemi(ctx, planche, spr, frame, x, y, teinte) {
   if (!planche) {
     ctx.fillStyle = "#5e8c3a";
     ctx.fillRect(x + 55, y + 30, 100, 120);
     return;
   }
+  if (teinte) ctx.filter = teinte; // teinte CSS (le scaling reste pixelisé)
   ctx.drawImage(
     planche,
     frame * spr.caseL, 0, spr.caseL, spr.caseH,
     Math.round(x), Math.round(y), spr.caseL, spr.caseH
   );
+  if (teinte) ctx.filter = "none";
 }
 
 // La vie d'un perso posée à son repère-écran : bouclier d'armure (Pierre) à
@@ -849,7 +851,7 @@ function cheminArrondi(ctx, x, y, w, h, r) {
 
 // Un carré-portrait de la file : fond, tête (planche découpée au `portrait`),
 // bordure blanche (dorée + épaisse pour l'acteur courant).
-function dessinerCarreTete(ctx, x, y, t, planche, portrait, courant) {
+function dessinerCarreTete(ctx, x, y, t, planche, portrait, courant, teinte) {
   ctx.save();
   cheminArrondi(ctx, x, y, t, t, 6);
   ctx.fillStyle = "#15110c";
@@ -857,6 +859,7 @@ function dessinerCarreTete(ctx, x, y, t, planche, portrait, courant) {
   ctx.clip(); // la tête reste dans le carré arrondi
   if (planche && portrait) {
     ctx.imageSmoothingEnabled = false;
+    if (teinte) ctx.filter = teinte; // même teinte que le sprite (reconnaître le rapide)
     ctx.drawImage(planche, portrait.sx, portrait.sy, portrait.sw, portrait.sh, x, y, t, t);
   }
   ctx.restore();
