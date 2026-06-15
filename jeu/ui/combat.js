@@ -12,8 +12,8 @@
 // deux fonctions tant que le combat est actif.
 
 import {
-  creerCombat, jouerCarte, degatsSurchauffe, carteVise, ennemiVivant,
-  agirEnnemi, commencerTourHeros, finirTourHeros, avancerInitiative,
+  creerCombat, jouerCarte, degatsSurchauffe, necessiteCiblage,
+  ennemiVivant, agirEnnemi, commencerTourHeros, finirTourHeros, avancerInitiative,
   simulerFile, ratioInitiativeHeros, ratioInitiativeEnnemi,
 } from "../systems/combat.js";
 import { cartesEquipees } from "../systems/inventaire.js";
@@ -296,13 +296,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
 
   // -- Actions du joueur ----------------------------------------------------
 
-  // Espace sur une carte : carte d'attaque + plusieurs ennemis → on arme la
-  // carte et on passe en ciblage ; sinon on joue directement (cible unique ou
-  // carte défensive).
+  // Espace sur une carte : si plusieurs ennemis vivants ET carte ciblée (non-AOE)
+  // → phase de ciblage. Sinon (1 ennemi, AOE, ou carte défensive) → joue directement.
   function tenterJouer(i) {
     const carte = combat.main[i];
     if (!carte || carte.cout > combat.chaleur) return; // injouable (coût en rouge)
-    if (carteVise(carte) && indicesVivants().length >= 2) {
+    if (necessiteCiblage(carte, indicesVivants().length)) {
       phaseCiblage = true;
       carteEnAttente = i;
       recalerCible();
@@ -312,30 +311,36 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
   }
 
   // Joue la carte `i` sur l'ennemi `cible` (par défaut : la cible courante).
+  // Pour les cartes AOE, `cible` est ignoré : tous les ennemis vivants sont touchés.
   function jouer(i, cible = combat.cible) {
     const carte = combat.main[i];
     if (!carte) return;
     const elJouee = conteneurMain.children[i] || null; // carte à animer
-    const eCible = combat.ennemis[cible];
-    const pvAvant = eCible ? eCible.pv : 0;
-    const stunAvant = eCible ? eCible.stun : 0;
+    // Snapshot AVANT jouerCarte (pour calculer les deltas d'animation).
+    const pvAvants   = combat.ennemis.map((e) => e.pv);
+    const stunAvants = combat.ennemis.map((e) => e.stun);
     const pierreAvant = combat.pierre;
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
 
     if (elJouee) animerCarteJouee(elJouee); // la carte sort, grandit, puis disparaît
 
-    // Animation sur l'ennemi touché (s'il a perdu des PV)
-    const u = ennemisUI[cible];
-    if (u && eCible && eCible.pv < pvAvant) {
-      animAttaque = 0.25;
-      u.secousse = 0.3;
-      if (eCible.pv <= 0) exploser(u);
-      else jouerAnim(u, "touche");
-      ajouterFlottant(`-${pvAvant - eCible.pv}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
-    }
-    if (u && eCible && eCible.stun > stunAvant) { // étourdissement appliqué
-      u.secousse = Math.max(u.secousse, 0.3);
-      ajouterFlottant(`💫 ${eCible.stun}`, u.ecran.cx, u.ecran.sommet - 16, "#ffd966");
+    // Animer TOUS les ennemis touchés (fonctionne pour 1 cible ET pour AOE).
+    let quelquUnTouche = false;
+    for (let idx = 0; idx < ennemisUI.length; idx++) {
+      const u = ennemisUI[idx];
+      const e = combat.ennemis[idx];
+      if (!u || !e) continue;
+      if (e.pv < pvAvants[idx]) {
+        if (!quelquUnTouche) { animAttaque = 0.25; quelquUnTouche = true; }
+        u.secousse = 0.3;
+        if (e.pv <= 0) exploser(u);
+        else jouerAnim(u, "touche");
+        ajouterFlottant(`-${pvAvants[idx] - e.pv}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
+      }
+      if (e.stun > stunAvants[idx]) {
+        u.secousse = Math.max(u.secousse, 0.3);
+        ajouterFlottant(`💫 ${e.stun}`, u.ecran.cx, u.ecran.sommet - 16, "#ffd966");
+      }
     }
     if (combat.pierre > pierreAvant) {
       ajouterFlottant(`+${combat.pierre - pierreAvant}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
@@ -383,7 +388,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, surF
     const p = pointerVersScene(ev.clientX, ev.clientY);
     drag = {
       i, el,
-      vise: carteVise(carte) && indicesVivants().length >= 1, // tire une flèche ?
+      // Flèche de ciblage UNIQUEMENT si la carte est offensive, non-AOE, et que
+      // plusieurs ennemis sont en vie (sinon un simple clic suffit).
+      vise: necessiteCiblage(carte, indicesVivants().length),
       depart: elementVersScene(el),
       x: p.x, y: p.y,
       cibleSurvol: -1,

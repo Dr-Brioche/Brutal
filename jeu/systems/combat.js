@@ -165,6 +165,23 @@ export function carteVise(carte) {
   );
 }
 
+// Renvoie true si la carte frappe TOUS les ennemis vivants à la fois (AOE).
+// Ajouter `aoe: true` dans la définition de la carte (data/cartes.js) pour l'activer.
+export function carteAOE(carte) { return carte?.aoe === true; }
+
+// Faut-il demander au joueur de CHOISIR une cible ? Uniquement si la carte est
+// offensive (vise un ennemi), non-AOE, ET qu'il y a plusieurs ennemis vivants.
+// Dans tous les autres cas, un simple clic suffit pour jouer.
+export function necessiteCiblage(carte, nbVivants) {
+  return carteVise(carte) && !carteAOE(carte) && nbVivants >= 2;
+}
+
+// Vrai si cet effet touche un ennemi (offensive) — sert pour la logique AOE.
+function effetViseEnnemi(e) {
+  return e.type === "degats" || e.type === "poison" || e.type === "feu" ||
+         e.type === "sang"   || e.type === "stun"   || e.type === "lenteur";
+}
+
 // Applique un effet de carte : les effets offensifs touchent `ennemi` (la cible),
 // les défensifs touchent le héros.
 function appliquerEffet(combat, effet, ennemi) {
@@ -215,18 +232,28 @@ export function degatsSurchauffe(combat) {
 }
 
 // Joue la carte `index` ; `cible` = index de l'ennemi visé (ignoré si la carte
-// ne vise personne). Renvoie true si elle a été jouée.
+// est AOE ou ne vise personne). Renvoie true si elle a été jouée.
 export function jouerCarte(combat, index, cible = combat.cible) {
   if (combat.fini || !combat.tourJoueur) return false;
   const carte = combat.main[index];
   if (!carte || carte.cout > combat.chaleur) return false;
 
-  // On vise un ennemi VIVANT (sinon on retombe sur le premier vivant).
-  let ennemi = combat.ennemis[cible];
-  if (!ennemiVivant(ennemi)) ennemi = combat.ennemis[premierVivant(combat)];
-
   combat.chaleur -= carte.cout;
-  for (const effet of carte.effets) appliquerEffet(combat, effet, ennemi);
+
+  if (carteAOE(carte)) {
+    // AOE : les effets offensifs frappent TOUS les ennemis vivants.
+    // Les effets défensifs (pierre, chaleur, célérité) s'appliquent normalement.
+    const vivants = combat.ennemis.filter(ennemiVivant);
+    for (const effet of carte.effets) {
+      if (effetViseEnnemi(effet)) for (const e of vivants) appliquerEffet(combat, effet, e);
+      else appliquerEffet(combat, effet, null);
+    }
+  } else {
+    // Carte ciblée : on vise un ennemi VIVANT (sinon on retombe sur le premier vivant).
+    let ennemi = combat.ennemis[cible];
+    if (!ennemiVivant(ennemi)) ennemi = combat.ennemis[premierVivant(combat)];
+    for (const effet of carte.effets) appliquerEffet(combat, effet, ennemi);
+  }
 
   combat.main.splice(index, 1);
   combat.defausse.push(carte);
