@@ -295,6 +295,8 @@
       width: min(100vw, calc(100vh * 16 / 9));
       aspect-ratio: 16 / 9;
       container-type: size;
+      overflow: hidden;        /* les cartes qui dépassent sont COUPÉES au bord de la
+                                  zone de jeu, pas affichées dans la bande noire */
       pointer-events: none;
     }
 
@@ -386,14 +388,14 @@
 
     /* La main : les cartes se chevauchent en léger éventail (tenues en main).
        L'angle (--rot) et la descente vers les bords (--dy) sont posés en JS.
-       --carte-l = largeur d'une carte. On la base sur la HAUTEUR de l'écran
-       (vh, pas vw) : les cartes sont grandes mais restent dans la bande du bas
-       et ne recouvrent pas les personnages, quelle que soit la largeur d'écran. */
+       --carte-l = largeur d'une carte. On la base sur la HAUTEUR de la ZONE DE JEU
+       (cqh, comme la jauge), pas sur la fenêtre (vh) : ainsi les cartes suivent la
+       même échelle que la scène, quelle que soit la forme de la fenêtre. */
     .combat-main {
       position: absolute;
       left: 50%; bottom: 2cqh;
       transform: translateX(-50%);
-      --carte-l: clamp(150px, 18vh, 230px);
+      --carte-l: 18cqh;
       display: flex; gap: 0; align-items: flex-end;
       padding-top: calc(var(--carte-l) * 0.16);
       pointer-events: auto;
