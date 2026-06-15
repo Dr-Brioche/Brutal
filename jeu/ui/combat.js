@@ -29,6 +29,7 @@ const SOL_Y = 240;                  // sol à 2/3 de la hauteur (1/3 depuis le b
 const ECHELLE_SCENE = 0.4;          // dézoom de référence (avant-plan)
 const ECHELLE_AVANT   = ECHELLE_SCENE;        // rang avant  : taille normale
 const ECHELLE_ARRIERE = ECHELLE_SCENE * 0.78; // rang arrière : 22 % plus petit
+const RATIO_ARRIERE   = ECHELLE_ARRIERE / ECHELLE_AVANT; // facteur UI arrière (0.78)
 const SOL_ARRIERE = SOL_Y - 18;              // pieds des ennemis arrière, 18 px plus hauts
 const PIVOT_SCENE = { x: 320, y: SOL_Y };
 const HEROS_ECRAN_CX = 165;         // centre du héros à l'écran (scène)
@@ -699,24 +700,26 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // PARTICULES (braises, fumée) : stockées en coords écran → pas de transform.
     dessinerParticules(ctx, particules);
 
-    // Vie + états + intention de chaque ennemi vivant (taille réelle, lisible).
+    // Vie + états + intention + tag NEXT de chaque ennemi vivant.
+    // Les ennemis « arrière » (impairs) reçoivent un léger zoom-out de leur UI
+    // (même ratio 0.78 que leur sprite) pour renforcer l'effet de perspective.
+    // Le pivot du scale est au centre de leurs pieds (ecran.cx, ecran.sol).
+    const prochainIdx = combat.fini ? -1 : prochainEnnemiIndex();
     ennemisUI.forEach((u) => {
       if (u.e.pv <= 0 || u.mort.actif) return;
+      ctx.save();
+      if (!u.avant) {
+        ctx.translate(u.ecran.cx, u.ecran.sol);
+        ctx.scale(RATIO_ARRIERE, RATIO_ARRIERE);
+        ctx.translate(-u.ecran.cx, -u.ecran.sol);
+      }
       barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
         `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), 0, u.affInit);
-      // Étourdi : il ne prépare pas d'attaque → on masque l'intention (le badge 💫 le dit).
       if (u.e.stun <= 0) dessinerIntention(ctx, u.e.intention, u.ecran.cx, u.ecran.haut - 8);
+      if (prochainIdx === ennemisUI.indexOf(u) && !u.partis)
+        dessinerTagProchain(ctx, u.ecran, temps);
+      ctx.restore();
     });
-
-    // Tag « NEXT » sur l'ennemi qui agira le prochain (utile quand plusieurs
-    // ennemis identiques sont en jeu). Masqué si le combat est fini.
-    if (!combat.fini) {
-      const pi = prochainEnnemiIndex();
-      if (pi >= 0) {
-        const u = ennemisUI[pi];
-        if (u && u.e.pv > 0 && !u.partis) dessinerTagProchain(ctx, u.ecran, temps);
-      }
-    }
 
     // Flèche rouge au-dessus de la cible : UNIQUEMENT quand une carte d'attaque
     // est armée au clavier (sinon rien). La souris a sa propre flèche (drag).
