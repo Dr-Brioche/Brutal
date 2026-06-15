@@ -206,14 +206,21 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 
 > **Télégraphe visuel des sorts (validé 15/06/2026)** : pour qu'on lise d'un
 > coup d'œil qui fait quoi, deux conventions communes à tous les sorts ennemis :
-> - **Sort sur une cible alliée unique** (ex. soin) → un **fil coloré animé**
->   part du lanceur et rejoint sa cible (sens source → cible), avec l'icône du
->   sort posée dessus (💚 vert = soin). Le fil est **recalculé en continu** : si
->   la cible meurt avant que le lanceur agisse, il glisse sur la nouvelle cible.
->   Lève l'ambiguïté quand plusieurs lanceurs agissent en même temps.
+> - **Sort sur une cible alliée unique** (ex. soin) → un **fil coloré pointillé**
+>   en **arc** part du lanceur et rejoint sa cible (sens source → cible), icône du
+>   sort au bout (💚 vert = soin). L'arc **passe au-dessus de toutes les
+>   annotations** (intentions, NEXT, barres) et monte assez haut pour ne jamais
+>   croiser les sprites. **Recalculé en continu** : si la cible meurt avant que le
+>   lanceur agisse, il glisse sur la nouvelle cible. Lève l'ambiguïté quand
+>   plusieurs lanceurs agissent en même temps.
 > - **Sort de groupe** (touche tous les alliés, ex. hâte) → **pas de fil** : son
 >   intention, affichée au-dessus du lanceur, porte une petite case **« ALL »**
 >   collée à l'icône (⚡ ALL). Inutile de désigner une cible puisque c'est global.
+>
+> **Cohérence des flèches** : la **flèche de ciblage du joueur** (quand on tire une
+> carte d'attaque vers un monstre) utilise le **même rendu courbé et pointillé**,
+> en **rouge** et à opacité fixe, avec une pointe au bout — plus naturel qu'un
+> trait droit rigide.
 
 ### Bestiaire actuel (1er jet)
 

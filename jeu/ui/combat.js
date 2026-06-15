@@ -721,28 +721,6 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       ctx.restore();
     });
 
-    // Télégraphe des SORTS ennemis ciblant un ALLIÉ unique (ex. soin) : un fil
-    // coloré relie le lanceur à sa cible. Recalculé à chaque frame → si la cible
-    // prévue meurt avant le tour du lanceur, le fil glisse tout seul sur le
-    // nouvel allié le plus blessé. (Les sorts de GROUPE, eux, n'ont pas de fil :
-    // leur intention porte un badge « ALL » — cf. dessinerIntention.)
-    for (let ci = 0; ci < ennemisUI.length; ci++) {
-      const cham = ennemisUI[ci];
-      if (!ennemiVivant(cham.e) || cham.e.stun > 0) continue;
-      if (cham.e.intention?.type === "soigner") {
-        // Cible = allié vivant le plus blessé (le chaman lui-même s'il est seul).
-        let cibleIdx = -1, minPv = Infinity;
-        for (let j = 0; j < ennemisUI.length; j++) {
-          if (j === ci) continue;
-          const u = ennemisUI[j];
-          if (ennemiVivant(u.e) && u.e.pv < minPv) { minPv = u.e.pv; cibleIdx = j; }
-        }
-        if (cibleIdx < 0) cibleIdx = ci;
-        const src = cham.ecran, dst = ennemisUI[cibleIdx].ecran;
-        dessinerLienSort(ctx, src.cx, src.milieu, dst.cx, dst.milieu, temps, "#7edf82", "💚");
-      }
-    }
-
     // Flèche rouge au-dessus de la cible : UNIQUEMENT quand une carte d'attaque
     // est armée au clavier (sinon rien). La souris a sa propre flèche (drag).
     if (!drag && phaseCiblage && combat.tourJoueur && !combat.fini) {
@@ -750,18 +728,39 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (u && u.e.pv > 0) dessinerFlecheCible(ctx, u.ecran, temps, true);
     }
 
-    // Flèche de DRAG souris : de la carte vers le pointeur (ou l'ennemi survolé).
+    // Flèche de DRAG souris : arc rouge pointillé de la carte vers le pointeur
+    // (ou l'ennemi survolé). Sa pointe désigne déjà la cible → pas de flèche en plus.
     if (drag && drag.vise) {
       const surv = drag.cibleSurvol >= 0 ? ennemisUI[drag.cibleSurvol] : null;
       const ex = surv ? surv.ecran.cx : drag.x;
       const ey = surv ? surv.ecran.milieu : drag.y;
-      dessinerFlecheDrag(ctx, drag.depart.x, drag.depart.y, ex, ey);
-      if (surv && surv.e.pv > 0) dessinerFlecheCible(ctx, surv.ecran, temps, true);
+      dessinerFlecheDrag(ctx, drag.depart.x, drag.depart.y, ex, ey, temps);
     }
 
     // Vie du héros (avec son bouclier d'armure = la Pierre).
     barreVieAuSol(ctx, heroEcran, aff.pvHeros / combat.pvHerosMax,
       `${Math.round(combat.pvHeros)}/${combat.pvHerosMax}`, "#2e8b57", etatsHeros(), combat.pierre, aff.initHeros);
+
+    // Télégraphe des SORTS à cible alliée unique (ex. soin) : un fil coloré relie
+    // le lanceur à sa cible. Dessiné EN DERNIER → il passe par-dessus toutes les
+    // annotations, et son arc monte assez haut pour ne jamais croiser les sprites.
+    // Recalculé à chaque frame → si la cible meurt avant le tour du lanceur, le fil
+    // glisse tout seul sur le nouvel allié le plus blessé. (Les sorts de GROUPE
+    // n'ont pas de fil : leur intention porte un badge « ALL » — cf. dessinerIntention.)
+    for (let ci = 0; ci < ennemisUI.length; ci++) {
+      const cham = ennemisUI[ci];
+      if (!ennemiVivant(cham.e) || cham.e.stun > 0) continue;
+      if (cham.e.intention?.type === "soigner") {
+        let cibleIdx = -1, minPv = Infinity;
+        for (let j = 0; j < ennemisUI.length; j++) {
+          if (j === ci) continue;
+          const u = ennemisUI[j];
+          if (ennemiVivant(u.e) && u.e.pv < minPv) { minPv = u.e.pv; cibleIdx = j; }
+        }
+        if (cibleIdx < 0) cibleIdx = ci; // seul survivant : il se soigne lui-même
+        dessinerLienSort(ctx, cham.ecran, ennemisUI[cibleIdx].ecran, temps, "#7edf82", "💚");
+      }
+    }
 
     // Nombres flottants (dégâts/soins) AU-DESSUS des persos : gros + contour noir
     // pour rester lisibles sur n'importe quel fond. Ils montent en s'estompant.
@@ -1052,36 +1051,44 @@ function dessinerEtats(ctx, etats, cx, y) {
   ctx.textBaseline = "alphabetic";
 }
 
-// Fil animé reliant un lanceur de sort (x0,y0) à sa cible alliée (x1,y1) : trait
-// pointillé qui « coule » vers la cible (sens lecture source → cible) + l'icône
-// du sort posée sur la cible. Convention pour TOUT sort à cible alliée unique
-// (le `couleur`/`icone` distingue le type : 💚 vert = soin, etc.).
-function dessinerLienSort(ctx, x0, y0, x1, y1, t, couleur, icone) {
-  const pulse = 0.55 + 0.45 * Math.sin(t * 6);
-  const mx = (x0 + x1) / 2;
-  const my = Math.min(y0, y1) - 26; // léger arc vers le haut (évite les sprites)
+// Trace une courbe quadratique POINTILLÉE (x0,y0)→(x1,y1) via le contrôle (cx,cy).
+// `offset` anime le défilement des pointillés (0 = trait figé). Base commune au
+// fil de sort (vert) et à la flèche de ciblage (rouge).
+function tracerArcPointille(ctx, x0, y0, cx, cy, x1, y1, couleur, offset, largeur) {
   ctx.save();
-  ctx.globalAlpha = pulse;
   ctx.strokeStyle = couleur;
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = largeur;
   ctx.lineCap = "round";
   ctx.setLineDash([5, 6]);
-  ctx.lineDashOffset = -t * 28;     // défilement des pointillés vers la cible
+  ctx.lineDashOffset = offset;
   ctx.beginPath();
   ctx.moveTo(x0, y0);
-  ctx.quadraticCurveTo(mx, my, x1, y1);
+  ctx.quadraticCurveTo(cx, cy, x1, y1);
   ctx.stroke();
   ctx.restore();
-  // Icône du sort sur la cible (halo doux + emoji).
+}
+
+// Fil animé reliant un lanceur de sort à sa cible alliée (`src`/`dst` = repères
+// écran). Les extrémités partent AU-DESSUS des annotations et l'arc monte encore
+// plus haut → le trait ne croise jamais les sprites ni les barres. L'icône du sort
+// se pose au bout, juste au-dessus de la cible. Convention pour TOUT sort à cible
+// alliée unique (`couleur`/`icone` distingue le type : 💚 vert = soin, etc.).
+function dessinerLienSort(ctx, src, dst, t, couleur, icone) {
+  const x0 = src.cx, x1 = dst.cx;
+  const yA = src.haut - 46, yB = dst.haut - 46;   // au-dessus de toutes les annotations
+  const cx = (x0 + x1) / 2, cy = Math.min(yA, yB) - 30; // sommet de l'arc, encore au-dessus
+  const pulse = 0.55 + 0.45 * Math.sin(t * 6);
   ctx.globalAlpha = pulse;
+  tracerArcPointille(ctx, x0, yA, cx, cy, x1, yB, couleur, -t * 28, 2.5);
+  // Pastille + icône du sort au bout du fil (juste au-dessus de la cible).
   ctx.beginPath();
-  ctx.arc(x1, y1, 11, 0, Math.PI * 2);
+  ctx.arc(x1, yB, 11, 0, Math.PI * 2);
   ctx.fillStyle = "rgba(20, 40, 24, 0.6)";
   ctx.fill();
   ctx.font = "13px ui-monospace, monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(icone, x1, y1 + 0.5);
+  ctx.fillText(icone, x1, yB + 0.5);
   ctx.globalAlpha = 1;
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
@@ -1106,26 +1113,33 @@ function dessinerFlecheCible(ctx, ecran, t, fort) {
   ctx.stroke();
 }
 
-// Une flèche rouge tracée de la carte (x0,y0) vers le pointeur/monstre (x1,y1).
-function dessinerFlecheDrag(ctx, x0, y0, x1, y1) {
-  ctx.strokeStyle = "#ff3b30";
-  ctx.lineWidth = 3;
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.moveTo(x0, y0);
-  ctx.lineTo(x1, y1);
-  ctx.stroke();
-  // Pointe de flèche
-  const a = Math.atan2(y1 - y0, x1 - x0);
-  const t = 11;
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x1 - t * Math.cos(a - 0.45), y1 - t * Math.sin(a - 0.45));
-  ctx.lineTo(x1 - t * Math.cos(a + 0.45), y1 - t * Math.sin(a + 0.45));
-  ctx.closePath();
+// Flèche de ciblage souris : arc rouge POINTILLÉ de la carte (x0,y0) vers la
+// cible/pointeur (x1,y1), avec une pointe à son extrémité. Même rendu courbé que
+// le fil de sort, mais à opacité FIXE (pas de clignotement) — plus naturel qu'un
+// trait rigide. `t` anime seulement le léger défilement des pointillés.
+function dessinerFlecheDrag(ctx, x0, y0, x1, y1, t) {
+  // Contrôle décalé perpendiculairement à la corde → courbure douce et régulière.
+  const dx = x1 - x0, dy = y1 - y0;
+  const len = Math.hypot(dx, dy) || 1;
+  const bow = Math.min(70, len * 0.22);
+  const cx = (x0 + x1) / 2 + (-dy / len) * bow;
+  const cy = (y0 + y1) / 2 + (dx / len) * bow;
+  ctx.globalAlpha = 0.92;
+  tracerArcPointille(ctx, x0, y0, cx, cy, x1, y1, "#ff3b30", -t * 24, 3);
+  // Pointe orientée selon la tangente finale de la courbe (dir = extrémité − contrôle).
+  const a = Math.atan2(y1 - cy, x1 - cx);
+  ctx.save();
+  ctx.translate(x1, y1);
+  ctx.rotate(a);
   ctx.fillStyle = "#ff3b30";
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-12, -6);
+  ctx.lineTo(-12, 6);
+  ctx.closePath();
   ctx.fill();
-  ctx.lineCap = "butt";
+  ctx.restore();
+  ctx.globalAlpha = 1;
 }
 
 // ----- Une carte en HTML ---------------------------------------------------
