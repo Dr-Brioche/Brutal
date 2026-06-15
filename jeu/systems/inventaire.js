@@ -78,27 +78,37 @@ function retirerObjet(inv, objet) {
 }
 
 // Le slot visé par un item (une bague va sur la 1re bague libre).
-function slotCible(inv, id) {
-  const base = SLOT_PAR_CATEGORIE[itemDef(id).categorie];
+// `heros` est optionnel : s'il a le talent ambidextrie et qu'arme1 est libre
+// d'une 1M + arme2 est vide, la 2e arme va directement en arme2.
+function slotCible(inv, id, heros) {
+  const d = itemDef(id);
+  const base = SLOT_PAR_CATEGORIE[d.categorie];
   if (base === "bague") {
     for (let i = 1; i <= 5; i++) if (!inv.slots["bague" + i]) return "bague" + i;
     return "bague1";
+  }
+  // Ambidextrie : si arme1 porte une arme 1M et arme2 est libre → rediriger vers arme2.
+  if (base === "arme1" && d.mains !== 2 && (heros?.talents?.ambidextrie ?? 0) > 0) {
+    const arme1Def = itemDef(inv.slots.arme1 ?? "");
+    if (arme1Def && arme1Def.mains !== 2 && !inv.slots.arme2) return "arme2";
   }
   return base ?? null;
 }
 
 // Équipe un objet de la grille : il quitte le sac pour son slot ; l'ancien
 // occupant du slot retourne dans le sac.
-export function equiper(inv, objet) {
+// `heros` est optionnel (nécessaire pour Ambidextrie).
+export function equiper(inv, objet, heros) {
   const d = itemDef(objet.id);
-  const slot = slotCible(inv, objet.id);
+  const slot = slotCible(inv, objet.id, heros);
   if (!slot) return false;
   // Bloquer arme2 si arme1 est une arme à deux mains (la seconde main est occupée).
   if (slot === "arme2" && itemDef(inv.slots.arme1 ?? "")?.mains === 2) return false;
   retirerObjet(inv, objet);
   const ancien = inv.slots[slot];
   inv.slots[slot] = objet.id;
-  // Arme à deux mains : elle libère la seconde main (qui retourne au sac)
+  // Arme à deux mains : libère la seconde main (retourne au sac), même si c'est
+  // une arme mise là par Ambidextrie.
   if (slot === "arme1" && d.mains === 2 && inv.slots.arme2) {
     const a2 = inv.slots.arme2; inv.slots.arme2 = null; ajouterObjet(inv, a2);
   }

@@ -39,6 +39,16 @@ export const TALENTS = {
     effet: { maitrise: 1 },
     description: "Unlock Ancestral Mastery — master cards by playing them 200 times, then add up to 3 to your deck permanently.",
   },
+
+  // Talent LÉGENDAIRE : branche Combat — dual-wield deux armes à une main.
+  ambidextrie: {
+    id: "ambidextrie", nom: "Ambidexterity",
+    x: 4, y: 4, cout: 3,
+    requis: ["agile1"],
+    legendaire: true,
+    effet: { ambidextrie: 1 },
+    description: "Wield a one-handed weapon in each hand — both weapons' cards are added to your deck.",
+  },
 };
 
 // Taille de la grille (pour dimensionner l'écran).
@@ -59,6 +69,7 @@ const NOM_EFFET = {
   pioche: "Cards drawn / turn",
   agilite: "Attack speed",
   maitrise: "Ancestral Mastery",
+  ambidextrie: "Ambidexterity",
 };
 
 // Décrit l'effet d'un nœud, ex. "+10 Max HP".

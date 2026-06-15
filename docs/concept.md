@@ -346,6 +346,24 @@ l'**arbre** (écran touche **T**) : des nœuds reliés en arborescence, débloqu
 selon leurs prérequis. *(1er jet implémenté : XP/niveau/points sauvegardés, écran
 de l'arbre, effets appliqués. À venir : plus de nœuds, rangs multiples.)*
 
+### Talents légendaires (coût 3, prérequis cumulés)
+
+| ID | Nom | Prérequis | Effet |
+|---|---|---|---|
+| `maitrise1` | **Ancestral Mastery** | forge4 + agile1 | Jouer une carte 200 fois = la maîtriser ; choisir 3 maîtrisées à ajouter définitivement au deck |
+| `ambidextrie` | **Ambidexterity** | agile1 | Équiper **deux armes à 1 main** simultanément (main + main off) ; les cartes des deux armes s'ajoutent au deck |
+
+### Règles d'Ambidextrie
+
+- **Slot arme2** : normalement réservé aux **boucliers**. Avec le talent, une
+  **arme à 1 main** peut y être posée.
+- **Comportement automatique** : si arme1 porte déjà une arme 1M et qu'arme2
+  est libre, équiper une 2e arme la pose directement en arme2.
+- **Arme à 2 mains** : bloque arme2 comme d'habitude (l'équiper renvoie l'arme
+  off-hand au sac).
+- **Deck** : les cartes des deux armes s'empilent normalement dans la composition
+  du deck (`cartesEquipees` lit tous les slots sans distinction).
+
 > **Outil de TEST (à retirer)** : une **fontaine** au centre de la ville donne
 > **+1 niveau** quand on lui parle, pour essayer les talents sans farmer.
 

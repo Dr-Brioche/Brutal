@@ -28,12 +28,16 @@ const LABELS = {
   collier: "Neck", sac: "Bag", bague1: "Ring", bague2: "Ring", bague3: "Ring",
   bague4: "Ring", bague5: "Ring",
 };
+// Label dynamique pour arme2 selon le talent Ambidextrie
+function labelArme2(heros) {
+  return (heros?.talents?.ambidextrie ?? 0) > 0 ? "Off-hand" : "Off";
+}
 
 // Stats de base de la Chaleur de Forge (cf. systems/combat.js)
 const FORGE_SEUIL = 3, FORGE_MAX = 8, BASE_PIOCHE = 3; // bases (matchent systems/combat.js)
 
-function essayerEquiper(inventaire, objet, surChangement, rendre) {
-  if (equiper(inventaire, objet)) { surChangement(); rendre(); return; }
+function essayerEquiper(inventaire, heros, objet, surChangement, rendre) {
+  if (equiper(inventaire, objet, heros)) { surChangement(); rendre(); return; }
   if (arme2Bloquee(inventaire) && itemDef(objet.id).categorie === "bouclier") {
     afficherMessage("⚠ Your two-handed weapon occupies both hands — unequip it first.");
   }
@@ -82,7 +86,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     d.ghost?.remove();
     d.ic.style.opacity = "";
     if (!d.moved) { // pas bougé = simple clic → équiper
-      essayerEquiper(inventaire, d.objet, surChangement, rendre);
+      essayerEquiper(inventaire, heros, d.objet, surChangement, rendre);
       return;
     }
     // Relâché HORS du panneau (le vide) → jeter ; à l'intérieur → on annule.
@@ -166,7 +170,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       cell.append(ic);
     } else {
       cell.classList.add("vide");
-      cell.textContent = LABELS[slot] ?? "";
+      cell.textContent = slot === "arme2" ? labelArme2(heros) : (LABELS[slot] ?? "");
     }
     return cell;
   }
@@ -223,7 +227,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       ic.addEventListener("contextmenu", (ev) => {
         ev.preventDefault();
         ouvrirContexte(ev.clientX, ev.clientY, [
-          { label: "Equip", fn: () => essayerEquiper(inventaire, o, surChangement, rendre) },
+          { label: "Equip", fn: () => essayerEquiper(inventaire, heros, o, surChangement, rendre) },
           { label: "Discard", danger: true, fn: () => surJeter && surJeter({ objet: o }) },
         ]);
       });
