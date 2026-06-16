@@ -701,6 +701,27 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // PARTICULES (braises, fumée) : stockées en coords écran → pas de transform.
     dessinerParticules(ctx, particules);
 
+    // Télégraphe des SORTS à cible alliée unique (ex. soin) : un fil VERT relie le
+    // lanceur à sa cible. Dessiné EN ARRIÈRE-PLAN (avant les annotations) → l'action
+    // et le tag NEXT au-dessus des têtes passent PAR-DESSUS le fil. Recalculé à
+    // chaque frame → si la cible meurt avant le tour du lanceur, le fil glisse tout
+    // seul sur le nouvel allié le plus blessé. (Les sorts de GROUPE n'ont pas de
+    // fil : leur intention porte un badge « ALL » — cf. dessinerIntention.)
+    for (let ci = 0; ci < ennemisUI.length; ci++) {
+      const cham = ennemisUI[ci];
+      if (!ennemiVivant(cham.e) || cham.e.stun > 0) continue;
+      if (cham.e.intention?.type === "soigner") {
+        let cibleIdx = -1, minPv = Infinity;
+        for (let j = 0; j < ennemisUI.length; j++) {
+          if (j === ci) continue;
+          const u = ennemisUI[j];
+          if (ennemiVivant(u.e) && u.e.pv < minPv) { minPv = u.e.pv; cibleIdx = j; }
+        }
+        if (cibleIdx < 0) cibleIdx = ci; // seul survivant : il se soigne lui-même
+        dessinerLienSort(ctx, cham.ecran, ennemisUI[cibleIdx].ecran, temps, "#7edf82");
+      }
+    }
+
     // Vie + états + intention + tag NEXT de chaque ennemi vivant.
     // Les ennemis « arrière » (impairs) reçoivent un léger zoom-out de leur UI
     // (même ratio 0.78 que leur sprite) pour renforcer l'effet de perspective.
@@ -741,27 +762,6 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // Vie du héros (avec son bouclier d'armure = la Pierre).
     barreVieAuSol(ctx, heroEcran, aff.pvHeros / combat.pvHerosMax,
       `${Math.round(combat.pvHeros)}/${combat.pvHerosMax}`, "#2e8b57", etatsHeros(), combat.pierre, aff.initHeros);
-
-    // Télégraphe des SORTS à cible alliée unique (ex. soin) : un fil coloré relie
-    // le lanceur à sa cible. Dessiné EN DERNIER → il passe par-dessus toutes les
-    // annotations, et son arc monte assez haut pour ne jamais croiser les sprites.
-    // Recalculé à chaque frame → si la cible meurt avant le tour du lanceur, le fil
-    // glisse tout seul sur le nouvel allié le plus blessé. (Les sorts de GROUPE
-    // n'ont pas de fil : leur intention porte un badge « ALL » — cf. dessinerIntention.)
-    for (let ci = 0; ci < ennemisUI.length; ci++) {
-      const cham = ennemisUI[ci];
-      if (!ennemiVivant(cham.e) || cham.e.stun > 0) continue;
-      if (cham.e.intention?.type === "soigner") {
-        let cibleIdx = -1, minPv = Infinity;
-        for (let j = 0; j < ennemisUI.length; j++) {
-          if (j === ci) continue;
-          const u = ennemisUI[j];
-          if (ennemiVivant(u.e) && u.e.pv < minPv) { minPv = u.e.pv; cibleIdx = j; }
-        }
-        if (cibleIdx < 0) cibleIdx = ci; // seul survivant : il se soigne lui-même
-        dessinerLienSort(ctx, cham.ecran, ennemisUI[cibleIdx].ecran, temps, "#7edf82", "💚");
-      }
-    }
 
     // Nombres flottants (dégâts/soins) AU-DESSUS des persos : gros + contour noir
     // pour rester lisibles sur n'importe quel fond. Ils montent en s'estompant.
@@ -1070,29 +1070,19 @@ function tracerArcPointille(ctx, x0, y0, cx, cy, x1, y1, couleur, offset, largeu
 }
 
 // Fil animé reliant un lanceur de sort à sa cible alliée (`src`/`dst` = repères
-// écran). Les extrémités partent AU-DESSUS des annotations et l'arc monte encore
-// plus haut → le trait ne croise jamais les sprites ni les barres. L'icône du sort
-// se pose au bout, juste au-dessus de la cible. Convention pour TOUT sort à cible
-// alliée unique (`couleur`/`icone` distingue le type : 💚 vert = soin, etc.).
-function dessinerLienSort(ctx, src, dst, t, couleur, icone) {
+// écran). Il part PRÈS de la tête de la cible (juste au-dessus de l'action) et son
+// arc monte haut, bien VERTICAL (en cloche). Dessiné en ARRIÈRE-PLAN → l'action et
+// le tag NEXT au-dessus des têtes passent par-dessus. Marque GÉNÉRIQUE de tout sort
+// à cible unique entre monstres : `couleur` qualifie le type (vert = soin…),
+// volontairement SANS icône.
+function dessinerLienSort(ctx, src, dst, t, couleur) {
   const x0 = src.cx, x1 = dst.cx;
-  const yA = src.haut - 46, yB = dst.haut - 46;   // au-dessus de toutes les annotations
-  const cx = (x0 + x1) / 2, cy = Math.min(yA, yB) - 30; // sommet de l'arc, encore au-dessus
+  const yA = src.haut - 24, yB = dst.haut - 24;          // près des têtes (au-dessus de l'action)
+  const cx = (x0 + x1) / 2, cy = Math.min(yA, yB) - 64;  // sommet bien plus haut → cloche verticale
   const pulse = 0.55 + 0.45 * Math.sin(t * 6);
   ctx.globalAlpha = pulse;
   tracerArcPointille(ctx, x0, yA, cx, cy, x1, yB, couleur, -t * 28, 2.5);
-  // Pastille + icône du sort au bout du fil (juste au-dessus de la cible).
-  ctx.beginPath();
-  ctx.arc(x1, yB, 11, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(20, 40, 24, 0.6)";
-  ctx.fill();
-  ctx.font = "13px ui-monospace, monospace";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(icone, x1, yB + 0.5);
   ctx.globalAlpha = 1;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "alphabetic";
 }
 
 // Une flèche rouge qui pointe la CIBLE, au-dessus de sa tête, avec un petit
