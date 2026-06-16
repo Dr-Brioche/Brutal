@@ -1,21 +1,22 @@
 FONDS DE COMBAT
 ===============
 
-Ici vont les images de fond des combats (PNG large, format ~16:9).
+Structure : un SOUS-DOSSIER par zone, fichiers numérotés.
 
-Chaque zone du jeu a sa BIBLIOTHÈQUE de fonds, listée dans :
-    jeu/data/fonds.js
+  images/fonds/
+    souterrains/   ← zone "Les souterrains (porte est)"
+      1.png
+      2.png
+      3.png
+    <prochaine-zone>/
+      1.png
+      ...
 
+La bibliothèque complète est dans : jeu/data/fonds.js
 À chaque combat, le jeu tire UN fond au hasard dans la liste de la zone.
 
-Convention de nommage : <zone>-<numéro>.png
-Exemples pour la zone des souterrains (porte est) :
-    souterrains-1.png
-    souterrains-2.png
-    souterrains-3.png
-
 POUR AJOUTER UN FOND :
-1. Déposer le PNG ici, ex. souterrains-1.png
+1. Déposer le PNG dans le sous-dossier de la zone, ex. souterrains/2.png
 2. Décommenter / ajouter sa ligne dans jeu/data/fonds.js
 
 Conseil : placer la rangée de sol vers le BAS de l'image — elle se cale

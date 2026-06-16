@@ -6,17 +6,19 @@
 // visuelle sans toucher au gameplay ni au placement des sprites. À chaque
 // combat, on en tire un au hasard dans la liste de la zone.
 //
-// AJOUTER un fond : déposer le PNG dans images/fonds/ puis ajouter son chemin
-// au tableau de la zone ci-dessous. Format conseillé : large (~16:9), la
-// rangée de sol vers le bas du cadre (elle se cale sous l'interface combat,
-// cf. SOL_FOND dans jeu/ui/combat.js).
+// AJOUTER un fond : déposer le PNG dans images/fonds/<zone>/ puis ajouter son
+// chemin ci-dessous. Format conseillé : large (~16:9), la rangée de sol vers
+// le bas du cadre (calée sous l'interface combat, cf. SOL_FOND dans combat.js).
+//
+// STRUCTURE : images/fonds/<zone>/<numéro>.png
+//   → un sous-dossier par zone, fichiers numérotés 1.png, 2.png, 3.png…
 
 export const FONDS_COMBAT = {
   // Les souterrains autour de Brütàl (porte est) : repaire des gobelins.
   souterrains: [
-    "images/fonds/souterrains-1.png",
-    // "images/fonds/souterrains-2.png",
-    // "images/fonds/souterrains-3.png",
+    "images/fonds/souterrains/1.png",
+    // "images/fonds/souterrains/2.png",
+    // "images/fonds/souterrains/3.png",
   ],
 };
 
