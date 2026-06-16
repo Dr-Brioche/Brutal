@@ -319,11 +319,11 @@
        s'aligner sur un futur calque de fond à toute résolution. */
     .combat-jauge {
       position: absolute;
-      left: 4cqw; bottom: 6cqh;
+      left: 4cqw; bottom: 16.5cqh;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 1cqh;
+      gap: 0.6cqh;
       width: 35cqh;                /* TAILLE de la jauge (le nb de crans suit le max) */
       font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
       color: #ffcaa0;
@@ -387,7 +387,6 @@
       z-index: 3;
     }
     .combat-jauge-brulure {
-      min-height: 2cqh;
       font-size: 1.8cqh; font-weight: 700; color: #ff8a3c;
     }
     /* Flash + secousse au moment où la surchauffe brûle. */
@@ -522,9 +521,9 @@
       color: #ffcaa0;
       pointer-events: none;
     }
-    /* Pioche : accrochée au bas de la jauge via flex */
-    .combat-pioche { margin-top: 1.5cqh; }
-    /* Défausse : miroir à droite, même bottom que la jauge */
+    /* Pioche : miroir à gauche de la défausse, même bottom */
+    .combat-pioche { position: absolute; left: 4cqw; bottom: 6cqh; }
+    /* Défausse : miroir à droite */
     .combat-defausse { position: absolute; right: 4cqw; bottom: 6cqh; }
 
     /* L'élément sélectionné au clavier (carte ou bouton) */
@@ -1248,8 +1247,8 @@
           <span class="combat-jauge-valeur" id="combat-jauge-valeur">1</span>
         </div>
         <div class="combat-jauge-brulure" id="combat-jauge-brulure"></div>
-        <div class="combat-pile combat-pioche" id="combat-pioche-nb">0</div>
       </div>
+      <div class="combat-pile combat-pioche" id="combat-pioche-nb">0</div>
       <div class="combat-pile combat-defausse" id="combat-defausse-nb">0</div>
       <div class="combat-main" id="combat-main"></div>
       <button class="combat-fin" id="combat-fin">End Turn</button>
