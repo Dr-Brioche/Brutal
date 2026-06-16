@@ -31,17 +31,25 @@
       z-index: 1;
     }
 
-    /* ---- Fond plein écran pour le combat ---- */
-    /* Masqué hors combat. Le PNG de la zone est posé par JS dans --fond-url
-       (cover) ; le gradient CSS reste en SECOURS si la zone n'a pas de fond.
-       Placé sous le canvas (z 0). Voir jeu/data/fonds.js. */
+    /* ---- Fond de combat : calé sur la SCÈNE, pas sur la fenêtre ---- */
+    /* Masqué hors combat. Le PNG de la zone (posé par JS dans --fond-url) occupe
+       la scène 16:9 du HAUT jusqu'à la LIGNE D'INTERFACE (le séparateur brun) :
+       son BAS s'arrête sur cette ligne, l'interface du bas se posant par-dessus.
+       Le ratio 268/360 = SOL_FOND / hauteur de scène (cf. ui/combat.js). Le
+       gradient reste en SECOURS si la zone n'a pas de fond. Sous le canvas (z 0). */
     #fond-combat {
+      --zone-l: min(100vw, calc(100vh * 16 / 9)); /* largeur de la scène 16:9, centrée */
+      --zone-h: calc(var(--zone-l) * 9 / 16);     /* hauteur de la scène */
       position: fixed;
-      inset: 0;
+      left: 50%;
+      top: calc(50vh - var(--zone-h) / 2);        /* aligné sur le HAUT de la scène */
+      width: var(--zone-l);
+      height: calc(var(--zone-h) * 268 / 360);    /* du haut de la scène à la ligne brune */
+      transform: translateX(-50%);
       z-index: 0;
       background:
-        var(--fond-url, none) center / cover no-repeat,
-        radial-gradient(ellipse at 50% 40%, #2a1a10 0%, #0c0907 100%);
+        var(--fond-url, none) center bottom / cover no-repeat,
+        radial-gradient(ellipse at 50% 55%, #2a1a10 0%, #0c0907 100%);
     }
 
     [hidden] { display: none !important; }

@@ -254,6 +254,10 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
   La ligne de séparation (`SOL_FOND` dans `ui/combat.js`) marque la frontière
   basse du décor / haut de l'interface — elle n'est PAS calée sur les pieds des
   sprites (les barres de vie peuvent descendre en dessous).
+- Le PNG est **calé sur la scène** (le cadre 16:9, pas la fenêtre) et son **bas
+  s'arrête EXACTEMENT sur la ligne** `SOL_FOND` : l'image remplit la largeur de la
+  scène, ancrée en bas (`cover`), le haut étant rogné si l'image est plus haute
+  que la zone. → dessiner les fonds avec **le décor important vers le bas**.
 - **État actuel** : une seule zone de combat, les **souterrains** (porte est de
   Brütàl, repaire des 3 gobelins). Sa bibliothèque démarre avec 1 fond provisoire ;
   on en ajoutera 2 autres pour la variété.
