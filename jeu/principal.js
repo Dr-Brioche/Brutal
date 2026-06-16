@@ -29,7 +29,7 @@ import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { gagnerXp } from "./systems/progression.js";
 import { demarrerCombat } from "./ui/combat.js";
 import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
-import { fondCombat } from "./data/fonds.js";
+import { fondCombat, prechargerFonds } from "./data/fonds.js";
 import { FANATIQUE, MARCHAND } from "./data/pnj.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
 import { jouerMusique, arreterMusique } from "./core/sons.js";
@@ -74,6 +74,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   let zoneActuelle = "city";
   let carte = creerCarte(CITY);
   let rencontres = creerRencontres();
+  prechargerFonds(zoneActuelle);                // fonds de combat prêts en cache
   if (CITY.musique) jouerMusique(CITY.musique); // ambiance ville dès le lancement
   const camera = creerCamera();
   const heros = creerHeros();
@@ -540,6 +541,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     await fondu(1);                  // écran au noir
     carte = creerCarte(ZONES[zoneId]);
     zoneActuelle = zoneId;
+    prechargerFonds(zoneId);         // télécharge les fonds de la zone pendant l'explo
     poserHeros(heros, entree.colonne, entree.ligne);
     rencontres = creerRencontres();  // période de grâce fraîche dans la zone
     surPorte = true;                 // on arrive : ne pas re-déclencher

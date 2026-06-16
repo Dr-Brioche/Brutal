@@ -30,3 +30,20 @@ export function fondCombat(zoneId) {
   if (!liste || liste.length === 0) return null;
   return liste[Math.floor(Math.random() * liste.length)];
 }
+
+// Précharge en arrière-plan TOUS les fonds d'une zone, pour qu'ils soient déjà
+// en cache du navigateur quand un combat démarre — fini le délai au 1er combat.
+// À appeler en ENTRANT dans la zone : le joueur explore quelques secondes avant
+// la première rencontre, largement de quoi télécharger les images. Sans effet si
+// la zone n'a pas de fonds ; chaque image n'est demandée qu'une seule fois.
+const dejaPrecharges = new Map(); // chemin → Image (garde une réf → reste en cache)
+export function prechargerFonds(zoneId) {
+  const liste = FONDS_COMBAT[zoneId];
+  if (!liste) return;
+  for (const chemin of liste) {
+    if (dejaPrecharges.has(chemin)) continue;
+    const img = new Image();
+    img.src = chemin; // déclenche le téléchargement + la mise en cache
+    dejaPrecharges.set(chemin, img);
+  }
+}
