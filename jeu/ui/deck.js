@@ -264,7 +264,12 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
   function naviguer(dir) {
     if (!cartesNav.length) return;
     const cur = cartesNav.find((c) => c.id === selBiblio);
-    if (!cur) { selBiblio = cartesNav[0].id; appliquerCurseur(); return; } // 1re flèche
+    if (!cur) {
+      selBiblio = cartesNav[0].id;
+      elBiblio.classList.add("maitrise-biblio--clavier");
+      appliquerCurseur();
+      return;
+    } // 1re flèche
     const o = centreEl(cur.el);
     let best = null, meilleur = Infinity;
     for (const c of cartesNav) {
@@ -280,7 +285,19 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
       const score = principal + lateral * 3; // on privilégie l'alignement
       if (score < meilleur) { meilleur = score; best = c.id; }
     }
-    if (best) { selBiblio = best; appliquerCurseur(); }
+    if (best) {
+      selBiblio = best;
+      elBiblio.classList.add("maitrise-biblio--clavier"); // désactive :hover
+      appliquerCurseur();
+    }
+  }
+
+  // La souris reprend la main : on efface le curseur clavier et on réactive :hover.
+  function surSourisBiblio() {
+    if (!selBiblio) return;
+    selBiblio = null;
+    elBiblio.classList.remove("maitrise-biblio--clavier");
+    appliquerCurseur();
   }
 
   // Espace/Entrée sur la carte au curseur : l'ajoute / la retire du deck.
@@ -334,11 +351,14 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
       basculerOnglet("deck");
       overlay.hidden = false;
       window.addEventListener("keydown", surTouche, true);
+      elBiblio.addEventListener("mousemove", surSourisBiblio);
     },
     fermer() {
       overlay.hidden = true;
       selBiblio = null;
+      elBiblio.classList.remove("maitrise-biblio--clavier");
       window.removeEventListener("keydown", surTouche, true);
+      elBiblio.removeEventListener("mousemove", surSourisBiblio);
     },
     rendre,
   };

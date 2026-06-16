@@ -1134,6 +1134,12 @@
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
       z-index: 10;
     }
+    /* Mode clavier actif : le :hover souris ne lève plus les autres cartes. */
+    .maitrise-biblio--clavier .combat-carte:hover:not(.maitrise-carte--curseur) {
+      transform: none;
+      box-shadow: none;
+      z-index: auto;
+    }
     .maitrise-cadenas {
       position: absolute; top: 4px; right: 4px;
       font-size: 0.85rem; pointer-events: none;
