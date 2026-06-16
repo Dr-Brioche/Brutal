@@ -156,6 +156,12 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
         + (maitrisee ? " maitrise-carte--maitrisee" : "")
         + (choisie   ? " maitrise-carte--choisie"   : "");
       garnirCarte(cEl, carte);
+      if (!maitrisee) {
+        const cadenas = document.createElement("span");
+        cadenas.className = "maitrise-cadenas";
+        cadenas.textContent = "🔒";
+        cEl.append(cadenas);
+      }
 
       const prog = document.createElement("div");
       prog.className = "maitrise-carte-prog";
