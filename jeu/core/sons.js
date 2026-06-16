@@ -1,28 +1,41 @@
-// Le lecteur de sons du jeu. Chaque bruitage / musique est un fichier rangé
-// dans le dossier `sons/`. On joue un son par son NOM logique (pas son chemin),
-// ce qui permet de changer le fichier sans toucher au reste du code.
+// Le lecteur de sons du jeu. Sons rangés dans sons/ambiance/ et sons/interface/.
+// On joue un son par son NOM logique (pas son chemin) — changer le fichier ne
+// touche qu'une ligne ici. Tant qu'un fichier manque, l'appel échoue en silence.
 //
-// Important : tant qu'un fichier n'est pas encore fourni, l'appel échoue EN
-// SILENCE (pas d'erreur bloquante). On peut donc brancher l'appel dans le jeu
-// dès maintenant, et le son se mettra à jouer tout seul le jour où le fichier
-// arrive dans `sons/`. Pour ajouter un son : déposer le fichier, puis ajouter
-// une ligne dans le tableau FICHIERS ci-dessous.
+// Deux familles :
+//   BRUITAGES  — sons courts (se clonent pour autoriser les chevauchements)
+//   MUSIQUES   — ambiances en boucle (une seule active à la fois)
+//
+// Les volumes sont persistés dans localStorage entre les sessions.
 
 const DOSSIER = "sons/";
 
-// Nom logique → nom de fichier dans `sons/`.
-const FICHIERS = {
-  levelup: "levelup.mp3", // joué quand le héros passe un niveau (à fournir)
+const BRUITAGES = {
+  levelup: "interface/levelup.mp3",
 };
 
-const cache = new Map(); // nom → HTMLAudioElement « modèle » (chargé une seule fois)
-let volumeGlobal = 0.7;   // 0..1, volume par défaut de tous les sons
+const MUSIQUES = {
+  "ambiance-city": "ambiance/city.mp3",
+};
 
-// Récupère (et met en cache à la 1re demande) l'élément audio d'un son.
-// Renvoie null si le son est inconnu. Le fichier est chargé paresseusement :
-// aucun téléchargement tant qu'on n'a pas vraiment besoin du son.
+const CLE_VOL_B = "brutal_vol_bruitages";
+const CLE_VOL_M = "brutal_vol_musique";
+
+function clamp(v) { return Math.max(0, Math.min(1, v)); }
+function lireVol(cle, defaut) {
+  const v = parseFloat(localStorage.getItem(cle));
+  return isNaN(v) ? defaut : clamp(v);
+}
+
+let volBruitages = lireVol(CLE_VOL_B, 0.7);
+let volMusique   = lireVol(CLE_VOL_M, 0.22);
+
+// ---- Bruitages --------------------------------------------------------------
+
+const cache = new Map();
+
 function modele(nom) {
-  const fichier = FICHIERS[nom];
+  const fichier = BRUITAGES[nom];
   if (!fichier) return null;
   let audio = cache.get(nom);
   if (!audio) {
@@ -33,22 +46,53 @@ function modele(nom) {
   return audio;
 }
 
-// Joue un son par son nom. Sans effet (silencieux) si le son est inconnu, si le
-// fichier n'existe pas encore, ou si le navigateur bloque la lecture. On clone
-// l'élément pour autoriser des lectures rapprochées sans se couper.
-// `opts.volume` (0..1) règle le volume de cette lecture précise.
 export function jouerSon(nom, opts = {}) {
   const base = modele(nom);
   if (!base) return;
   const audio = base.cloneNode();
-  audio.volume = Math.max(0, Math.min(1, opts.volume ?? volumeGlobal));
-  // .play() renvoie une promesse rejetée si le fichier manque ou si l'autoplay
-  // est bloqué : on l'avale pour ne jamais casser le jeu à cause d'un son.
+  audio.volume = clamp(opts.volume ?? volBruitages);
   const p = audio.play();
-  if (p && typeof p.catch === "function") p.catch(() => {});
+  if (p?.catch) p.catch(() => {});
 }
 
-// Règle le volume par défaut de tous les sons (0 = muet, 1 = plein).
-export function reglerVolume(v) {
-  volumeGlobal = Math.max(0, Math.min(1, v));
+export function reglerVolumeBruitages(v) {
+  volBruitages = clamp(v);
+  localStorage.setItem(CLE_VOL_B, volBruitages);
 }
+
+export function getVolumeBruitages() { return volBruitages; }
+
+// Ancien nom (import dans gainXp.js).
+export { reglerVolumeBruitages as reglerVolume };
+
+// ---- Musique d'ambiance -----------------------------------------------------
+
+let musiqueEnCours = null; // { audio, nom }
+
+export function jouerMusique(nom) {
+  if (musiqueEnCours?.nom === nom) return;
+  arreterMusique();
+  const fichier = MUSIQUES[nom];
+  if (!fichier) return;
+  const audio = new Audio(DOSSIER + fichier);
+  audio.loop = true;
+  audio.volume = volMusique;
+  const p = audio.play();
+  if (p?.catch) p.catch(() => {});
+  musiqueEnCours = { audio, nom };
+}
+
+export function arreterMusique() {
+  if (!musiqueEnCours) return;
+  musiqueEnCours.audio.pause();
+  musiqueEnCours.audio.currentTime = 0;
+  musiqueEnCours = null;
+}
+
+export function reglerVolumeMusique(v) {
+  volMusique = clamp(v);
+  localStorage.setItem(CLE_VOL_M, volMusique);
+  if (musiqueEnCours) musiqueEnCours.audio.volume = volMusique;
+}
+
+export function getVolumeMusique() { return volMusique; }

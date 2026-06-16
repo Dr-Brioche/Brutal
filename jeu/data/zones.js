@@ -21,6 +21,7 @@
 // ----- La ville de Brütàl (cité naine, sûre) -------------------------------
 export const CITY = {
   nom: "Brütàl — the City",
+  musique: "ambiance-city",
   depart: { colonne: 37, ligne: 14 },
   // Aucun `monstres` : la ville est un havre, pas de combat.
   plan: [

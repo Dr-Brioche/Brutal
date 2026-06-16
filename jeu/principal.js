@@ -32,6 +32,7 @@ import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
 import { fondCombat } from "./data/fonds.js";
 import { FANATIQUE, MARCHAND } from "./data/pnj.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
+import { jouerMusique, arreterMusique } from "./core/sons.js";
 
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
@@ -73,6 +74,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   let zoneActuelle = "city";
   let carte = creerCarte(CITY);
   let rencontres = creerRencontres();
+  if (CITY.musique) jouerMusique(CITY.musique); // ambiance ville dès le lancement
   const camera = creerCamera();
   const heros = creerHeros();
   heros.x = carte.departX;
@@ -543,6 +545,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     surPorte = true;                 // on arrive : ne pas re-déclencher
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
     afficherMessage(carte.nom);
+    const musique = ZONES[zoneId]?.musique ?? null;
+    if (musique) jouerMusique(musique); else arreterMusique();
     await fondu(0);                  // on rouvre l'écran
     enPause = false;
     enTransition = false;

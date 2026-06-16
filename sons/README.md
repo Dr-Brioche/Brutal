@@ -1,28 +1,33 @@
 # Dossier `sons/`
 
-Tous les bruitages et musiques du jeu vivent ici.
+Tous les bruitages et musiques du jeu vivent ici, organisés en sous-dossiers.
+
+```
+sons/
+  ambiance/   ← musiques de fond en boucle (une par zone/ambiance)
+  interface/  ← bruitages courts (niveau, clics, actions…)
+```
 
 ## Comment ça marche
 
 Le jeu joue les sons par un **nom logique** (ex. `levelup`), pas par leur chemin.
-La correspondance nom → fichier est définie dans `jeu/core/sons.js`
-(tableau `FICHIERS`). Pour brancher un son :
+La correspondance nom → fichier est définie dans `jeu/core/sons.js`.
 
-1. Déposer le fichier audio dans ce dossier (`.mp3` de préférence : léger et
-   lu partout).
-2. Vérifier (ou ajouter) la ligne correspondante dans `FICHIERS`.
+- **Bruitages** (`jouerSon`) : courts, peuvent se chevaucher, clonés à chaque lecture.
+- **Musique** (`jouerMusique`) : boucle continue, une seule active à la fois.
+  La musique de chaque zone est déclarée dans `jeu/data/zones.js` (`musique: "…"`).
 
-Tant qu'un fichier est absent, le jeu **ne plante pas** : le son est simplement
-silencieux.
+Tant qu'un fichier est absent, le jeu **ne plante pas** : le son est simplement silencieux.
 
-## Sons attendus
+## Sons actuels
 
-| Nom logique | Fichier attendu | Quand            |
-|-------------|-----------------|------------------|
-| `levelup`   | `levelup.mp3`   | Passage de niveau (fin de combat) |
+| Nom logique      | Fichier                    | Quand                          |
+|------------------|----------------------------|--------------------------------|
+| `ambiance-city`  | `ambiance/city.mp3`        | Musique de fond — ville        |
+| `levelup`        | `interface/levelup.mp3`    | Passage de niveau (à fournir)  |
 
 ## Format conseillé
 
-- **`.mp3`** (ou `.ogg`), mono ou stéréo, court pour les bruitages.
-- Garder les fichiers **légers** (limite GitHub Pages : 100 Mo / fichier, 1 Go
-  au total) — quelques dizaines de Ko suffisent pour un bruitage.
+- **`.mp3`**, mono ou stéréo.
+- Garder les fichiers **légers** (limite GitHub Pages : 100 Mo / fichier).
+- Les volumes sont réglables en jeu (menu Pause) et persistés dans le navigateur.
