@@ -4,7 +4,7 @@ FONDS DE COMBAT
 Structure : un SOUS-DOSSIER par zone, fichiers numérotés.
 
   images/fonds/
-    souterrains-est/   ← zone "Souterrains Est"
+    eastern-under-tunnels/   ← zone "Eastern Under-tunnels"
       1.png
       2.png
       3.png
@@ -16,7 +16,7 @@ La bibliothèque complète est dans : jeu/data/fonds.js
 À chaque combat, le jeu tire UN fond au hasard dans la liste de la zone.
 
 POUR AJOUTER UN FOND :
-1. Déposer le PNG dans le sous-dossier de la zone, ex. souterrains-est/2.png
+1. Déposer le PNG dans le sous-dossier de la zone, ex. eastern-under-tunnels/2.png
 2. Décommenter / ajouter sa ligne dans jeu/data/fonds.js
 
 Conseil : placer la rangée de sol vers le BAS de l'image — elle se cale

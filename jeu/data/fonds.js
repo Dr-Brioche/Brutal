@@ -14,12 +14,12 @@
 //   → un sous-dossier par zone, fichiers numérotés 1.png, 2.png, 3.png…
 
 export const FONDS_COMBAT = {
-  // Les souterrains-est autour de Brütàl (porte est) : repaire des gobelins.
-  // (clé entre guillemets : le tiret interdit la forme nue souterrains-est)
-  "souterrains-est": [
-    "images/fonds/souterrains-est/1.png",
-    // "images/fonds/souterrains-est/2.png",
-    // "images/fonds/souterrains-est/3.png",
+  // Eastern Under-tunnels — souterrains à l'est de Brütàl : repaire des gobelins.
+  // (clé entre guillemets : le tiret interdit la forme nue eastern-under-tunnels)
+  "eastern-under-tunnels": [
+    "images/fonds/eastern-under-tunnels/1.png",
+    // "images/fonds/eastern-under-tunnels/2.png",
+    // "images/fonds/eastern-under-tunnels/3.png",
   ],
 };
 

@@ -52,13 +52,13 @@ export const VILLE = {
     "############################################",
   ],
   portails: [
-    { colonne: 42, ligne: 13, vers: "souterrains-est", entree: { colonne: 2, ligne: 13 } },
+    { colonne: 42, ligne: 13, vers: "eastern-under-tunnels", entree: { colonne: 2, ligne: 13 } },
   ],
 };
 
-// ----- Les souterrains autour de Brütàl (exploration, dangers) -------------
-export const SOUTERRAINS = {
-  nom: "Souterrains Est",
+// ----- Eastern Under-tunnels — souterrains à l'est de Brütàl (dangers) ------
+export const EASTERN_UNDER_TUNNELS = {
+  nom: "Eastern Under-tunnels",
   depart: { colonne: 2, ligne: 13 },
   // Le repaire des gobelins : les 3 variantes (chaman "range" → groupes de 3+).
   monstres: ["gobelin", "gobelin-vif", "gobelin-chaman"],
@@ -98,5 +98,5 @@ export const SOUTERRAINS = {
 // Toutes les zones, accessibles par leur id (utilisé par les portails)
 export const ZONES = {
   ville: VILLE,
-  "souterrains-est": SOUTERRAINS,
+  "eastern-under-tunnels": EASTERN_UNDER_TUNNELS,
 };
