@@ -6,7 +6,7 @@ import { chargerImage } from "./core/sprites.js";
 import { creerCamera, mettreAJourCamera } from "./core/camera.js";
 import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js";
 import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, TUILE } from "./world/carte.js";
-import { VILLE, ZONES } from "./data/zones.js";
+import { CITY, ZONES } from "./data/zones.js";
 import { tuileDef, estPorte } from "./data/tuiles.js";
 import { ITEMS, prixVente, RARETES } from "./data/items.js";
 import {
@@ -70,8 +70,8 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // La zone courante (on démarre dans la ville). `carte` et `rencontres`
   // changent à chaque passage de porte, d'où le `let`.
-  let zoneActuelle = "ville";
-  let carte = creerCarte(VILLE);
+  let zoneActuelle = "city";
+  let carte = creerCarte(CITY);
   let rencontres = creerRencontres();
   const camera = creerCamera();
   const heros = creerHeros();
@@ -449,7 +449,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     inventaire,
     heros,
     maitrise,
-    estEnVille: () => zoneActuelle === "ville",
+    estEnVille: () => zoneActuelle === "city",
     surFermer: () => basculerDeck(),
   });
   let deckOuvert = false;
@@ -504,7 +504,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Espace : parler au PNJ tout proche
   window.addEventListener("keydown", (e) => {
     if (e.code !== "Space" || e.repeat || enPause || combatEnCours || dialogueActif()) return;
-    if (zoneActuelle !== "ville") return;
+    if (zoneActuelle !== "city") return;
     if (fanatique.proche) { e.preventDefault(); parlerAuFanatique(); }
     else if (marchand.proche) { e.preventDefault(); parlerAuMarchand(); }
     else if (fontaine.proche) { e.preventDefault(); parlerALaFontaine(); }
@@ -567,7 +567,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           // Pas encore mort : on se réveille en ville, à 1 PV (à soigner).
           heros.pv = 1;
           afficherMessage("💀 You collapse... and wake up back in Brütàl.");
-          allerVersZone("ville", VILLE.depart); // retour sûr (gère le fondu + la pause)
+          allerVersZone("city", CITY.depart); // retour sûr (gère le fondu + la pause)
         } else {
           // Victoire : on calcule le butin (sans l'appliquer) et on l'affiche dans
           // une fenêtre centrée. Le joueur le récupère (clic / Espace). Le monde
@@ -632,7 +632,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       verifierPointsInteret(tuile);
       verifierPorte(tuile);
       if (avancerRencontres(rencontres, tuile, heros.evasionRencontre || 0)) declencherRencontre();
-      if (zoneActuelle === "ville") {
+      if (zoneActuelle === "city") {
         mettreAJourPnj(fanatique, dt, heros);
         mettreAJourPnj(marchand, dt, heros);
         fontaine.t += dt;
@@ -641,7 +641,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           Math.abs((heros.y + 54) - fontaine.solY) < 46;
       }
       // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la fontaine
-      invite.hidden = !(zoneActuelle === "ville" &&
+      invite.hidden = !(zoneActuelle === "city" &&
         (fanatique.proche || marchand.proche || fontaine.proche));
       mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
       alerteVie(heros.pv / heros.pvMax); // liseré rouge si la vie est basse
@@ -656,7 +656,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       dessinerCarte(ctx, carte, camera, canvas.width, canvas.height);
       // Les PNJ n'existent que dans la ville. Profondeur : on dessine héros et
       // PNJ du plus « haut » (pieds les plus en arrière) au plus « bas ».
-      if (zoneActuelle === "ville") {
+      if (zoneActuelle === "city") {
         const acteurs = [
           { pieds: fontaine.solY, dessiner: () => dessinerFontaine(ctx, fontaine) },
           { pieds: piedsPnj(fanatique), dessiner: () => dessinerPnj(ctx, fanatique) },

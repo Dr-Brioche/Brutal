@@ -19,7 +19,7 @@
 // composerGroupe(). Une zone sans `monstres` est sûre (aucune rencontre).
 
 // ----- La ville de Brütàl (cité naine, sûre) -------------------------------
-export const VILLE = {
+export const CITY = {
   nom: "Brütàl — the City",
   depart: { colonne: 37, ligne: 14 },
   // Aucun `monstres` : la ville est un havre, pas de combat.
@@ -91,12 +91,12 @@ export const EASTERN_UNDER_TUNNELS = {
     "############################################",
   ],
   portails: [
-    { colonne: 1, ligne: 13, vers: "ville", entree: { colonne: 41, ligne: 13 } },
+    { colonne: 1, ligne: 13, vers: "city", entree: { colonne: 41, ligne: 13 } },
   ],
 };
 
 // Toutes les zones, accessibles par leur id (utilisé par les portails)
 export const ZONES = {
-  ville: VILLE,
+  city: CITY,
   "eastern-under-tunnels": EASTERN_UNDER_TUNNELS,
 };
