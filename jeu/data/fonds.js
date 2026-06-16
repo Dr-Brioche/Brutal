@@ -15,7 +15,8 @@
 
 export const FONDS_COMBAT = {
   // Les souterrains-est autour de Brütàl (porte est) : repaire des gobelins.
-  souterrains-est: [
+  // (clé entre guillemets : le tiret interdit la forme nue souterrains-est)
+  "souterrains-est": [
     "images/fonds/souterrains-est/1.png",
     // "images/fonds/souterrains-est/2.png",
     // "images/fonds/souterrains-est/3.png",
