@@ -757,11 +757,16 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     }
 
     // Flèche de DRAG souris : arc rouge pointillé de la carte vers le pointeur
-    // (ou l'ennemi survolé). Sa pointe désigne déjà la cible → pas de flèche en plus.
+    // (ou l'ennemi survolé). La pointe s'arrête sur le bord du sprite, pas au centre.
     if (drag && drag.vise) {
       const surv = drag.cibleSurvol >= 0 ? ennemisUI[drag.cibleSurvol] : null;
-      const ex = surv ? surv.ecran.cx : drag.x;
-      const ey = surv ? surv.ecran.milieu : drag.y;
+      let ex, ey;
+      if (surv) {
+        const b = bordSprite(surv, drag.depart.x, drag.depart.y);
+        ex = b.x; ey = b.y;
+      } else {
+        ex = drag.x; ey = drag.y;
+      }
       dessinerFlecheDrag(ctx, drag.depart.x, drag.depart.y, ex, ey, temps);
     }
 
@@ -1108,6 +1113,26 @@ function dessinerFlecheCible(ctx, ecran, t, fort) {
   ctx.lineWidth = 1;
   ctx.strokeStyle = "rgba(0, 0, 0, 0.5)";
   ctx.stroke();
+}
+
+// Renvoie le point sur le bord de la boîte englobante du sprite `u` visé par
+// la droite partant de (x0, y0) vers le centre du sprite.
+function bordSprite(u, x0, y0) {
+  const cx = u.ecran.cx, cy = u.ecran.milieu;
+  const hw = (u.spr.caseL * u.echelle) / 2;
+  const left = cx - hw, right = cx + hw;
+  const top = u.ecran.haut, bot = u.ecran.sol;
+  const dx = cx - x0, dy = cy - y0;
+  let tMin = 1; // 1 = centre ; on cherche le premier bord (t < 1)
+  function tester(t, xi, yi) {
+    if (t > 0 && t < tMin && xi >= left && xi <= right && yi >= top && yi <= bot)
+      tMin = t;
+  }
+  if (dy) { const t = (bot  - y0) / dy; tester(t, x0 + t * dx, bot); }
+  if (dy) { const t = (top  - y0) / dy; tester(t, x0 + t * dx, top); }
+  if (dx) { const t = (left - x0) / dx; tester(t, left,  y0 + t * dy); }
+  if (dx) { const t = (right- x0) / dx; tester(t, right, y0 + t * dy); }
+  return { x: x0 + tMin * dx, y: y0 + tMin * dy };
 }
 
 // Flèche de ciblage souris : arc rouge POINTILLÉ de la carte (x0,y0) vers la
