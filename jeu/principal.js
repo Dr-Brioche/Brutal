@@ -398,7 +398,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       appliquerEquipement(heros, inventaire, planches);
       if (surChangementMenu) surChangementMenu(); // rafraîchit le menu marchand (vente)
     },
-    surFermer: () => basculerInventaire(),
+    surFermer: () => { if (surChangementMenu) fermerBoutique(); else basculerInventaire(); },
     // Jeter un objet — du sac ({ objet }) ou d'un slot équipé ({ slot }). Au-dessus
     // de « commun » → on confirme (pour ne pas perdre un objet rare par erreur).
     surJeter: (cible) => {
