@@ -21,7 +21,9 @@ const TOUCHES = new Set([
 
 let actif = false;
 let rafraichirActif = null; // (nouveauxChoix) => void : met à jour le dialogue en cours
+let fermerActif = null;     // () => void : ferme le dialogue courant + déclenche surFin
 export function dialogueActif() { return actif; }
+export function fermerDialogue() { if (fermerActif) fermerActif(); }
 
 // Met à jour les CHOIX du dialogue courant à chaud (ex. l'inventaire a changé
 // pendant le menu de vente). Sans effet si aucun dialogue n'est ouvert.
@@ -97,12 +99,14 @@ export function ouvrirDialogue(dialogue, surFin) {
   function fermerUI() {
     actif = false;
     rafraichirActif = null;
+    fermerActif = null;
     window.removeEventListener("keydown", surTouche, true);
     cacherInfobulle();
     overlay.hidden = true;
   }
 
   // Remplace la liste de choix sans rouvrir le dialogue (clampe la sélection).
+  fermerActif = () => { fermerUI(); if (surFin) surFin(); };
   rafraichirActif = (nouveaux) => {
     choix = nouveaux ?? [];
     if (sel >= choix.length) sel = Math.max(0, choix.length - 1);

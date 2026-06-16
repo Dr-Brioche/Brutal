@@ -24,7 +24,7 @@ import { appliquerTalents } from "./systems/talents.js";
 import { installerButin } from "./ui/butin.js";
 import { installerMenu } from "./ui/menu.js";
 import { afficherMessage, flashCombat, fondu, alerteVie } from "./ui/effets.js";
-import { ouvrirDialogue, dialogueActif, rafraichirChoix } from "./ui/dialogue.js";
+import { ouvrirDialogue, dialogueActif, rafraichirChoix, fermerDialogue } from "./ui/dialogue.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { gagnerXp } from "./systems/progression.js";
 import { demarrerCombat } from "./ui/combat.js";
@@ -319,6 +319,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   function fermerBoutique() {
     document.body.classList.remove("en-boutique");
     surChangementMenu = null;
+    fermerDialogue(); // ferme le menu marchand (dialogue)
     inventaireUI.fermer();
     enPause = false;
   }
@@ -398,7 +399,10 @@ export async function demarrerJeu(donneesInitiales = null) {
       appliquerEquipement(heros, inventaire, planches);
       if (surChangementMenu) surChangementMenu(); // rafraîchit le menu marchand (vente)
     },
-    surFermer: () => { if (surChangementMenu) fermerBoutique(); else basculerInventaire(); },
+    surFermer: () => {
+      if (document.body.classList.contains("en-boutique")) fermerBoutique();
+      else basculerInventaire();
+    },
     // Jeter un objet — du sac ({ objet }) ou d'un slot équipé ({ slot }). Au-dessus
     // de « commun » → on confirme (pour ne pas perdre un objet rare par erreur).
     surJeter: (cible) => {
