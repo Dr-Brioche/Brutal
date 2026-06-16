@@ -25,7 +25,7 @@ import { alerteVie } from "./effets.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
 const ECHELLE_HEROS = 3;            // 64×64 → 192×192 (avant dézoom de scène)
-const SOL_Y = 240;                  // sol à 2/3 de la hauteur (1/3 depuis le bas)
+const SOL_Y = 215;                  // limite scène/interface (fond PNG à venir)
 const ECHELLE_SCENE = 0.4;          // dézoom de référence (avant-plan)
 const ECHELLE_AVANT   = ECHELLE_SCENE;        // rang avant  : taille normale
 const ECHELLE_ARRIERE = ECHELLE_SCENE * 0.85; // rang arrière : 15 % plus petit
