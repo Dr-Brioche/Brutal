@@ -1073,6 +1073,9 @@
       padding: 4px; position: relative;
     }
     .maitrise-slot--rempli { border-style: solid; border-color: #7a5030; }
+    /* Slot non encore débloqué (talent « Ancestral Legacy ») : grisé + cadenas. */
+    .maitrise-slot--verrou { border-color: #2c2436; opacity: 0.55; }
+    .maitrise-slot-cadenas { font-size: 1.5rem; filter: grayscale(0.4); }
     /* Les cartes dans les slots ne doivent pas hériter du transform de la main. */
     .maitrise-slot .combat-carte { transform: none; margin: 0; cursor: default; }
     .maitrise-slot .combat-carte:hover { transform: none; box-shadow: none; }

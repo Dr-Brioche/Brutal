@@ -43,8 +43,18 @@ export const TALENTS = {
     x: 2, y: 4, cout: 3,
     requis: ["forge4", "agile1"],
     legendaire: true,
-    effet: { maitrise: 1 },
+    effet: { maitrise: 1, slots: 3 },
     description: "Unlock Ancestral Mastery — master cards by playing them 200 times, then add up to 3 to your deck permanently.",
+  },
+
+  // Prolonge la Maîtrise : deux emplacements de plus (5 au total).
+  maitrise2: {
+    id: "maitrise2", nom: "Ancestral Legacy",
+    x: 1, y: 4, cout: 2,
+    requis: ["maitrise1"],
+    legendaire: true,
+    effet: { slots: 2 },
+    description: "Two more Ancestral Mastery slots (5 total) to carry even more mastered cards.",
   },
 
   // Talent LÉGENDAIRE : branche Combat — dual-wield deux armes à une main.
@@ -77,6 +87,7 @@ const NOM_EFFET = {
   agilite: "Attack speed",
   evasion: "Fewer encounters",
   maitrise: "Ancestral Mastery",
+  slots: "Mastery slots",
   ambidextrie: "Ambidexterity",
 };
 

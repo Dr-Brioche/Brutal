@@ -370,7 +370,8 @@ appliqués. À venir : plus de nœuds, rangs multiples.)*
 
 | ID | Nom | Prérequis | Effet |
 |---|---|---|---|
-| `maitrise1` | **Ancestral Mastery** | forge4 + agile1 | Jouer une carte 200 fois = la maîtriser ; choisir 3 maîtrisées à ajouter définitivement au deck |
+| `maitrise1` | **Ancestral Mastery** | forge4 + agile1 | Jouer une carte 200 fois = la maîtriser ; **3 emplacements** pour ajouter des maîtrisées au deck |
+| `maitrise2` | **Ancestral Legacy** | maitrise1 | **+2 emplacements** de Maîtrise (5 au total) ; coût 2 |
 | `ambidextrie` | **Ambidexterity** | agile1 | Équiper **deux armes à 1 main** simultanément (main + main off) ; les cartes des deux armes s'ajoutent au deck |
 
 ### Règles de la Maîtrise des Ancêtres
@@ -386,8 +387,17 @@ appliqués. À venir : plus de nœuds, rangs multiples.)*
   retrouve vite ses cartes, et les couleurs regroupent les familles. Le type
   **« buff »** (vert) regroupe les cartes qui ne font ni dégât ni bouclier
   (ex. *Sapphire Surge*, *Quicken*).
-- **Cartes déjà maîtrisées** : entourées d'une **lueur dorée** ; au survol, la
-  carte se soulève et montre sa progression dessous.
+- **Cartes déjà maîtrisées** : entourées d'une **lueur dorée** ; au survol (ou au
+  curseur clavier), la carte se soulève et montre sa progression dessous. Les
+  cartes **non maîtrisées** portent un **cadenas** (visuel provisoire).
+- **Emplacements** : `maitrise1` en débloque **3**, `maitrise2` **+2** (5 au
+  total). Les emplacements non encore débloqués s'affichent **verrouillés
+  (cadenas)** dans le menu.
+- **Modification en ville uniquement** : on ne peut changer sa sélection qu'à
+  Brütàl. Hors ville, tenter d'ajouter/retirer une carte affiche un **message
+  flottant** au centre de l'écran (au lieu d'un texte permanent dans le menu).
+- **Navigation clavier** : flèches pour déplacer le curseur, **Espace/Entrée**
+  pour ajouter/retirer, **Tab** pour changer d'onglet.
 
 ### Règles d'Ambidextrie
 

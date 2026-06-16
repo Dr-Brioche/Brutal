@@ -2,7 +2,8 @@
 //
 // Le comptage NE démarre QU'une fois le talent "maitrise1" débloqué.
 // À 200 usages → carte maîtrisée → disponible dans la bibliothèque.
-// On choisit jusqu'à 5 cartes maîtrisées : elles s'ajoutent au deck en
+// On choisit des cartes maîtrisées (3 emplacements avec « Ancestral Mastery »,
+// +2 avec « Ancestral Legacy » → 5 au total) : elles s'ajoutent au deck en
 // combat, sans avoir besoin d'équiper l'arme correspondante.
 //
 // Seules les cartes d'ÉQUIPEMENT sont maîtrisables : on exclut les cartes du
@@ -13,7 +14,7 @@ import { CARTES } from "../data/cartes.js";
 import { CARTES_BASE } from "./combat.js";
 
 export const SEUIL_MAITRISE = 10; // provisoire pour les tests (valeur finale : 200)
-const MAX_CHOISIES = 5;
+export const MAX_SLOTS = 5;       // plafond absolu (tous les talents Maîtrise pris)
 
 export function creerMaitrise() {
   return { compteurs: {}, choisies: [] };
@@ -49,12 +50,13 @@ export function cartesMaitrisees(maitrise) {
     .filter((id) => carteMaitrisable(id) && carteMaitrisee(maitrise, id));
 }
 
-// Ajoute / retire une carte des slots choisis. Retourne false si les 5 slots
-// sont déjà pleins et que la carte n'était pas déjà choisie.
-export function toggleCarteChoisie(maitrise, carteId) {
+// Ajoute / retire une carte des slots choisis. `max` = nombre d'emplacements
+// débloqués (via les talents). Retourne false si tous les slots sont déjà
+// pleins et que la carte n'était pas déjà choisie.
+export function toggleCarteChoisie(maitrise, carteId, max = MAX_SLOTS) {
   const idx = maitrise.choisies.indexOf(carteId);
   if (idx >= 0) { maitrise.choisies.splice(idx, 1); return true; }
-  if (maitrise.choisies.length >= MAX_CHOISIES) return false;
+  if (maitrise.choisies.length >= max) return false;
   maitrise.choisies.push(carteId);
   return true;
 }
@@ -67,5 +69,5 @@ export function chargerMaitrise(maitrise, donnees) {
   if (donnees?.compteurs && typeof donnees.compteurs === "object")
     maitrise.compteurs = { ...donnees.compteurs };
   if (Array.isArray(donnees?.choisies))
-    maitrise.choisies = donnees.choisies.slice(0, MAX_CHOISIES);
+    maitrise.choisies = donnees.choisies.slice(0, MAX_SLOTS);
 }

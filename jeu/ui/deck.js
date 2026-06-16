@@ -10,7 +10,7 @@ import { cartesEquipees, mainsOccupees } from "../systems/inventaire.js";
 import { CARTES } from "../data/cartes.js";
 import { garnirCarte } from "./carte.js";
 import {
-  SEUIL_MAITRISE, compteurMaitrise, carteMaitrisee,
+  SEUIL_MAITRISE, MAX_SLOTS, compteurMaitrise, carteMaitrisee,
   carteMaitrisable, toggleCarteChoisie,
 } from "../systems/maitrise.js";
 
@@ -94,11 +94,19 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
     }
 
     const enVille = estEnVille ? estEnVille() : true;
+    const nbSlots = heros?.slotsMaitrise || 0; // emplacements débloqués (3 ou 5)
 
-    // 5 slots de sélection
-    const slotEls = [0, 1, 2, 3, 4].map((i) => {
-      const carteId = maitrise.choisies[i];
+    // MAX_SLOTS emplacements affichés ; ceux au-delà des débloqués sont verrouillés
+    // (cadenas) jusqu'au talent « Ancestral Legacy ».
+    const slotEls = Array.from({ length: MAX_SLOTS }, (_, i) => {
       const el = document.createElement("div");
+      if (i >= nbSlots) {
+        el.className = "maitrise-slot maitrise-slot--verrou";
+        el.innerHTML = '<span class="maitrise-slot-cadenas">🔒</span>';
+        el.title = "Unlock the « Ancestral Legacy » talent for 2 more slots.";
+        return el;
+      }
+      const carteId = maitrise.choisies[i];
       el.className = "maitrise-slot" + (carteId ? " maitrise-slot--rempli" : "");
       if (carteId) {
         const carte = CARTES[carteId];
@@ -115,7 +123,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
           retirer.title = "Remove from deck";
           retirer.addEventListener("click", (e) => {
             e.stopPropagation();
-            toggleCarteChoisie(maitrise, carteId);
+            toggleCarteChoisie(maitrise, carteId, nbSlots);
             rendreMaitrise(); rendreDeck();
           });
           el.append(retirer);
@@ -178,9 +186,9 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
       if (maitrisee) {
         cEl.style.cursor = "pointer";
         if (enVille) {
-          cEl.title = choisie ? "Remove from deck" : "Add to deck (max 5)";
+          cEl.title = choisie ? "Remove from deck" : `Add to deck (max ${nbSlots})`;
           cEl.addEventListener("click", () => {
-            if (!toggleCarteChoisie(maitrise, id) && !choisie) {
+            if (!toggleCarteChoisie(maitrise, id, nbSlots) && !choisie) {
               cEl.style.outline = "2px solid #cc4444";
               setTimeout(() => { cEl.style.outline = ""; }, 500);
               return;
@@ -284,8 +292,8 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
       return;
     }
     const dejaChoisie = maitrise.choisies.includes(cur.id);
-    if (!toggleCarteChoisie(maitrise, cur.id) && !dejaChoisie) {
-      cur.el.style.outline = "2px solid #cc4444"; // 3 slots pleins : refus
+    if (!toggleCarteChoisie(maitrise, cur.id, heros?.slotsMaitrise || 0) && !dejaChoisie) {
+      cur.el.style.outline = "2px solid #cc4444"; // tous les slots pleins : refus
       setTimeout(() => { cur.el.style.outline = ""; }, 500);
       return;
     }
