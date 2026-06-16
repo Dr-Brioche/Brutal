@@ -1119,7 +1119,9 @@ function dessinerFlecheCible(ctx, ecran, t, fort) {
 // Renvoie le point sur le bord de la boîte englobante du sprite `u` visé par
 // la droite partant de (x0, y0) vers le centre du sprite.
 function bordSprite(u, x0, y0) {
-  const cx = u.ecran.cx, cy = u.ecran.milieu;
+  const cx = u.ecran.cx;
+  // Vise le tiers supérieur du sprite (torse) plutôt que son centre exact.
+  const cy = u.ecran.haut + (u.ecran.sol - u.ecran.haut) * 0.33;
   const hw = (u.spr.caseL * u.echelle) / 2;
   const left = cx - hw, right = cx + hw;
   const top = u.ecran.haut, bot = u.ecran.sol;
