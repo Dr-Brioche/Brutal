@@ -19,7 +19,7 @@ import { jouerSon } from "../core/sons.js";
 // Rythme « vif » (choisi avec Brioche). Tout est en millisecondes.
 const T_NIVEAU = 650;   // remplir un niveau ENTIER (segment 0 → 100 %)
 const T_SEG_MIN = 150;  // plancher par segment, pour rester lisible
-const T_LEVELUP = 450;  // durée de la célébration (halo + éclats)
+const T_LEVELUP = 1100; // durée de la célébration (halo + éclats)
 const T_STATIQUE = 600; // si aucune XP gagnée : on montre la barre un instant
 const VERROU_ZAP = 300; // délai avant d'autoriser le zap (anti-appui maintenu)
 const NB_ECLATS = 14;   // nombre d'éclats jaunes par passage de niveau
