@@ -58,7 +58,7 @@ export const VILLE = {
 
 // ----- Les souterrains autour de Brütàl (exploration, dangers) -------------
 export const SOUTERRAINS = {
-  nom: "The Under-tunnels",
+  nom: "Souterrains Est",
   depart: { colonne: 2, ligne: 13 },
   // Le repaire des gobelins : les 3 variantes (chaman "range" → groupes de 3+).
   monstres: ["gobelin", "gobelin-vif", "gobelin-chaman"],
