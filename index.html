@@ -845,6 +845,19 @@
     .inv-item:hover { filter: brightness(1.15); }
     .inv-aide { margin-top: 12px; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
+    /* Curseur de navigation clavier dans la grille du sac */
+    .inv-curseur {
+      position: absolute; pointer-events: none; z-index: 2;
+      border: 2px solid #ef4444; border-radius: 4px;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.45);
+    }
+
+    /* Bordure du panneau inventaire quand il reçoit le focus clavier (mode boutique) */
+    .inv-panneau--focus {
+      outline: 2px solid rgba(239, 68, 68, 0.45);
+      outline-offset: 3px;
+    }
+
     /* La bulle d'info au survol d'un objet (nom + rareté + stats). */
     /* Menu contextuel (clic droit sur un objet) */
     .inv-menu {
@@ -1336,7 +1349,7 @@
       </div>
       <div class="inv-soustitre">Bag</div>
       <div class="inv-grille" id="inv-grille"></div>
-      <p class="inv-aide">Click a bag item to equip · click an equipped item to remove · [B] to close</p>
+      <p class="inv-aide">Arrows/WASD: navigate · Enter: equip · X: discard · [B] to close</p>
     </div>
   </div>
 

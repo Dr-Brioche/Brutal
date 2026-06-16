@@ -10,7 +10,8 @@
 //   - clic sur un item équipé  → on le remet dans le sac.
 
 import { itemDef, couleurRarete } from "../data/items.js";
-import { rangsInventaire, equiper, desequiper, arme2Bloquee } from "../systems/inventaire.js";
+import { rangsInventaire, equiper, desequiper, arme2Bloquee, objetSousCase } from "../systems/inventaire.js";
+import { dialogueActif } from "./dialogue.js";
 import { bonusTalents } from "../systems/talents.js";
 import { montrerInfobulle, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
 import { confirmationActive } from "./confirmation.js";
@@ -63,6 +64,82 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   // Glisser un objet du sac : un simple clic l'équipe ; le glisser HORS du
   // panneau (dans le vide) le JETTE (via surJeter, qui gère la confirmation).
   let drag = null; // { objet, ic, startX, startY, moved, ghost }
+
+  // Navigation clavier dans la grille du sac.
+  let cursorX = 0, cursorY = 0, cursorVisible = false, kbFocus = false;
+  const elAide = overlay.querySelector(".inv-aide");
+
+  function clamperCurseur() {
+    const rangs = rangsInventaire(inventaire);
+    cursorX = Math.max(0, Math.min(inventaire.cols - 1, cursorX));
+    cursorY = Math.max(0, Math.min(rangs - 1, cursorY));
+  }
+
+  function majAide() {
+    if (!elAide || overlay.hidden) return;
+    const enBoutique = dialogueActif();
+    if (!enBoutique) {
+      elAide.textContent = kbFocus
+        ? "Arrows/WASD: navigate · Enter: equip · X: discard · [B] to close"
+        : "Click a bag item to equip · click an equipped item to remove · [B] to close";
+    } else {
+      elAide.textContent = kbFocus
+        ? "Arrows: navigate · Enter: equip · X: discard · [Tab]: back to menu"
+        : "Click items · or press [Tab] to navigate with keyboard";
+    }
+  }
+
+  function surClavier(e) {
+    if (overlay.hidden || confirmationActive()) return;
+    if (!elMenu.hidden) return;
+
+    const enBoutique = dialogueActif();
+
+    // Tab : bascule le focus clavier entre dialogue et grille (boutique seulement).
+    if (e.code === "Tab" && enBoutique) {
+      e.preventDefault();
+      kbFocus = !kbFocus;
+      cursorVisible = kbFocus;
+      overlay.querySelector(".inv-panneau").classList.toggle("inv-panneau--focus", kbFocus);
+      rendreGrille();
+      majAide();
+      return;
+    }
+
+    if (!kbFocus) return;
+
+    // Déplacement case par case (WASD + ZQSD + flèches).
+    const ddx = { ArrowLeft: -1, ArrowRight: 1, KeyA: -1, KeyD: 1, KeyQ: -1 };
+    const ddy = { ArrowUp: -1, ArrowDown: 1, KeyW: -1, KeyS: 1, KeyZ: -1 };
+
+    if (e.code in ddx || e.code in ddy) {
+      e.preventDefault();
+      // En boutique, empêcher le dialogue de voir la touche (il a son propre nav).
+      if (enBoutique) e.stopImmediatePropagation();
+      const rangs = rangsInventaire(inventaire);
+      cursorX = Math.max(0, Math.min(inventaire.cols - 1, cursorX + (ddx[e.code] || 0)));
+      cursorY = Math.max(0, Math.min(rangs - 1, cursorY + (ddy[e.code] || 0)));
+      cursorVisible = true;
+      rendreGrille();
+      return;
+    }
+
+    // Entrée / Espace : équiper l'item sous le curseur.
+    if (e.code === "Enter" || e.code === "Space") {
+      e.preventDefault();
+      if (enBoutique) e.stopImmediatePropagation();
+      const o = objetSousCase(inventaire, cursorX, cursorY);
+      if (o) essayerEquiper(inventaire, heros, o, surChangement, rendre);
+      return;
+    }
+
+    // X / Suppr : jeter l'item sous le curseur.
+    if (e.code === "KeyX" || e.code === "Delete") {
+      e.preventDefault();
+      const o = objetSousCase(inventaire, cursorX, cursorY);
+      if (o && surJeter) surJeter({ objet: o });
+    }
+  }
   function surDragMove(ev) {
     if (!drag) return;
     const dx = ev.clientX - drag.startX, dy = ev.clientY - drag.startY;
@@ -242,9 +319,20 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       });
       elGrille.append(ic);
     }
+    // Curseur de navigation clavier : carré rouge sur la case active.
+    if (cursorVisible) {
+      const cur = document.createElement("div");
+      cur.className = "inv-curseur";
+      cur.style.left = cursorX * CASE + "px";
+      cur.style.top  = cursorY * CASE + "px";
+      cur.style.width  = CASE + "px";
+      cur.style.height = CASE + "px";
+      elGrille.append(cur);
+    }
   }
 
   function rendre() {
+    clamperCurseur();
     cacherInfobulle(); // une icône survolée peut disparaître (équip/déséquip)
     fermerContexte();
     elOr.textContent = inventaire.or;
@@ -258,11 +346,23 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   }
 
   return {
-    ouvrir() { rendre(); overlay.hidden = false; },
+    ouvrir() {
+      // Actif d'emblée si l'inventaire s'ouvre seul (sans dialogue ouvert à côté).
+      kbFocus = !dialogueActif();
+      cursorX = 0; cursorY = 0; cursorVisible = kbFocus;
+      overlay.querySelector(".inv-panneau").classList.toggle("inv-panneau--focus", kbFocus && dialogueActif());
+      rendre();
+      overlay.hidden = false;
+      window.addEventListener("keydown", surClavier, true); // capture : avant le dialogue
+      majAide();
+    },
     fermer() {
+      kbFocus = false; cursorVisible = false;
+      overlay.querySelector(".inv-panneau").classList.remove("inv-panneau--focus");
+      window.removeEventListener("keydown", surClavier, true);
       cacherInfobulle();
       fermerContexte();
-      if (drag) { // un drag en cours : on nettoie
+      if (drag) {
         drag.ghost?.remove();
         window.removeEventListener("pointermove", surDragMove);
         window.removeEventListener("pointerup", surDragUp);
