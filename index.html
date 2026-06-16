@@ -497,7 +497,7 @@
     .combat-fin {
       position: absolute;        /* place fixe en bas à droite de la zone, ne
                                     bouge plus avec le nombre de cartes */
-      right: 3cqw; bottom: 6cqh;
+      right: 3cqw; bottom: 14.5cqh;
       padding: 1.4cqh 3cqh;
       font-weight: 700;
       letter-spacing: 0.06em;
@@ -510,6 +510,23 @@
       pointer-events: auto;
     }
     .combat-fin:disabled { opacity: 0.4; cursor: default; }
+    /* Cadres pioche / défausse : rectangle sombre, même style que la jauge.
+       Le visuel (dos de carte) sera ajouté plus tard ; le chiffre est par-dessus. */
+    .combat-pile {
+      width: 35cqh; height: 9cqh;
+      background: #0f0b09;
+      border: 0.35cqh solid #3a2f26;
+      border-radius: 1cqh;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.5cqh; font-weight: 700;
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      color: #ffcaa0;
+      pointer-events: none;
+    }
+    /* Pioche : accrochée au bas de la jauge via flex */
+    .combat-pioche { margin-top: 1.5cqh; }
+    /* Défausse : miroir à droite, même bottom que la jauge */
+    .combat-defausse { position: absolute; right: 4cqw; bottom: 6cqh; }
 
     /* L'élément sélectionné au clavier (carte ou bouton) */
     .combat-carte.sel, .combat-fin.sel {
@@ -1232,7 +1249,9 @@
           <span class="combat-jauge-valeur" id="combat-jauge-valeur">1</span>
         </div>
         <div class="combat-jauge-brulure" id="combat-jauge-brulure"></div>
+        <div class="combat-pile combat-pioche" id="combat-pioche-nb">0</div>
       </div>
+      <div class="combat-pile combat-defausse" id="combat-defausse-nb">0</div>
       <div class="combat-main" id="combat-main"></div>
       <button class="combat-fin" id="combat-fin">End Turn</button>
     </div>

@@ -122,6 +122,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const jaugeValeur = document.getElementById("combat-jauge-valeur");
   const jaugeBrulure = document.getElementById("combat-jauge-brulure");
   const jaugeDivisions = document.getElementById("combat-jauge-divisions");
+  const elPiocheNb = document.getElementById("combat-pioche-nb");
+  const elDefausseNb = document.getElementById("combat-defausse-nb");
   jaugeSeuil.style.left = (combat.chaleurSeuil / combat.chaleurMax) * 100 + "%";
   // Divisions : un trait vertical par cran d'énergie (le nombre suit le max
   // courant ; un item qui monte le max ajoute des crans, sans changer la taille).
@@ -248,6 +250,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     });
     disposerEventail();
     boutonFin.disabled = combat.fini || !combat.tourJoueur;
+    elPiocheNb.textContent = combat.pioche.length;
+    elDefausseNb.textContent = combat.defausse.length;
     majSelection();
   }
   function disposerEventail() {
