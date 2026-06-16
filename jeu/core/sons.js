@@ -28,7 +28,7 @@ function lireVol(cle, defaut) {
 }
 
 let volBruitages = lireVol(CLE_VOL_B, 0.7);
-let volMusique   = lireVol(CLE_VOL_M, 0.22);
+let volMusique   = lireVol(CLE_VOL_M, 0.10);
 
 // ---- Bruitages --------------------------------------------------------------
 
