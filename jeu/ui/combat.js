@@ -741,10 +741,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       }
       barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
         `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), 0, u.affInit);
-      if (u.e.stun <= 0) dessinerIntention(ctx, u.e.intention, u.ecran.cx, u.ecran.haut - 8);
       if (prochainIdx === ennemisUI.indexOf(u) && !u.partis)
         dessinerTagProchain(ctx, u.ecran, temps);
       ctx.restore();
+      // Intention hors du transform d'échelle (ecran.haut est déjà en espace écran)
+      // pour que les ennemis de l'arrière-plan soient visuellement plus hauts.
+      if (u.e.stun <= 0) dessinerIntention(ctx, u.e.intention, u.ecran.cx, u.ecran.haut - 8);
     });
 
     // Flèche rouge au-dessus de la cible : UNIQUEMENT quand une carte d'attaque
