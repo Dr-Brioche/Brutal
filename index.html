@@ -219,6 +219,38 @@
       color: #6b7280;
     }
 
+    .menu-volumes {
+      margin: 4px 0 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .menu-vol-ligne {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.78rem;
+      color: #9ca3af;
+      cursor: default;
+    }
+    .menu-vol-ligne span:first-child {
+      width: 54px;
+      text-align: right;
+      flex-shrink: 0;
+      color: #c4b8a8;
+    }
+    .menu-vol-ligne input[type="range"] {
+      flex: 1;
+      accent-color: #b91c1c;
+      cursor: pointer;
+    }
+    .menu-vol-val {
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
     /* ---- Le choix au démarrage (sur l'écran de titre) ---- */
     .demarrage {
       width: min(460px, 92vw);
@@ -1424,11 +1456,23 @@
     <button class="tac-b tac-menu" data-code="Escape">≡</button>
   </div>
 
-  <!-- Le menu pause (touche Échap) : sauvegarder / charger -->
+  <!-- Le menu pause (touche Échap) : sauvegarder / charger / volume -->
   <div class="menu" id="menu" hidden>
     <div class="menu-panneau">
       <h2 class="menu-titre">Paused</h2>
       <button class="menu-continuer" id="menu-reprendre">Resume</button>
+      <div class="menu-volumes">
+        <label class="menu-vol-ligne">
+          <span>Music</span>
+          <input type="range" id="vol-musique" min="0" max="100" step="1" value="22">
+          <span class="menu-vol-val" id="vol-musique-val">22%</span>
+        </label>
+        <label class="menu-vol-ligne">
+          <span>Effects</span>
+          <input type="range" id="vol-bruitages" min="0" max="100" step="1" value="70">
+          <span class="menu-vol-val" id="vol-bruitages-val">70%</span>
+        </label>
+      </div>
       <div class="menu-slots" id="menu-slots"></div>
       <p class="menu-aide">Esc to open / close</p>
     </div>
