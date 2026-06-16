@@ -241,6 +241,23 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 - Le visuel se **branche par-dessus** une logique de combat déjà jouable : on n'attend
   pas les jolis sprites pour avancer.
 
+#### Fonds de combat : une bibliothèque par zone (décidé 16/06/2026)
+
+- Chaque **zone de la carte** (cf. `data/zones.js`) est reliée à **2-3 fonds de
+  combat** rangés dans une **bibliothèque** (`data/fonds.js`).
+- Ces fonds partagent la **même dynamique** (cadre 16:9, même ligne de sol en bas)
+  mais varient l'**ambiance** (éclairage, décor). À chaque combat, on en **tire un
+  au hasard** → moins de répétition visuelle, **sans toucher au gameplay** ni au
+  placement des sprites.
+- **Deux calques** : le PNG de fond est posé **sous** le canvas (`#fond-combat`,
+  z-index 0) ; l'interface du joueur (cartes, jauges, compteurs) reste **par-dessus**.
+  La ligne de séparation (`SOL_FOND` dans `ui/combat.js`) marque la frontière
+  basse du décor / haut de l'interface — elle n'est PAS calée sur les pieds des
+  sprites (les barres de vie peuvent descendre en dessous).
+- **État actuel** : une seule zone de combat, les **souterrains** (porte est de
+  Brütàl, repaire des 3 gobelins). Sa bibliothèque démarre avec 1 fond provisoire ;
+  on en ajoutera 2 autres pour la variété.
+
 ### Modèle de deck — VERROUILLÉ (décision d'architecture majeure)
 
 **Le deck est le miroir de l'équipement.**

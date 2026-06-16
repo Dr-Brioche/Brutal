@@ -1,0 +1,29 @@
+// Bibliothèque des FONDS de combat, rangés par zone.
+//
+// PRINCIPE — chaque zone de la carte (data/zones.js) est liée à 2-3 fonds de
+// combat. Ils partagent la MÊME dynamique (même cadre 16:9, même ligne de sol
+// en bas) mais varient l'AMBIANCE (éclairage, décor) pour casser la répétition
+// visuelle sans toucher au gameplay ni au placement des sprites. À chaque
+// combat, on en tire un au hasard dans la liste de la zone.
+//
+// AJOUTER un fond : déposer le PNG dans images/fonds/ puis ajouter son chemin
+// au tableau de la zone ci-dessous. Format conseillé : large (~16:9), la
+// rangée de sol vers le bas du cadre (elle se cale sous l'interface combat,
+// cf. SOL_FOND dans jeu/ui/combat.js).
+
+export const FONDS_COMBAT = {
+  // Les souterrains autour de Brütàl (porte est) : repaire des gobelins.
+  souterrains: [
+    "images/fonds/souterrains-1.png",
+    // "images/fonds/souterrains-2.png",
+    // "images/fonds/souterrains-3.png",
+  ],
+};
+
+// Tire un fond au hasard pour la zone donnée. Renvoie null si la zone n'a pas
+// (encore) de bibliothèque → l'écran de combat retombe sur son dégradé de secours.
+export function fondCombat(zoneId) {
+  const liste = FONDS_COMBAT[zoneId];
+  if (!liste || liste.length === 0) return null;
+  return liste[Math.floor(Math.random() * liste.length)];
+}

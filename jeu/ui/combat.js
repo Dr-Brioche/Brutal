@@ -60,8 +60,10 @@ const PORTRAIT_HEROS = { sx: 17, sy: 4, sw: 30, sh: 30 };
 // ---------------------------------------------------------------------------
 
 // `ennemis` : tableau de définitions d'ennemis (data/ennemis.js).
-export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, maitrise, surFin }) {
+export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, maitrise, fond, surFin }) {
   const fondCombat = document.getElementById("fond-combat");
+  // Fond de la zone (tiré dans sa bibliothèque) ; sinon dégradé de secours (none).
+  fondCombat.style.setProperty("--fond-url", fond ? `url("${fond}")` : "none");
   fondCombat.hidden = false;
 
   const combat = creerCombat(ennemis, {

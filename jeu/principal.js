@@ -29,6 +29,7 @@ import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { gagnerXp } from "./systems/progression.js";
 import { demarrerCombat } from "./ui/combat.js";
 import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
+import { fondCombat } from "./data/fonds.js";
 import { FANATIQUE, MARCHAND } from "./data/pnj.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
 
@@ -559,6 +560,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     await flashCombat();
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis, maitrise,
+      fond: fondCombat(zoneActuelle), // un fond tiré dans la bibliothèque de la zone
       surFin: (resultat) => {
         combatEnCours = null;
         if (resultat === "defaite") {
