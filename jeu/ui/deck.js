@@ -305,7 +305,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
 
   return {
     ouvrir() {
-      rendre();
+      basculerOnglet("deck");
       overlay.hidden = false;
       window.addEventListener("keydown", surTouche, true);
     },
