@@ -1115,16 +1115,25 @@ function dessinerFlecheCible(ctx, ecran, t, fort) {
 // le fil de sort, mais à opacité FIXE (pas de clignotement) — plus naturel qu'un
 // trait rigide. `t` anime seulement le léger défilement des pointillés.
 function dessinerFlecheDrag(ctx, x0, y0, x1, y1, t) {
-  // Contrôle décalé perpendiculairement à la corde → courbure douce et régulière.
   const dx = x1 - x0, dy = y1 - y0;
   const len = Math.hypot(dx, dy) || 1;
-  const bow = Math.min(70, len * 0.22);
-  const cx = (x0 + x1) / 2 + (-dy / len) * bow;
-  const cy = (y0 + y1) / 2 + (dx / len) * bow;
-  ctx.globalAlpha = 0.92;
-  tracerArcPointille(ctx, x0, y0, cx, cy, x1, y1, "#ff3b30", -t * 24, 3);
-  // Pointe orientée selon la tangente finale de la courbe (dir = extrémité − contrôle).
+  // Arc vers le HAUT ; plus prononcé quand la flèche est horizontale, plus doux
+  // quand elle est quasi verticale → déformation naturelle selon la distance/angle.
+  const horizFactor = Math.abs(dx) / len;
+  const bow = Math.max(15, Math.min(120, len * (0.15 + 0.35 * horizFactor)));
+  const cx = (x0 + x1) / 2;
+  const cy = (y0 + y1) / 2 - bow;
+
+  // Tangente finale → orientation de la pointe.
   const a = Math.atan2(y1 - cy, x1 - cx);
+  // L'arc s'arrête avant la pointe : les pointillés ne dépassent pas la tête de flèche.
+  const gap = 12;
+  const x1e = x1 - gap * Math.cos(a);
+  const y1e = y1 - gap * Math.sin(a);
+
+  ctx.globalAlpha = 0.92;
+  tracerArcPointille(ctx, x0, y0, cx, cy, x1e, y1e, "#ff3b30", -t * 24, 3);
+
   ctx.save();
   ctx.translate(x1, y1);
   ctx.rotate(a);
