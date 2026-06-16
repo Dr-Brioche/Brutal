@@ -25,7 +25,8 @@ import { alerteVie } from "./effets.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
 const ECHELLE_HEROS = 3;            // 64×64 → 192×192 (avant dézoom de scène)
-const SOL_Y = 215;                  // limite scène/interface (fond PNG à venir)
+const SOL_Y = 215;                  // pieds des sprites
+const SOL_FOND = 268;               // séparateur visuel fond PNG / interface
 const ECHELLE_SCENE = 0.4;          // dézoom de référence (avant-plan)
 const ECHELLE_AVANT   = ECHELLE_SCENE;        // rang avant  : taille normale
 const ECHELLE_ARRIERE = ECHELLE_SCENE * 0.85; // rang arrière : 15 % plus petit
@@ -838,14 +839,12 @@ function dessinerParticules(ctx, particules) {
 // ----- Dessin de la scène --------------------------------------------------
 
 function dessinerFond(ctx) {
-  // Le ciel est géré par #fond-combat (PNG cover + gradient CSS en secours) ;
-  // on efface juste la zone pour la rendre transparente.
-  ctx.clearRect(0, 0, 640, SOL_Y);
-  // Le sol reste dessiné dans le canvas pour ancrer les sprites.
+  // Toute la zone de jeu est transparente : le fond PNG passera dessous.
+  // Seule la bande d'interface (sous SOL_FOND) reçoit un fond sombre temporaire.
   ctx.fillStyle = "#241c16";
-  ctx.fillRect(0, SOL_Y, 640, 360 - SOL_Y);
+  ctx.fillRect(0, SOL_FOND, 640, 360 - SOL_FOND);
   ctx.fillStyle = "#2e241b";
-  ctx.fillRect(0, SOL_Y, 640, 4);
+  ctx.fillRect(0, SOL_FOND, 640, 4);
 }
 
 function dessinerEnnemi(ctx, planche, spr, frame, x, y, teinte) {
