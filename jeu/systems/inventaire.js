@@ -29,9 +29,10 @@ export function rangsInventaire(inv) {
   return inv.rangs + (sac?.rangsBonus ?? 0);
 }
 
-function casesOccupees(inv) {
+function casesOccupees(inv, sauf = null) {
   const occ = new Set();
   for (const o of inv.objets) {
+    if (o === sauf) continue; // on peut exclure l'objet qu'on déplace
     const d = itemDef(o.id);
     for (let dy = 0; dy < d.taille.h; dy++)
       for (let dx = 0; dx < d.taille.l; dx++)
@@ -82,6 +83,22 @@ export function objetSousCase(inv, cx, cy) {
     if (cx >= o.x && cx < o.x + d.taille.l && cy >= o.y && cy < o.y + d.taille.h) return o;
   }
   return null;
+}
+
+// `objet` (déjà dans le sac) tiendrait-il à (x, y) ? Il est exclu du test de
+// collision (on le déplace), donc le reposer sur sa propre place reste valide.
+export function peutPlacerA(inv, objet, x, y) {
+  const d = itemDef(objet.id);
+  if (!d) return false;
+  return tient(inv, x, y, d.taille.l, d.taille.h, casesOccupees(inv, objet));
+}
+
+// Déplace `objet` à (x, y) si la place est libre. Renvoie true si déplacé.
+export function deplacerObjet(inv, objet, x, y) {
+  if (!peutPlacerA(inv, objet, x, y)) return false;
+  objet.x = x;
+  objet.y = y;
+  return true;
 }
 
 function retirerObjet(inv, objet) {
@@ -240,8 +257,17 @@ export function chargerInventaire(inv, etat) {
   if (etat.slots) for (const s of SLOTS) {
     if (etat.slots[s] && itemDef(etat.slots[s])) inv.slots[s] = etat.slots[s];
   }
-  // Objets : on les RE-pose proprement (les positions se recalculent)
+  // Objets : on restaure la position rangée par le joueur si elle est valide,
+  // sinon on auto-place au premier creux (sac réduit, données anciennes…).
   if (Array.isArray(etat.objets)) {
-    for (const o of etat.objets) if (itemDef(o?.id)) ajouterObjet(inv, o.id);
+    for (const o of etat.objets) {
+      if (!itemDef(o?.id)) continue;
+      if (Number.isInteger(o.x) && Number.isInteger(o.y) &&
+          peutPlacerA(inv, { id: o.id }, o.x, o.y)) {
+        inv.objets.push({ id: o.id, x: o.x, y: o.y });
+      } else {
+        ajouterObjet(inv, o.id);
+      }
+    }
   }
 }

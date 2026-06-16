@@ -5,12 +5,19 @@
 //     5 bagues à droite) ;
 //   - tout en bas : le SAC (grille de cases façon Diablo, items à empreinte).
 //
-// 1er jet : icônes placeholder (carré coloré + bordure de rareté). Au clic :
-//   - clic sur un item du sac  → on l'équipe ;
-//   - clic sur un item équipé  → on le remet dans le sac.
+// Manipulation « prendre / poser » (souris ET clavier) :
+//   - on CLIQUE un objet du sac → il se SOULÈVE (suit le curseur) ;
+//   - on reclique sur une case du sac → il s'y POSE (réorganisation libre) ;
+//   - on reclique sur un slot d'équipement → il s'ÉQUIPE ;
+//   - clic droit (ou touche X) → menu Equip / Discard direct.
+// Au clavier : flèches/WASD pour bouger le curseur, Entrée pour soulever/poser,
+// X pour le menu Equip/Discard, Échap pour reposer l'objet tenu.
 
 import { itemDef, couleurRarete } from "../data/items.js";
-import { rangsInventaire, equiper, desequiper, arme2Bloquee, objetSousCase } from "../systems/inventaire.js";
+import {
+  rangsInventaire, equiper, desequiper, arme2Bloquee,
+  objetSousCase, peutPlacerA, deplacerObjet,
+} from "../systems/inventaire.js";
 import { dialogueActif } from "./dialogue.js";
 import { bonusTalents } from "../systems/talents.js";
 import { montrerInfobulle, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
@@ -58,159 +65,289 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   const elGrille = document.getElementById("inv-grille");
   const elOr = document.getElementById("inv-or");
   const elPv = document.getElementById("inv-pv");
+  const elMenu = document.getElementById("inv-menu");
   const canvasHero = document.getElementById("inv-hero");
+  const elAide = overlay.querySelector(".inv-aide");
   document.getElementById("inv-fermer").onclick = () => surFermer();
 
-  // Glisser un objet du sac : un simple clic l'équipe ; le glisser HORS du
-  // panneau (dans le vide) le JETTE (via surJeter, qui gère la confirmation).
-  let drag = null; // { objet, ic, startX, startY, moved, ghost }
+  // L'objet SOULEVÉ (en main), ou null. offX/offY = la sous-case saisie, pour
+  // que l'objet retombe sous le curseur comme on l'a pris. cible = case de pose.
+  let tenu = null; // { objet, offX, offY, ghost }
+  let cibleX = 0, cibleY = 0, refCible = null;
 
-  // Navigation clavier dans la grille du sac.
+  // Navigation clavier : un curseur (carré) se promène dans la grille.
   let cursorX = 0, cursorY = 0, cursorVisible = false, kbFocus = false;
-  const elAide = overlay.querySelector(".inv-aide");
 
-  function clamperCurseur() {
+  // ---- Prendre / poser ------------------------------------------------------
+
+  function caseDepuisClient(cx, cy) {
+    const r = elGrille.getBoundingClientRect();
+    return { x: Math.floor((cx - r.left) / CASE), y: Math.floor((cy - r.top) / CASE) };
+  }
+
+  // Coin haut-gauche de pose, clampé à la grille (à partir d'une case d'ancrage).
+  function calculerCible(ancreX, ancreY) {
+    const d = itemDef(tenu.objet.id);
     const rangs = rangsInventaire(inventaire);
-    cursorX = Math.max(0, Math.min(inventaire.cols - 1, cursorX));
-    cursorY = Math.max(0, Math.min(rangs - 1, cursorY));
+    return {
+      x: Math.max(0, Math.min(inventaire.cols - d.taille.l, ancreX - tenu.offX)),
+      y: Math.max(0, Math.min(rangs - d.taille.h, ancreY - tenu.offY)),
+    };
   }
 
-  function majAide() {
-    if (!elAide || overlay.hidden) return;
-    const enBoutique = dialogueActif();
-    if (!enBoutique) {
-      elAide.textContent = kbFocus
-        ? "Arrows/WASD: navigate · Enter: equip · X: discard · [B] to close"
-        : "Click a bag item to equip · click an equipped item to remove · [B] to close";
+  function creerGhost(objet) {
+    const d = itemDef(objet.id);
+    const g = document.createElement("div");
+    g.className = "inv-item inv-ghost";
+    g.style.background = d.icone;
+    g.style.borderColor = couleurRarete(objet.id);
+    g.style.width = d.taille.l * CASE - 4 + "px";
+    g.style.height = d.taille.h * CASE - 4 + "px";
+    const t = document.createElement("span");
+    t.textContent = d.nom;
+    g.append(t);
+    document.body.append(g);
+    return g;
+  }
+
+  function ghostVersSouris(cx, cy) {
+    if (!tenu) return;
+    tenu.ghost.style.left = cx - tenu.ghost.offsetWidth / 2 + "px";
+    tenu.ghost.style.top = cy - tenu.ghost.offsetHeight / 2 + "px";
+  }
+  function ghostVersCase(x, y) {
+    if (!tenu) return;
+    const r = elGrille.getBoundingClientRect();
+    tenu.ghost.style.left = r.left + x * CASE + 1 + "px";
+    tenu.ghost.style.top = r.top + y * CASE + 1 + "px";
+  }
+
+  // Met à jour (sans tout redessiner) le rectangle d'aperçu de pose : vert si ça
+  // tient à (cibleX, cibleY), rouge sinon.
+  function majApercuCible() {
+    if (!tenu || !refCible) return;
+    const d = itemDef(tenu.objet.id);
+    refCible.style.left = cibleX * CASE + "px";
+    refCible.style.top = cibleY * CASE + "px";
+    refCible.style.width = d.taille.l * CASE + "px";
+    refCible.style.height = d.taille.h * CASE + "px";
+    const ok = peutPlacerA(inventaire, tenu.objet, cibleX, cibleY);
+    refCible.classList.toggle("inv-cible--ok", ok);
+    refCible.classList.toggle("inv-cible--non", !ok);
+  }
+
+  function soulever(objet, offX, offY) {
+    cacherInfobulle();
+    fermerContexte();
+    tenu = { objet, offX, offY, ghost: creerGhost(objet) };
+    const c = calculerCible(objet.x + offX, objet.y + offY);
+    cibleX = c.x; cibleY = c.y;
+    window.addEventListener("pointermove", surSourisDeplace, true);
+    rendre();
+  }
+
+  function lacher() {
+    if (!tenu) return;
+    tenu.ghost.remove();
+    tenu = null;
+    refCible = null;
+    window.removeEventListener("pointermove", surSourisDeplace, true);
+  }
+
+  function annulerTenu() { lacher(); rendre(); }
+
+  function poserA(x, y) {
+    if (!tenu) return;
+    if (deplacerObjet(inventaire, tenu.objet, x, y)) { lacher(); rendre(); }
+    // Place occupée : on garde l'objet en main (le joueur retente ailleurs).
+  }
+
+  function equiperTenu() {
+    if (!tenu) return;
+    const o = tenu.objet;
+    lacher();
+    essayerEquiper(inventaire, heros, o, surChangement, rendre);
+    rendre();
+  }
+
+  // Suivi du ghost à la souris (tant qu'un objet est tenu).
+  function surSourisDeplace(ev) {
+    if (!tenu) return;
+    ghostVersSouris(ev.clientX, ev.clientY);
+    const r = elGrille.getBoundingClientRect();
+    const surGrille = ev.clientX >= r.left && ev.clientX <= r.right &&
+                      ev.clientY >= r.top && ev.clientY <= r.bottom;
+    if (surGrille) {
+      const c = caseDepuisClient(ev.clientX, ev.clientY);
+      const cible = calculerCible(c.x, c.y);
+      cibleX = cible.x; cibleY = cible.y;
+      if (refCible) refCible.hidden = false;
+      majApercuCible();
+    } else if (refCible) {
+      refCible.hidden = true; // hors grille : pas d'aperçu de pose
+    }
+  }
+
+  // Clic dans la grille : pose l'objet tenu, ou soulève celui qui est dessous.
+  elGrille.addEventListener("click", (ev) => {
+    if (confirmationActive()) return;
+    const c = caseDepuisClient(ev.clientX, ev.clientY);
+    if (tenu) {
+      const cible = calculerCible(c.x, c.y);
+      poserA(cible.x, cible.y);
     } else {
-      elAide.textContent = kbFocus
-        ? "Arrows: navigate · Enter: equip · X: discard · [Tab]: back to menu"
-        : "Click items · or press [Tab] to navigate with keyboard";
+      const o = objetSousCase(inventaire, c.x, c.y);
+      if (o) { soulever(o, c.x - o.x, c.y - o.y); ghostVersSouris(ev.clientX, ev.clientY); }
     }
-  }
+  });
 
-  function surClavier(e) {
-    if (overlay.hidden || confirmationActive()) return;
-    if (!elMenu.hidden) return;
+  // Clic en dehors du panneau pendant qu'on tient un objet : on le repose.
+  overlay.addEventListener("click", (ev) => {
+    if (tenu && !ev.target.closest(".inv-panneau")) annulerTenu();
+  });
 
-    const enBoutique = dialogueActif();
+  // Clic droit = menu Equip/Discard. Pendant qu'on tient un objet, il repose.
+  window.addEventListener("contextmenu", (ev) => {
+    if (!overlay.hidden && tenu) { ev.preventDefault(); annulerTenu(); }
+  });
 
-    // Tab : bascule le focus clavier entre dialogue et grille (boutique seulement).
-    if (e.code === "Tab" && enBoutique) {
-      e.preventDefault();
-      kbFocus = !kbFocus;
-      cursorVisible = kbFocus;
-      overlay.querySelector(".inv-panneau").classList.toggle("inv-panneau--focus", kbFocus);
-      rendreGrille();
-      majAide();
-      return;
-    }
-
-    if (!kbFocus) return;
-
-    // Déplacement case par case (WASD + ZQSD + flèches).
-    const ddx = { ArrowLeft: -1, ArrowRight: 1, KeyA: -1, KeyD: 1, KeyQ: -1 };
-    const ddy = { ArrowUp: -1, ArrowDown: 1, KeyW: -1, KeyS: 1, KeyZ: -1 };
-
-    if (e.code in ddx || e.code in ddy) {
-      e.preventDefault();
-      // En boutique, empêcher le dialogue de voir la touche (il a son propre nav).
-      if (enBoutique) e.stopImmediatePropagation();
-      const rangs = rangsInventaire(inventaire);
-      cursorX = Math.max(0, Math.min(inventaire.cols - 1, cursorX + (ddx[e.code] || 0)));
-      cursorY = Math.max(0, Math.min(rangs - 1, cursorY + (ddy[e.code] || 0)));
-      cursorVisible = true;
-      rendreGrille();
-      return;
-    }
-
-    // Entrée / Espace : équiper l'item sous le curseur.
-    if (e.code === "Enter" || e.code === "Space") {
-      e.preventDefault();
-      if (enBoutique) e.stopImmediatePropagation();
-      const o = objetSousCase(inventaire, cursorX, cursorY);
-      if (o) essayerEquiper(inventaire, heros, o, surChangement, rendre);
-      return;
-    }
-
-    // X / Suppr : jeter l'item sous le curseur.
-    if (e.code === "KeyX" || e.code === "Delete") {
-      e.preventDefault();
-      const o = objetSousCase(inventaire, cursorX, cursorY);
-      if (o && surJeter) surJeter({ objet: o });
-    }
-  }
-  function surDragMove(ev) {
-    if (!drag) return;
-    const dx = ev.clientX - drag.startX, dy = ev.clientY - drag.startY;
-    if (!drag.moved && Math.hypot(dx, dy) > 6) {
-      drag.moved = true;
-      cacherInfobulle();
-      drag.ic.style.opacity = "0.3";
-      const g = drag.ic.cloneNode(true);
-      Object.assign(g.style, {
-        position: "fixed", zIndex: "50", pointerEvents: "none", opacity: "0.9", margin: "0",
-        width: drag.ic.offsetWidth + "px", height: drag.ic.offsetHeight + "px",
-      });
-      document.body.append(g);
-      drag.ghost = g;
-    }
-    if (drag.ghost) {
-      drag.ghost.style.left = (ev.clientX - drag.ghost.offsetWidth / 2) + "px";
-      drag.ghost.style.top = (ev.clientY - drag.ghost.offsetHeight / 2) + "px";
-    }
-  }
-  function surDragUp(ev) {
-    window.removeEventListener("pointermove", surDragMove);
-    window.removeEventListener("pointerup", surDragUp);
-    const d = drag; drag = null;
-    if (!d) return;
-    d.ghost?.remove();
-    d.ic.style.opacity = "";
-    if (!d.moved) { // pas bougé = simple clic → équiper
-      essayerEquiper(inventaire, heros, d.objet, surChangement, rendre);
-      return;
-    }
-    // Relâché HORS du panneau (le vide) → jeter ; à l'intérieur → on annule.
-    const r = overlay.querySelector(".inv-panneau").getBoundingClientRect();
-    const dehors = ev.clientX < r.left || ev.clientX > r.right ||
-                   ev.clientY < r.top || ev.clientY > r.bottom;
-    if (dehors && surJeter) surJeter({ objet: d.objet });
-  }
-  function debutDragSac(o, ic, ev) {
-    if (confirmationActive() || ev.button === 2) return;
-    ev.preventDefault();
-    drag = { objet: o, ic, startX: ev.clientX, startY: ev.clientY, moved: false, ghost: null };
-    window.addEventListener("pointermove", surDragMove);
-    window.addEventListener("pointerup", surDragUp);
-  }
-
-  // -- Menu contextuel (clic droit) : Equip/Unequip + Discard (pour ceux qui ne
-  //    pensent pas à glisser l'objet hors du sac) ----------------------------
-  const elMenu = document.getElementById("inv-menu");
+  // ---- Menu contextuel (clic droit / touche X) ------------------------------
+  let menuSel = 0;
   function fermerContexte() { elMenu.hidden = true; elMenu.replaceChildren(); }
+  function surlignerMenu() {
+    [...elMenu.children].forEach((b, i) => b.classList.toggle("inv-menu-btn--sel", i === menuSel));
+  }
   function ouvrirContexte(x, y, actions) {
     cacherInfobulle();
-    elMenu.replaceChildren(...actions.map((a) => {
+    menuSel = 0;
+    elMenu.replaceChildren(...actions.map((a, i) => {
       const b = document.createElement("button");
       b.className = "inv-menu-btn" + (a.danger ? " inv-menu-danger" : "");
       b.textContent = a.label;
       b.addEventListener("click", () => { fermerContexte(); a.fn(); });
+      b.addEventListener("mouseenter", () => { menuSel = i; surlignerMenu(); });
       return b;
     }));
     elMenu.hidden = false;
     const r = elMenu.getBoundingClientRect(); // clampé à l'écran
     elMenu.style.left = Math.max(8, Math.min(x, innerWidth - r.width - 8)) + "px";
     elMenu.style.top = Math.max(8, Math.min(y, innerHeight - r.height - 8)) + "px";
+    surlignerMenu();
   }
-  // Fermer : clic ailleurs, Échap (avale la touche pour ne pas fermer l'inventaire), molette.
+  // Actions Equip/Discard pour un objet du SAC.
+  function menuSac(o) {
+    return [
+      { label: "Equip", fn: () => essayerEquiper(inventaire, heros, o, surChangement, rendre) },
+      { label: "Discard", danger: true, fn: () => surJeter && surJeter({ objet: o }) },
+    ];
+  }
+  // Ouvre le menu à la position ÉCRAN d'une case (pour la touche X au clavier).
+  function ouvrirContexteCase(x, y, actions) {
+    const r = elGrille.getBoundingClientRect();
+    ouvrirContexte(r.left + (x + 0.5) * CASE, r.top + (y + 0.5) * CASE, actions);
+  }
+  // Fermer le menu : clic ailleurs, molette.
   window.addEventListener("pointerdown", (e) => {
     if (!elMenu.hidden && !elMenu.contains(e.target)) fermerContexte();
   }, true);
-  window.addEventListener("keydown", (e) => {
-    if (e.code === "Escape" && !elMenu.hidden) { e.stopPropagation(); fermerContexte(); }
-  }, true);
   window.addEventListener("wheel", () => { if (!elMenu.hidden) fermerContexte(); });
+
+  // ---- Clavier --------------------------------------------------------------
+
+  function surClavier(e) {
+    if (overlay.hidden || confirmationActive()) return;
+
+    // Menu contextuel ouvert : on navigue DEDANS (et on avale les touches).
+    if (!elMenu.hidden) {
+      const n = elMenu.children.length;
+      if (["ArrowUp", "KeyW", "KeyZ"].includes(e.code)) { menuSel = (menuSel - 1 + n) % n; surlignerMenu(); }
+      else if (["ArrowDown", "KeyS"].includes(e.code)) { menuSel = (menuSel + 1) % n; surlignerMenu(); }
+      else if (e.code === "Enter" || e.code === "Space") { elMenu.children[menuSel]?.click(); }
+      else if (e.code === "Escape") { fermerContexte(); }
+      else return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      return;
+    }
+
+    // Échap pendant qu'on tient un objet : on le repose (sans fermer l'inventaire).
+    if (e.code === "Escape" && tenu) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      annulerTenu();
+      return;
+    }
+
+    const enBoutique = dialogueActif();
+
+    // Tab : bascule le focus clavier entre dialogue et grille (boutique seulement).
+    if (e.code === "Tab" && enBoutique) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      kbFocus = !kbFocus;
+      cursorVisible = kbFocus;
+      overlay.querySelector(".inv-panneau").classList.toggle("inv-panneau--focus", kbFocus);
+      rendre();
+      majAide();
+      return;
+    }
+
+    if (!kbFocus) return;
+
+    // Déplacement du curseur case par case (WASD + ZQSD + flèches).
+    const ddx = { ArrowLeft: -1, ArrowRight: 1, KeyA: -1, KeyD: 1, KeyQ: -1 };
+    const ddy = { ArrowUp: -1, ArrowDown: 1, KeyW: -1, KeyS: 1, KeyZ: -1 };
+    if (e.code in ddx || e.code in ddy) {
+      e.preventDefault();
+      if (enBoutique) e.stopImmediatePropagation();
+      const rangs = rangsInventaire(inventaire);
+      cursorX = Math.max(0, Math.min(inventaire.cols - 1, cursorX + (ddx[e.code] || 0)));
+      cursorY = Math.max(0, Math.min(rangs - 1, cursorY + (ddy[e.code] || 0)));
+      cursorVisible = true;
+      if (tenu) { const c = calculerCible(cursorX, cursorY); cibleX = c.x; cibleY = c.y; }
+      rendre();
+      if (tenu) ghostVersCase(cibleX, cibleY);
+      return;
+    }
+
+    // Entrée / Espace : soulever l'objet sous le curseur, ou poser celui en main.
+    if (e.code === "Enter" || e.code === "Space") {
+      e.preventDefault();
+      if (enBoutique) e.stopImmediatePropagation();
+      if (tenu) {
+        const c = calculerCible(cursorX, cursorY);
+        poserA(c.x, c.y);
+      } else {
+        const o = objetSousCase(inventaire, cursorX, cursorY);
+        if (o) { soulever(o, cursorX - o.x, cursorY - o.y); ghostVersCase(cibleX, cibleY); }
+      }
+      return;
+    }
+
+    // X : menu Equip/Discard (comme le clic droit) sur l'objet tenu ou sous le curseur.
+    if (e.code === "KeyX") {
+      e.preventDefault();
+      if (enBoutique) e.stopImmediatePropagation();
+      const o = tenu ? tenu.objet : objetSousCase(inventaire, cursorX, cursorY);
+      if (o) {
+        if (tenu) lacher();
+        ouvrirContexteCase(cursorX, cursorY, menuSac(o));
+      }
+    }
+  }
+
+  function majAide() {
+    if (!elAide || overlay.hidden) return;
+    const enBoutique = dialogueActif();
+    if (tenu) {
+      elAide.textContent = "Click a cell to drop · click a slot to equip · X: equip/discard · Esc: cancel";
+    } else if (!enBoutique) {
+      elAide.textContent = "Click an item to pick it up · drop it where you want or on a slot · X: equip/discard · [B] to close";
+    } else {
+      elAide.textContent = kbFocus
+        ? "Arrows: move · Enter: pick up / drop · X: equip/discard · [Tab]: back to menu"
+        : "Click items · or press [Tab] to navigate with keyboard";
+    }
+  }
+
+  // ---- Rendu ----------------------------------------------------------------
 
   function iconeItem(id) {
     const d = itemDef(id);
@@ -221,18 +358,21 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const t = document.createElement("span");
     t.textContent = d.nom;
     el.append(t);
-    // Bulle d'info au survol (nom, effets, visuel des cartes) — sauf en plein drag.
-    el.addEventListener("mouseenter", (e) => { if (!drag) montrerInfobulle(id, e); });
-    el.addEventListener("mousemove", (e) => { if (!drag) suivreInfobulle(e); });
+    // Bulle d'info au survol — sauf quand on tient un objet (geste en cours).
+    el.addEventListener("mouseenter", (e) => { if (!tenu) montrerInfobulle(id, e); });
+    el.addEventListener("mousemove", (e) => { if (!tenu) suivreInfobulle(e); });
     el.addEventListener("mouseleave", cacherInfobulle);
     return el;
   }
 
-  // Un slot d'équipement (objet équipé → clic pour déséquiper ; sinon libellé).
+  // Un slot d'équipement. Si on tient un objet → clic = équiper. Sinon, clic sur
+  // un objet équipé = le remettre au sac.
   function slotEl(slot) {
     const cell = document.createElement("div");
     cell.className = "inv-slot";
-    // Slot arme2 verrouillé si arme1 est deux mains.
+    // Poser un objet tenu sur un slot = l'équiper (le système route vers le bon slot).
+    cell.addEventListener("click", () => { if (tenu) equiperTenu(); });
+
     if (slot === "arme2" && arme2Bloquee(inventaire)) {
       cell.classList.add("bloque");
       cell.textContent = "2H";
@@ -245,9 +385,10 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
         if (desequiper(inventaire, sl)) { surChangement(); rendre(); }
         else montrerToast("🎒 Bag is full — make some room before unequipping.");
       };
-      ic.onclick = () => essayerDesequiper(slot);
+      ic.onclick = () => { if (!tenu) essayerDesequiper(slot); };
       ic.addEventListener("contextmenu", (ev) => {
         ev.preventDefault();
+        if (tenu) return;
         ouvrirContexte(ev.clientX, ev.clientY, [
           { label: "Unequip", fn: () => essayerDesequiper(slot) },
           { label: "Discard", danger: true, fn: () => surJeter && surJeter({ slot }) },
@@ -303,29 +444,32 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     for (const o of inventaire.objets) {
       const d = itemDef(o.id);
       const ic = iconeItem(o.id);
+      if (tenu && o === tenu.objet) ic.classList.add("inv-item--tenu"); // grisé (en main)
       ic.style.position = "absolute";
       ic.style.left = o.x * CASE + 1 + "px";
       ic.style.top = o.y * CASE + 1 + "px";
       ic.style.width = d.taille.l * CASE - 4 + "px";
       ic.style.height = d.taille.h * CASE - 4 + "px";
-      ic.style.touchAction = "none"; // le drag capte le geste (pas de scroll parasite)
-      ic.addEventListener("pointerdown", (ev) => debutDragSac(o, ic, ev));
       ic.addEventListener("contextmenu", (ev) => {
         ev.preventDefault();
-        ouvrirContexte(ev.clientX, ev.clientY, [
-          { label: "Equip", fn: () => essayerEquiper(inventaire, heros, o, surChangement, rendre) },
-          { label: "Discard", danger: true, fn: () => surJeter && surJeter({ objet: o }) },
-        ]);
+        if (tenu) return;
+        ouvrirContexte(ev.clientX, ev.clientY, menuSac(o));
       });
       elGrille.append(ic);
     }
-    // Curseur de navigation clavier : carré rouge sur la case active.
-    if (cursorVisible) {
+    // Aperçu de pose (objet tenu) : rectangle vert/rouge sur la case de dépôt.
+    if (tenu) {
+      refCible = document.createElement("div");
+      refCible.className = "inv-cible";
+      elGrille.append(refCible);
+      majApercuCible();
+    } else if (cursorVisible) {
+      // Curseur de navigation clavier : carré rouge sur la case active.
       const cur = document.createElement("div");
       cur.className = "inv-curseur";
       cur.style.left = cursorX * CASE + "px";
-      cur.style.top  = cursorY * CASE + "px";
-      cur.style.width  = CASE + "px";
+      cur.style.top = cursorY * CASE + "px";
+      cur.style.width = CASE + "px";
       cur.style.height = CASE + "px";
       elGrille.append(cur);
     }
@@ -333,8 +477,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   function rendre() {
     clamperCurseur();
-    cacherInfobulle(); // une icône survolée peut disparaître (équip/déséquip)
-    fermerContexte();
+    if (!tenu) cacherInfobulle(); // une icône survolée peut disparaître (équip/déséquip)
     elOr.textContent = inventaire.or;
     elPv.textContent = `${heros.pv}/${heros.pvMax}`;
     rendreColonne(elGauche, COL_GAUCHE);
@@ -343,31 +486,32 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     rendreHero();
     rendreStats();
     rendreGrille();
+    majAide();
+  }
+
+  function clamperCurseur() {
+    const rangs = rangsInventaire(inventaire);
+    cursorX = Math.max(0, Math.min(inventaire.cols - 1, cursorX));
+    cursorY = Math.max(0, Math.min(rangs - 1, cursorY));
   }
 
   return {
     ouvrir() {
-      // Actif d'emblée si l'inventaire s'ouvre seul (sans dialogue ouvert à côté).
+      // Curseur clavier actif d'emblée si l'inventaire s'ouvre seul (sans dialogue).
       kbFocus = !dialogueActif();
       cursorX = 0; cursorY = 0; cursorVisible = kbFocus;
       overlay.querySelector(".inv-panneau").classList.toggle("inv-panneau--focus", kbFocus && dialogueActif());
       rendre();
       overlay.hidden = false;
       window.addEventListener("keydown", surClavier, true); // capture : avant le dialogue
-      majAide();
     },
     fermer() {
+      lacher();
       kbFocus = false; cursorVisible = false;
       overlay.querySelector(".inv-panneau").classList.remove("inv-panneau--focus");
       window.removeEventListener("keydown", surClavier, true);
       cacherInfobulle();
       fermerContexte();
-      if (drag) {
-        drag.ghost?.remove();
-        window.removeEventListener("pointermove", surDragMove);
-        window.removeEventListener("pointerup", surDragUp);
-        drag = null;
-      }
       overlay.hidden = true;
     },
     rendre,
