@@ -41,7 +41,7 @@ export const CARTES = {
   // Les cartes fortes, elles, coûtent de la Chaleur et viennent de l'équipement.
   "coup-faible": {
     id: "coup-faible",
-    nom: "Tap",
+    nom: "Punch",
     cout: 0,
     type: "attaque",
     texte: "Deal 3 damage.",
@@ -49,8 +49,8 @@ export const CARTES = {
   },
   "garde-faible": {
     id: "garde-faible",
-    nom: "Brace",
-    cout: 0,
+    nom: "Hand Guard",
+    cout: 1,
     type: "defense",
     texte: "Gain 3 Stone.",
     effets: [{ type: "pierre", valeur: 3 }],
