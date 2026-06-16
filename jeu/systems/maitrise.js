@@ -2,7 +2,7 @@
 //
 // Le comptage NE démarre QU'une fois le talent "maitrise1" débloqué.
 // À 200 usages → carte maîtrisée → disponible dans la bibliothèque.
-// On choisit jusqu'à 3 cartes maîtrisées : elles s'ajoutent au deck en
+// On choisit jusqu'à 5 cartes maîtrisées : elles s'ajoutent au deck en
 // combat, sans avoir besoin d'équiper l'arme correspondante.
 //
 // Seules les cartes d'ÉQUIPEMENT sont maîtrisables : on exclut les cartes du
@@ -13,7 +13,7 @@ import { CARTES } from "../data/cartes.js";
 import { CARTES_BASE } from "./combat.js";
 
 export const SEUIL_MAITRISE = 10; // provisoire pour les tests (valeur finale : 200)
-const MAX_CHOISIES = 3;
+const MAX_CHOISIES = 5;
 
 export function creerMaitrise() {
   return { compteurs: {}, choisies: [] };
@@ -49,7 +49,7 @@ export function cartesMaitrisees(maitrise) {
     .filter((id) => carteMaitrisable(id) && carteMaitrisee(maitrise, id));
 }
 
-// Ajoute / retire une carte des slots choisis. Retourne false si les 3 slots
+// Ajoute / retire une carte des slots choisis. Retourne false si les 5 slots
 // sont déjà pleins et que la carte n'était pas déjà choisie.
 export function toggleCarteChoisie(maitrise, carteId) {
   const idx = maitrise.choisies.indexOf(carteId);

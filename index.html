@@ -1073,6 +1073,22 @@
       padding: 4px; position: relative;
     }
     .maitrise-slot--rempli { border-style: solid; border-color: #7a5030; }
+    /* Les cartes dans les slots ne doivent pas hériter du transform de la main. */
+    .maitrise-slot .combat-carte { transform: none; margin: 0; cursor: default; }
+    .maitrise-slot .combat-carte:hover { transform: none; box-shadow: none; }
+    /* Toast "retour en ville" affiché quand on tente de modifier hors ville. */
+    .maitrise-toast {
+      position: fixed; top: 42%; left: 50%; transform: translateX(-50%);
+      background: rgba(18, 10, 28, 0.96); border: 1px solid #7a4090;
+      color: #e8d4a0; font-size: 0.9rem; padding: 14px 28px; border-radius: 10px;
+      z-index: 50; pointer-events: none; text-align: center; white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+      animation: toast-entrer 0.18s ease;
+    }
+    @keyframes toast-entrer {
+      from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
     .maitrise-retirer {
       position: absolute; top: 3px; right: 3px;
       width: 18px; height: 18px; border-radius: 50%;

@@ -73,6 +73,15 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
   }
 
   // -- Onglet Maîtrise ------------------------------------------------------
+  function montrerAvert(msg) {
+    document.querySelectorAll(".maitrise-toast").forEach((t) => t.remove());
+    const toast = document.createElement("div");
+    toast.className = "maitrise-toast";
+    toast.textContent = msg;
+    document.getElementById("deck").append(toast);
+    setTimeout(() => toast.remove(), 2600);
+  }
+
   function rendreMaitrise() {
     cartesNav = []; // reconstruit plus bas si des cartes sont affichées
     const debloque = (heros?.talents?.maitrise1 || 0) > 0;
@@ -86,8 +95,8 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
 
     const enVille = estEnVille ? estEnVille() : true;
 
-    // 3 slots de sélection
-    const slotEls = [0, 1, 2].map((i) => {
+    // 5 slots de sélection
+    const slotEls = [0, 1, 2, 3, 4].map((i) => {
       const carteId = maitrise.choisies[i];
       const el = document.createElement("div");
       el.className = "maitrise-slot" + (carteId ? " maitrise-slot--rempli" : "");
@@ -117,14 +126,6 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
       return el;
     });
     elSlots.replaceChildren(...slotEls);
-
-    if (!enVille) {
-      const avert = document.createElement("p");
-      avert.className = "maitrise-vide";
-      avert.style.marginTop = "8px";
-      avert.textContent = "⚔ Return to Brütàl to change your selection.";
-      elSlots.after(avert);
-    }
 
     // Bibliothèque (cartes d'équipement seulement : ni base, ni « unique »)
     const idsConnus = Object.keys(maitrise.compteurs).filter(carteMaitrisable);
@@ -174,17 +175,23 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
 
       wrap.append(cEl, prog);
 
-      if (maitrisee && enVille) {
+      if (maitrisee) {
         cEl.style.cursor = "pointer";
-        cEl.title = choisie ? "Remove from deck" : "Add to deck (max 3)";
-        cEl.addEventListener("click", () => {
-          if (!toggleCarteChoisie(maitrise, id) && !choisie) {
-            cEl.style.outline = "2px solid #cc4444";
-            setTimeout(() => { cEl.style.outline = ""; }, 500);
-            return;
-          }
-          rendreMaitrise(); rendreDeck();
-        });
+        if (enVille) {
+          cEl.title = choisie ? "Remove from deck" : "Add to deck (max 5)";
+          cEl.addEventListener("click", () => {
+            if (!toggleCarteChoisie(maitrise, id) && !choisie) {
+              cEl.style.outline = "2px solid #cc4444";
+              setTimeout(() => { cEl.style.outline = ""; }, 500);
+              return;
+            }
+            rendreMaitrise(); rendreDeck();
+          });
+        } else {
+          cEl.addEventListener("click", () => {
+            montrerAvert("⚔ Return to Brütàl to change your selection.");
+          });
+        }
       }
       return wrap;
     }
@@ -214,6 +221,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
         if (!wrap) continue;
         rangee.append(wrap);
         cartesNav.push({ id, el: wrap.querySelector(".combat-carte"),
+                         maitrisee: carteMaitrisee(maitrise, id),
                          actionnable: carteMaitrisee(maitrise, id) && enVille });
       }
       contenu.push(titre, rangee);
@@ -270,7 +278,11 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
   // Espace/Entrée sur la carte au curseur : l'ajoute / la retire du deck.
   function validerSelection() {
     const cur = cartesNav.find((c) => c.id === selBiblio);
-    if (!cur || !cur.actionnable) return; // hors ville ou non maîtrisée : rien
+    if (!cur) return;
+    if (!cur.actionnable) {
+      if (cur.maitrisee) montrerAvert("⚔ Return to Brütàl to change your selection.");
+      return;
+    }
     const dejaChoisie = maitrise.choisies.includes(cur.id);
     if (!toggleCarteChoisie(maitrise, cur.id) && !dejaChoisie) {
       cur.el.style.outline = "2px solid #cc4444"; // 3 slots pleins : refus
