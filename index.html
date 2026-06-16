@@ -692,13 +692,33 @@
       border-radius: 14px;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
     }
+    /* Scrollbar intégrée au style du jeu pour tous les panneaux-menus. */
+    .inv-panneau, .tal-panneau, .deck-panneau {
+      scrollbar-width: thin;
+      scrollbar-color: #3a2840 #0f0d15;
+    }
+    .inv-panneau::-webkit-scrollbar,
+    .tal-panneau::-webkit-scrollbar,
+    .deck-panneau::-webkit-scrollbar { width: 6px; }
+    .inv-panneau::-webkit-scrollbar-track,
+    .tal-panneau::-webkit-scrollbar-track,
+    .deck-panneau::-webkit-scrollbar-track { background: #0f0d15; border-radius: 3px; }
+    .inv-panneau::-webkit-scrollbar-thumb,
+    .tal-panneau::-webkit-scrollbar-thumb,
+    .deck-panneau::-webkit-scrollbar-thumb { background: #3a2840; border-radius: 3px; }
+    .inv-panneau::-webkit-scrollbar-thumb:hover,
+    .tal-panneau::-webkit-scrollbar-thumb:hover,
+    .deck-panneau::-webkit-scrollbar-thumb:hover { background: #6a3870; }
     .inv-entete { display: flex; align-items: center; justify-content: space-between; }
     .inv-titre { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
     .inv-pv-boite { color: #ff6b6b; font-weight: 700; font-family: ui-monospace, monospace; }
     .inv-or-boite { color: #ffcf57; font-weight: 700; font-family: ui-monospace, monospace; }
-    #inv-fermer {
+    #inv-fermer, #deck-fermer, #tal-fermer {
       padding: 4px 12px; color: #f3f4f6; background: #2f2d3a;
       border: 1px solid #45424f; border-radius: 6px; cursor: pointer; font-weight: 700;
+    }
+    #inv-fermer:hover, #deck-fermer:hover, #tal-fermer:hover {
+      background: #3f3c4f; border-color: #6a6480;
     }
     .inv-soustitre { margin: 14px 0 8px; font-size: 0.72rem; letter-spacing: 0.1em;
       text-transform: uppercase; color: #8b8f98; }
@@ -852,10 +872,6 @@
     .tal-titre { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
     .tal-meta { color: #cbd0d6; font-family: ui-monospace, monospace; font-size: 0.9rem; }
     .tal-meta b { color: #ffcf57; }
-    #tal-fermer {
-      padding: 4px 12px; color: #f3f4f6; background: #2f2d3a;
-      border: 1px solid #45424f; border-radius: 6px; cursor: pointer; font-weight: 700;
-    }
     .tal-xp {
       position: relative; height: 15px; margin: 12px 0 8px;
       background: #100e16; border: 1px solid #2c2a36; border-radius: 999px; overflow: hidden;
