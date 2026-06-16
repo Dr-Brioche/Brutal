@@ -15,7 +15,7 @@ import { bonusTalents } from "../systems/talents.js";
 import { montrerInfobulle, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
 import { confirmationActive } from "./confirmation.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
-import { afficherMessage } from "./effets.js";
+import { afficherMessage, montrerToast } from "./effets.js";
 
 const CASE = 34;            // taille d'une case du sac (doit matcher le fond CSS)
 const ECHELLE_HERO = 2;     // 64×64 → 128 dans la fiche
@@ -37,7 +37,12 @@ function labelArme2(heros) {
 const FORGE_SEUIL = 3, FORGE_MAX = 8, BASE_PIOCHE = 3; // bases (matchent systems/combat.js)
 
 function essayerEquiper(inventaire, heros, objet, surChangement, rendre) {
-  if (equiper(inventaire, objet, heros)) { surChangement(); rendre(); return; }
+  const res = equiper(inventaire, objet, heros);
+  if (res === true) { surChangement(); rendre(); return; }
+  if (res === "plein") {
+    montrerToast("🎒 Bag is full — make some room before swapping gear.");
+    return;
+  }
   if (arme2Bloquee(inventaire) && itemDef(objet.id).categorie === "bouclier") {
     afficherMessage("⚠ Your two-handed weapon occupies both hands — unequip it first.");
   }
@@ -159,11 +164,15 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const id = inventaire.slots[slot];
     if (id) {
       const ic = iconeItem(id);
-      ic.onclick = () => { if (desequiper(inventaire, slot)) { surChangement(); rendre(); } };
+      const essayerDesequiper = (sl) => {
+        if (desequiper(inventaire, sl)) { surChangement(); rendre(); }
+        else montrerToast("🎒 Bag is full — make some room before unequipping.");
+      };
+      ic.onclick = () => essayerDesequiper(slot);
       ic.addEventListener("contextmenu", (ev) => {
         ev.preventDefault();
         ouvrirContexte(ev.clientX, ev.clientY, [
-          { label: "Unequip", fn: () => { if (desequiper(inventaire, slot)) { surChangement(); rendre(); } } },
+          { label: "Unequip", fn: () => essayerDesequiper(slot) },
           { label: "Discard", danger: true, fn: () => surJeter && surJeter({ slot }) },
         ]);
       });

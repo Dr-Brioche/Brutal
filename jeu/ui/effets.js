@@ -39,3 +39,15 @@ export function afficherMessage(texte, duree = 2200) {
   clearTimeout(minuterieMessage);
   minuterieMessage = setTimeout(() => boite.classList.remove("visible"), duree);
 }
+
+// Toast centré, style identique au message « retour en ville » de la Maîtrise.
+let minuterieToast = null;
+export function montrerToast(texte, duree = 2600) {
+  document.querySelectorAll(".maitrise-toast").forEach((t) => t.remove());
+  clearTimeout(minuterieToast);
+  const toast = document.createElement("div");
+  toast.className = "maitrise-toast";
+  toast.textContent = texte;
+  document.body.append(toast);
+  minuterieToast = setTimeout(() => toast.remove(), duree);
+}

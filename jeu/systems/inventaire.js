@@ -63,6 +63,18 @@ export function ajouterObjet(inv, id) {
   return false;
 }
 
+// Vérifie sans muter si `id` trouverait une place dans le sac tel qu'il est.
+function peutAjouter(inv, id) {
+  const d = itemDef(id);
+  if (!d) return false;
+  const occ = casesOccupees(inv);
+  const rangs = rangsInventaire(inv);
+  for (let y = 0; y <= rangs - d.taille.h; y++)
+    for (let x = 0; x <= inv.cols - d.taille.l; x++)
+      if (tient(inv, x, y, d.taille.l, d.taille.h, occ)) return true;
+  return false;
+}
+
 // L'objet posé sous la case (cx, cy), ou null.
 export function objetSousCase(inv, cx, cy) {
   for (const o of inv.objets) {
@@ -98,14 +110,41 @@ function slotCible(inv, id, heros) {
 // Équipe un objet de la grille : il quitte le sac pour son slot ; l'ancien
 // occupant du slot retourne dans le sac.
 // `heros` est optionnel (nécessaire pour Ambidextrie).
+// Retourne true si succès, false si impossible (slot invalide / bloqué),
+// ou "plein" si le sac n'a pas la place pour accueillir les items déplacés.
 export function equiper(inv, objet, heros) {
   const d = itemDef(objet.id);
   const slot = slotCible(inv, objet.id, heros);
   if (!slot) return false;
   // Bloquer arme2 si arme1 est une arme à deux mains (la seconde main est occupée).
   if (slot === "arme2" && itemDef(inv.slots.arme1 ?? "")?.mains === 2) return false;
-  retirerObjet(inv, objet);
+
   const ancien = inv.slots[slot];
+  const a2Libere = (slot === "arme1" && d.mains === 2) ? inv.slots.arme2 : null;
+
+  // Avant toute mutation, vérifier que les items déplacés auront de la place.
+  // On simule : retire objet du sac (libère sa place), puis teste.
+  if (ancien || a2Libere) {
+    retirerObjet(inv, objet);
+    let ok = true;
+    if (ancien) {
+      if (!peutAjouter(inv, ancien)) {
+        ok = false;
+      } else if (a2Libere) {
+        // Poser ancien temporairement pour tester a2 dans l'état réel.
+        ajouterObjet(inv, ancien);
+        if (!peutAjouter(inv, a2Libere)) ok = false;
+        inv.objets.pop(); // retire l'ajout temporaire (toujours le dernier push)
+      }
+    } else if (a2Libere && !peutAjouter(inv, a2Libere)) {
+      ok = false;
+    }
+    inv.objets.push(objet); // restaure objet dans le sac
+    if (!ok) return "plein";
+  }
+
+  // L'échange peut avoir lieu.
+  retirerObjet(inv, objet);
   inv.slots[slot] = objet.id;
   // Arme à deux mains : libère la seconde main (retourne au sac), même si c'est
   // une arme mise là par Ambidextrie.
