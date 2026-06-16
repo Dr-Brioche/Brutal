@@ -52,7 +52,7 @@ export const VILLE = {
     "############################################",
   ],
   portails: [
-    { colonne: 42, ligne: 13, vers: "souterrains", entree: { colonne: 2, ligne: 13 } },
+    { colonne: 42, ligne: 13, vers: "souterrains-est", entree: { colonne: 2, ligne: 13 } },
   ],
 };
 
@@ -98,5 +98,5 @@ export const SOUTERRAINS = {
 // Toutes les zones, accessibles par leur id (utilisé par les portails)
 export const ZONES = {
   ville: VILLE,
-  souterrains: SOUTERRAINS,
+  "souterrains-est": SOUTERRAINS,
 };

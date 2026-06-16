@@ -14,11 +14,11 @@
 //   → un sous-dossier par zone, fichiers numérotés 1.png, 2.png, 3.png…
 
 export const FONDS_COMBAT = {
-  // Les souterrains autour de Brütàl (porte est) : repaire des gobelins.
-  souterrains: [
-    "images/fonds/souterrains/1.png",
-    // "images/fonds/souterrains/2.png",
-    // "images/fonds/souterrains/3.png",
+  // Les souterrains-est autour de Brütàl (porte est) : repaire des gobelins.
+  souterrains-est: [
+    "images/fonds/souterrains-est/1.png",
+    // "images/fonds/souterrains-est/2.png",
+    // "images/fonds/souterrains-est/3.png",
   ],
 };
 
