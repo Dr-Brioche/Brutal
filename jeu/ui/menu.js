@@ -11,8 +11,8 @@
 import { lireSlot, ecrireSlot } from "../systems/sauvegarde.js";
 import { tousLesSlots, creerLigneSlot } from "./slots.js";
 import {
-  reglerVolumeMusique, reglerVolumeBruitages,
-  getVolumeMusique, getVolumeBruitages,
+  reglerVolumeMusique, reglerVolumeBruitages, reglerVolumeMusiqueCombat,
+  getVolumeMusique, getVolumeBruitages, getVolumeMusiqueCombat,
 } from "../core/sons.js";
 
 export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }) {
@@ -24,20 +24,28 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
   // Sliders de volume — initialisés avec les valeurs chargées depuis localStorage.
   const sliderM   = document.getElementById("vol-musique");
   const valM      = document.getElementById("vol-musique-val");
+  const sliderMC  = document.getElementById("vol-musique-combat");
+  const valMC     = document.getElementById("vol-musique-combat-val");
   const sliderB   = document.getElementById("vol-bruitages");
   const valB      = document.getElementById("vol-bruitages-val");
 
   function syncSliders() {
-    sliderM.value = Math.round(getVolumeMusique() * 100);
-    valM.textContent = sliderM.value + "%";
-    sliderB.value = Math.round(getVolumeBruitages() * 100);
-    valB.textContent = sliderB.value + "%";
+    sliderM.value  = Math.round(getVolumeMusique() * 100);
+    valM.textContent  = sliderM.value + "%";
+    sliderMC.value = Math.round(getVolumeMusiqueCombat() * 100);
+    valMC.textContent = sliderMC.value + "%";
+    sliderB.value  = Math.round(getVolumeBruitages() * 100);
+    valB.textContent  = sliderB.value + "%";
   }
   syncSliders();
 
   sliderM.addEventListener("input", () => {
     reglerVolumeMusique(sliderM.value / 100);
     valM.textContent = sliderM.value + "%";
+  });
+  sliderMC.addEventListener("input", () => {
+    reglerVolumeMusiqueCombat(sliderMC.value / 100);
+    valMC.textContent = sliderMC.value + "%";
   });
   sliderB.addEventListener("input", () => {
     reglerVolumeBruitages(sliderB.value / 100);
