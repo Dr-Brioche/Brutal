@@ -96,10 +96,14 @@ export const ITEMS = {
     taille: { l: 2, h: 2 }, icone: "#3b4250",
     planche: "images/heros/nain-onyx.png", defense: 5,
   },
+  // Maille de forge : 1re ARMURE qui donne des cartes. 3× « Mail Armor » (bloc de
+  // Pierre fiable) + 1× « Quench » (trempe : vide la Chaleur en Pierre ×4) → build
+  // tank qui récompense de chauffer fort puis de tremper.
   "maille-de-forge": {
     id: "maille-de-forge", nom: "Forgemaster's Mail", categorie: "armure", rarete: "rare",
     taille: { l: 2, h: 2 }, icone: "#7a4a2a",
     planche: "images/heros/nain-forge.png", defense: 3,
+    cartes: ["mail-armor", "mail-armor", "mail-armor", "trempe"],
   },
 
   // ---- Bijoux & divers (donnent des CARTES, ou une utilité comme le sac) ----

@@ -1,7 +1,7 @@
 # BRUTAL — Concept du jeu
 
 > Document vivant : c'est la « bible » du projet. On le modifie au fil de l'eau.
-> Dernière mise à jour : 2026-06-15.
+> Dernière mise à jour : 2026-06-17.
 
 ## Pitch
 
@@ -337,6 +337,13 @@ directement la **collecte** et le **marché**.
 - **Défense « Pierre » — CONFIRMÉ et implémenté** : la Pierre **persiste entre
   les tours** (≠ Blocage qui disparaît chaque tour). Les nains sont coriaces →
   le jeu défensif/tank devient une vraie stratégie.
+- **Trempe (« Quench ») — passerelle Chaleur → Pierre (validé 17/06/2026)** :
+  carte **gratuite** qui **vide toute la Chaleur** et la **fige en Pierre (×4 par
+  point)**, puis la forge **refroidit (chaleur → 0)**. Récompense de jouer en
+  **surchauffe** (plus on a chauffé, plus le bouclier est gros) et **fait retomber
+  la surchauffe** d'un coup → 1re mécanique qui **relie** les deux ressources naines
+  (Chaleur ↔ Pierre). Apportée par la **Forgemaster's Mail**, **première armure à
+  injecter des cartes** (3× *Mail Armor* — 5 Pierre pour 1 Chaleur — + 1× *Quench*).
 - **Statuts (1er jet)** : effets qui durent dans le temps, affichés **sous la
   barre de vie**, apportés par des **cartes** (que l'équipement ajoute au deck).
   Implémentés :

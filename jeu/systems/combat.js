@@ -304,6 +304,13 @@ function appliquerEffet(combat, effet, ennemi) {
     // Régénère de l'énergie (Chaleur). Peut dépasser le SEUIL → surchauffe au
     // tour suivant : énergie immédiate, mais risque de brûlure (choix tactique).
     combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + effet.valeur);
+  } else if (effet.type === "trempe") {
+    // Trempe : convertit TOUTE la Chaleur restante en Pierre (×valeur), puis la
+    // forge refroidit complètement (chaleur → 0). Récompense d'avoir chauffé fort
+    // (et bonus : ça fait retomber la surchauffe). Choix tactique : monter haut,
+    // puis tremper pour un gros bouclier d'un coup.
+    combat.pierre += combat.chaleur * effet.valeur;
+    combat.chaleur = 0;
   } else if (effet.type === "celerite") {
     combat.hate += effet.valeur;            // Hâte : +30% d'agilité pendant `valeur` tours (la durée se cumule)
   } else if (effet.type === "lenteur") {

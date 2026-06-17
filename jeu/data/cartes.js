@@ -30,6 +30,8 @@
 //                         mais le sang absorbé SOIGNE le héros à chaque tick)
 //            - "chaleur": régénère `valeur` d'énergie (Chaleur) — peut dépasser le
 //                         seuil et donc faire surchauffer (risque de brûlure)
+//            - "trempe" : convertit TOUTE la Chaleur restante en Pierre (×`valeur`
+//                         par point), puis la forge refroidit (chaleur → 0)
 //            - "stun"   : étourdit l'ennemi `valeur` tours (il saute ses tours).
 //                         Cumulable : rejouer en ajoute (les ticks s'additionnent)
 //            - "celerite": HÂTE le héros (+30% d'agilité) pendant `valeur` de SES tours
@@ -220,5 +222,29 @@ export const CARTES = {
     type: "attaque",
     texte: "Deal 12 damage. If the target dies, deal 12 damage to the next enemy.",
     effets: [{ type: "degats", valeur: 12 }, { type: "rebond", valeur: 12 }],
+  },
+
+  // ---- Forgemaster's Mail (armure) : 1re armure qui DONNE des cartes ----------
+
+  // Mail Armor : bloc de Pierre fiable, peu cher (build défensif/tank).
+  "mail-armor": {
+    id: "mail-armor",
+    nom: "Mail Armor",
+    cout: 1,
+    type: "defense",
+    texte: "Gain 5 Stone.",
+    effets: [{ type: "pierre", valeur: 5 }],
+  },
+
+  // Trempe : vide toute la Chaleur et la fige en Pierre (×4). Gratuite, mais ne
+  // vaut que si la forge est chaude → récompense de jouer en surchauffe, et fait
+  // retomber la surchauffe d'un coup. Passerelle d'identité naine : Chaleur → Pierre.
+  "trempe": {
+    id: "trempe",
+    nom: "Quench",
+    cout: 0,
+    type: "defense",
+    texte: "Spend all Forge Heat. Gain 4 Stone per Heat spent.",
+    effets: [{ type: "trempe", valeur: 4 }],
   },
 };
