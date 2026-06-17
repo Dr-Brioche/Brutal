@@ -30,9 +30,10 @@ import { gagnerXp } from "./systems/progression.js";
 import { demarrerCombat } from "./ui/combat.js";
 import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
 import { fondCombat, prechargerFonds } from "./data/fonds.js";
+import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
 import { FANATIQUE, MARCHAND } from "./data/pnj.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
-import { jouerMusique, arreterMusique } from "./core/sons.js";
+import { jouerMusique, jouerMusiqueFichier, arreterMusique } from "./core/sons.js";
 
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
@@ -75,6 +76,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   let carte = creerCarte(CITY);
   let rencontres = creerRencontres();
   prechargerFonds(zoneActuelle);                // fonds de combat prêts en cache
+  prechargerMusiquesCombat(zoneActuelle);       // musiques de combat prêtes en cache
   if (CITY.musique) jouerMusique(CITY.musique); // ambiance ville dès le lancement
   const camera = creerCamera();
   const heros = creerHeros();
@@ -542,6 +544,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     carte = creerCarte(ZONES[zoneId]);
     zoneActuelle = zoneId;
     prechargerFonds(zoneId);         // télécharge les fonds de la zone pendant l'explo
+    prechargerMusiquesCombat(zoneId);// idem pour les musiques de combat de la zone
     poserHeros(heros, entree.colonne, entree.ligne);
     rencontres = creerRencontres();  // période de grâce fraîche dans la zone
     surPorte = true;                 // on arrive : ne pas re-déclencher
@@ -564,6 +567,10 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (ennemis.length === 0) return;
     enPause = true;                 // le monde se fige pendant le flash
     await flashCombat();
+    // Musique de combat : un morceau tiré dans la bibliothèque de la zone. Si la
+    // zone n'en a pas, on garde l'ambiance en cours (musiqueCombat → null).
+    const mc = musiqueCombat(zoneActuelle);
+    if (mc) jouerMusiqueFichier(mc);
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis, maitrise,
       fond: fondCombat(zoneActuelle), // un fond tiré dans la bibliothèque de la zone
@@ -573,8 +580,12 @@ export async function demarrerJeu(donneesInitiales = null) {
           // Pas encore mort : on se réveille en ville, à 1 PV (à soigner).
           heros.pv = 1;
           afficherMessage("💀 You collapse... and wake up back in Brütàl.");
-          allerVersZone("city", CITY.depart); // retour sûr (gère le fondu + la pause)
+          allerVersZone("city", CITY.depart); // retour sûr (gère le fondu + la musique)
         } else {
+          // Fin de la baston : on quitte la musique de combat pour revenir à
+          // l'ambiance d'exploration de la zone (silence si elle n'en a pas).
+          const ambiance = ZONES[zoneActuelle]?.musique ?? null;
+          if (ambiance) jouerMusique(ambiance); else arreterMusique();
           // Victoire : on calcule le butin (sans l'appliquer) et on l'affiche dans
           // une fenêtre centrée. Le joueur le récupère (clic / Espace). Le monde
           // reste figé (enPause) tant qu'il n'a pas récupéré.

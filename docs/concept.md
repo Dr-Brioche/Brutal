@@ -262,6 +262,20 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
   Brütàl, repaire des 3 gobelins). Sa bibliothèque démarre avec 1 fond provisoire ;
   on en ajoutera 2 autres pour la variété.
 
+#### Musiques de combat : une bibliothèque par zone (décidé 17/06/2026)
+
+- **Même logique que les fonds**, côté son : chaque zone a une **bibliothèque de
+  musiques de combat** (`data/musiques.js`), rangées dans `sons/combat/<zone>/`
+  (mêmes noms de sous-dossiers que les fonds et les zones).
+- La musique **démarre au flash de rencontre** (juste avant l'écran de combat) :
+  on en **tire une au hasard** dans la liste de la zone. Elle tourne en boucle
+  pendant la baston, puis le jeu **revient à l'ambiance d'exploration** de la zone
+  (silence si la zone n'en a pas) à la fin du combat (victoire comme défaite).
+- Pour **éviter le délai** au premier combat (un .mp3 pèse quelques Mo), les
+  musiques de la zone sont **préchargées à l'entrée** de la zone, comme les fonds.
+- **État actuel** : 1 musique provisoire pour les Eastern Under-tunnels
+  (`sons/combat/eastern-under-tunnels/1.mp3`) ; on en ajoutera d'autres.
+
 ### Modèle de deck — VERROUILLÉ (décision d'architecture majeure)
 
 **Le deck est le miroir de l'équipement.**
@@ -490,6 +504,10 @@ que c'est addictif, **puis** on empile le suivant.
 - Détail technique **déjà couvert** : les navigateurs coupent le son tant que le joueur
   n'a pas cliqué → le bouton **Play** du titre débloque l'audio pour toute la partie.
   Marchera à l'identique une fois empaqueté en `.exe`.
+- **En place** : ambiance de fond par zone (`jouerMusique` par nom logique) **et**
+  musiques de **combat tirées au hasard par zone** (`jouerMusiqueFichier` par chemin,
+  bibliothèque `data/musiques.js`, fichiers dans `sons/combat/<zone>/`). Volumes
+  réglables dans le menu Pause (curseurs Musique / Bruitages) et persistés.
 
 ## Questions ouvertes (à trancher plus tard, non bloquantes)
 

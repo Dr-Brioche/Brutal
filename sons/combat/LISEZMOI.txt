@@ -1,0 +1,28 @@
+MUSIQUES DE COMBAT
+==================
+
+Même principe que les FONDS de combat (images/fonds/).
+Structure : un SOUS-DOSSIER par zone, fichiers numérotés.
+
+  sons/combat/
+    eastern-under-tunnels/   ← zone "Eastern Under-tunnels"
+      1.mp3
+      2.mp3
+      3.mp3
+    <prochaine-zone>/
+      1.mp3
+      ...
+
+(Les noms de sous-dossiers sont les MÊMES que ceux des fonds et des zones,
+ cf. images/fonds/ et jeu/data/zones.js.)
+
+La bibliothèque complète est dans : jeu/data/musiques.js
+À chaque combat, le jeu tire UNE musique au hasard dans la liste de la zone.
+Elle tourne pendant la baston, puis le jeu revient à l'ambiance d'exploration.
+
+POUR AJOUTER UNE MUSIQUE :
+1. Déposer le .mp3 dans le sous-dossier de la zone, ex. eastern-under-tunnels/2.mp3
+2. Décommenter / ajouter sa ligne dans jeu/data/musiques.js
+
+Conseil : garder les fichiers légers (limite GitHub Pages : 100 Mo / fichier).
+Le volume se règle en jeu (menu Pause, curseur Musique).

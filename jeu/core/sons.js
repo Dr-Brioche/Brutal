@@ -67,19 +67,33 @@ export { reglerVolumeBruitages as reglerVolume };
 
 // ---- Musique d'ambiance -----------------------------------------------------
 
-let musiqueEnCours = null; // { audio, nom }
+let musiqueEnCours = null; // { audio, cle }
 
-export function jouerMusique(nom) {
-  if (musiqueEnCours?.nom === nom) return;
+// Cœur commun : lance une musique en boucle. `cle` sert à éviter de relancer
+// (et donc de couper) le même morceau s'il tourne déjà ; `src` est l'URL finale.
+function lancerMusique(cle, src) {
+  if (musiqueEnCours?.cle === cle) return;
   arreterMusique();
-  const fichier = MUSIQUES[nom];
-  if (!fichier) return;
-  const audio = new Audio(DOSSIER + fichier);
+  if (!src) return;
+  const audio = new Audio(src);
   audio.loop = true;
   audio.volume = volMusique;
   const p = audio.play();
   if (p?.catch) p.catch(() => {});
-  musiqueEnCours = { audio, nom };
+  musiqueEnCours = { audio, cle };
+}
+
+// Joue une musique par son NOM logique (table MUSIQUES ci-dessus) — ambiances.
+export function jouerMusique(nom) {
+  const fichier = MUSIQUES[nom];
+  lancerMusique(nom, fichier ? DOSSIER + fichier : null);
+}
+
+// Joue une musique par son CHEMIN complet (depuis la racine du projet). Utilisé
+// pour les bibliothèques rangées par zone (ex. musiques de combat, data/musiques.js)
+// où l'on tire un fichier au hasard sans le déclarer dans la table MUSIQUES.
+export function jouerMusiqueFichier(chemin) {
+  lancerMusique(chemin, chemin || null);
 }
 
 export function arreterMusique() {
