@@ -14,7 +14,7 @@
 import {
   creerCombat, jouerCarte, degatsSurchauffe, necessiteCiblage,
   ennemiVivant, agirEnnemi, commencerTourHeros, finirTourHeros, avancerInitiative,
-  simulerFile, ratioInitiativeHeros, ratioInitiativeEnnemi,
+  simulerFile, ratioInitiativeHeros, ratioInitiativeEnnemi, cibleSoinVerrou,
 } from "../systems/combat.js";
 import { cartesEquipees, mainsOccupees } from "../systems/inventaire.js";
 import { bonusTalents } from "../systems/talents.js";
@@ -710,22 +710,18 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
     // Télégraphe des SORTS à cible alliée unique (ex. soin) : un fil VERT relie le
     // lanceur à sa cible. Dessiné EN ARRIÈRE-PLAN (avant les annotations) → l'action
-    // et le tag NEXT au-dessus des têtes passent PAR-DESSUS le fil. Recalculé à
-    // chaque frame → si la cible meurt avant le tour du lanceur, le fil glisse tout
-    // seul sur le nouvel allié le plus blessé. (Les sorts de GROUPE n'ont pas de
-    // fil : leur intention porte un badge « ALL » — cf. dessinerIntention.)
+    // et le tag NEXT au-dessus des têtes passent PAR-DESSUS le fil. La cible est
+    // VERROUILLÉE à la préparation du sort : le fil ne suit PAS le plus blessé du
+    // moment ; il ne bascule que si la cible verrouillée MEURT avant le lancement
+    // (sinon le sort partirait dans le vide). Les sorts de GROUPE n'ont pas de fil :
+    // leur intention porte un badge « ALL » — cf. dessinerIntention.
     for (let ci = 0; ci < ennemisUI.length; ci++) {
       const cham = ennemisUI[ci];
       if (!ennemiVivant(cham.e) || cham.e.stun > 0) continue;
       if (cham.e.intention?.type === "soigner") {
-        let cibleIdx = -1, minPv = Infinity;
-        for (let j = 0; j < ennemisUI.length; j++) {
-          if (j === ci) continue;
-          const u = ennemisUI[j];
-          if (ennemiVivant(u.e) && u.e.pv < minPv) { minPv = u.e.pv; cibleIdx = j; }
-        }
-        if (cibleIdx < 0) cibleIdx = ci; // seul survivant : il se soigne lui-même
-        dessinerLienSort(ctx, cham.ecran, ennemisUI[cibleIdx].ecran, temps, "#7edf82");
+        const cible = cibleSoinVerrou(combat, cham.e);
+        const idx = cible ? combat.ennemis.indexOf(cible) : ci;
+        dessinerLienSort(ctx, cham.ecran, ennemisUI[idx].ecran, temps, "#7edf82");
       }
     }
 

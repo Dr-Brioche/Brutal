@@ -104,7 +104,7 @@ export const ENNEMIS = [
     },
     // Actions pondérées : tirée aléatoirement selon le champ `poids`.
     actions: [
-      { type: "soigner",     valeur: 10, poids: 50 }, // soigne l'allié le plus blessé
+      { type: "soigner",     valeur: 10, poids: 50 }, // soigne l'allié au % le plus bas (cible verrouillée à la préparation)
       { type: "haste-allie", valeur: 2,  poids: 30 }, // célérité 2 tours à tous les alliés
       { type: "attaque",     valeur: 2,  poids: 20 }, // attaque directe (rare)
     ],

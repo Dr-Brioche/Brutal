@@ -201,9 +201,17 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 > un champ **`poids`** par action. À chaque tour, leur intention est tirée à la
 > roulette pondérée (tirage proportionnel au poids). Les monstres sans `actions`
 > attaquent toujours (comportement par défaut). Exemples d'actions possibles :
-> `"attaque"` (frappe directe), `"soigner"` (soigne l'allié le plus blessé),
-> `"haste-allie"` (donne `N` tours de Hâte à tous les alliés vivants — +30 %
-> vitesse).
+> `"attaque"` (frappe directe), `"soigner"` (soigne un allié — cible verrouillée,
+> cf. ci-dessous), `"haste-allie"` (donne `N` tours de Hâte à tous les alliés
+> vivants — +30 % vitesse).
+
+> **Cible de soin VERROUILLÉE à la préparation (validé 17/06/2026)** : quand un
+> soigneur prépare son sort, il choisit **une seule fois** sa cible — l'allié
+> vivant au **% de PV le plus bas** à cet instant — et la **verrouille**. Il n'en
+> change **plus**, même si un autre allié descend plus bas en % ensuite. **Seule
+> exception** : si la cible verrouillée **meurt** avant le lancement, il en
+> reverrouille une autre (pour ne pas soigner dans le vide). Moteur et fil vert
+> partagent la même cible (`cibleSoinVerrou`, `systems/combat.js`).
 
 > **Télégraphe visuel des sorts (validé 15/06/2026)** : pour qu'on lise d'un
 > coup d'œil qui fait quoi, deux conventions communes à tous les sorts ennemis :
@@ -211,8 +219,9 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 >   en **arc** part du lanceur et rejoint sa cible (sens source → cible), icône du
 >   sort au bout (💚 vert = soin). L'arc **passe au-dessus de toutes les
 >   annotations** (intentions, NEXT, barres) et monte assez haut pour ne jamais
->   croiser les sprites. **Recalculé en continu** : si la cible meurt avant que le
->   lanceur agisse, il glisse sur la nouvelle cible. Lève l'ambiguïté quand
+>   croiser les sprites. La cible est **verrouillée à la préparation** (cf.
+>   ci-dessus) : le fil ne suit PAS le plus blessé du moment, il ne **bascule que
+>   si la cible verrouillée meurt** avant le lancement. Lève l'ambiguïté quand
 >   plusieurs lanceurs agissent en même temps.
 > - **Sort de groupe** (touche tous les alliés, ex. hâte) → **pas de fil** : son
 >   intention, affichée au-dessus du lanceur, porte une petite case **« ALL »**

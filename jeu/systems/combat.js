@@ -219,6 +219,30 @@ function choisirAction(actions) {
   return actions[actions.length - 1];
 }
 
+// --- Soin du chaman : cible VERROUILLÉE à la préparation ----------------------
+// Le soigneur choisit sa cible UNE SEULE FOIS, quand il prépare son sort (l'allié
+// vivant au % de PV le plus bas), et la garde — même si un autre allié descend
+// plus bas ensuite. SEULE exception : si la cible verrouillée meurt avant le
+// lancement, il en reverrouille une autre (sinon il soignerait dans le vide).
+
+// L'allié vivant au plus bas POURCENTAGE de PV (hors lanceur ; lui-même s'il est seul).
+function allieLePlusBlesse(combat, lanceur) {
+  const alliés = combat.ennemis.filter((a) => a !== lanceur && ennemiVivant(a));
+  const pool = alliés.length ? alliés : [lanceur];
+  return pool.reduce((b, a) => (!b || a.pv / a.pvMax < b.pv / b.pvMax) ? a : b, null);
+}
+
+// La cible de soin EFFECTIVE : celle verrouillée à la préparation, SAUF si elle
+// est morte entre-temps → on en reverrouille une nouvelle (et on met à jour
+// l'intention pour que moteur et affichage restent d'accord).
+export function cibleSoinVerrou(combat, lanceur) {
+  const verrou = lanceur.intention?.cible;
+  if (verrou && ennemiVivant(verrou)) return verrou;
+  const cible = allieLePlusBlesse(combat, lanceur);
+  if (lanceur.intention) lanceur.intention.cible = cible;
+  return cible;
+}
+
 // Chaque ennemi annonce son prochain coup. Les ennemis avec `def.actions` tirent
 // aléatoirement parmi leurs actions pondérées ; les autres attaquent toujours.
 function prevoirIntentions(combat) {
@@ -227,6 +251,8 @@ function prevoirIntentions(combat) {
     if (e.def.actions?.length) {
       const a = choisirAction(e.def.actions);
       e.intention = { type: a.type, valeur: a.valeur };
+      // Soin : on VERROUILLE dès maintenant l'allié le plus blessé (% le plus bas).
+      if (a.type === "soigner") e.intention.cible = allieLePlusBlesse(combat, e);
     } else {
       e.intention = { type: "attaque", valeur: e.def.attaque };
     }
@@ -421,10 +447,9 @@ export function agirEnnemi(combat, i) {
     subirDegats(combat, e.intention.valeur);
     evt.attaque = avant - combat.pvHeros; // PV réellement perdus (après la Pierre)
   } else if (e.intention?.type === "soigner") {
-    // Soigne l'allié le plus blessé (lui-même si seul survivant).
-    const alliés = combat.ennemis.filter((a, j) => j !== i && ennemiVivant(a));
-    const pool = alliés.length ? alliés : [e];
-    const cible = pool.reduce((b, a) => (!b || a.pv < b.pv) ? a : b, null);
+    // Soigne la cible VERROUILLÉE à la préparation (l'allié au % le plus bas
+    // alors), sauf si elle est morte entre-temps → une nouvelle est verrouillée.
+    const cible = cibleSoinVerrou(combat, e);
     if (cible) {
       const avant = cible.pv;
       cible.pv = Math.min(cible.pvMax, cible.pv + e.intention.valeur);
