@@ -204,6 +204,22 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     }
   });
 
+  // Double-clic gauche = équiper directement. Le 1er clic soulève l'objet, le 2e
+  // le repose à sa place d'origine ; le dblclick qui suit trouve l'objet et l'équipe.
+  // Si le 2e clic n'a pas pu reposer (tenu encore actif), on annule et on équipe.
+  elGrille.addEventListener("dblclick", (ev) => {
+    if (confirmationActive()) return;
+    const c = caseDepuisClient(ev.clientX, ev.clientY);
+    if (tenu) {
+      const o = tenu.objet;
+      lacher();
+      essayerEquiper(inventaire, heros, o, surChangement, rendre);
+    } else {
+      const o = objetSousCase(inventaire, c.x, c.y);
+      if (o) essayerEquiper(inventaire, heros, o, surChangement, rendre);
+    }
+  });
+
   // Clic sur le FOND NOIR (en dehors du panneau) pendant qu'on tient un objet :
   // on le repose. On teste `ev.target === overlay` (le clic a atterri sur le
   // fond lui-même) et non `closest(".inv-panneau")` : car soulever() redessine
@@ -258,6 +274,23 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     if (!elMenu.hidden && !elMenu.contains(e.target)) fermerContexte();
   }, true);
   window.addEventListener("wheel", () => { if (!elMenu.hidden) fermerContexte(); });
+
+  // Gestionnaire clavier PRIORITAIRE pour le menu contextuel (Equip / Discard).
+  // Il est enregistré ICI, au démarrage du jeu, AVANT que tout dialogue marchand ne
+  // s'ouvre. En phase de capture, l'ordre d'enregistrement détermine l'ordre
+  // d'exécution : ce handler passe donc avant le dialogue (qui s'enregistre plus tard)
+  // et stoppe la propagation pour qu'il n'interfère pas avec les touches de navigation.
+  window.addEventListener("keydown", (e) => {
+    if (overlay.hidden || elMenu.hidden) return;
+    const n = elMenu.children.length;
+    let traite = true;
+    if (["ArrowUp", "KeyW", "KeyZ"].includes(e.code))   { menuSel = (menuSel - 1 + n) % n; surlignerMenu(); }
+    else if (["ArrowDown", "KeyS"].includes(e.code))     { menuSel = (menuSel + 1) % n; surlignerMenu(); }
+    else if (e.code === "Enter" || e.code === "Space")   { elMenu.children[menuSel]?.click(); }
+    else if (e.code === "Escape")                        { fermerContexte(); }
+    else traite = false;
+    if (traite) { e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
 
   // Interaction souris dans l'inventaire → passer en mode souris (masquer curseur clavier).
   // Le mode clavier revient dès qu'une touche directionnelle est pressée.
