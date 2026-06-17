@@ -108,5 +108,24 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
 
   boutonReprendre.addEventListener("click", fermer);
 
+  // Navigation clavier dans le menu : Tab et ↑↓ cyclent le focus parmi les
+  // éléments actifs ; ←→ laissent le navigateur ajuster la valeur des sliders.
+  menu.addEventListener("keydown", (e) => {
+    if (!ouvert) return;
+    const focusables = Array.from(menu.querySelectorAll('button:not(:disabled), input[type="range"]'));
+    if (!focusables.length) return;
+    const idx = focusables.indexOf(document.activeElement);
+
+    if (e.code === "Tab") {
+      e.preventDefault();
+      const dir = e.shiftKey ? -1 : 1;
+      focusables[((idx < 0 ? 0 : idx) + dir + focusables.length) % focusables.length].focus();
+    } else if (e.code === "ArrowUp" || e.code === "ArrowDown") {
+      e.preventDefault(); // empêche les sliders d'ajuster leur valeur avec ↑↓
+      const dir = e.code === "ArrowDown" ? 1 : -1;
+      focusables[((idx < 0 ? 0 : idx) + dir + focusables.length) % focusables.length].focus();
+    }
+  });
+
   return { ouvrir, fermer, basculer };
 }

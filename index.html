@@ -176,6 +176,7 @@
     }
 
     .menu-continuer:disabled { opacity: 0.4; cursor: default; }
+    .menu-continuer:focus { outline: 3px solid #ffcf57; outline-offset: 2px; }
 
     .menu-slots { display: flex; flex-direction: column; gap: 10px; }
 
@@ -211,6 +212,7 @@
     }
     .menu-slot-actions button:hover { background: #3b3947; }
     .menu-slot-actions button:disabled { opacity: 0.35; cursor: default; }
+    .menu-slot-actions button:focus { outline: 3px solid #ffcf57; outline-offset: 2px; }
 
     .menu-aide {
       margin-top: 12px;
@@ -244,6 +246,7 @@
       accent-color: #b91c1c;
       cursor: pointer;
     }
+    .menu-vol-ligne input[type="range"]:focus { outline: 2px solid #ffcf57; outline-offset: 3px; }
     .menu-vol-val {
       width: 36px;
       text-align: right;
@@ -1493,7 +1496,7 @@
         </label>
       </div>
       <div class="menu-slots" id="menu-slots"></div>
-      <p class="menu-aide">Esc to open / close</p>
+      <p class="menu-aide">Tab / ↑↓ to navigate  ·  ←→ to adjust volume  ·  Esc to close</p>
     </div>
   </div>
 
