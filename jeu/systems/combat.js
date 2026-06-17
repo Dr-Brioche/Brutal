@@ -113,7 +113,7 @@ function creerEnnemiCombat(def) {
   return {
     def, pv: def.pv, pvMax: def.pv,
     poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps ; sang = vol de vie)
-    feuPropage: false,             // le feu n'a pas encore propagé depuis ce tick
+    feuDeCarte: false,             // true = feu posé par une carte, propagera au 1er tick
     stun: 0,                       // étourdissement : nb de SES tours encore sautés
     dernierPoison: 0, dernierFeu: 0, dernierSang: 0, // dégâts subis au dernier tour (UI)
     intention: null,              // ce qu'il prépare (télégraphié)
@@ -299,7 +299,7 @@ function appliquerEffet(combat, effet, ennemi) {
   } else if (effet.type === "feu") {
     if (ennemi) {
       ennemi.feu += effet.valeur;
-      ennemi.feuPropage = false; // nouveau feu : la première brûlure propagera à nouveau
+      ennemi.feuDeCarte = true; // feu posé par carte : propagera au premier tick
     }
   } else if (effet.type === "embrasement") {
     // Embrasement : consomme TOUTE la brûlure (feu) de l'ennemi et la transforme
@@ -415,18 +415,15 @@ function tiquerHeros(combat, nom) {
   return n;
 }
 
-// Propagation de l'Enflammé : une seule fois par ennemi, au premier tick.
-// Ajoute `force` stacks aux voisins VIVANTS, même s'ils brûlent déjà (cumul).
-// Remet `feuPropage = false` chez les voisins : le feu reçu propagera lui aussi
-// à son premier tick (vague d'embrasement qui se propage en chaîne contrôlée).
+// Propagation de l'Enflammé : une seule fois par ennemi ayant du feu de CARTE,
+// au premier tick. Ajoute `force` stacks aux voisins VIVANTS (cumul si déjà en feu).
+// Ne touche PAS `feuDeCarte` des voisins : le feu reçu par propagation ne propage
+// jamais à son tour — seul le feu posé par une carte déclenche une vague.
 function propagerDepuis(combat, i, force) {
   if (force <= 0) return;
   for (const j of [i - 1, i + 1]) {
     const v = combat.ennemis[j];
-    if (v && v.pv > 0) {
-      v.feu += force;
-      v.feuPropage = false; // le feu reçu n'a pas encore propagé
-    }
+    if (v && v.pv > 0) v.feu += force;
   }
 }
 
@@ -447,10 +444,10 @@ export function agirEnnemi(combat, i) {
   // Ordre des malus dans le temps : poison, puis feu, et le VOL DE VIE EN DERNIER.
   evt.poison = e.dernierPoison = tiquerEnnemi(e, "poison");
   evt.feu = e.dernierFeu = tiquerEnnemi(e, "feu");
-  // Propagation : une seule fois par ennemi (premier tick). `feuPropage` se remet
-  // à false à chaque nouveau stack reçu, donc une réapplication relance la vague.
-  if (enFeuAvant && !e.feuPropage) {
-    e.feuPropage = true;
+  // Propagation : uniquement si le feu vient d'une CARTE (feuDeCarte = true),
+  // une seule fois au premier tick. Le feu reçu par propagation ne se propage jamais.
+  if (enFeuAvant && e.feuDeCarte) {
+    e.feuDeCarte = false;
     propagerDepuis(combat, i, e.feu); // force = stacks restants après le tick
   }
   // Vol de vie (saignement) TOUJOURS en dernier : si l'ennemi est DÉJÀ MORT du
