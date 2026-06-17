@@ -255,3 +255,162 @@ export function reglerVolumeMusiqueCombat(v) {
 }
 
 export function getVolumeMusiqueCombat() { return volMusiqueCombat; }
+
+// ---- Sons de combat synthétisés (Web Audio API) -----------------------------
+//
+// Quatre familles, à remplacer plus tard par de vrais fichiers :
+//   jouerSonCoup()        — impact sur chair/monstre (choc sourd)
+//   jouerSonCoupArmure()  — impact sur armure Pierre (clac métallique + résonance)
+//   jouerSonSortilege()   — sort ou buff lancé (héros ou ennemi)
+//   jouerSonPierre()      — armure Pierre posée sur le héros (choc + tintement)
+//
+// Remplacer par de vrais fichiers : ajouter les chemins dans BRUITAGES (en haut
+// du fichier) et faire appeler jouerSon("nom") à la place de la synthèse.
+
+export function jouerSonCoup() {
+  try {
+    const ctx = obtenirContexte();
+    const t = ctx.currentTime;
+
+    // Oscillateur grave descendant (le « thud »)
+    const osc = ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(130, t);
+    osc.frequency.exponentialRampToValueAtTime(45, t + 0.08);
+
+    // Bruit blanc court filtré passe-bas (l'« impact »)
+    const bufSize = Math.floor(ctx.sampleRate * 0.06);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+    const bruit = ctx.createBufferSource();
+    bruit.buffer = buf;
+    const filtre = ctx.createBiquadFilter();
+    filtre.type = "lowpass";
+    filtre.frequency.value = 350;
+
+    const gOsc   = ctx.createGain();
+    gOsc.gain.setValueAtTime(0.55, t);
+    gOsc.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+
+    const gBruit = ctx.createGain();
+    gBruit.gain.setValueAtTime(0.35, t);
+    gBruit.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+
+    const master = ctx.createGain();
+    master.gain.value = volBruitages * 0.8;
+
+    osc.connect(gOsc).connect(master).connect(ctx.destination);
+    bruit.connect(filtre).connect(gBruit).connect(master);
+    osc.start(t); osc.stop(t + 0.1);
+    bruit.start(t); bruit.stop(t + 0.06);
+  } catch (_) {}
+}
+
+export function jouerSonCoupArmure() {
+  try {
+    const ctx = obtenirContexte();
+    const t = ctx.currentTime;
+
+    // Impact grave (poids du coup)
+    const choc = ctx.createOscillator();
+    choc.type = "sine";
+    choc.frequency.setValueAtTime(200, t);
+    choc.frequency.exponentialRampToValueAtTime(75, t + 0.06);
+    const gChoc = ctx.createGain();
+    gChoc.gain.setValueAtTime(0.5, t);
+    gChoc.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+
+    // Anneau métallique : deux triangles légèrement désaccordés → shimmer
+    for (const [freq, det] of [[520, 0], [783, 9]]) {
+      const o = ctx.createOscillator();
+      o.type = "triangle";
+      o.frequency.value = freq;
+      o.detune.value = det;
+      const f = ctx.createBiquadFilter();
+      f.type = "bandpass";
+      f.frequency.value = freq;
+      f.Q.value = 4;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.28, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+      const m = ctx.createGain();
+      m.gain.value = volBruitages * 0.7;
+      o.connect(f).connect(g).connect(m).connect(ctx.destination);
+      o.start(t); o.stop(t + 0.5);
+    }
+
+    const master = ctx.createGain();
+    master.gain.value = volBruitages * 0.8;
+    choc.connect(gChoc).connect(master).connect(ctx.destination);
+    choc.start(t); choc.stop(t + 0.08);
+  } catch (_) {}
+}
+
+export function jouerSonSortilege() {
+  try {
+    const ctx = obtenirContexte();
+    const t = ctx.currentTime;
+
+    // Balayage fréquentiel ascendant (sweep)
+    const sweep = ctx.createOscillator();
+    sweep.type = "sine";
+    sweep.frequency.setValueAtTime(280, t);
+    sweep.frequency.exponentialRampToValueAtTime(880, t + 0.28);
+    const gSweep = ctx.createGain();
+    gSweep.gain.setValueAtTime(0, t);
+    gSweep.gain.linearRampToValueAtTime(0.4, t + 0.04);
+    gSweep.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+    // Scintille haute (sparkle)
+    const spark = ctx.createOscillator();
+    spark.type = "sine";
+    spark.frequency.setValueAtTime(1400, t + 0.08);
+    spark.frequency.exponentialRampToValueAtTime(2800, t + 0.32);
+    const gSpark = ctx.createGain();
+    gSpark.gain.setValueAtTime(0, t + 0.08);
+    gSpark.gain.linearRampToValueAtTime(0.18, t + 0.12);
+    gSpark.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+
+    const master = ctx.createGain();
+    master.gain.value = volBruitages * 0.75;
+
+    sweep.connect(gSweep).connect(master).connect(ctx.destination);
+    spark.connect(gSpark).connect(master);
+    sweep.start(t); sweep.stop(t + 0.35);
+    spark.start(t + 0.08); spark.stop(t + 0.4);
+  } catch (_) {}
+}
+
+export function jouerSonPierre() {
+  try {
+    const ctx = obtenirContexte();
+    const t = ctx.currentTime;
+
+    // Choc grave (pose du bouclier de pierre)
+    const choc = ctx.createOscillator();
+    choc.type = "sine";
+    choc.frequency.setValueAtTime(190, t);
+    choc.frequency.exponentialRampToValueAtTime(70, t + 0.08);
+    const gChoc = ctx.createGain();
+    gChoc.gain.setValueAtTime(0.65, t);
+    gChoc.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+
+    // Tintement aigu (métal qui résonne)
+    const ting = ctx.createOscillator();
+    ting.type = "triangle";
+    ting.frequency.value = 1050;
+    const gTing = ctx.createGain();
+    gTing.gain.setValueAtTime(0, t + 0.05);
+    gTing.gain.linearRampToValueAtTime(0.28, t + 0.07);
+    gTing.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+
+    const master = ctx.createGain();
+    master.gain.value = volBruitages * 0.85;
+
+    choc.connect(gChoc).connect(master).connect(ctx.destination);
+    ting.connect(gTing).connect(master);
+    choc.start(t); choc.stop(t + 0.1);
+    ting.start(t + 0.05); ting.stop(t + 0.38);
+  } catch (_) {}
+}

@@ -22,6 +22,9 @@ import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 import { garnirCarte } from "./carte.js";
 import { alerteVie } from "./effets.js";
+import {
+  jouerSonCoup, jouerSonCoupArmure, jouerSonSortilege, jouerSonPierre,
+} from "../core/sons.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
 const ECHELLE_HEROS = 3;            // 64×64 → 192×192 (avant dézoom de scène)
@@ -374,13 +377,15 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (elJouee) animerCarteJouee(elJouee); // la carte sort, grandit, puis disparaît
 
     // Animer TOUS les ennemis touchés (fonctionne pour 1 cible ET pour AOE).
+    // `sonJoue` : on ne joue qu'un son par carte (priorité : dégâts > pierre > buff).
     let quelquUnTouche = false;
+    let sonJoue = false;
     for (let idx = 0; idx < ennemisUI.length; idx++) {
       const u = ennemisUI[idx];
       const e = combat.ennemis[idx];
       if (!u || !e) continue;
       if (e.pv < pvAvants[idx]) {
-        if (!quelquUnTouche) { animAttaque = 0.25; quelquUnTouche = true; }
+        if (!quelquUnTouche) { animAttaque = 0.25; quelquUnTouche = true; jouerSonCoup(); sonJoue = true; }
         u.secousse = 0.3;
         if (e.pv <= 0) exploser(u);
         else jouerAnim(u, "touche");
@@ -389,17 +394,21 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (e.stun > stunAvants[idx]) {
         u.secousse = Math.max(u.secousse, 0.3);
         ajouterFlottant(`💫 ${e.stun}`, u.ecran.cx, u.ecran.sommet - 16, "#ffd966");
+        if (!sonJoue) { jouerSonSortilege(); sonJoue = true; }
       }
       if (e.gel > gelAvants[idx]) { // Gel posé (−30% vitesse) → flocon au-dessus de l'ennemi
         u.secousse = Math.max(u.secousse, 0.3);
         ajouterFlottant(`❄ ${e.gel}`, u.ecran.cx, u.ecran.sommet - 32, "#9fdfff");
+        if (!sonJoue) { jouerSonSortilege(); sonJoue = true; }
       }
     }
     if (combat.pierre > pierreAvant) {
       ajouterFlottant(`+${combat.pierre - pierreAvant}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
+      if (!sonJoue) { jouerSonPierre(); sonJoue = true; }
     }
     if (combat.hate > hateAvant) { // Hâte posée (+30% agilité) → éclair au-dessus du héros
       ajouterFlottant(`⚡ ${combat.hate}`, heroEcran.cx, heroEcran.sommet, "#dff4ff");
+      if (!sonJoue) jouerSonSortilege();
     }
     phaseCiblage = false;
     recalerCible();
@@ -502,7 +511,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       rafraichir();               // nouvelle main, input réactivé
       if (combat.fini) verifierFin(); // mort de surchauffe/poison au début du tour
     } else {
-      animerEnnemi(acteur.i, agirEnnemi(combat, acteur.i));
+      const pierreAvantTour = combat.pierre;
+      animerEnnemi(acteur.i, agirEnnemi(combat, acteur.i), pierreAvantTour);
       minuterie = PAS_ENNEMI;
       if (combat.fini) { rafraichir(); verifierFin(); }
     }
@@ -516,7 +526,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   }
 
   // Anime l'action d'UN ennemi (statuts, mort, ou attaque/sort). Étourdi → rien.
-  function animerEnnemi(i, evt) {
+  // `pierreAvantTour` : valeur de Pierre du héros avant l'action (pour choisir son métallique).
+  function animerEnnemi(i, evt, pierreAvantTour = 0) {
     const u = ennemisUI[i];
     if (!u) return;
     if (evt.poison > 0) { u.secousse = 0.3; ajouterFlottant(`☠${evt.poison}`, u.ecran.cx, u.ecran.sommet, "#7ec850"); }
@@ -528,6 +539,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       jouerAnim(u, "attaque");
       secousseHeros = 0.3;
       ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
+      if (pierreAvantTour > 0) jouerSonCoupArmure(); else jouerSonCoup();
     }
     if (evt.soin_allie > 0) { // le chaman soigne un allié
       jouerAnim(u, "attaque");
@@ -535,10 +547,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const cx = cible ? cible.ecran.cx : u.ecran.cx;
       const cy = cible ? cible.ecran.sommet : u.ecran.sommet;
       ajouterFlottant(`💚+${evt.soin_allie}`, cx, cy, "#7edf82");
+      jouerSonSortilege();
     }
     if (evt.haste_allie > 0) { // le chaman accélère ses alliés
       jouerAnim(u, "attaque");
       ajouterFlottant(`⚡×${evt.haste_allie}`, u.ecran.cx, u.ecran.sommet, "#dff4ff");
+      jouerSonSortilege();
     }
     // evt.stun → on n'affiche AUCUNE animation
   }
