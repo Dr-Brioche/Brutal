@@ -60,7 +60,7 @@ const PORTRAIT_HEROS = { sx: 17, sy: 4, sw: 30, sh: 30 };
 // ---------------------------------------------------------------------------
 
 // `ennemis` : tableau de définitions d'ennemis (data/ennemis.js).
-export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, maitrise, fond, surFin }) {
+export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, maitrise, fond, surFin, surPause }) {
   const fondCombat = document.getElementById("fond-combat");
   // Fond de la zone (tiré dans sa bibliothèque) ; sinon dégradé de secours (none).
   fondCombat.style.setProperty("--fond-url", fond ? `url("${fond}")` : "none");
@@ -152,6 +152,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Ciblage clavier : carte « armée » en attente de cible.
   let phaseCiblage = false;
   let carteEnAttente = -1;
+
+  // Menu pause ouvert (Échap) : fige les animations (mettreAJour) et neutralise le
+  // clavier du combat. Piloté depuis principal.js via setPause() (voir le return).
+  let enPause = false;
 
   function ajouterFlottant(texte, x, y, couleur) {
     flottants.push({ texte, x, y, couleur, t: 1 });
@@ -290,11 +294,23 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // Navigation clavier (phase capture + stopPropagation : pas de menu/déplacement).
   function surTouche(e) {
+    // Menu pause ouvert : le combat laisse FILER le clavier (sans preventDefault ni
+    // stopPropagation) → les touches vont au menu (sliders, Échap pour fermer).
+    if (enPause) return;
     if (!["KeyA", "KeyD", "ArrowLeft", "ArrowRight", "Space", "Enter", "Escape", "KeyE"].includes(e.code)) return;
     e.preventDefault();
     e.stopPropagation();
     if (!panneauResultat.hidden) {                 // écran de fin : Espace = Continue
       if (e.code === "Space" || e.code === "Enter") fermer();
+      return;
+    }
+
+    // Échap : pendant le ciblage on ANNULE (retour à la main) ; sinon on ouvre le
+    // menu pause (réglages son). Géré AVANT le verrou « tour du joueur » pour qu'on
+    // puisse mettre en pause même pendant le tour ennemi (quand ça « gueule »).
+    if (e.code === "Escape") {
+      if (phaseCiblage) phaseCiblage = false;
+      else surPause?.();
       return;
     }
     if (combat.fini || !combat.tourJoueur) return;
@@ -304,7 +320,6 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (e.code === "KeyA" || e.code === "ArrowLeft") cycleCible(-1);
       else if (e.code === "KeyD" || e.code === "ArrowRight") cycleCible(+1);
       else if (e.code === "Space" || e.code === "Enter") jouer(carteEnAttente, combat.cible);
-      else if (e.code === "Escape") phaseCiblage = false; // on annule, retour à la main
       return;
     }
 
@@ -323,7 +338,6 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     } else if (e.code === "KeyE") {
       finDeTour(); // raccourci direct : fin de tour sans naviguer jusqu'au bouton
     }
-    // Escape en phase main : bloqué (pas de menu pause par-dessus le combat)
   }
 
   // -- Actions du joueur ----------------------------------------------------
@@ -561,6 +575,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // -- Boucle : animations + dessin ----------------------------------------
   function mettreAJour(dt) {
+    if (enPause) return; // menu pause ouvert : tout est figé (initiative, anims…)
     aff.pvHeros += (combat.pvHeros - aff.pvHeros) * Math.min(1, dt * 8);
     aff.pierre += (combat.pierre - aff.pierre) * Math.min(1, dt * 10);
     aff.chaleur += (combat.chaleur - aff.chaleur) * Math.min(1, dt * 9);
@@ -793,7 +808,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
-  return { mettreAJour, dessiner };
+  // setPause : principal.js fige/défige le combat quand le menu pause s'ouvre/ferme.
+  return { mettreAJour, dessiner, setPause: (p) => { enPause = p; } };
 }
 
 // ----- Animation -----------------------------------------------------------

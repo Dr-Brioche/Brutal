@@ -389,8 +389,11 @@ export async function demarrerJeu(donneesInitiales = null) {
     obtenirEtat,
     appliquerEtat,
     surChangementPause: (pause) => {
-      enPause = pause;
       menuPauseOuvert = pause;
+      // En COMBAT, le monde est déjà figé (enPause global) : on fige/défige juste le
+      // combat lui-même. Hors combat, on fige le monde comme avant.
+      if (combatEnCours) combatEnCours.setPause(pause);
+      else enPause = pause;
       if (pause) invite.hidden = true;
     },
   });
@@ -496,12 +499,14 @@ export async function demarrerJeu(donneesInitiales = null) {
   // si rien n'est ouvert, ouvre le menu pause (sauvegarder / quitter).
   window.addEventListener("keydown", (e) => {
     if (e.code !== "Escape" || e.repeat) return;
-    if (combatEnCours || dialogueActif()) return; // gérés ailleurs (le combat capte Échap)
+    // Le menu pause se ferme avec Échap MÊME en combat (le combat a laissé filer la
+    // touche). À placer avant le verrou « combat » ci-dessous.
+    if (menuPauseOuvert) { e.preventDefault(); menu.fermer(); return; }
+    if (combatEnCours || dialogueActif()) return; // sinon le combat capte Échap (ouvre le menu)
     e.preventDefault();
     if (inventaireOuvert) { basculerInventaire(); return; }
     if (deckOuvert) { basculerDeck(); return; }
     if (talentsOuvert) { basculerTalents(); return; }
-    if (menuPauseOuvert) { menu.fermer(); return; }
     if (enPause) return;          // état transitoire (transition de zone, flash) : on ignore
     menu.ouvrir();
   });
@@ -570,6 +575,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis, maitrise,
       fond: fondCombat(zoneActuelle), // un fond tiré dans la bibliothèque de la zone
+      // Échap en combat : ouvre le menu pause (réglages son), SANS Save/Load.
+      surPause: () => menu.ouvrir({ sansSauvegarde: true }),
       surFin: (resultat) => {
         combatEnCours = null;
         if (resultat === "defaite") {

@@ -524,6 +524,10 @@ que c'est addictif, **puis** on empile le suivant.
   musiques de **combat tirées au hasard par zone** (`jouerMusiqueFichier` par chemin,
   bibliothèque `data/musiques.js`, fichiers dans `sons/combat/<zone>/`). Volumes
   réglables dans le menu Pause (curseurs Musique / Combat / Bruitages) et persistés.
+  Le **menu Pause est accessible AUSSI en plein combat** (Échap) : il fige le combat
+  et permet de régler le son sans quitter la baston. En combat, les emplacements
+  **Save/Load sont masqués** (l'état du combat n'est pas sérialisé) — on n'y garde
+  que *Resume* + les curseurs de son.
 - **Ambiance en PLAYLIST** (décidé 17/06/2026) : une zone peut enchaîner plusieurs
   morceaux au lieu d'une boucle unique. Un **intro** est joué une seule fois à
   l'arrivée, puis une **boucle** tourne sans fin (sans jamais rejouer l'intro).

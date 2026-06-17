@@ -78,9 +78,16 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
     }
   }
 
-  function ouvrir() {
+  // `sansSauvegarde` (true en COMBAT) masque les emplacements Save/Load : on ne
+  // garde que Reprendre + les réglages de son. Sauvegarder en plein combat n'a pas
+  // de sens (l'état du combat n'est pas sérialisé) et Charger casserait la partie.
+  function ouvrir({ sansSauvegarde = false } = {}) {
     ouvert = true;
-    rafraichir();
+    // `.menu-slots` a `display:flex` en CSS → l'attribut `hidden` ne suffirait pas ;
+    // on pilote `display` directement (none en combat, flex sinon).
+    conteneurSlots.style.display = sansSauvegarde ? "none" : "flex";
+    if (!sansSauvegarde) rafraichir();
+    syncSliders();           // les curseurs reflètent les volumes courants
     menu.hidden = false;
     surChangementPause(true);
     boutonReprendre.focus(); // Enter/Espace ferment le menu sans souris
