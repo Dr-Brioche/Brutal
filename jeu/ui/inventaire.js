@@ -14,6 +14,7 @@
 // X pour le menu Equip/Discard, Échap pour reposer l'objet tenu.
 
 import { itemDef, couleurRarete } from "../data/items.js";
+import { xpPourNiveau } from "../systems/progression.js";
 import {
   rangsInventaire, equiper, desequiper, arme2Bloquee,
   objetSousCase, peutPlacerA, deplacerObjet,
@@ -62,6 +63,8 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   const elDroite = document.getElementById("inv-droite");
   const elArmes = document.getElementById("inv-armes");
   const elStats = document.getElementById("inv-stats");
+  const elXpFill = document.getElementById("inv-xp-fill");
+  const elXpTxt  = document.getElementById("inv-xp-txt");
   const elGrille = document.getElementById("inv-grille");
   const elOr = document.getElementById("inv-or");
   const elPv = document.getElementById("inv-pv");
@@ -453,6 +456,11 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       l.innerHTML = `<span>${nom}</span><b>${val}</b>`;
       return l;
     }));
+
+    const seuil = xpPourNiveau(heros.niveau);
+    const pct = seuil > 0 ? Math.max(0, Math.min(100, heros.xp / seuil * 100)) : 0;
+    elXpFill.style.width = pct + "%";
+    elXpTxt.textContent = `${heros.xp} / ${seuil} XP`;
   }
 
   function rendreGrille() {
