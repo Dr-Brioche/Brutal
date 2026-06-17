@@ -16,10 +16,13 @@
 import { xpPourNiveau } from "../systems/progression.js";
 import { jouerSon, creerSonRemplissage } from "../core/sons.js";
 
-// Rythme proportionnel au % de barre gagnée (choisi avec Brioche).
+// Durée d'animation proportionnelle au % de barre gagnée (choisi avec Brioche).
 // Tout est en millisecondes.
-const T_NIVEAU   = 5000; // remplir un niveau ENTIER (segment 0 → 100 %)
-const T_SEG_MIN  = 600;  // plancher par segment (gains minuscules restent visibles)
+//   ≤ 20 % de barre gagné → T_MIN (plancher fixe)
+//   20 % → 100 %          → interpolation linéaire T_MIN → T_MAX
+const T_MIN       = 3000; // durée plancher (petits combats, ≤ 20 % de barre)
+const T_MAX       = 6000; // durée plafond  (gain d'un niveau entier)
+const SEUIL_FRAC  = 0.20; // en dessous du seuil, on reste à T_MIN
 const T_LEVELUP  = 1100; // durée de la célébration (halo + éclats)
 const T_STATIQUE = 600;  // si aucune XP gagnée : on montre la barre un instant
 const VERROU_ZAP = 300;  // délai avant d'autoriser le zap (anti-appui maintenu)
@@ -143,7 +146,9 @@ export function animerGainXp(refs, etat) {
       if (zappe) return;
       refs.niveau.textContent = String(s.niveau);
       const frac = s.seuil > 0 ? (s.xpVers - s.xpDe) / s.seuil : 1;
-      const duree = Math.max(T_SEG_MIN, Math.min(T_NIVEAU, T_NIVEAU * frac));
+      const duree = frac <= SEUIL_FRAC
+        ? T_MIN
+        : T_MIN + (T_MAX - T_MIN) * (frac - SEUIL_FRAC) / (1 - SEUIL_FRAC);
       poser(s.xpDe, s.seuil, false);
       void refs.fill.offsetWidth;            // reflow avant de lancer la glisse
       poser(s.xpVers, s.seuil, true, duree); // la barre glisse…
