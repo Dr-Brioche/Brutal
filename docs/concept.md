@@ -418,6 +418,23 @@ de fin de combat (barre qui se remplit, halo doré + éclats au passage de nivea
 *(1er jet implémenté : XP/niveau/points sauvegardés, écran de l'arbre, effets
 appliqués. À venir : plus de nœuds, rangs multiples.)*
 
+**Courbe de progression (validée 17/06/2026)** : les 3 premiers niveaux sont
+rapides (récompense dès les premiers combats) ; à partir du niveau 4, la courbe
+devient exponentielle — chaque level up est un vrai événement.
+
+| Passage | XP requis | Combats* |
+|---|---|---|
+| 1 → 2 | 35 | ~2-3 |
+| 2 → 3 | 80 | ~5-6 |
+| 3 → 4 | 160 | ~11 |
+| 4 → 5 | **500** | **~33 ← chute drastique** |
+| 5 → 6 | 1 100 | ~73 |
+| 6 → 7 | 2 200 | ~147 |
+| 7 → 8 | 4 400 | ~293 |
+| 8+ | ×2 par niveau | |
+
+*\*Calibré sur ~15 XP/combat (Eastern Under-tunnels).*
+
 ### Talents légendaires (coût 3, prérequis cumulés)
 
 | ID | Nom | Prérequis | Effet |
