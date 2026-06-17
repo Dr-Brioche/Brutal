@@ -117,6 +117,48 @@
 
     .bouton:active { transform: translateY(0); }
 
+    /* ---- La barre de chargement de l'écran-titre ---- */
+    .chargement {
+      margin-top: 3rem;
+      width: min(320px, 80vw);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .chargement-piste {
+      position: relative;
+      width: 100%;
+      height: 10px;
+      background: #1d1b25;
+      border: 1px solid #3b2030;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .chargement-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 0%;
+      background: linear-gradient(90deg, #ef4444, #b91c1c);
+      transition: width 0.2s ease;
+    }
+    /* Mode indéterminé : tant que le JS n'a pas pris le relais (modules en cours
+       de chargement), une lueur balaie la piste pour montrer que « ça travaille ». */
+    .chargement-piste.indetermine .chargement-fill {
+      width: 38%;
+      animation: chargement-vaetient 1.1s ease-in-out infinite;
+    }
+    @keyframes chargement-vaetient {
+      0%   { left: -38%; }
+      100% { left: 100%; }
+    }
+    .chargement-txt {
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      color: #8b8f98;
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    }
+
     .aide {
       margin-top: 1.5rem;
       font-size: 0.95rem;
@@ -1524,7 +1566,19 @@
     <h1 class="titre">BRUTAL</h1>
     <p class="sous-titre">Deep under the mountain</p>
 
-    <button class="bouton" id="bouton-jouer">Play</button>
+    <!-- « Play » masqué tant que le préchargement n'est pas fini (évite le clic
+         dans le vide pendant que les modules / images se chargent). -->
+    <button class="bouton" id="bouton-jouer" hidden>Play</button>
+
+    <!-- Barre de chargement : visible dès le 1er affichage (chargement des modules
+         JS, mode indéterminé), puis remplie en réel pendant le préchargement des
+         images. Masquée quand tout est prêt → on révèle « Play ». -->
+    <div class="chargement" id="chargement">
+      <div class="chargement-piste indetermine">
+        <div class="chargement-fill" id="chargement-fill"></div>
+      </div>
+      <span class="chargement-txt" id="chargement-txt">Loading…</span>
+    </div>
 
     <!-- Le choix au démarrage : nouvelle partie ou reprise d'un emplacement -->
     <div class="demarrage" id="demarrage" hidden>
@@ -1541,9 +1595,28 @@
     import { demarrerJeu } from "./jeu/principal.js";
     import { installerDemarrage } from "./jeu/ui/demarrage.js";
     import { installerTactile } from "./jeu/ui/tactile.js";
+    import { planchesDuJeu, prechargerImages } from "./jeu/core/prechargement.js";
 
     const ecranTitre = document.getElementById("ecran-titre");
     const canvas = document.getElementById("jeu");
+    const boutonJouer = document.getElementById("bouton-jouer");
+    const chargement = document.getElementById("chargement");
+    const chargementFill = document.getElementById("chargement-fill");
+    const chargementTxt = document.getElementById("chargement-txt");
+
+    // Ce script s'exécute UNE FOIS tous les modules JS chargés : on quitte le mode
+    // indéterminé et on précharge les images en affichant la progression réelle.
+    chargementFill.parentElement.classList.remove("indetermine");
+    prechargerImages(planchesDuJeu(), (faits, total) => {
+      const pct = total ? Math.round((faits / total) * 100) : 100;
+      chargementFill.style.width = pct + "%";
+      chargementTxt.textContent = `Loading… ${pct}%`;
+    }).then(() => {
+      // Tout est en cache : on révèle « Play » (lancement instantané au clic).
+      chargement.hidden = true;
+      boutonJouer.hidden = false;
+      boutonJouer.focus(); // Enter/Espace lancent sans souris
+    });
 
     // L'écran de démarrage décide : nouvelle partie (null) ou sauvegarde
     installerDemarrage({
