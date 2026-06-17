@@ -201,9 +201,13 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     }
   });
 
-  // Clic en dehors du panneau pendant qu'on tient un objet : on le repose.
+  // Clic sur le FOND NOIR (en dehors du panneau) pendant qu'on tient un objet :
+  // on le repose. On teste `ev.target === overlay` (le clic a atterri sur le
+  // fond lui-même) et non `closest(".inv-panneau")` : car soulever() redessine
+  // la grille, ce qui DÉTACHE l'icône cliquée du DOM — `closest` renverrait alors
+  // null et reposerait l'objet aussitôt soulevé (le bug du déplacement souris).
   overlay.addEventListener("click", (ev) => {
-    if (tenu && !ev.target.closest(".inv-panneau")) annulerTenu();
+    if (tenu && ev.target === overlay) annulerTenu();
   });
 
   // Clic droit = menu Equip/Discard. Pendant qu'on tient un objet, il repose.
