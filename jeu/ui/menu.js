@@ -83,6 +83,7 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
     rafraichir();
     menu.hidden = false;
     surChangementPause(true);
+    boutonReprendre.focus(); // Enter/Espace ferment le menu sans souris
   }
 
   function fermer() {

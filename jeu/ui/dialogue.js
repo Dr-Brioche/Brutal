@@ -53,7 +53,7 @@ export function ouvrirDialogue(dialogue, surFin) {
     elTexte.textContent = pages.length ? pages[Math.min(page, pages.length - 1)] : "";
     elChoix.replaceChildren();
     if (!enChoix) {
-      elAide.textContent = "[Space] continue";
+      elAide.textContent = "Click or [Space] to continue";
       cacherInfobulle();
       return;
     }
@@ -96,11 +96,16 @@ export function ouvrirDialogue(dialogue, surFin) {
     else cacherInfobulle();
   }
 
+  // Clic sur le panneau → avancer le texte (aucun effet en mode choix,
+  // où les options ont déjà leurs propres listeners).
+  function surClicDialogue() { if (!enChoix) avancer(); }
+
   function fermerUI() {
     actif = false;
     rafraichirActif = null;
     fermerActif = null;
     window.removeEventListener("keydown", surTouche, true);
+    overlay.removeEventListener("click", surClicDialogue);
     cacherInfobulle();
     overlay.hidden = true;
   }
@@ -143,6 +148,7 @@ export function ouvrirDialogue(dialogue, surFin) {
   }
 
   window.addEventListener("keydown", surTouche, true); // phase capture : on passe avant le reste
+  overlay.addEventListener("click", surClicDialogue);
   overlay.hidden = false;
   rendre();
 }

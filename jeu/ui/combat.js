@@ -290,7 +290,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // Navigation clavier (phase capture + stopPropagation : pas de menu/déplacement).
   function surTouche(e) {
-    if (!["KeyA", "KeyD", "ArrowLeft", "ArrowRight", "Space", "Enter", "Escape"].includes(e.code)) return;
+    if (!["KeyA", "KeyD", "ArrowLeft", "ArrowRight", "Space", "Enter", "Escape", "KeyE"].includes(e.code)) return;
     e.preventDefault();
     e.stopPropagation();
     if (!panneauResultat.hidden) {                 // écran de fin : Espace = Continue
@@ -320,6 +320,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (selection < 0) return;
       if (selection < combat.main.length) tenterJouer(selection);
       else finDeTour();
+    } else if (e.code === "KeyE") {
+      finDeTour(); // raccourci direct : fin de tour sans naviguer jusqu'au bouton
     }
     // Escape en phase main : bloqué (pas de menu pause par-dessus le combat)
   }

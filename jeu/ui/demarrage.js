@@ -20,6 +20,9 @@ export function installerDemarrage({ lancer }) {
     lancer(donnees);
   }
 
+  // Focus automatique : Enter/Espace déclenchent Play sans souris.
+  boutonJouer.focus();
+
   boutonJouer.addEventListener("click", () => {
     const slots = tousLesSlots();
 
@@ -38,6 +41,7 @@ export function installerDemarrage({ lancer }) {
     }
     boutonJouer.hidden = true;
     panneau.hidden = false;
+    boutonNouvelle.focus(); // Tab navigue ensuite vers les slots Load
   });
 
   boutonNouvelle.addEventListener("click", () => lancerUneFois(null));

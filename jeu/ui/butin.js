@@ -130,8 +130,25 @@ export function installerButin() {
   }
 
   function surTouche(e) {
-    if (confirmationActive()) return; // une confirmation est ouverte : on l'ignore
+    if (confirmationActive()) return;
+
+    // ↑/↓ : naviguer parmi les objets (focus natif → Enter/Espace les prend un par un).
+    if (e.code === "ArrowUp" || e.code === "ArrowDown") {
+      e.preventDefault(); e.stopPropagation();
+      const objets = [...liste.querySelectorAll(".butin-objet")];
+      if (!objets.length) return;
+      const cur = objets.indexOf(document.activeElement);
+      const suivant = e.code === "ArrowDown"
+        ? (cur < 0 ? 0 : Math.min(objets.length - 1, cur + 1))
+        : (cur < 0 ? objets.length - 1 : Math.max(0, cur - 1));
+      objets[suivant].focus();
+      return;
+    }
+
+    // Espace/Entrée : si un objet est focusé → on le laisse gérer nativement
+    // (le bouton reçoit le clic → prendreUn). Sinon → prendre tout ou zapper.
     if (e.code === "Space" || e.code === "Enter") {
+      if (document.activeElement?.classList.contains("butin-objet")) return;
       e.preventDefault(); e.stopPropagation();
       if (pret) prendreTout(); else zapper();
     } else if (e.code === "Escape") {
