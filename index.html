@@ -267,27 +267,10 @@
       z-index: 17;
     }
 
-    /* ---- Le flash de combat (façon FF9) ---- */
-    .flash {
-      position: fixed;
-      inset: 0;
-      background: #fff;
-      opacity: 0;
-      pointer-events: none;
-      z-index: 18;
-    }
-    .flash.actif { animation: clignote 0.7s steps(1, end); }
+    /* ---- Le flash de combat : géré entièrement par JS (effets.js) ---- */
+    /* Le div #flash reste dans le DOM mais n'est plus utilisé directement. */
 
-    @keyframes clignote {
-      0%   { opacity: 0.95; }
-      14%  { opacity: 0; }
-      28%  { opacity: 0.95; }
-      42%  { opacity: 0; }
-      56%  { opacity: 0.85; }
-      100% { opacity: 0; }
-    }
-
-    /* ---- L'alerte « vie basse » : liseré rouge qui pulse (PV < 10 %) ---- */
+/* ---- L'alerte « vie basse » : liseré rouge qui pulse (PV < 10 %) ---- */
     .vignette-vie {
       position: fixed; inset: 0;
       pointer-events: none;
