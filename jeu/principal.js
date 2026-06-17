@@ -566,9 +566,6 @@ export async function demarrerJeu(donneesInitiales = null) {
     const ennemis = composerGroupe(ZONES[zoneActuelle]?.monstres);
     if (ennemis.length === 0) return;
     enPause = true;                 // le monde se fige pendant le flash
-    // Musique de combat démarrée DÈS le flash (pas après).
-    const mc = musiqueCombat(zoneActuelle);
-    if (mc) jouerMusiqueFichier(mc);
     await flashCombat();
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis, maitrise,
@@ -647,7 +644,13 @@ export async function demarrerJeu(donneesInitiales = null) {
       const tuile = tuileSousLesPieds(carte, heros);
       verifierPointsInteret(tuile);
       verifierPorte(tuile);
-      if (avancerRencontres(rencontres, tuile, heros.evasionRencontre || 0)) declencherRencontre();
+      if (avancerRencontres(rencontres, tuile, heros.evasionRencontre || 0)) {
+        // Musique lancée immédiatement — au tout premier instant où le jeu sait
+        // qu'une rencontre a lieu, avant même le flash ou la composition du groupe.
+        const mc = musiqueCombat(zoneActuelle);
+        if (mc) jouerMusiqueFichier(mc);
+        declencherRencontre();
+      }
       if (zoneActuelle === "city") {
         mettreAJourPnj(fanatique, dt, heros);
         mettreAJourPnj(marchand, dt, heros);
