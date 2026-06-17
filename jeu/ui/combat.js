@@ -1081,6 +1081,26 @@ function tracerArcPointille(ctx, x0, y0, cx, cy, x1, y1, couleur, offset, largeu
   ctx.restore();
 }
 
+// Variante « cloche » du tracé pointillé : Bézier CUBIQUE dont les deux points de
+// contrôle sont posés À LA VERTICALE au-dessus de chaque extrémité, à la hauteur
+// `sommetY`. Conséquence géométrique : la tangente au départ et à l'arrivée est
+// VERTICALE → le fil s'élance presque droit vers le haut depuis la source et
+// REDESCEND presque droit sur la cible, symétriquement. Une vraie cloche, bien
+// plus marquée qu'un arc quadratique (qui, lui, reste pour la flèche souris).
+function tracerClochePointille(ctx, x0, y0, x1, y1, sommetY, couleur, offset, largeur) {
+  ctx.save();
+  ctx.strokeStyle = couleur;
+  ctx.lineWidth = largeur;
+  ctx.lineCap = "round";
+  ctx.setLineDash([5, 6]);
+  ctx.lineDashOffset = offset;
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.bezierCurveTo(x0, sommetY, x1, sommetY, x1, y1);
+  ctx.stroke();
+  ctx.restore();
+}
+
 // Fil animé reliant un lanceur de sort à sa cible alliée (`src`/`dst` = repères
 // écran). Il part PRÈS de la tête de la cible (juste au-dessus de l'action) et son
 // arc monte haut, bien VERTICAL (en cloche). Dessiné en ARRIÈRE-PLAN → l'action et
@@ -1090,10 +1110,13 @@ function tracerArcPointille(ctx, x0, y0, cx, cy, x1, y1, couleur, offset, largeu
 function dessinerLienSort(ctx, src, dst, t, couleur) {
   const x0 = src.cx, x1 = dst.cx;
   const yA = src.haut - 24, yB = dst.haut - 24;          // près des têtes (au-dessus de l'action)
-  const cx = (x0 + x1) / 2, cy = Math.min(yA, yB) - 64;  // sommet bien plus haut → cloche verticale
+  // Sommet de la cloche : très au-dessus de la tête la plus haute pour un arc
+  // ample et vertical. Plancher à 50 px → reste sous la file des tours (y≈12-52)
+  // tout en montant le plus haut possible (sommet réel de la courbe vers y≈69).
+  const sommetY = Math.max(50, Math.min(yA, yB) - 104);
   const pulse = 0.55 + 0.45 * Math.sin(t * 6);
   ctx.globalAlpha = pulse;
-  tracerArcPointille(ctx, x0, yA, cx, cy, x1, yB, couleur, -t * 28, 2.5);
+  tracerClochePointille(ctx, x0, yA, x1, yB, sommetY, couleur, -t * 28, 2.5);
   ctx.globalAlpha = 1;
 }
 
