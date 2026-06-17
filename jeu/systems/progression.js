@@ -23,6 +23,7 @@ export function gagnerXp(heros, montant) {
     heros.niveau += 1;
     heros.pointsTalent += 1;
     niveaux += 1;
+    heros.pv = heros.pvMax; // monter de niveau = soins complets
   }
   return niveaux;
 }

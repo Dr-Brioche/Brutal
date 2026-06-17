@@ -410,7 +410,8 @@ directement la **collecte** et le **marché**.
   réglages de Chaleur (seuil, plafond, énergie de départ, recharge)…
 
 On gagne de l'**XP en combat** (chaque ennemi en donne) ; un palier d'XP fait
-**monter de niveau** et donne **1 point de talent**. On dépense ces points dans
+**monter de niveau**, donne **1 point de talent** et **restaure tous les PV**
+du héros (soins complets automatiques au passage de niveau). On dépense ces points dans
 l'**arbre** (écran touche **T**) : des nœuds reliés en arborescence, débloqués
 selon leurs prérequis. La montée d'XP est **rejouée en animation** sur la fenêtre
 de fin de combat (barre qui se remplit, halo doré + éclats au passage de niveau).
