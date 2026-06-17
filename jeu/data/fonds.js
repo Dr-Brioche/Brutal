@@ -18,7 +18,7 @@ export const FONDS_COMBAT = {
   // (clé entre guillemets : le tiret interdit la forme nue eastern-under-tunnels)
   "eastern-under-tunnels": [
     "images/fonds/eastern-under-tunnels/1.png",
-    // "images/fonds/eastern-under-tunnels/2.png",
+    "images/fonds/eastern-under-tunnels/2.png",
     // "images/fonds/eastern-under-tunnels/3.png",
   ],
 };
