@@ -252,6 +252,10 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   }, true);
   window.addEventListener("wheel", () => { if (!elMenu.hidden) fermerContexte(); });
 
+  // Interaction souris dans l'inventaire → passer en mode souris (masquer curseur clavier).
+  // Le mode clavier revient dès qu'une touche directionnelle est pressée.
+  overlay.addEventListener("pointerdown", () => { cursorVisible = false; });
+
   // ---- Clavier --------------------------------------------------------------
 
   function surClavier(e) {
@@ -339,7 +343,9 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     if (tenu) {
       elAide.textContent = "Click a cell to drop · click a slot to equip · X: equip/discard · Esc: cancel";
     } else if (!enBoutique) {
-      elAide.textContent = "Click an item to pick it up · drop it where you want or on a slot · X: equip/discard · [B] to close";
+      elAide.textContent = cursorVisible
+        ? "Arrows: move · Enter: pick up/drop · X: equip/discard · [B] to close"
+        : "Click an item to pick it up · drop it where you want or on a slot · [B] to close · arrows: keyboard mode";
     } else {
       elAide.textContent = kbFocus
         ? "Arrows: move · Enter: pick up / drop · X: equip/discard · [Tab]: back to menu"
@@ -497,9 +503,10 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   return {
     ouvrir() {
-      // Curseur clavier actif d'emblée si l'inventaire s'ouvre seul (sans dialogue).
+      // Mode souris par défaut : le curseur clavier (carré rouge) ne s'affiche
+      // que si le joueur appuie sur une touche directionnelle.
       kbFocus = !dialogueActif();
-      cursorX = 0; cursorY = 0; cursorVisible = kbFocus;
+      cursorX = 0; cursorY = 0; cursorVisible = false;
       overlay.querySelector(".inv-panneau").classList.toggle("inv-panneau--focus", kbFocus && dialogueActif());
       rendre();
       overlay.hidden = false;
