@@ -14,15 +14,16 @@
 // etat = { niveauDepart, xpDepart, gain }
 
 import { xpPourNiveau } from "../systems/progression.js";
-import { jouerSon } from "../core/sons.js";
+import { jouerSon, creerSonRemplissage } from "../core/sons.js";
 
-// Rythme « vif » (choisi avec Brioche). Tout est en millisecondes.
-const T_NIVEAU = 650;   // remplir un niveau ENTIER (segment 0 → 100 %)
-const T_SEG_MIN = 150;  // plancher par segment, pour rester lisible
-const T_LEVELUP = 1100; // durée de la célébration (halo + éclats)
-const T_STATIQUE = 600; // si aucune XP gagnée : on montre la barre un instant
-const VERROU_ZAP = 300; // délai avant d'autoriser le zap (anti-appui maintenu)
-const NB_ECLATS = 14;   // nombre d'éclats jaunes par passage de niveau
+// Rythme proportionnel au % de barre gagnée (choisi avec Brioche).
+// Tout est en millisecondes.
+const T_NIVEAU   = 2500; // remplir un niveau ENTIER (segment 0 → 100 %)
+const T_SEG_MIN  = 300;  // plancher par segment (gains minuscules restent visibles)
+const T_LEVELUP  = 1100; // durée de la célébration (halo + éclats)
+const T_STATIQUE = 600;  // si aucune XP gagnée : on montre la barre un instant
+const VERROU_ZAP = 300;  // délai avant d'autoriser le zap (anti-appui maintenu)
+const NB_ECLATS  = 14;   // nombre d'éclats jaunes par passage de niveau
 
 // Découpe le gain en SEGMENTS de barre. Chaque segment remplit la barre de
 // `xpDe` à `xpVers` (dans le niveau `niveau`) ; `levelUp` = ce segment finit le
@@ -68,6 +69,7 @@ export function animerGainXp(refs, etat) {
   let timer = null, raf = null;
   let annulerEtape = null; // résout l'étape async en cours (pour un arrêt net)
   let resoudrePromesse;
+  let stopSon = null; // coupe le son de remplissage en cours (drdrdrdr)
   const promesse = new Promise((r) => (resoudrePromesse = r));
 
   // Pose la barre + le texte. `anime` = laisser la largeur GLISSER (transition
@@ -145,10 +147,12 @@ export function animerGainXp(refs, etat) {
       poser(s.xpDe, s.seuil, false);
       void refs.fill.offsetWidth;            // reflow avant de lancer la glisse
       poser(s.xpVers, s.seuil, true, duree); // la barre glisse…
+      stopSon = creerSonRemplissage();        // drdrdrdr pendant que la barre monte
       await compter(s.xpDe, s.xpVers, s.seuil, duree); // …et le compteur monte
+      stopSon?.(); stopSon = null;            // barre pleine : on coupe le son
       if (zappe) return;
       if (s.levelUp) {
-        celebrer();
+        celebrer();                            // niveau : son de level-up (pas de chevauchement)
         await attendre(T_LEVELUP);
         if (zappe) return;
         const nv = s.niveau + 1;
@@ -162,6 +166,7 @@ export function animerGainXp(refs, etat) {
   function finaliser(celebrationRestante) {
     if (fini) return;
     fini = true;
+    stopSon?.(); stopSon = null; // coupe le drdrdrdr si un zap ou fermeture arrive en plein milieu
     if (annulerEtape) annulerEtape();
     clearTimeout(timer);
     if (raf) cancelAnimationFrame(raf);

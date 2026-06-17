@@ -79,6 +79,72 @@ export function getVolumeBruitages() { return volBruitages; }
 // Ancien nom (import dans gainXp.js).
 export { reglerVolumeBruitages as reglerVolume };
 
+// ---- Son de remplissage synthétisé (Web Audio API) --------------------------
+// Bruit blanc filtré + trémolo LFO → effet « drdrdrdrdr ».
+// Renvoie une fonction stop() à appeler à la fin de l'animation.
+
+let audioCtx = null;
+function obtenirContexte() {
+  if (!audioCtx) audioCtx = new AudioContext();
+  // Navigateurs suspendent le contexte si la page perd le focus : on le réveille.
+  if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+  return audioCtx;
+}
+
+export function creerSonRemplissage() {
+  try {
+    const ctx = obtenirContexte();
+
+    // Source : bruit blanc bouclé (1 s, reutilisé indéfiniment)
+    const bufSize = ctx.sampleRate;
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+
+    // Filtre passe-bande : coloration « rouleau mécanique »
+    const filtre = ctx.createBiquadFilter();
+    filtre.type = "bandpass";
+    filtre.frequency.value = 280;
+    filtre.Q.value = 3;
+
+    // Trémolo : LFO (25 Hz) module l'amplitude → pulsation « dr-dr-dr »
+    // gain oscille entre 0,15 (offset 0,5 - depth 0,35) et 0,85 (+ depth)
+    // → jamais totalement silencieux, mais nettement pulsé
+    const lfo = ctx.createOscillator();
+    lfo.type = "sine";
+    lfo.frequency.value = 25;
+
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.35;   // profondeur de trémolo
+    lfo.connect(lfoGain);
+
+    const gate = ctx.createGain();
+    gate.gain.value = 0.5;       // offset DC : gain oscille entre 0,15 et 0,85
+    lfoGain.connect(gate.gain);
+
+    // Volume global calé sur les bruitages (discret : × 0,3 car son long)
+    const master = ctx.createGain();
+    master.gain.value = volBruitages * 0.3;
+
+    src.connect(filtre).connect(gate).connect(master).connect(ctx.destination);
+    src.start();
+    lfo.start();
+
+    let stoppe = false;
+    return function stop() {
+      if (stoppe) return;
+      stoppe = true;
+      try { src.stop(); lfo.stop(); } catch (_) {}
+    };
+  } catch (_) {
+    // Web Audio non disponible ou bloqué : pas de son, l'animation reste intacte.
+    return function stop() {};
+  }
+}
+
 // ---- Musique ----------------------------------------------------------------
 //
 // Une seule musique active à la fois (`musiqueEnCours`), identifiée par une `cle`
