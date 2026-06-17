@@ -18,8 +18,8 @@ import { jouerSon, creerSonRemplissage } from "../core/sons.js";
 
 // Rythme proportionnel au % de barre gagnée (choisi avec Brioche).
 // Tout est en millisecondes.
-const T_NIVEAU   = 2500; // remplir un niveau ENTIER (segment 0 → 100 %)
-const T_SEG_MIN  = 300;  // plancher par segment (gains minuscules restent visibles)
+const T_NIVEAU   = 5000; // remplir un niveau ENTIER (segment 0 → 100 %)
+const T_SEG_MIN  = 600;  // plancher par segment (gains minuscules restent visibles)
 const T_LEVELUP  = 1100; // durée de la célébration (halo + éclats)
 const T_STATIQUE = 600;  // si aucune XP gagnée : on montre la barre un instant
 const VERROU_ZAP = 300;  // délai avant d'autoriser le zap (anti-appui maintenu)
