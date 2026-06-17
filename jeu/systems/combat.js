@@ -282,7 +282,8 @@ export function necessiteCiblage(carte, nbVivants) {
 // Vrai si cet effet touche un ennemi (offensive) — sert pour la logique AOE.
 function effetViseEnnemi(e) {
   return e.type === "degats" || e.type === "poison" || e.type === "feu" ||
-         e.type === "sang"   || e.type === "stun"   || e.type === "lenteur";
+         e.type === "sang"   || e.type === "stun"   || e.type === "lenteur" ||
+         e.type === "embrasement";
 }
 
 // Applique un effet de carte : les effets offensifs touchent `ennemi` (la cible),
@@ -296,6 +297,13 @@ function appliquerEffet(combat, effet, ennemi) {
     if (ennemi) ennemi.poison += effet.valeur;
   } else if (effet.type === "feu") {
     if (ennemi) ennemi.feu += effet.valeur;
+  } else if (effet.type === "embrasement") {
+    // Embrasement : consomme TOUTE la brûlure (feu) de l'ennemi et la transforme
+    // en dégâts INSTANTANÉS (× valeur). Ex. 5 feu × 2 = 10 dégâts d'un coup, feu → 0.
+    if (ennemi) {
+      ennemi.pv = Math.max(0, ennemi.pv - ennemi.feu * effet.valeur);
+      ennemi.feu = 0;
+    }
   } else if (effet.type === "sang") {
     if (ennemi) ennemi.sang += effet.valeur; // saignement : soigne le héros à chaque tick
   } else if (effet.type === "stun") {

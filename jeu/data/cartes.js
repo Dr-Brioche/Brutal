@@ -26,6 +26,8 @@
 //                         baissent de 1 par tour, ignorent la Pierre)
 //            - "feu"    : ajoute `valeur` d'Enflammé à l'ennemi (comme le poison ;
 //                         se propage aux ennemis adjacents non encore enflammés)
+//            - "embrasement": consomme TOUT le Feu de l'ennemi et le convertit en
+//                         dégâts instantanés (× `valeur`). Ex. 5 Feu × 2 = 10 dégâts.
 //            - "sang"   : ajoute `valeur` de Saignement à l'ennemi (comme le poison,
 //                         mais le sang absorbé SOIGNE le héros à chaque tick)
 //            - "chaleur": régénère `valeur` d'énergie (Chaleur) — peut dépasser le
@@ -246,5 +248,43 @@ export const CARTES = {
     type: "defense",
     texte: "Spend all Forge Heat. Gain 4 Stone per Heat spent.",
     effets: [{ type: "trempe", valeur: 4 }],
+  },
+
+  // ---- Onyx Guard Plate (armure) : build « brûlure / dragon » -----------------
+  // 3× Onyx Armor (gros bloc de Pierre) + 1× Dragon's Blaze (détonateur de feu) +
+  // 2× Onyx Breath (pose du feu en masse). Combo : empiler le Feu (Souffle), puis
+  // le faire exploser d'un coup (Embrasement) — burst AOE qui récompense la mise en place.
+
+  // Onyx Armor : gros mur de Pierre (build tank lourd).
+  "onyx-armor": {
+    id: "onyx-armor",
+    nom: "Onyx Armor",
+    cout: 2,
+    type: "defense",
+    texte: "Gain 15 Stone.",
+    effets: [{ type: "pierre", valeur: 15 }],
+  },
+
+  // Onyx Breath : souffle ardent → 8 Feu sur TOUS les ennemis (mise en place du combo).
+  "souffle-onyx": {
+    id: "souffle-onyx",
+    nom: "Onyx Breath",
+    cout: 4,
+    type: "attaque",
+    aoe: true,
+    texte: "Apply 8 Burning to ALL enemies.",
+    effets: [{ type: "feu", valeur: 8 }],
+  },
+
+  // Dragon's Blaze : fait DÉTONER tout le Feu en cours → chaque point de Feu
+  // devient 2 dégâts instantanés, sur TOUS les ennemis (le feu est consommé).
+  "embrasement-dragon": {
+    id: "embrasement-dragon",
+    nom: "Dragon's Blaze",
+    cout: 4,
+    type: "attaque",
+    aoe: true,
+    texte: "Detonate all Burning: deal 2 damage per Burning on ALL enemies.",
+    effets: [{ type: "embrasement", valeur: 2 }],
   },
 };

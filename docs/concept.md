@@ -344,6 +344,15 @@ directement la **collecte** et le **marché**.
   la surchauffe** d'un coup → 1re mécanique qui **relie** les deux ressources naines
   (Chaleur ↔ Pierre). Apportée par la **Forgemaster's Mail**, **première armure à
   injecter des cartes** (3× *Mail Armor* — 5 Pierre pour 1 Chaleur — + 1× *Quench*).
+- **Embrasement (« Dragon's Blaze ») — détonateur de feu (validé 17/06/2026)** :
+  carte qui **consomme TOUT le Feu** en cours sur les ennemis et le **convertit en
+  dégâts instantanés (×2 par point de Feu)**, sur **tous les ennemis** (AOE). Ouvre
+  un **combo « brûlure »** : on **empile le Feu**, puis on le **fait exploser d'un
+  coup** au lieu d'attendre qu'il s'égrène tour par tour. Apportée par l'**Onyx
+  Guard Plate** (2e armure à cartes, build « dragon ») : 3× *Onyx Armor* (15 Pierre
+  pour 2 Chaleur — gros mur défensif), 1× *Dragon's Blaze* (l'embrasement, 4 Chaleur)
+  et 2× *Onyx Breath* (8 Feu sur tous les ennemis, 4 Chaleur — la mise en place). Le
+  combo complet *Souffle → Embrasement* tient en **un tour à pleine forge** (4+4=8).
 - **Statuts (1er jet)** : effets qui durent dans le temps, affichés **sous la
   barre de vie**, apportés par des **cartes** (que l'équipement ajoute au deck).
   Implémentés :
