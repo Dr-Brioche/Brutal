@@ -119,9 +119,12 @@ export function flashCombat() {
         }
 
       } else {
-        // Phase 3 : blanc total → fondu sortant
-        const ft = (t - 0.85) / 0.15;
-        ctx.fillStyle = `rgba(255,255,255,${1 - ft})`;
+        // Phase 3 : blanc tenu jusqu'à la fin — PAS de fondu vers transparent.
+        // Raison : fondre vers transparent révèlerait le canvas de jeu figé avant
+        // que l'écran de combat soit affiché. On coupe net sur blanc ; ov.remove()
+        // et demarrerCombat() s'exécutent dans la même tâche JS → le navigateur
+        // peint l'écran de combat directement, sans frame intermédiaire.
+        ctx.fillStyle = "#fff";
         ctx.fillRect(0, 0, W, H);
       }
 
