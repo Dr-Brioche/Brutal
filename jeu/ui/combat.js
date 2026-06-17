@@ -366,9 +366,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (!carte) return;
     const elJouee = conteneurMain.children[i] || null; // carte à animer
     // Snapshot AVANT jouerCarte (pour calculer les deltas d'animation).
-    const pvAvants   = combat.ennemis.map((e) => e.pv);
-    const stunAvants = combat.ennemis.map((e) => e.stun);
-    const gelAvants  = combat.ennemis.map((e) => e.gel);
+    const pvAvants     = combat.ennemis.map((e) => e.pv);
+    const stunAvants   = combat.ennemis.map((e) => e.stun);
+    const gelAvants    = combat.ennemis.map((e) => e.gel);
+    const feuAvants    = combat.ennemis.map((e) => e.feu);
+    const poisonAvants = combat.ennemis.map((e) => e.poison);
+    const sangAvants   = combat.ennemis.map((e) => e.sang);
     const pierreAvant = combat.pierre;
     const hateAvant = combat.hate;
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
@@ -400,6 +403,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         u.secousse = Math.max(u.secousse, 0.3);
         ajouterFlottant(`❄ ${e.gel}`, u.ecran.cx, u.ecran.sommet - 32, "#9fdfff");
         if (!sonJoue) { jouerSonSortilege(); sonJoue = true; }
+      }
+      // Statuts de durée (feu, poison, sang) : son de sortilège au moment de l'application.
+      if (!sonJoue && (e.feu > feuAvants[idx] || e.poison > poisonAvants[idx] || e.sang > sangAvants[idx])) {
+        jouerSonSortilege(); sonJoue = true;
       }
     }
     if (combat.pierre > pierreAvant) {

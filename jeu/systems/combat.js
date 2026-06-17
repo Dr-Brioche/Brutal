@@ -113,6 +113,7 @@ function creerEnnemiCombat(def) {
   return {
     def, pv: def.pv, pvMax: def.pv,
     poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps ; sang = vol de vie)
+    feuPropage: false,             // le feu n'a pas encore propagé depuis ce tick
     stun: 0,                       // étourdissement : nb de SES tours encore sautés
     dernierPoison: 0, dernierFeu: 0, dernierSang: 0, // dégâts subis au dernier tour (UI)
     intention: null,              // ce qu'il prépare (télégraphié)
@@ -296,7 +297,10 @@ function appliquerEffet(combat, effet, ennemi) {
   } else if (effet.type === "poison") {
     if (ennemi) ennemi.poison += effet.valeur;
   } else if (effet.type === "feu") {
-    if (ennemi) ennemi.feu += effet.valeur;
+    if (ennemi) {
+      ennemi.feu += effet.valeur;
+      ennemi.feuPropage = false; // nouveau feu : la première brûlure propagera à nouveau
+    }
   } else if (effet.type === "embrasement") {
     // Embrasement : consomme TOUTE la brûlure (feu) de l'ennemi et la transforme
     // en dégâts INSTANTANÉS (× valeur). Ex. 5 feu × 2 = 10 dégâts d'un coup, feu → 0.
@@ -411,14 +415,18 @@ function tiquerHeros(combat, nom) {
   return n;
 }
 
-// Propagation de l'Enflammé : quand un ennemi agit, s'il était en feu il enflamme
-// ses voisins VIVANTS non encore enflammés (de sa valeur de feu après tick). Il
-// propage même s'il vient de mourir de son feu (« il brûle, propage, puis meurt »).
+// Propagation de l'Enflammé : une seule fois par ennemi, au premier tick.
+// Ajoute `force` stacks aux voisins VIVANTS, même s'ils brûlent déjà (cumul).
+// Remet `feuPropage = false` chez les voisins : le feu reçu propagera lui aussi
+// à son premier tick (vague d'embrasement qui se propage en chaîne contrôlée).
 function propagerDepuis(combat, i, force) {
   if (force <= 0) return;
   for (const j of [i - 1, i + 1]) {
     const v = combat.ennemis[j];
-    if (v && v.pv > 0 && v.feu <= 0) v.feu = force;
+    if (v && v.pv > 0) {
+      v.feu += force;
+      v.feuPropage = false; // le feu reçu n'a pas encore propagé
+    }
   }
 }
 
@@ -439,7 +447,12 @@ export function agirEnnemi(combat, i) {
   // Ordre des malus dans le temps : poison, puis feu, et le VOL DE VIE EN DERNIER.
   evt.poison = e.dernierPoison = tiquerEnnemi(e, "poison");
   evt.feu = e.dernierFeu = tiquerEnnemi(e, "feu");
-  if (enFeuAvant) propagerDepuis(combat, i, e.feu); // enflamme les voisins (même s'il meurt)
+  // Propagation : une seule fois par ennemi (premier tick). `feuPropage` se remet
+  // à false à chaque nouveau stack reçu, donc une réapplication relance la vague.
+  if (enFeuAvant && !e.feuPropage) {
+    e.feuPropage = true;
+    propagerDepuis(combat, i, e.feu); // force = stacks restants après le tick
+  }
   // Vol de vie (saignement) TOUJOURS en dernier : si l'ennemi est DÉJÀ MORT du
   // poison ou du feu, il ne saigne plus → AUCUNE régénération pour le héros.
   if (e.pv > 0) {
