@@ -348,8 +348,8 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
         : "Click an item to pick it up · drop it where you want or on a slot · [B] to close · arrows: keyboard mode";
     } else {
       elAide.textContent = kbFocus
-        ? "Arrows: move · Enter: pick up / drop · X: equip/discard · [Tab]: back to menu"
-        : "Click items · or press [Tab] to navigate with keyboard";
+        ? "Arrows: move · Enter: pick up / drop · X: equip/discard · [Tab]: back to merchant"
+        : "Click items to move them · [Tab]: keyboard mode for inventory";
     }
   }
 

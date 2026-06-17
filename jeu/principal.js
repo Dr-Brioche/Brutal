@@ -223,8 +223,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     enPause = true;
     invite.hidden = true;
     document.body.classList.add("en-boutique"); // inventaire à côté (feedback des achats)
-    inventaireUI.ouvrir();
-    menuBoutique();
+    menuBoutique();         // dialogue d'abord → dialogueActif() = true
+    inventaireUI.ouvrir(); // inventaire ensuite → kbFocus = false (focus sur le marchand)
   }
 
   // `prochainMenu` : ce qu'on rouvre après la fermeture du dialogue courant
