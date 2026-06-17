@@ -507,7 +507,13 @@ que c'est addictif, **puis** on empile le suivant.
 - **En place** : ambiance de fond par zone (`jouerMusique` par nom logique) **et**
   musiques de **combat tirées au hasard par zone** (`jouerMusiqueFichier` par chemin,
   bibliothèque `data/musiques.js`, fichiers dans `sons/combat/<zone>/`). Volumes
-  réglables dans le menu Pause (curseurs Musique / Bruitages) et persistés.
+  réglables dans le menu Pause (curseurs Musique / Combat / Bruitages) et persistés.
+- **Ambiance en PLAYLIST** (décidé 17/06/2026) : une zone peut enchaîner plusieurs
+  morceaux au lieu d'une boucle unique. Un **intro** est joué une seule fois à
+  l'arrivée, puis une **boucle** tourne sans fin (sans jamais rejouer l'intro).
+  La **ville** l'utilise : `1-2` = intro d'arrivée, puis `3-4-5` en boucle (au bout
+  de `5`, retour à `3`). Déclaré dans `PLAYLISTS` (`jeu/core/sons.js`), fichiers dans
+  `sons/ambiance/city/`. Les morceaux sont préchargés → enchaînements sans silence.
 
 ## Questions ouvertes (à trancher plus tard, non bloquantes)
 

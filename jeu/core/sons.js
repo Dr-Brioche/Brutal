@@ -14,8 +14,20 @@ const BRUITAGES = {
   levelup: "interface/levelup.mp3",
 };
 
+// Musiques SIMPLES : un morceau joué en boucle, par nom logique. (Les zones à
+// musique d'ambiance unique se déclarent ici ; la ville, elle, est une PLAYLIST.)
 const MUSIQUES = {
-  "ambiance-city": "ambiance/city.mp3",
+};
+
+// PLAYLISTS d'ambiance : une SUITE de morceaux qui s'enchaînent. `intro` est
+// joué UNE SEULE FOIS à l'arrivée, puis `boucle` tourne sans fin (jamais de
+// retour à l'intro). Chemins relatifs à sons/.
+//   Ville : 1-2 = intro d'arrivée, puis 3-4-5 en boucle (3 suit 5, pas 1).
+const PLAYLISTS = {
+  "ambiance-city": {
+    intro:  ["ambiance/city/1.mp3", "ambiance/city/2.mp3"],
+    boucle: ["ambiance/city/3.mp3", "ambiance/city/4.mp3", "ambiance/city/5.mp3"],
+  },
 };
 
 const CLE_VOL_B  = "brutal_vol_bruitages";
@@ -67,52 +79,104 @@ export function getVolumeBruitages() { return volBruitages; }
 // Ancien nom (import dans gainXp.js).
 export { reglerVolumeBruitages as reglerVolume };
 
-// ---- Musique d'ambiance -----------------------------------------------------
+// ---- Musique ----------------------------------------------------------------
+//
+// Une seule musique active à la fois (`musiqueEnCours`), identifiée par une `cle`
+// (rejouer la même clé ne la relance pas → pas de coupure). Deux formes :
+//   SIMPLE   — un morceau en boucle (ambiance d'une zone, musique de combat)
+//   PLAYLIST — une suite : intro joué une fois, puis boucle sans fin (la ville)
+// `estCombat` distingue le volume combat du volume ambiance pour les réglages.
 
-let musiqueEnCours = null; // { audio, cle }
+let musiqueEnCours = null; // { audio, cle, estCombat, seq? }
 
-// Cœur commun : lance une musique en boucle. `cle` sert à éviter de relancer
-// (et donc de couper) le même morceau s'il tourne déjà ; `src` est l'URL finale ;
-// `vol` est le volume à appliquer ; `estCombat` distingue ambiance et combat pour
-// que le réglage de volume en live touche le bon curseur.
-function lancerMusique(cle, src, vol, estCombat = false) {
+// Crée + démarre un élément audio. `boucle` = répéter CE morceau indéfiniment.
+function nouvelAudio(src, estCombat, boucle) {
+  const audio = new Audio(src);
+  audio.loop = boucle;
+  audio.volume = estCombat ? volMusiqueCombat : volMusique;
+  const p = audio.play();
+  if (p?.catch) p.catch(() => {});
+  return audio;
+}
+
+// Musique SIMPLE en boucle. `cle` sert à la déduplication ; `src` l'URL finale.
+function lancerMusique(cle, src, estCombat = false) {
   if (musiqueEnCours?.cle === cle) return;
   arreterMusique();
   if (!src) return;
-  const audio = new Audio(src);
-  audio.loop = true;
-  audio.volume = vol;
-  const p = audio.play();
-  if (p?.catch) p.catch(() => {});
-  musiqueEnCours = { audio, cle, estCombat };
+  musiqueEnCours = { audio: nouvelAudio(src, estCombat, true), cle, estCombat };
 }
 
-// Joue une musique par son NOM logique (table MUSIQUES ci-dessus) — ambiances.
+// Joue une musique par son NOM logique. Si le nom désigne une PLAYLIST, on
+// enchaîne les morceaux ; sinon c'est un morceau simple en boucle (table MUSIQUES).
 export function jouerMusique(nom) {
+  const pl = PLAYLISTS[nom];
+  if (pl) { lancerPlaylist(nom, pl); return; }
   const fichier = MUSIQUES[nom];
-  lancerMusique(nom, fichier ? DOSSIER + fichier : null, volMusique);
+  lancerMusique(nom, fichier ? DOSSIER + fichier : null);
 }
 
 // Joue une musique par son CHEMIN complet (depuis la racine du projet). Utilisé
 // pour les bibliothèques de musiques de combat (data/musiques.js), tirées au
 // hasard par zone — volume séparé de l'ambiance (réglable indépendamment).
 export function jouerMusiqueFichier(chemin) {
-  lancerMusique(chemin, chemin || null, volMusiqueCombat, true);
+  lancerMusique(chemin, chemin || null, true);
+}
+
+// ---- Playlist : enchaînement intro (une fois) → boucle (sans fin) -----------
+
+// Démarre une playlist (objet { intro:[...], boucle:[...] }, chemins relatifs).
+function lancerPlaylist(cle, pl) {
+  if (musiqueEnCours?.cle === cle) return; // déjà en cours : ne pas relancer l'intro
+  arreterMusique();
+  const intro  = pl.intro.map((f) => DOSSIER + f);
+  const boucle = pl.boucle.map((f) => DOSSIER + f);
+  precharger([...intro, ...boucle]); // morceaux suivants en cache → enchaînement net
+  const seq = { intro, boucle, i: 0 };
+  musiqueEnCours = { audio: null, cle, estCombat: false, seq };
+  avancerPlaylist(seq);
+}
+
+// Joue le morceau d'indice `seq.i`, puis enchaîne le suivant à sa fin.
+//   i <  intro.length → on est dans l'intro (joué une seule fois)
+//   i >= intro.length → on boucle sur `boucle` (ex. 3-4-5-3-4-5…), jamais l'intro
+function avancerPlaylist(seq) {
+  if (musiqueEnCours?.seq !== seq) return; // playlist arrêtée/remplacée entre-temps
+  const src = seq.i < seq.intro.length
+    ? seq.intro[seq.i]
+    : seq.boucle[(seq.i - seq.intro.length) % seq.boucle.length];
+  seq.i++;
+  const audio = nouvelAudio(src, false, false); // pas de loop : on enchaîne nous-mêmes
+  audio.addEventListener("ended", () => avancerPlaylist(seq));
+  musiqueEnCours.audio = audio;
+}
+
+// Précharge (cache navigateur) une liste d'URLs pour des enchaînements sans
+// silence. Chaque URL n'est demandée qu'une seule fois sur toute la partie.
+const precharges = new Map();
+function precharger(urls) {
+  for (const url of urls) {
+    if (precharges.has(url)) continue;
+    const a = new Audio();
+    a.preload = "auto";
+    a.src = url;
+    precharges.set(url, a);
+  }
 }
 
 export function arreterMusique() {
   if (!musiqueEnCours) return;
-  musiqueEnCours.audio.pause();
-  musiqueEnCours.audio.currentTime = 0;
-  musiqueEnCours = null;
+  const a = musiqueEnCours.audio;
+  if (a) { a.pause(); a.currentTime = 0; }
+  musiqueEnCours = null; // coupe aussi une playlist (avancerPlaylist vérifie `seq`)
 }
 
 export function reglerVolumeMusique(v) {
   volMusique = clamp(v);
   localStorage.setItem(CLE_VOL_M, volMusique);
-  // Met à jour le volume en direct si c'est une musique d'ambiance qui tourne.
-  // (Les musiques de combat ont leur propre réglage ci-dessous.)
-  if (musiqueEnCours && !musiqueEnCours.estCombat) musiqueEnCours.audio.volume = volMusique;
+  // Volume en direct si une musique d'ambiance (simple ou playlist) tourne.
+  if (musiqueEnCours && !musiqueEnCours.estCombat && musiqueEnCours.audio)
+    musiqueEnCours.audio.volume = volMusique;
 }
 
 export function getVolumeMusique() { return volMusique; }
@@ -120,7 +184,8 @@ export function getVolumeMusique() { return volMusique; }
 export function reglerVolumeMusiqueCombat(v) {
   volMusiqueCombat = clamp(v);
   localStorage.setItem(CLE_VOL_MC, volMusiqueCombat);
-  if (musiqueEnCours?.estCombat) musiqueEnCours.audio.volume = volMusiqueCombat;
+  if (musiqueEnCours?.estCombat && musiqueEnCours.audio)
+    musiqueEnCours.audio.volume = volMusiqueCombat;
 }
 
 export function getVolumeMusiqueCombat() { return volMusiqueCombat; }
