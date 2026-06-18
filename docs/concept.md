@@ -374,15 +374,15 @@ directement la **collecte** et le **marché**.
     3**. *Onyx Breath* (Feu 8 sur les 3) → fin de tour : **12 / 16 / 12** (chacun
     garde ses 8 et reçoit 4 par voisin vivant). Ex. d'arme : *Magma Hammer* →
     carte *Lava Hammer*.
-  - **Saignement (sang)** : applique des **ticks** à l'ennemi. Chaque tour,
-    l'ennemi prend **1 dégât plat** et perd 1 tick. La vraie puissance est la
-    **DÉTONATION** : frapper un ennemi qui saigne déjà avec une carte sang → les
-    ticks restants claquent en **dégâts immédiats** (autant de dégâts que de
-    ticks), PUIS les nouveaux ticks s'empilent par-dessus. Objectif : stack un
-    maximum de ticks, puis déclencher la détonation pour un gros pic de dégâts.
-    Ex. : 3 ticks → 1 tour passe → 1 dégât, 2 ticks restants → on frappe avec
-    « 8 dégâts + 2 saignement » → 8 + 2 (détonation) + 2 ticks = 4 ticks au
-    total. **Le saignement ne soigne plus le héros** (sauf futur item spécifique).
+  - **Saignement (sang)** : applique des **ticks** à l'ennemi. Chaque tour
+    l'ennemi prend **1 dégât plat** et perd 1 tick. La vraie puissance vient du
+    **combo** : frapper un ennemi qui saigne avec une carte qui a elle-même un
+    effet sang → les ticks actuels font des **dégâts bonus immédiats** (autant
+    de dégâts que de ticks restants), et les ticks **restent** et **s'empilent**
+    avec les nouveaux. Un ennemi en vie ne vaut rien — une carte pure dégâts ne
+    déclenche pas ce bonus. Ex. : ennemi à 5 ticks, attaque « 2 dégâts + 3
+    saignement » → 2 + 5 (bonus) = 7 dégâts, sang passe à 8.
+    **Le saignement ne soigne plus le héros** (sauf futur item spécifique).
     **Ordre** : poison, puis feu, puis saignement. Si l'ennemi meurt du poison
     ou du feu avant, il ne saigne plus ce tour-là.
   - **Étourdissement (stun) — implémenté** : l'ennemi **saute ses tours** (n'attaque

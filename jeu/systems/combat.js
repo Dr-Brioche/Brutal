@@ -312,8 +312,9 @@ function appliquerEffet(combat, effet, ennemi) {
     }
   } else if (effet.type === "sang") {
     if (ennemi) {
-      // Détonation : si l'ennemi saigne déjà, ses ticks actuels claquent en dégâts
-      // immédiats (capturés par le delta de PV de l'UI). Puis on empile les nouveaux.
+      // Les ticks existants restent ET font des dégâts bonus immédiats (sans être
+      // consommés). Les nouveaux ticks s'empilent par-dessus. Plus les stacks sont
+      // hauts, plus chaque attaque de saignement suivante fait mal.
       if (ennemi.sang > 0) ennemi.pv = Math.max(0, ennemi.pv - ennemi.sang);
       ennemi.sang += effet.valeur;
     }

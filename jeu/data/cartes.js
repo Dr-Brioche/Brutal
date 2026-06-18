@@ -208,13 +208,13 @@ export const CARTES = {
     effets: [{ type: "piocher", valeur: 2 }],
   },
 
-  // Bague de sang : attaque tranchante qui empile le saignement (détonation si déjà saignant).
+  // Bague de sang : attaque tranchante qui empile le saignement.
   "coup-de-sang": {
     id: "coup-de-sang",
     nom: "Bloodletting",
     cout: 1,
     type: "attaque",
-    texte: "Deal 2 damage. Apply 2 Bleed. If the target already bleeds, detonate ticks for bonus damage first.",
+    texte: "Deal 2 damage + current Bleed stacks as bonus damage. Apply 2 Bleed (stacks don't reset).",
     effets: [{ type: "degats", valeur: 2 }, { type: "sang", valeur: 2 }],
   },
 
