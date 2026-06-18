@@ -34,6 +34,7 @@ import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
 import { FANATIQUE, MARCHAND } from "./data/pnj.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique } from "./core/sons.js";
+import { getPreference } from "./systems/preferences.js";
 
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
@@ -262,10 +263,15 @@ export async function demarrerJeu(donneesInitiales = null) {
       texte: `Sell ${ITEMS[o.id].nom}  ·  +${prixVente(o.id)} 🪙`,
       itemId: o.id, // survol → bulle (on voit ce qu'on vend)
       action: () => {
-        prochainMenu = menuVendre; // on reste dans le menu de vente
-        const prix = vendreObjet(inventaire, o);
-        afficherMessage(`💰 Sold ${ITEMS[o.id].nom} for ${prix} 🪙.`);
-        inventaireUI.rendre();
+        const d = ITEMS[o.id];
+        if (getPreference("confirmVente") && d.rarete !== "commun") {
+          prochainMenu = () => menuConfirmerVente(o);
+        } else {
+          prochainMenu = menuVendre;
+          const prix = vendreObjet(inventaire, o);
+          afficherMessage(`💰 Sold ${d.nom} for ${prix} 🪙.`);
+          inventaireUI.rendre();
+        }
       },
     }));
     // « Tout vendre » : proposé dès 2 objets et JAMAIS en 1re position (le défaut
@@ -298,6 +304,21 @@ export async function demarrerJeu(donneesInitiales = null) {
           let somme = 0;
           for (const o of aVendre) somme += vendreObjet(inventaire, o);
           afficherMessage(`💰 Sold ${aVendre.length} items for ${somme} 🪙.`);
+          inventaireUI.rendre();
+        } },
+    ]);
+  }
+
+  // Confirmation de vente pour un objet rare+ (sous-menu marchand).
+  function menuConfirmerVente(o) {
+    const d = ITEMS[o.id];
+    const prix = prixVente(o.id);
+    ouvrirMenuMarchand(`Sell ${d.nom}?`, [
+      { texte: "←  No, keep it", action: () => { prochainMenu = menuVendre; } },
+      { texte: `⚠  Yes, sell · +${prix} 🪙`, action: () => {
+          prochainMenu = menuVendre;
+          vendreObjet(inventaire, o);
+          afficherMessage(`💰 Sold ${d.nom} for ${prix} 🪙.`);
           inventaireUI.rendre();
         } },
     ]);
@@ -438,10 +459,23 @@ export async function demarrerJeu(donneesInitiales = null) {
     },
     // Vendre un objet par glisser-déposer hors du panneau (en boutique seulement).
     surVendre: (objet) => {
-      const prix = vendreObjet(inventaire, objet);
-      afficherMessage(`💰 Sold ${ITEMS[objet.id].nom} for ${prix} 🪙.`);
-      inventaireUI.rendre();
-      if (surChangementMenu) surChangementMenu();
+      const d = ITEMS[objet.id];
+      const vendre = () => {
+        const prix = vendreObjet(inventaire, objet);
+        afficherMessage(`💰 Sold ${d.nom} for ${prix} 🪙.`);
+        inventaireUI.rendre();
+        if (surChangementMenu) surChangementMenu();
+      };
+      if (getPreference("confirmVente") && d.rarete !== "commun") {
+        demanderConfirmation({
+          titre: "Sell this item?",
+          message: `${d.nom} (${RARETES[d.rarete]?.nom ?? d.rarete}) · +${prixVente(objet.id)} 🪙`,
+          texteOui: "Sell it",
+          texteNon: "Keep it",
+        }, vendre);
+      } else {
+        vendre();
+      }
     },
   });
   let inventaireOuvert = false;

@@ -14,6 +14,7 @@ import {
   reglerVolumeMusique, reglerVolumeBruitages, reglerVolumeMusiqueCombat,
   getVolumeMusique, getVolumeBruitages, getVolumeMusiqueCombat,
 } from "../core/sons.js";
+import { getPreference, setPreference } from "../systems/preferences.js";
 
 export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }) {
   const menu = document.getElementById("menu");
@@ -28,6 +29,27 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
   const valMC     = document.getElementById("vol-musique-combat-val");
   const sliderB   = document.getElementById("vol-bruitages");
   const valB      = document.getElementById("vol-bruitages-val");
+
+  // Onglets Son / Interface
+  const ongletSons        = document.getElementById("menu-onglet-sons");
+  const ongletInterface   = document.getElementById("menu-onglet-interface");
+  const vueSons           = document.getElementById("menu-vue-sons");
+  const vueInterface      = document.getElementById("menu-vue-interface");
+  const checkConfirmVente = document.getElementById("pref-confirm-vente");
+
+  checkConfirmVente.checked = getPreference("confirmVente");
+  checkConfirmVente.addEventListener("change", () => {
+    setPreference("confirmVente", checkConfirmVente.checked);
+  });
+
+  function basculerOnglet(nom) {
+    ongletSons.classList.toggle("deck-onglet--actif", nom === "sons");
+    ongletInterface.classList.toggle("deck-onglet--actif", nom === "interface");
+    vueSons.hidden = nom !== "sons";
+    vueInterface.hidden = nom !== "interface";
+  }
+  ongletSons.addEventListener("click", () => basculerOnglet("sons"));
+  ongletInterface.addEventListener("click", () => basculerOnglet("interface"));
 
   function syncSliders() {
     sliderM.value  = Math.round(getVolumeMusique() * 100);
@@ -88,6 +110,7 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
     conteneurSlots.style.display = sansSauvegarde ? "none" : "flex";
     if (!sansSauvegarde) rafraichir();
     syncSliders();           // les curseurs reflètent les volumes courants
+    basculerOnglet("sons");  // toujours ouvrir sur l'onglet Son
     menu.hidden = false;
     surChangementPause(true);
     boutonReprendre.focus(); // Enter/Espace ferment le menu sans souris
@@ -112,7 +135,10 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
   // éléments actifs ; ←→ laissent le navigateur ajuster la valeur des sliders.
   menu.addEventListener("keydown", (e) => {
     if (!ouvert) return;
-    const focusables = Array.from(menu.querySelectorAll('button:not(:disabled), input[type="range"]'));
+    // Inclut boutons, sliders et checkboxes — seulement les éléments visibles.
+    const focusables = Array.from(
+      menu.querySelectorAll('button:not(:disabled), input[type="range"], input[type="checkbox"]')
+    ).filter(estAffiche);
     if (!focusables.length) return;
     const idx = focusables.indexOf(document.activeElement);
 
@@ -128,4 +154,14 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
   });
 
   return { ouvrir, fermer, basculer };
+}
+
+// True si l'élément est affiché (ni lui-même ni aucun ancêtre n'est masqué).
+function estAffiche(el) {
+  let n = el;
+  while (n && n !== document.body) {
+    if (n.hidden || n.style.display === "none") return false;
+    n = n.parentElement;
+  }
+  return true;
 }
