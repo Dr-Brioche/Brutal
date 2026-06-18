@@ -49,7 +49,7 @@ export const ITEMS = {
     planche: "images/armes/hache.png", degats: 5, mains: 1, cartes: ["coup-de-hache", "coup-de-hache"],
   },
   "marteau-de-forge": {
-    id: "marteau-de-forge", nom: "Forge Hammer", categorie: "arme", rarete: "commun",
+    id: "marteau-de-forge", nom: "Forge Hammer", categorie: "arme", rarete: "uncommon",
     taille: { l: 1, h: 2 }, icone: "#8a8f98",
     planche: "images/armes/marteau.png", degats: 4, mains: 1, cartes: ["ecrasement", "ecrasement"],
   },
@@ -80,12 +80,12 @@ export const ITEMS = {
   },
 
   // ---- Boucliers (slot off-hand) ----
-  // Bouclier-tour : 2× « Shield Wall » (Pierre/blocage) + « Shield Bash » (étourdit
-  // l'ennemi 2 tours). Build défensif/contrôle.
+  // Bouclier-tour : 1× « Shield Wall » (Pierre/blocage) + 2× « Shield Bash » (étourdit
+  // l'ennemi 2 tours). Plus offensif/contrôle qu'avant (2 étourdissements).
   "bouclier-tour": {
     id: "bouclier-tour", nom: "Tower Shield", categorie: "bouclier", rarete: "epique",
     taille: { l: 2, h: 2 }, icone: "#5a6b7a",
-    cartes: ["mur-bouclier", "mur-bouclier", "coup-de-bouclier"],
+    cartes: ["mur-bouclier", "coup-de-bouclier", "coup-de-bouclier"],
   },
 
   // ---- Armures (changent le skin du nain) ----
@@ -94,13 +94,13 @@ export const ITEMS = {
     taille: { l: 2, h: 2 }, icone: "#6a5a44",
     planche: "images/heros/nain.png", defense: 0,
   },
-  // Plaque d'onyx : armure « dragon ». 3× Onyx Armor (gros bloc de Pierre) +
-  // 1× Dragon's Blaze (détonateur de feu) + 2× Onyx Breath (pose du feu en masse).
+  // Plaque d'onyx : armure « dragon ». 2× Onyx Armor (gros bloc de Pierre) +
+  // 2× Dragon's Blaze (détonateur de feu) + 2× Onyx Breath (pose du feu en masse).
   "plate-onyx": {
     id: "plate-onyx", nom: "Onyx Guard Plate", categorie: "armure", rarete: "rare",
     taille: { l: 2, h: 2 }, icone: "#3b4250",
     planche: "images/heros/nain-onyx.png", defense: 5,
-    cartes: ["onyx-armor", "onyx-armor", "onyx-armor", "embrasement-dragon", "souffle-onyx", "souffle-onyx"],
+    cartes: ["onyx-armor", "onyx-armor", "embrasement-dragon", "embrasement-dragon", "souffle-onyx", "souffle-onyx"],
   },
   // Maille de forge : 1re ARMURE qui donne des cartes. 3× « Mail Armor » (bloc de
   // Pierre fiable) + 1× « Quench » (trempe : vide la Chaleur en Pierre ×4) → build
@@ -115,13 +115,14 @@ export const ITEMS = {
   // ---- Bijoux & divers (donnent des CARTES, ou une utilité comme le sac) ----
   // Bague de sang : injecte « Bloodletting » (saignement qui soigne le héros).
   "bague-de-sang": {
-    id: "bague-de-sang", nom: "Blood Ring", categorie: "bague", rarete: "rare",
+    id: "bague-de-sang", nom: "Blood Ring", categorie: "bague", rarete: "uncommon",
     taille: { l: 1, h: 1 }, icone: "#7a1f2b", cartes: ["coup-de-sang", "coup-de-sang"],
   },
   // Collier de saphir énergisant : injecte « Sapphire Surge » (régénère l'énergie).
+  // Entrée de gamme d'une lignée de 3 (cf. Nice / Perfect plus bas).
   "collier-de-saphir": {
-    id: "collier-de-saphir", nom: "Sapphire Amulet", categorie: "collier", rarete: "epique",
-    taille: { l: 1, h: 1 }, icone: "#2f6fb0", cartes: ["surge-saphir", "surge-saphir"],
+    id: "collier-de-saphir", nom: "Sapphire Amulet", categorie: "collier", rarete: "uncommon",
+    taille: { l: 1, h: 1 }, icone: "#2f6fb0", cartes: ["surge-saphir"],
   },
   // Gants de mineur : slot « gant » libre ; recevront des cartes plus tard.
   "gants-de-mineur": {
@@ -135,7 +136,7 @@ export const ITEMS = {
   },
   // Anneau de givre : injecte « Frostbite » (ralentit un ennemi).
   "anneau-de-givre": {
-    id: "anneau-de-givre", nom: "Frost Ring", categorie: "bague", rarete: "rare",
+    id: "anneau-de-givre", nom: "Frost Ring", categorie: "bague", rarete: "uncommon",
     taille: { l: 1, h: 1 }, icone: "#5aa6d9", cartes: ["givre-lent", "givre-lent"],
   },
   "sac-en-cuir": {
