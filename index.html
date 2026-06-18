@@ -4,6 +4,32 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BRUTAL</title>
+
+  <!-- [debug] Tampon des erreurs récentes, joint aux remarques de debug.
+       Placé tôt pour capturer les erreurs dès le chargement. -->
+  <script>
+    (function () {
+      var buf = (window.__brutalErrors = []);
+      function push(kind, msg) {
+        try {
+          buf.push({ t: new Date().toISOString(), kind: kind, msg: String(msg).slice(0, 500) });
+          if (buf.length > 30) buf.shift();
+        } catch (_) {}
+      }
+      window.addEventListener("error", function (e) {
+        push("error", (e.message || "erreur") + (e.filename ? " @ " + e.filename + ":" + e.lineno : ""));
+      });
+      window.addEventListener("unhandledrejection", function (e) {
+        var r = e.reason;
+        push("promise", (r && (r.stack || r.message)) || r);
+      });
+      var oerr = console.error;
+      console.error = function () {
+        push("console", Array.prototype.join.call(arguments, " "));
+        return oerr.apply(console, arguments);
+      };
+    })();
+  </script>
   <style>
     /* ---- Réglages de base ---- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1658,6 +1684,157 @@
         demarrerJeu(donnees);
       },
     });
+  </script>
+
+  <!-- [debug] Bouton de remarque (haut-gauche). Souris OU clavier (Tab+Entrée,
+       ou F2). Envoie au collecteur ; si hors-ligne (build packagé), garde en
+       localStorage pour ne rien perdre. -->
+  <style>
+    #dbgr-btn {
+      position: fixed; top: 10px; left: 10px; z-index: 2147483000;
+      font: 600 13px/1 system-ui, sans-serif; color: #ffe28c;
+      background: rgba(20, 16, 10, 0.78); border: 1px solid #e0b84a;
+      border-radius: 8px; padding: 7px 10px; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); opacity: 0.75;
+    }
+    #dbgr-btn:hover, #dbgr-btn:focus { opacity: 1; outline: 2px solid #ffe28c; }
+    #dbgr-overlay {
+      position: fixed; inset: 0; z-index: 2147483001;
+      background: rgba(0, 0, 0, 0.6); display: flex;
+      align-items: center; justify-content: center;
+    }
+    #dbgr-overlay[hidden] { display: none; }
+    #dbgr-panel {
+      width: min(520px, 92vw); background: #1a1510; color: #f2e6cf;
+      border: 1px solid #e0b84a; border-radius: 12px; padding: 16px;
+      font: 14px/1.4 system-ui, sans-serif; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    }
+    #dbgr-panel h2 { margin: 0 0 8px; font-size: 16px; color: #ffe28c; }
+    #dbgr-panel p.hint { margin: 0 0 8px; font-size: 12px; opacity: 0.7; }
+    #dbgr-text {
+      width: 100%; box-sizing: border-box; min-height: 120px; resize: vertical;
+      background: #0f0c08; color: #f2e6cf; border: 1px solid #5a4a26;
+      border-radius: 8px; padding: 10px; font: 14px/1.4 system-ui, sans-serif;
+    }
+    #dbgr-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    #dbgr-actions .grow { flex: 1; }
+    .dbgr-b {
+      font: 600 13px system-ui, sans-serif; border-radius: 8px;
+      padding: 8px 14px; cursor: pointer; border: 1px solid #5a4a26;
+      background: #2a2113; color: #f2e6cf;
+    }
+    .dbgr-b.primary { background: #e0b84a; color: #1a1510; border-color: #e0b84a; }
+    #dbgr-status { font-size: 12px; opacity: 0.85; min-height: 14px; }
+  </style>
+
+  <button id="dbgr-btn" type="button" title="Noter une remarque (F2)">🐞 Remarque</button>
+
+  <div id="dbgr-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="dbgr-title">
+    <div id="dbgr-panel">
+      <h2 id="dbgr-title">Une remarque ?</h2>
+      <p class="hint">Bug, idée, truc bizarre… Le contexte (zone, sauvegardes, erreurs) est joint automatiquement.</p>
+      <textarea id="dbgr-text" placeholder="Décris ce que tu as vu…"></textarea>
+      <div id="dbgr-actions">
+        <span id="dbgr-status"></span>
+        <span class="grow"></span>
+        <button type="button" class="dbgr-b" id="dbgr-cancel">Annuler</button>
+        <button type="button" class="dbgr-b primary" id="dbgr-send">Envoyer (Ctrl+Entrée)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var btn = document.getElementById("dbgr-btn");
+      var overlay = document.getElementById("dbgr-overlay");
+      var ta = document.getElementById("dbgr-text");
+      var status = document.getElementById("dbgr-status");
+      var sendBtn = document.getElementById("dbgr-send");
+      var cancelBtn = document.getElementById("dbgr-cancel");
+
+      function setStatus(s) { status.textContent = s; }
+      function isOpen() { return !overlay.hidden; }
+      function open() { overlay.hidden = false; setStatus(""); setTimeout(function () { ta.focus(); }, 0); }
+      function close() { overlay.hidden = true; }
+
+      function snapshot() {
+        var ls = [];
+        try {
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            ls.push({ k: k, len: (localStorage.getItem(k) || "").length });
+          }
+        } catch (_) {}
+        var visibles = [];
+        try {
+          document.querySelectorAll("body > [id]").forEach(function (el) {
+            if (el.id !== "dbgr-overlay" && !el.hidden && el.offsetParent !== null) visibles.push(el.id);
+          });
+        } catch (_) {}
+        return {
+          url: location.href,
+          when: new Date().toISOString(),
+          viewport: window.innerWidth + "x" + window.innerHeight,
+          visibles: visibles,
+          localStorage: ls,
+          erreurs: (window.__brutalErrors || []).slice(-12),
+        };
+      }
+
+      async function envoyer() {
+        var note = ta.value.trim();
+        if (!note) { ta.focus(); return; }
+        setStatus("Envoi…");
+        var payload = { note: note, context: snapshot() };
+        var res = null;
+        try {
+          res = await fetch("/debug/remarque", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+        } catch (_) { res = null; }
+
+        if (res && res.status === 429) { setStatus("Trop de remarques d'un coup — réessaie dans un instant."); return; }
+        if (res && res.ok) {
+          setStatus("Envoyé ✓ Merci !");
+          ta.value = "";
+          setTimeout(close, 800);
+          return;
+        }
+        // Hors-ligne / build packagé sans serveur : on garde en local.
+        try {
+          var arr = JSON.parse(localStorage.getItem("brutal_remarques") || "[]");
+          arr.push(payload);
+          localStorage.setItem("brutal_remarques", JSON.stringify(arr));
+          setStatus("Hors-ligne : gardé en local ✓");
+          ta.value = "";
+          setTimeout(close, 1100);
+        } catch (e) {
+          setStatus("Échec de l'enregistrement.");
+        }
+      }
+
+      btn.addEventListener("click", open);
+      cancelBtn.addEventListener("click", close);
+      sendBtn.addEventListener("click", envoyer);
+
+      // Pendant que le modal est ouvert : on empêche les touches d'atteindre le
+      // jeu (window) pour ne pas déplacer le nain en tapant. keyup reste permis
+      // pour que les touches déjà enfoncées se libèrent proprement.
+      function trap(e) {
+        e.stopPropagation();
+        if (e.key === "Escape") { e.preventDefault(); close(); }
+        else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); envoyer(); }
+      }
+      overlay.addEventListener("keydown", trap);
+      overlay.addEventListener("keypress", function (e) { e.stopPropagation(); });
+
+      // Ouverture au clavier : F2 (touche libre, hors gameplay).
+      window.addEventListener("keydown", function (e) {
+        if (e.key === "F2") { e.preventDefault(); e.stopPropagation(); if (isOpen()) close(); else open(); }
+      });
+    })();
   </script>
 </body>
 </html>
