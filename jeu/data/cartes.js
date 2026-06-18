@@ -97,14 +97,14 @@ export const CARTES = {
     effets: [{ type: "degats", valeur: 12 }],
   },
 
-  // Marteau de forge : frappe + renforce → dégâts ET un peu de Pierre.
+  // Marteau de forge : frappe + renforce → dégâts ET de la Pierre.
   "ecrasement": {
     id: "ecrasement",
     nom: "Forge Smash",
     cout: 2,
     type: "attaque",
-    texte: "Deal 8 damage. Gain 3 Stone.",
-    effets: [{ type: "degats", valeur: 8 }, { type: "pierre", valeur: 3 }],
+    texte: "Deal 10 damage. Gain 8 Stone.",
+    effets: [{ type: "degats", valeur: 10 }, { type: "pierre", valeur: 8 }],
   },
 
   // Pioche de mineur : deux coups acharnés (thème « creuser »).
@@ -128,15 +128,15 @@ export const CARTES = {
     effets: [{ type: "degats", valeur: 4 }, { type: "poison", valeur: 4 }],
   },
 
-  // Marteau de lave : un coup lourd + de l'Enflammé (feu dans le temps, prévu
-  // pour se propager aux ennemis adjacents quand les combats seront à plusieurs).
+  // Marteau de lave : un coup TRÈS lourd + de l'Enflammé (feu dans le temps qui
+  // se propage à la fin du tour aux ennemis adjacents).
   "coup-de-lave": {
     id: "coup-de-lave",
     nom: "Lava Hammer",
     cout: 2,
     type: "attaque",
-    texte: "Deal 5 damage. Apply 4 Burning.",
-    effets: [{ type: "degats", valeur: 5 }, { type: "feu", valeur: 4 }],
+    texte: "Deal 28 damage. Apply 4 Burning.",
+    effets: [{ type: "degats", valeur: 28 }, { type: "feu", valeur: 4 }],
   },
 
   // Bouclier-tour : 2 cartes de Pierre (blocage) + 1 carte qui étourdit.
@@ -214,31 +214,31 @@ export const CARTES = {
     nom: "Bloodletting",
     cout: 1,
     type: "attaque",
-    texte: "Deal 2 damage + current Bleed stacks as bonus damage. Apply 2 Bleed (stacks don't reset).",
-    effets: [{ type: "degats", valeur: 2 }, { type: "sang", valeur: 2 }],
+    texte: "Deal 3 damage + current Bleed stacks as bonus damage. Apply 3 Bleed (stacks don't reset).",
+    effets: [{ type: "degats", valeur: 3 }, { type: "sang", valeur: 3 }],
   },
 
   // ---- Battle Axe cards -------------------------------------------------------
 
-  // Coup de pommeau : assomme brièvement (dégâts + stun 1 tour).
+  // Coup de pommeau : gros coup qui assomme (dégâts lourds + stun 2 tours).
   "coup-de-pommeau": {
     id: "coup-de-pommeau",
     nom: "Pommel Strike",
     cout: 1,
     type: "attaque",
-    texte: "Deal 4 damage. Stun the target for 1 turn.",
-    effets: [{ type: "degats", valeur: 4 }, { type: "stun", valeur: 1 }],
+    texte: "Deal 16 damage. Stun the target for 2 turns.",
+    effets: [{ type: "degats", valeur: 16 }, { type: "stun", valeur: 2 }],
   },
 
-  // Giant Swing : grand arc → frappe TOUS les ennemis (AOE).
+  // Giant Swing : grand arc → frappe TOUS les ennemis (AOE) + saignement de masse.
   "giant-swing": {
     id: "giant-swing",
     nom: "Giant Swing",
     cout: 3,
     type: "attaque",
     aoe: true,
-    texte: "Deal 9 damage to ALL enemies.",
-    effets: [{ type: "degats", valeur: 9 }],
+    texte: "Deal 16 damage to ALL enemies. Apply 2 Bleed to ALL enemies.",
+    effets: [{ type: "degats", valeur: 16 }, { type: "sang", valeur: 2 }],
   },
 
   // Couper en deux : coup lourd ; si la cible meurt, les dégâts rebondissent sur l'ennemi suivant.
@@ -247,8 +247,8 @@ export const CARTES = {
     nom: "Cleave",
     cout: 2,
     type: "attaque",
-    texte: "Deal 12 damage. If the target dies, deal 12 damage to the next enemy.",
-    effets: [{ type: "degats", valeur: 12 }, { type: "rebond", valeur: 12 }],
+    texte: "Deal 20 damage. If the target dies, deal 15 damage to the next enemy.",
+    effets: [{ type: "degats", valeur: 20 }, { type: "rebond", valeur: 15 }],
   },
 
   // ---- Forgemaster's Mail (armure) : 1re armure qui DONNE des cartes ----------
@@ -317,29 +317,29 @@ export const CARTES = {
   // Onyx Radiance (mise en place AOE), Onyx Slash (gros coup + éclaboussure), et
   // Heat Rejection (trempe offensive : la Chaleur devient de la brûlure de masse).
 
-  // Onyx Radiance : pose un peu de Feu sur TOUS les ennemis (amorce du combo brûlure).
+  // Onyx Radiance : pose du Feu en masse sur TOUS les ennemis (amorce du combo brûlure).
   "onyx-radiance": {
     id: "onyx-radiance",
     nom: "Onyx Radiance",
     cout: 1,
     type: "attaque",
     aoe: true,
-    texte: "Apply 2 Burning to ALL enemies.",
-    effets: [{ type: "feu", valeur: 2 }],
+    texte: "Apply 8 Burning to ALL enemies.",
+    effets: [{ type: "feu", valeur: 8 }],
   },
 
-  // Onyx Slash : coup lourd (12 dégâts + 4 Feu) qui ÉCLABOUSSE l'ennemi derrière
-  // la cible avec la MOITIÉ (6 dégâts + 2 Feu), qu'il survive ou non.
+  // Onyx Slash : coup lourd (26 dégâts + 4 Feu) qui ÉCLABOUSSE l'ennemi derrière
+  // la cible avec la MOITIÉ (13 dégâts + 2 Feu), qu'il survive ou non.
   "onyx-slash": {
     id: "onyx-slash",
     nom: "Onyx Slash",
     cout: 2,
     type: "attaque",
-    texte: "Deal 12 damage and 4 Burning. The enemy behind takes half (6 damage, 2 Burning).",
+    texte: "Deal 26 damage and 4 Burning. The enemy behind takes half (13 damage, 2 Burning).",
     effets: [
-      { type: "degats", valeur: 12 },
+      { type: "degats", valeur: 26 },
       { type: "feu", valeur: 4 },
-      { type: "eclaboussure", degats: 6, feu: 2 },
+      { type: "eclaboussure", degats: 13, feu: 2 },
     ],
   },
 
@@ -352,8 +352,8 @@ export const CARTES = {
     cout: 0,
     type: "attaque",
     aoe: true,
-    texte: "Spend all Forge Heat. Apply 3 Burning per Heat spent to ALL enemies.",
-    effets: [{ type: "rejet-chaleur", valeur: 3 }],
+    texte: "Spend all Forge Heat. Apply 8 Burning per Heat spent to ALL enemies.",
+    effets: [{ type: "rejet-chaleur", valeur: 8 }],
   },
 
   // ---- Onyx Glove (gants) : build feu « brûlure dispersée » -------------------
