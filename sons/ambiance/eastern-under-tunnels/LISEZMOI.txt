@@ -1,0 +1,34 @@
+MUSIQUE D'AMBIANCE — EASTERN UNDER-TUNNELS (EXPLORATION) — PLAYLIST
+==================================================================
+
+⚠️  Ce dossier = l'ambiance d'EXPLORATION des souterrains (quand on MARCHE dans
+    la zone, là où des combats peuvent surgir). Elle est DIFFÉRENTE de la
+    musique de COMBAT, rangée dans  sons/combat/eastern-under-tunnels/.
+
+Comme la ville, ce n'est pas UN morceau en boucle mais une SUITE qui s'enchaîne :
+
+  1.mp3  ┐  INTRO  — joués UNE SEULE FOIS, à chaque entrée dans la zone
+  2.mp3  ┘
+  3.mp3  ┐
+  4.mp3  ├ BOUCLE — tournent sans fin : 3 → 4 → 5 → 3 → 4 → 5 → …
+  5.mp3  ┘           (au bout de 5, on revient à 3, JAMAIS à l'intro 1-2)
+
+Donc : on entre dans les tunnels → 1, 2, 3, 4, 5, 3, 4, 5, …
+On ressort puis on revient → l'intro 1-2 rejoue depuis le début.
+Pendant un combat, la musique de combat prend le relais ; à la fin du combat,
+on revient à cette ambiance d'exploration.
+
+OÙ DÉPOSER LES FICHIERS :
+  sons/ambiance/eastern-under-tunnels/1.mp3 … 5.mp3   ← ICI (ce dossier)
+
+OÙ C'EST DÉFINI :
+  jeu/core/sons.js  →  table PLAYLISTS, clé "ambiance-eastern-under-tunnels"
+    intro  : 1.mp3, 2.mp3
+    boucle : 3.mp3, 4.mp3, 5.mp3
+  jeu/data/zones.js →  EASTERN_UNDER_TUNNELS.musique = "ambiance-eastern-under-tunnels"
+
+POUR CHANGER LA RÉPARTITION (ex. tous les 5 en boucle, sans intro) :
+  déplacer les chemins entre `intro` et `boucle` dans la table PLAYLISTS.
+
+Le volume se règle en jeu (menu Pause, curseur « Music »).
+Garder les fichiers légers (limite GitHub Pages : 100 Mo / fichier).

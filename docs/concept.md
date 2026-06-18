@@ -560,7 +560,10 @@ que c'est addictif, **puis** on empile le suivant.
   l'arrivée, puis une **boucle** tourne sans fin (sans jamais rejouer l'intro).
   La **ville** l'utilise : `1-2` = intro d'arrivée, puis `3-4-5` en boucle (au bout
   de `5`, retour à `3`). Déclaré dans `PLAYLISTS` (`jeu/core/sons.js`), fichiers dans
-  `sons/ambiance/city/`. Les morceaux sont préchargés → enchaînements sans silence.
+  `sons/ambiance/<zone>/`. Les morceaux sont préchargés → enchaînements sans silence.
+  Les **Eastern Under-tunnels** l'utilisent aussi pour leur ambiance d'exploration
+  (`1-2` intro d'entrée, `3-4-5` en boucle), **distincte** de leur musique de combat
+  (`sons/combat/eastern-under-tunnels/`, tirée au hasard à chaque rencontre).
 
 ## Questions ouvertes (à trancher plus tard, non bloquantes)
 
