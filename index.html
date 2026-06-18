@@ -912,6 +912,8 @@
     }
     /* L'objet d'origine, grisé tant qu'on le tient en main. */
     .inv-item--tenu { opacity: 0.25; }
+    /* Focus clavier sur un objet : liseré rouge autour de l'objet entier (remplace le curseur). */
+    .inv-item--focus { outline: 2px solid #ef4444; outline-offset: 1px; box-shadow: 0 0 8px rgba(239,68,68,0.55); }
 
     /* Aperçu de pose : rectangle vert (ça tient) / rouge (occupé). */
     .inv-cible {

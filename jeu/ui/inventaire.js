@@ -536,10 +536,17 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const rangs = rangsInventaire(inventaire);
     elGrille.style.width = inventaire.cols * CASE + "px";
     elGrille.style.height = rangs * CASE + "px";
+
+    // Item sous le curseur clavier (null si case vide ou pas de curseur).
+    const objetSousCurseur = (cursorVisible && !tenu)
+      ? objetSousCase(inventaire, cursorX, cursorY)
+      : null;
+
     for (const o of inventaire.objets) {
       const d = itemDef(o.id);
       const ic = iconeItem(o.id);
       if (tenu && o === tenu.objet) ic.classList.add("inv-item--tenu"); // grisé (en main)
+      if (o === objetSousCurseur) ic.classList.add("inv-item--focus"); // focus clavier
       ic.style.position = "absolute";
       ic.style.left = o.x * CASE + 1 + "px";
       ic.style.top = o.y * CASE + 1 + "px";
@@ -558,8 +565,8 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       refCible.className = "inv-cible";
       elGrille.append(refCible);
       majApercuCible();
-    } else if (cursorVisible) {
-      // Curseur de navigation clavier : carré rouge sur la case active.
+    } else if (cursorVisible && !objetSousCurseur) {
+      // Curseur de navigation clavier : carré rouge sur la case active (case vide seulement).
       const cur = document.createElement("div");
       cur.className = "inv-curseur";
       cur.style.left = cursorX * CASE + "px";
