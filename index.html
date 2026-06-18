@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BRUTAL</title>
 
+  <!-- ══════════════════════════════════════════════════════════════════════
+       TODO EXPORT FINAL — SUPPRIMER CE BLOC (1/2 : tampon d'erreurs debug)
+       ══════════════════════════════════════════════════════════════════════ -->
   <!-- [debug] Tampon des erreurs récentes, joint aux remarques de debug.
        Placé tôt pour capturer les erreurs dès le chargement. -->
   <script>
@@ -30,6 +33,7 @@
       };
     })();
   </script>
+  <!-- ══════════ /TODO EXPORT FINAL (1/2) ══════════ -->
   <style>
     /* ---- Réglages de base ---- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1686,6 +1690,12 @@
     });
   </script>
 
+  <!-- ══════════════════════════════════════════════════════════════════════════════
+       TODO EXPORT FINAL — SUPPRIMER CE BLOC (2/2 : bouton Remarque + overlay + IIFE)
+       Contient : <style> #dbgr-*, <button id="dbgr-btn">, <div id="dbgr-overlay">,
+                  et le grand <script> IIFE qui suit.
+       Le serveur /debug/remarque n'existe pas dans le build packagé — tout est inutile.
+       ══════════════════════════════════════════════════════════════════════════════ -->
   <!-- [debug] Bouton de remarque (haut-gauche). Souris OU clavier (Tab+Entrée,
        ou F2). Envoie au collecteur ; si hors-ligne (build packagé), garde en
        localStorage pour ne rien perdre. -->
@@ -1846,5 +1856,6 @@
       }, true);
     })();
   </script>
+  <!-- ══════════ /TODO EXPORT FINAL (2/2) ══════════ -->
 </body>
 </html>

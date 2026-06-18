@@ -71,3 +71,10 @@ Brutal/
 - Les scores/sauvegardes du joueur se font en local dans le navigateur
   (`localStorage`), jamais sur un serveur.
 - Garder le jeu léger (limite GitHub Pages : 1 Go au total, 100 Mo par fichier). Si cette règle te limite préviens-moi.
+- **⚠ À SUPPRIMER AVANT L'EXPORT FINAL (Electron/Steam) :** le système de remarques debug
+  (`index.html` contient deux blocs marqués `TODO EXPORT FINAL` à retirer entièrement) :
+  - le **tampon d'erreurs** (petit `<script>` en tête de `<head>`) ;
+  - le **bouton "Remarque"** avec son overlay, ses styles `#dbgr-*`, et le grand `<script>` IIFE
+    en bas de `<body>`.
+  Ces deux blocs sont clairement balisés dans le code (`TODO EXPORT FINAL`). Ils n'ont aucune
+  utilité dans la version packagée : le serveur `/debug/remarque` n'existe pas en build final.
