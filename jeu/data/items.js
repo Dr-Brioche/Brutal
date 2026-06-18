@@ -160,6 +160,12 @@ export const ITEMS = {
     id: "bottes-vives", nom: "Swift Boots", categorie: "botte", rarete: "rare",
     taille: { l: 2, h: 1 }, icone: "#3a7a5a", cartes: ["celerite-vive", "celerite-vive"],
   },
+  // Bottes d'onyx : pièce du set Onyx. 1× Burning Run (hâte selon la Chaleur) +
+  // 2× Flaming Kick (déplace la brûlure d'un ennemi vers celui derrière).
+  "bottes-onyx": {
+    id: "bottes-onyx", nom: "Onyx Boots", categorie: "botte", rarete: "epique",
+    taille: { l: 2, h: 1 }, icone: "#2b2433", cartes: ["course-ardente", "coup-de-pied-ardent", "coup-de-pied-ardent"],
+  },
   // Anneau de givre : injecte « Frostbite » (ralentit un ennemi).
   "anneau-de-givre": {
     id: "anneau-de-givre", nom: "Frost Ring", categorie: "bague", rarete: "uncommon",

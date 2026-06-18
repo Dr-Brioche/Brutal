@@ -377,4 +377,28 @@ export const CARTES = {
     texte: "Gain 5 Stone. Deal 2 damage and apply 1 Burning.",
     effets: [{ type: "pierre", valeur: 5 }, { type: "degats", valeur: 2 }, { type: "feu", valeur: 1 }],
   },
+
+  // ---- Onyx Boots (bottes) : feu + mobilité -----------------------------------
+
+  // Burning Run : hâte proportionnelle à la Chaleur active (1 tour de célérité par
+  // Chaleur restante après le coût). Plus la forge est chaude, plus on accélère.
+  "course-ardente": {
+    id: "course-ardente",
+    nom: "Burning Run",
+    cout: 2,
+    type: "buff", // ni dégât ni bouclier : accélère le héros
+    texte: "Haste for as many turns as your current Forge Heat.",
+    effets: [{ type: "celerite-chaleur" }],
+  },
+
+  // Flaming Kick : déplace TOUTE la brûlure d'un ennemi vers celui situé derrière
+  // lui (repositionne le feu pour le concentrer, avant un détonateur par ex.).
+  "coup-de-pied-ardent": {
+    id: "coup-de-pied-ardent",
+    nom: "Flaming Kick",
+    cout: 1,
+    type: "attaque",
+    texte: "Move all Burning from the target to the enemy behind it.",
+    effets: [{ type: "transfert-feu" }],
+  },
 };

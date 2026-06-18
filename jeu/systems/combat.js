@@ -265,7 +265,8 @@ function prevoirIntentions(combat) {
 export function carteVise(carte) {
   return (carte?.effets ?? []).some(
     (e) => e.type === "degats" || e.type === "poison" || e.type === "feu" ||
-           e.type === "sang" || e.type === "stun" || e.type === "lenteur"
+           e.type === "sang" || e.type === "stun" || e.type === "lenteur" ||
+           e.type === "transfert-feu" // vise l'ennemi SOURCE dont on déplace la brûlure
   );
 }
 
@@ -325,6 +326,10 @@ function appliquerEffet(combat, effet, ennemi) {
     combat.chaleur = 0;
   } else if (effet.type === "celerite") {
     combat.hate += effet.valeur;            // Hâte : +30% d'agilité pendant `valeur` tours (la durée se cumule)
+  } else if (effet.type === "celerite-chaleur") {
+    // Hâte proportionnelle : autant de tours d'agilité que de Chaleur ACTIVE au
+    // moment de jouer (lue après le coût de la carte). Récompense de jouer chaud.
+    combat.hate += combat.chaleur;
   } else if (effet.type === "lenteur") {
     if (ennemi) ennemi.gel += effet.valeur; // Gel : −30% de vitesse pendant `valeur` tours (la durée se cumule)
   } else if (effet.type === "piocher") {
@@ -409,7 +414,7 @@ function resoudreAOE(combat, carte) {
 }
 
 // Effets résolus à part (positionnels), APRÈS les effets normaux de la carte.
-const EFFETS_POSITIONNELS = new Set(["rebond", "eclaboussure"]);
+const EFFETS_POSITIONNELS = new Set(["rebond", "eclaboussure", "transfert-feu"]);
 
 // Résout une carte ciblée (un ennemi). Effets normaux sur la cible, puis les
 // effets POSITIONNELS qui regardent l'ennemi situé DERRIÈRE elle.
@@ -453,6 +458,14 @@ function resoudreCiblee(combat, carte, cible) {
       if (derriere) {
         if (effet.degats) appliquerEffet(combat, { type: "degats", valeur: effet.degats }, derriere);
         if (effet.feu)    appliquerEffet(combat, { type: "feu", valeur: effet.feu }, derriere);
+      }
+    } else if (effet.type === "transfert-feu") {
+      // Flaming Kick : déplace TOUTE la brûlure de la cible vers l'ennemi derrière
+      // (rien si personne derrière ou si la cible n'a pas de feu). Pas de nouvelle
+      // propagation : on relocalise simplement le feu existant.
+      if (derriere && ennemi && ennemi.feu > 0) {
+        derriere.feu += ennemi.feu;
+        ennemi.feu = 0;
       }
     }
   }
