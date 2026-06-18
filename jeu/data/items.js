@@ -154,6 +154,11 @@ export const ITEMS = {
     id: "sac-en-cuir", nom: "Leather Pouch", categorie: "sac", rarete: "commun",
     taille: { l: 2, h: 2 }, icone: "#6b4a2b", rangsBonus: 2,
   },
+  // Grande bourse : 1 rangée de plus que la bourse de base (+3 au lieu de +2).
+  "grand-sac-en-cuir": {
+    id: "grand-sac-en-cuir", nom: "Big Leather Pouch", categorie: "sac", rarete: "uncommon",
+    taille: { l: 2, h: 2 }, icone: "#7a5630", rangsBonus: 3,
+  },
 };
 
 export function itemDef(id) {
