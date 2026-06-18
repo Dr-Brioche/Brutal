@@ -57,7 +57,7 @@ function essayerEquiper(inventaire, heros, objet, surChangement, rendre) {
   }
 }
 
-export function installerInventaire({ inventaire, heros, surChangement, surFermer, surJeter }) {
+export function installerInventaire({ inventaire, heros, surChangement, surFermer, surJeter, surVendre }) {
   const overlay = document.getElementById("inventaire");
   const elGauche = document.getElementById("inv-gauche");
   const elDroite = document.getElementById("inv-droite");
@@ -235,8 +235,16 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   // fond lui-même) et non `closest(".inv-panneau")` : car soulever() redessine
   // la grille, ce qui DÉTACHE l'icône cliquée du DOM — `closest` renverrait alors
   // null et reposerait l'objet aussitôt soulevé (le bug du déplacement souris).
+  // En boutique, lâcher l'objet hors du panneau = vendre directement.
   overlay.addEventListener("click", (ev) => {
-    if (tenu && ev.target === overlay) annulerTenu();
+    if (!tenu || ev.target !== overlay) return;
+    if (surVendre && document.body.classList.contains("en-boutique")) {
+      const o = tenu.objet;
+      lacher();
+      surVendre(o);
+    } else {
+      annulerTenu();
+    }
   });
 
   // Clic droit = menu Equip/Discard. Pendant qu'on tient un objet, il repose.
@@ -406,9 +414,11 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
         ? "Arrows: move · Enter: pick up/drop · X: equip/discard · [B] to close"
         : "Click an item to pick it up · drop it where you want or on a slot · [B] to close · arrows: keyboard mode";
     } else {
-      elAide.textContent = kbFocus
-        ? "Arrows: move · Enter: pick up / drop · X: equip/discard · [Tab]: back to merchant"
-        : "Click items to move them · [Tab]: keyboard mode for inventory";
+      elAide.textContent = tenu
+        ? "Drop outside the panel to sell · click a cell to move · click a slot to equip"
+        : (kbFocus
+            ? "Arrows: move · Enter: pick up/drop · X: equip/discard · [Tab]: back to merchant"
+            : "Drag an item outside the panel to sell it · [Tab]: keyboard mode");
     }
   }
 

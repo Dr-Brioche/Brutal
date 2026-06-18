@@ -436,6 +436,13 @@ export async function demarrerJeu(donneesInitiales = null) {
         jeter();
       }
     },
+    // Vendre un objet par glisser-déposer hors du panneau (en boutique seulement).
+    surVendre: (objet) => {
+      const prix = vendreObjet(inventaire, objet);
+      afficherMessage(`💰 Sold ${ITEMS[objet.id].nom} for ${prix} 🪙.`);
+      inventaireUI.rendre();
+      if (surChangementMenu) surChangementMenu();
+    },
   });
   let inventaireOuvert = false;
   function basculerInventaire() {
