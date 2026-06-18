@@ -8,7 +8,7 @@ import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js
 import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, TUILE } from "./world/carte.js";
 import { CITY, ZONES } from "./data/zones.js";
 import { tuileDef, estPorte } from "./data/tuiles.js";
-import { ITEMS, prixVente, RARETES } from "./data/items.js";
+import { ITEMS, prixVente, RARETES, rareteAuMoins } from "./data/items.js";
 import {
   creerInventaire, appliquerEquipement, armeEquipee, armureEquipee,
   ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
@@ -264,7 +264,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       itemId: o.id, // survol → bulle (on voit ce qu'on vend)
       action: () => {
         const d = ITEMS[o.id];
-        if (getPreference("confirmVente") && d.rarete !== "commun") {
+        if (getPreference("confirmVente") && rareteAuMoins(o.id, "rare")) {
           prochainMenu = () => menuConfirmerVente(o);
         } else {
           prochainMenu = menuVendre;
@@ -433,8 +433,8 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (document.body.classList.contains("en-boutique")) fermerBoutique();
       else basculerInventaire();
     },
-    // Jeter un objet — du sac ({ objet }) ou d'un slot équipé ({ slot }). Au-dessus
-    // de « commun » → on confirme (pour ne pas perdre un objet rare par erreur).
+    // Jeter un objet — du sac ({ objet }) ou d'un slot équipé ({ slot }). À partir
+    // de « rare » → on confirme (pour ne pas perdre un objet de valeur par erreur).
     surJeter: (cible) => {
       const id = cible.objet ? cible.objet.id : inventaire.slots[cible.slot];
       if (!id) return;
@@ -445,7 +445,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         appliquerEquipement(heros, inventaire, planches); // si c'était une arme/armure portée
         inventaireUI.rendre();
       };
-      if (d.rarete !== "commun") {
+      if (rareteAuMoins(id, "rare")) {
         demanderConfirmation({
           titre: "Drop this item?",
           message: `${d.nom} (${RARETES[d.rarete]?.nom ?? d.rarete}) will be lost for good.`,
@@ -466,7 +466,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         inventaireUI.rendre();
         if (surChangementMenu) surChangementMenu();
       };
-      if (getPreference("confirmVente") && d.rarete !== "commun") {
+      if (getPreference("confirmVente") && rareteAuMoins(objet.id, "rare")) {
         demanderConfirmation({
           titre: "Sell this item?",
           message: `${d.nom} (${RARETES[d.rarete]?.nom ?? d.rarete}) · +${prixVente(objet.id)} 🪙`,

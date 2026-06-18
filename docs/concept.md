@@ -410,7 +410,7 @@ directement la **collecte** et le **marché**.
   des cartes** qu'il ajoute au deck (mini-cartes, même rendu que le deck) → on sait
   ce qu'on récupère / achète.
 - **Vente au marchand** : on peut revendre les objets du sac contre de l'**or**
-  (prix selon la rareté : commun 2, rare 6, épique 15, légendaire 40). Trois façons
+  (prix selon la rareté : commun 2, uncommon 4, rare 6, épique 15, légendaire 40). Trois façons
   de vendre : via la liste **« Sell items »** ; ou en **glissant un objet du sac
   sur la fenêtre du marchand** (vente directe). Un choix **« Sell all… »** (dès
   2 objets) vend tout le sac d'un coup, **après une confirmation** dont le défaut

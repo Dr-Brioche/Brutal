@@ -5,7 +5,7 @@
 //   id        : identifiant interne
 //   nom       : nom affiché (anglais)
 //   categorie : détermine sur quel SLOT il s'équipe (voir SLOT_PAR_CATEGORIE)
-//   rarete    : "commun" | "rare" | "epique" | "legendaire" (couleur + drop)
+//   rarete    : "commun" | "uncommon" | "rare" | "epique" | "legendaire" (couleur + drop)
 //   taille    : { l, h } empreinte en cases dans l'inventaire (façon Diablo)
 //   icone     : couleur du carré placeholder (en attendant de vraies icônes)
 //   -- selon la catégorie --
@@ -19,11 +19,14 @@
 // Le stuff ne donne PAS de stats chiffrées : les CHIFFRES (vie, Chaleur, vitesse…)
 // viennent de l'arbre de talents (data/talents.js).
 
+// Raretés, du plus commun au plus précieux. `rang` = ordre (sert à comparer
+// « au moins rare » sans coder en dur les noms — cf. rareteAuMoins).
 export const RARETES = {
-  commun:     { nom: "Common",    couleur: "#9aa0a6" },
-  rare:       { nom: "Rare",      couleur: "#4a90d9" },
-  epique:     { nom: "Epic",      couleur: "#9b59b6" },
-  legendaire: { nom: "Legendary", couleur: "#e08a1e" },
+  commun:     { nom: "Common",    couleur: "#9aa0a6", rang: 0 },
+  uncommon:   { nom: "Uncommon",  couleur: "#4a9d52", rang: 1 }, // vert
+  rare:       { nom: "Rare",      couleur: "#4a90d9", rang: 2 },
+  epique:     { nom: "Epic",      couleur: "#9b59b6", rang: 3 },
+  legendaire: { nom: "Legendary", couleur: "#e08a1e", rang: 4 },
 };
 
 // Sur quel type de slot va chaque catégorie d'item.
@@ -152,10 +155,19 @@ export function couleurRarete(id) {
 }
 
 // Prix de revente d'un item au marchand (or), selon sa rareté.
-const PRIX_VENTE = { commun: 2, rare: 6, epique: 15, legendaire: 40 };
+const PRIX_VENTE = { commun: 2, uncommon: 4, rare: 6, epique: 15, legendaire: 40 };
 export function prixVente(id) {
   const it = ITEMS[id];
   return it ? (PRIX_VENTE[it.rarete] ?? 1) : 0;
+}
+
+// True si la rareté de l'item atteint AU MOINS le seuil donné (ex. "rare"). Sert
+// aux confirmations de vente/jet : on ne protège que les objets de valeur (rare+),
+// jamais les communs ni les uncommon.
+export function rareteAuMoins(id, seuilCle) {
+  const it = ITEMS[id];
+  if (!it) return false;
+  return (RARETES[it.rarete]?.rang ?? 0) >= (RARETES[seuilCle]?.rang ?? 0);
 }
 
 // Noms lisibles (anglais) pour les bulles d'info.

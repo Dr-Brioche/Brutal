@@ -125,7 +125,7 @@ def construire():
             ws.row_dimensions[r].height = 24
         r += 1
     # pastilles de rareté
-    for cle in ["commun", "rare", "epique", "legendaire"]:
+    for cle in ["commun", "uncommon", "rare", "epique", "legendaire"]:
         rr = RARETES[cle]
         c = ws.cell(r, 1, f"  {rr['nom']}  ({cle})")
         c.fill = fill(rr["couleur"])
