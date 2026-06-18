@@ -1819,21 +1819,31 @@
       cancelBtn.addEventListener("click", close);
       sendBtn.addEventListener("click", envoyer);
 
-      // Pendant que le modal est ouvert : on empêche les touches d'atteindre le
-      // jeu (window) pour ne pas déplacer le nain en tapant. keyup reste permis
-      // pour que les touches déjà enfoncées se libèrent proprement.
-      function trap(e) {
-        e.stopPropagation();
+      // Le jeu écoute le clavier sur `window` en phase CAPTURE (menu, marchand,
+      // combat…). Pour que la frappe dans la zone de texte ne déclenche PLUS ces
+      // commandes, on intercepte AUSSI sur `window` en CAPTURE : tant que le modal
+      // est ouvert, on coupe la propagation (stopImmediatePropagation) AVANT que le
+      // jeu ne voie la touche. On ne preventDefault PAS les caractères → le texte
+      // continue de s'écrire normalement dans le champ.
+      //   Ce script s'exécute au chargement (avant que le jeu — module différé —
+      //   n'ajoute ses écouteurs capture), donc notre écouteur passe bien EN PREMIER.
+      window.addEventListener("keydown", function (e) {
+        if (e.key === "F2") { // ouvre/ferme la remarque (touche libre, hors gameplay)
+          e.preventDefault(); e.stopImmediatePropagation();
+          if (isOpen()) close(); else open();
+          return;
+        }
+        if (!isOpen()) return;          // modal fermé : le jeu garde le clavier
+        e.stopImmediatePropagation();    // modal ouvert : le jeu ne voit RIEN
         if (e.key === "Escape") { e.preventDefault(); close(); }
         else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); envoyer(); }
-      }
-      overlay.addEventListener("keydown", trap);
-      overlay.addEventListener("keypress", function (e) { e.stopPropagation(); });
-
-      // Ouverture au clavier : F2 (touche libre, hors gameplay).
-      window.addEventListener("keydown", function (e) {
-        if (e.key === "F2") { e.preventDefault(); e.stopPropagation(); if (isOpen()) close(); else open(); }
-      });
+      }, true);
+      // keypress : le jeu ne s'en sert pas, mais on coupe aussi par sécurité.
+      // keyup : on LAISSE passer pour que les touches enfoncées AVANT l'ouverture
+      // se libèrent proprement côté jeu (pas de nain qui « glisse » à la fermeture).
+      window.addEventListener("keypress", function (e) {
+        if (isOpen()) e.stopImmediatePropagation();
+      }, true);
     })();
   </script>
 </body>
