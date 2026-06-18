@@ -30,8 +30,10 @@
 //                         une seule fois — pas de réaction en chaîne (cf. propagerFeu)
 //            - "embrasement": consomme TOUT le Feu de l'ennemi et le convertit en
 //                         dégâts instantanés (× `valeur`). Ex. 5 Feu × 2 = 10 dégâts.
-//            - "sang"   : ajoute `valeur` de Saignement à l'ennemi (comme le poison,
-//                         mais le sang absorbé SOIGNE le héros à chaque tick)
+//            - "sang"   : applique `valeur` ticks de Saignement à l'ennemi.
+//                         Chaque tick passif = 1 dégât plat + −1 tick.
+//                         Frapper un ennemi qui saigne DÉJÀ = DÉTONATION (dégâts
+//                         immédiats = ticks restants) puis empilement des nouveaux.
 //            - "chaleur": régénère `valeur` d'énergie (Chaleur) — peut dépasser le
 //                         seuil et donc faire surchauffer (risque de brûlure)
 //            - "trempe" : convertit TOUTE la Chaleur restante en Pierre (×`valeur`
@@ -206,13 +208,13 @@ export const CARTES = {
     effets: [{ type: "piocher", valeur: 2 }],
   },
 
-  // Bague de sang : saignement qui te SOIGNE à chaque tick (vol de vie lent).
+  // Bague de sang : attaque tranchante qui empile le saignement (détonation si déjà saignant).
   "coup-de-sang": {
     id: "coup-de-sang",
     nom: "Bloodletting",
     cout: 1,
     type: "attaque",
-    texte: "Deal 2 damage. Apply 2 Bleed (heals you each tick).",
+    texte: "Deal 2 damage. Apply 2 Bleed. If the target already bleeds, detonate ticks for bonus damage first.",
     effets: [{ type: "degats", valeur: 2 }, { type: "sang", valeur: 2 }],
   },
 

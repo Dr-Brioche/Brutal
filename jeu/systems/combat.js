@@ -112,7 +112,7 @@ function ajusterCarteBase(combat, carteId, cible) {
 function creerEnnemiCombat(def) {
   return {
     def, pv: def.pv, pvMax: def.pv,
-    poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps ; sang = vol de vie)
+    poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps)
     feuDeCarte: false,             // true = feu posé par une carte ce tour : propagera à la FIN du tour du héros
     stun: 0,                       // étourdissement : nb de SES tours encore sautés
     dernierPoison: 0, dernierFeu: 0, dernierSang: 0, // dégâts subis au dernier tour (UI)
@@ -151,7 +151,6 @@ export function creerCombat(ennemisDefs, opts = {}) {
     derniereBrulure: 0,
     dernierPoisonHeros: 0,
     dernierFeuHeros: 0,
-    dernierSoinSang: 0,    // PV rendus au héros par le saignement ce tour (pour l'UI)
     // Initiative (ATB)
     vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0), // + talents d'agilité
     hate: 0,               // « Hâte » : nb de tours du héros encore accélérés (+30% agilité)
@@ -312,7 +311,12 @@ function appliquerEffet(combat, effet, ennemi) {
       ennemi.feu = 0;
     }
   } else if (effet.type === "sang") {
-    if (ennemi) ennemi.sang += effet.valeur; // saignement : soigne le héros à chaque tick
+    if (ennemi) {
+      // Détonation : si l'ennemi saigne déjà, ses ticks actuels claquent en dégâts
+      // immédiats (capturés par le delta de PV de l'UI). Puis on empile les nouveaux.
+      if (ennemi.sang > 0) ennemi.pv = Math.max(0, ennemi.pv - ennemi.sang);
+      ennemi.sang += effet.valeur;
+    }
   } else if (effet.type === "stun") {
     if (ennemi) ennemi.stun += effet.valeur; // étourdit : l'ennemi saute ses prochains tours (cumulable)
   } else if (effet.type === "chaleur") {
@@ -550,23 +554,18 @@ export function agirEnnemi(combat, i) {
     brulureRetour: 0, // brûlure renvoyée à l'attaquant par un passif (set Onyx)
   };
   if (!e || e.pv <= 0) return evt;
-  // Ordre des malus dans le temps : poison, puis feu, et le VOL DE VIE EN DERNIER.
-  // (La PROPAGATION du Feu, elle, est résolue à la FIN DU TOUR DU HÉROS — cf.
-  // propagerFeu() appelé par finirTourHeros — et non plus au tick de l'ennemi.)
+  // Ordre des malus dans le temps : poison, puis feu, saignement en dernier.
+  // (La PROPAGATION du Feu est résolue à la FIN DU TOUR DU HÉROS — cf. propagerFeu.)
   evt.poison = e.dernierPoison = tiquerEnnemi(e, "poison");
   evt.feu = e.dernierFeu = tiquerEnnemi(e, "feu");
-  // Vol de vie (saignement) TOUJOURS en dernier : si l'ennemi est DÉJÀ MORT du
-  // poison ou du feu, il ne saigne plus → AUCUNE régénération pour le héros.
-  if (e.pv > 0) {
-    evt.sang = e.dernierSang = tiquerEnnemi(e, "sang");
-    if (evt.sang > 0) {
-      const avant = combat.pvHeros;
-      combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + evt.sang);
-      evt.soin = combat.pvHeros - avant;
-      combat.dernierSoinSang += evt.soin;
-    }
+  // Saignement TOUJOURS en dernier (si l'ennemi meurt du poison/feu avant, il ne
+  // saigne plus). Chaque tick = 1 dégât plat, le compteur baisse de 1.
+  if (e.pv > 0 && e.sang > 0) {
+    e.pv = Math.max(0, e.pv - 1);
+    evt.sang = e.dernierSang = 1;
+    e.sang -= 1;
   } else {
-    e.dernierSang = 0; // mort avant de saigner : pas de tick de sang
+    e.dernierSang = 0;
   }
   if (e.gel   > 0) e.gel   -= 1; // le Gel s'écoule (1 de SES tours), même étourdi
   if (e.haste > 0) e.haste -= 1; // la Hâte s'écoule (1 de SES tours)
@@ -605,7 +604,6 @@ export function agirEnnemi(combat, i) {
 // surchauffe, le poison/feu du héros tiquent, puis on pioche une main et on
 // prévoit les intentions. Le TOUT 1er tour ne recharge pas (forge froide).
 export function commencerTourHeros(combat) {
-  combat.dernierSoinSang = 0;
   if (combat.premierTourHeros) {
     combat.premierTourHeros = false;
     combat.derniereBrulure = combat.dernierPoisonHeros = combat.dernierFeuHeros = 0;
