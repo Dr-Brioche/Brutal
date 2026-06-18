@@ -70,4 +70,4 @@ Brutal/
   qui est en ligne. Pousser dessus = mettre à jour le jeu visible.
 - Les scores/sauvegardes du joueur se font en local dans le navigateur
   (`localStorage`), jamais sur un serveur.
-- Garder le jeu léger (limite GitHub Pages : 1 Go au total, 100 Mo par fichier).
+- Garder le jeu léger (limite GitHub Pages : 1 Go au total, 100 Mo par fichier). Si cette règle te limite préviens-moi.
