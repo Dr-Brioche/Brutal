@@ -19,12 +19,15 @@ const BRUITAGES = {
 const MUSIQUES = {
 };
 
-// PLAYLISTS d'ambiance : une SUITE de morceaux qui s'enchaînent. `intro` est
-// joué UNE SEULE FOIS à l'arrivée, puis `boucle` tourne sans fin (jamais de
-// retour à l'intro). Chemins relatifs à sons/.
-//   Titre   : 1 = intro d'ouverture,  puis 2-3 en boucle (écran-titre + menus).
-//   Ville   : 1-2 = intro d'arrivée (un seul fichier), puis 3-4-5 en boucle.
-//   Tunnels : 1-2 = intro d'entrée,   puis 3-4-5 en boucle (ambiance d'explo).
+// PLAYLISTS d'ambiance : une SUITE de morceaux. Chemins relatifs à sons/.
+// Deux formes possibles :
+//   { intro:[...], boucle:[...] } — `intro` joué UNE FOIS à l'arrivée, puis
+//     `boucle` tourne sans fin (jamais de retour à l'intro). Pour les ambiances
+//     qui veulent une ouverture posée : écran-titre, ville.
+//   { pool:[...] } — à chaque morceau, on en TIRE UN AU HASARD dans la liste
+//     (sans répéter deux fois de suite). Pas d'intro : les morceaux sont
+//     interchangeables. Pour les ZONES D'EXPLORATION → variété, et un nouveau
+//     morceau à chaque (re)lancement (entrée dans la zone, fin de combat…).
 const PLAYLISTS = {
   // Écran de titre et menus de démarrage (avant l'entrée dans le jeu).
   "ambiance-titre": {
@@ -36,10 +39,16 @@ const PLAYLISTS = {
     boucle: ["ambiance/city/3.mp3", "ambiance/city/4.mp3", "ambiance/city/5.mp3"],
   },
   // Eastern Under-tunnels : ambiance d'EXPLORATION (le combat a sa propre
-  // musique, cf. data/musiques.js). Fichiers dans sons/ambiance/eastern-under-tunnels/.
+  // musique, cf. data/musiques.js). Pool aléatoire : un morceau au hasard parmi
+  // les 5, renouvelé à chaque fin de morceau et à chaque retour d'un combat.
   "ambiance-eastern-under-tunnels": {
-    intro:  ["ambiance/eastern-under-tunnels/1.mp3", "ambiance/eastern-under-tunnels/2.mp3"],
-    boucle: ["ambiance/eastern-under-tunnels/3.mp3", "ambiance/eastern-under-tunnels/4.mp3", "ambiance/eastern-under-tunnels/5.mp3"],
+    pool: [
+      "ambiance/eastern-under-tunnels/1.mp3",
+      "ambiance/eastern-under-tunnels/2.mp3",
+      "ambiance/eastern-under-tunnels/3.mp3",
+      "ambiance/eastern-under-tunnels/4.mp3",
+      "ambiance/eastern-under-tunnels/5.mp3",
+    ],
   },
 };
 
@@ -237,10 +246,20 @@ export function jouerMusiqueFichier(chemin) {
 
 // ---- Playlist : enchaînement intro (une fois) → boucle (sans fin) -----------
 
-// Démarre une playlist (objet { intro:[...], boucle:[...] }, chemins relatifs).
+// Démarre une playlist (cf. PLAYLISTS pour les deux formes intro/boucle ou pool).
 function lancerPlaylist(cle, pl) {
-  if (musiqueEnCours?.cle === cle) return; // déjà en cours : ne pas relancer l'intro
+  if (musiqueEnCours?.cle === cle) return; // déjà en cours : ne pas relancer
   arreterMusique();
+  // Forme « pool » : tirage aléatoire sans intro (zones d'exploration).
+  if (pl.pool) {
+    const pool = pl.pool.map((f) => DOSSIER + f);
+    precharger(pool); // tous les morceaux en cache → enchaînement net
+    const seq = { pool, dernier: -1 };
+    musiqueEnCours = { audio: null, cle, estCombat: false, seq };
+    avancerPlaylist(seq);
+    return;
+  }
+  // Forme « intro/boucle » : ouverture jouée une fois puis boucle séquentielle.
   const intro  = pl.intro.map((f) => DOSSIER + f);
   const boucle = pl.boucle.map((f) => DOSSIER + f);
   precharger([...intro, ...boucle]); // morceaux suivants en cache → enchaînement net
@@ -249,15 +268,23 @@ function lancerPlaylist(cle, pl) {
   avancerPlaylist(seq);
 }
 
-// Joue le morceau d'indice `seq.i`, puis enchaîne le suivant à sa fin.
-//   i <  intro.length → on est dans l'intro (joué une seule fois)
-//   i >= intro.length → on boucle sur `boucle` (ex. 3-4-5-3-4-5…), jamais l'intro
+// Joue le morceau courant, puis enchaîne le suivant à sa fin.
+//   pool : on TIRE AU HASARD (sans répéter deux fois de suite tant qu'il y a le choix).
+//   intro/boucle : i < intro.length = intro (une seule fois) ; sinon boucle (3-4-5-3-4-5…).
 function avancerPlaylist(seq) {
   if (musiqueEnCours?.seq !== seq) return; // playlist arrêtée/remplacée entre-temps
-  const src = seq.i < seq.intro.length
-    ? seq.intro[seq.i]
-    : seq.boucle[(seq.i - seq.intro.length) % seq.boucle.length];
-  seq.i++;
+  let src;
+  if (seq.pool) {
+    let k = Math.floor(Math.random() * seq.pool.length);
+    if (seq.pool.length > 1 && k === seq.dernier) k = (k + 1) % seq.pool.length;
+    seq.dernier = k;
+    src = seq.pool[k];
+  } else {
+    src = seq.i < seq.intro.length
+      ? seq.intro[seq.i]
+      : seq.boucle[(seq.i - seq.intro.length) % seq.boucle.length];
+    seq.i++;
+  }
   const audio = nouvelAudio(src, false, false); // pas de loop : on enchaîne nous-mêmes
   audio.addEventListener("ended", () => avancerPlaylist(seq));
   musiqueEnCours.audio = audio;

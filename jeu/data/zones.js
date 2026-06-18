@@ -60,7 +60,7 @@ export const CITY = {
 // ----- Eastern Under-tunnels — souterrains à l'est de Brütàl (dangers) ------
 export const EASTERN_UNDER_TUNNELS = {
   nom: "Eastern Under-tunnels",
-  musique: "ambiance-eastern-under-tunnels", // ambiance d'exploration (playlist)
+  musique: "ambiance-eastern-under-tunnels", // ambiance d'exploration (pool aléatoire)
   depart: { colonne: 2, ligne: 13 },
   // Le repaire des gobelins : les 3 variantes (chaman "range" → groupes de 3+).
   monstres: ["gobelin", "gobelin-vif", "gobelin-chaman"],

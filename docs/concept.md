@@ -570,15 +570,19 @@ que c'est addictif, **puis** on empile le suivant.
   **Save/Load sont masqués** (l'état du combat n'est pas sérialisé) — on n'y garde
   que *Resume* + les curseurs de son.
 - **Ambiance en PLAYLIST** (décidé 17/06/2026) : une zone peut enchaîner plusieurs
-  morceaux au lieu d'une boucle unique. Un **intro** est joué une seule fois à
-  l'arrivée, puis une **boucle** tourne sans fin (sans jamais rejouer l'intro).
-  La **ville** l'utilise : `1-2.mp3` = intro d'arrivée (un seul fichier), puis
-  `3-4-5` en boucle (au bout de `5`, retour à `3`). Déclaré dans `PLAYLISTS`
-  (`jeu/core/sons.js`), fichiers dans `sons/ambiance/<zone>/`. Les morceaux sont
-  préchargés → enchaînements sans silence.
-  Les **Eastern Under-tunnels** l'utilisent aussi pour leur ambiance d'exploration
-  (`1-2` intro d'entrée, `3-4-5` en boucle), **distincte** de leur musique de combat
-  (`sons/combat/eastern-under-tunnels/`, tirée au hasard à chaque rencontre).
+  morceaux au lieu d'une boucle unique. Deux formes (déclarées dans `PLAYLISTS`,
+  `jeu/core/sons.js`, fichiers dans `sons/ambiance/<zone>/`, tous préchargés →
+  enchaînements sans silence) :
+  - **intro + boucle** : un **intro** joué une seule fois à l'arrivée, puis une
+    **boucle** sans fin (sans jamais rejouer l'intro). La **ville** l'utilise :
+    `1-2.mp3` = intro d'arrivée, puis `3-4-5` en boucle.
+  - **pool aléatoire** (décidé 18/06/2026) : pas d'intro, on **tire un morceau au
+    hasard** à chaque fois (sans répéter deux fois de suite). Les **zones
+    d'exploration** l'utilisent : un morceau aléatoire à l'**entrée** de la zone,
+    un autre à chaque **fin de morceau**, et un nouveau **à chaque retour de
+    combat** (l'ambiance reprend fraîche). Les **Eastern Under-tunnels** piochent
+    parmi leurs 5 morceaux, **distincts** de leur musique de combat
+    (`sons/combat/eastern-under-tunnels/`, elle aussi tirée au hasard).
 
 ## Questions ouvertes (à trancher plus tard, non bloquantes)
 
