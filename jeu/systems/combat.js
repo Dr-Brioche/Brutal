@@ -267,7 +267,8 @@ function prevoirIntentions(combat) {
 // directement sur soi (Pierre…), sans choix de cible.
 export function carteVise(carte) {
   return (carte?.effets ?? []).some(
-    (e) => e.type === "degats" || e.type === "poison" || e.type === "feu" ||
+    (e) => e.type === "degats" || e.type === "degats-execution" ||
+           e.type === "poison" || e.type === "feu" ||
            e.type === "sang" || e.type === "stun" || e.type === "lenteur" ||
            e.type === "transfert-feu" // vise l'ennemi SOURCE dont on déplace la brûlure
   );
@@ -291,11 +292,23 @@ function effetViseEnnemi(e) {
          e.type === "embrasement";
 }
 
+// Un ennemi porte-t-il au moins un MALUS (statut négatif) ? Sert aux cartes
+// « combo » qui récompensent de frapper une cible déjà affaiblie.
+function aMalus(e) {
+  return e && (e.poison > 0 || e.feu > 0 || e.sang > 0 || e.stun > 0 || e.gel > 0);
+}
+
 // Applique un effet de carte : les effets offensifs touchent `ennemi` (la cible),
 // les défensifs touchent le héros.
 function appliquerEffet(combat, effet, ennemi) {
   if (effet.type === "degats") {
     if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - effet.valeur);
+  } else if (effet.type === "degats-execution") {
+    // Dégâts DOUBLÉS si la cible porte au moins un malus (poison/feu/sang/stun/gel).
+    if (ennemi) {
+      const deg = aMalus(ennemi) ? effet.valeur * 2 : effet.valeur;
+      ennemi.pv = Math.max(0, ennemi.pv - deg);
+    }
   } else if (effet.type === "pierre") {
     combat.pierre += effet.valeur;
   } else if (effet.type === "poison") {
@@ -412,6 +425,13 @@ function ennemiDerriere(combat, ennemi) {
   return combat.ennemis.find((e, i) => i > idx && ennemiVivant(e)) ?? null;
 }
 
+// Les deux VOISINS DIRECTS vivants de `ennemi` (gauche idx-1, droite idx+1).
+// Tableau de 0 à 2 ennemis. Sert aux cartes qui frappent « les côtés ».
+function ennemisAdjacents(combat, ennemi) {
+  const idx = combat.ennemis.indexOf(ennemi);
+  return [combat.ennemis[idx - 1], combat.ennemis[idx + 1]].filter(ennemiVivant);
+}
+
 // Résout une carte AOE : effets offensifs sur TOUS les ennemis vivants, effets
 // défensifs/utilitaires sur le héros. Les effets « dépense-tout » (rejet de
 // Chaleur) sont calculés UNE fois, sinon le 1er ennemi viderait la ressource.
@@ -424,6 +444,33 @@ function resoudreAOE(combat, carte) {
       const brulure = combat.chaleur * effet.valeur;
       combat.chaleur = 0;
       for (const e of vivants) { e.feu += brulure; e.feuDeCarte = true; }
+    } else if (effet.type === "danse-poison") {
+      // Danse empoisonnée : `hits` frappes sur TOUS les ennemis. Chaque frappe
+      // inflige `degats` et empoisonne. Combo : un ennemi DÉJÀ empoisonné avant
+      // la carte prend 2 poison/frappe au lieu de 1 (déterminé une fois, au début).
+      const dejaPoison = new Map(vivants.map((e) => [e, e.poison > 0]));
+      for (let h = 0; h < effet.hits; h++) {
+        for (const e of vivants) {
+          if (!ennemiVivant(e)) continue;
+          e.pv = Math.max(0, e.pv - effet.degats);
+          e.poison += dejaPoison.get(e) ? 2 : 1;
+        }
+      }
+    } else if (effet.type === "forgeage") {
+      // Forgeage d'armure : `feu` brûlure à tous. Combo : un ennemi DÉJÀ en feu
+      // en reçoit le double, puis TOUTE sa brûlure est consommée et convertie en
+      // Pierre pour le héros (1 brûlure = 1 Pierre). Les autres gardent leur feu.
+      for (const e of vivants) {
+        if (e.feu > 0) {
+          e.feu += effet.feu * 2;
+          combat.pierre += e.feu;
+          e.feu = 0;
+          e.feuDeCarte = false;
+        } else {
+          e.feu += effet.feu;
+          e.feuDeCarte = true;
+        }
+      }
     } else if (effetViseEnnemi(effet)) {
       for (const e of vivants) appliquerEffet(combat, effet, e);
     } else {
@@ -433,7 +480,10 @@ function resoudreAOE(combat, carte) {
 }
 
 // Effets résolus à part (positionnels), APRÈS les effets normaux de la carte.
-const EFFETS_POSITIONNELS = new Set(["rebond", "eclaboussure", "transfert-feu"]);
+const EFFETS_POSITIONNELS = new Set([
+  "rebond", "eclaboussure", "transfert-feu",
+  "cleave-adjacent", "brulure-adjacent", "coup-de-grace",
+]);
 
 // Résout une carte ciblée (un ennemi). Effets normaux sur la cible, puis les
 // effets POSITIONNELS qui regardent l'ennemi situé DERRIÈRE elle.
@@ -464,6 +514,7 @@ function resoudreCiblee(combat, carte, cible) {
   }
 
   const derriere = ennemiDerriere(combat, ennemi);
+  const adjacents = ennemisAdjacents(combat, ennemi);
   for (const effet of carte.effets) {
     if (effet.type === "rebond") {
       // Cleave : si la cible MEURT, ses dégâts rebondissent sur l'ennemi derrière
@@ -485,6 +536,24 @@ function resoudreCiblee(combat, carte, cible) {
       if (derriere && ennemi && ennemi.feu > 0) {
         derriere.feu += ennemi.feu;
         ennemi.feu = 0;
+      }
+    } else if (effet.type === "cleave-adjacent") {
+      // Rusty Cleave : les DEUX voisins directs prennent `valeur` dégâts.
+      for (const v of adjacents) appliquerEffet(combat, { type: "degats", valeur: effet.valeur }, v);
+    } else if (effet.type === "brulure-adjacent") {
+      // Eclaboussure de frappe : chaque voisin a `proba` chance de prendre `feu` brûlure.
+      for (const v of adjacents) {
+        if (Math.random() < (effet.proba ?? 1)) appliquerEffet(combat, { type: "feu", valeur: effet.feu }, v);
+      }
+    } else if (effet.type === "coup-de-grace") {
+      // Pickaxe Jab : si la cible est MORTE, un coup de `valeur` part sur un AUTRE
+      // ennemi vivant tiré au hasard (rien s'il n'en reste pas).
+      if (ennemi && ennemi.pv <= 0) {
+        const autres = combat.ennemis.filter((e) => e !== ennemi && ennemiVivant(e));
+        if (autres.length) {
+          const cible2 = autres[Math.floor(Math.random() * autres.length)];
+          appliquerEffet(combat, { type: "degats", valeur: effet.valeur }, cible2);
+        }
       }
     }
   }
