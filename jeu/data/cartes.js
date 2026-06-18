@@ -184,6 +184,16 @@ export const CARTES = {
     texte: "Gain 2 Forge Heat (energy).",
     effets: [{ type: "chaleur", valeur: 2 }],
   },
+  // Saphir parfait : version supérieure de Surge (+3 Chaleur au lieu de +2),
+  // pour le haut de gamme de la lignée de colliers.
+  "surge-saphir-parfait": {
+    id: "surge-saphir-parfait",
+    nom: "Perfect Sapphire Surge",
+    cout: 0,
+    type: "buff",
+    texte: "Gain 3 Forge Heat (energy).",
+    effets: [{ type: "chaleur", valeur: 3 }],
+  },
 
   // Bague de sang : saignement qui te SOIGNE à chaque tick (vol de vie lent).
   "coup-de-sang": {

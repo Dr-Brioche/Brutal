@@ -124,6 +124,17 @@ export const ITEMS = {
     id: "collier-de-saphir", nom: "Sapphire Amulet", categorie: "collier", rarete: "uncommon",
     taille: { l: 1, h: 1 }, icone: "#2f6fb0", cartes: ["surge-saphir"],
   },
+  // Beau collier de saphir : 2× Surge (le double de l'entrée de gamme).
+  "collier-de-saphir-fin": {
+    id: "collier-de-saphir-fin", nom: "Nice Sapphire Amulet", categorie: "collier", rarete: "rare",
+    taille: { l: 1, h: 1 }, icone: "#2f6fb0", cartes: ["surge-saphir", "surge-saphir"],
+  },
+  // Collier de saphir parfait : 3× Perfect Surge (+3 Chaleur chacune) → grosse
+  // relance d'énergie, haut de gamme de la lignée.
+  "collier-de-saphir-parfait": {
+    id: "collier-de-saphir-parfait", nom: "Perfect Sapphire Amulet", categorie: "collier", rarete: "epique",
+    taille: { l: 1, h: 1 }, icone: "#3a86d9", cartes: ["surge-saphir-parfait", "surge-saphir-parfait", "surge-saphir-parfait"],
+  },
   // Gants de mineur : slot « gant » libre ; recevront des cartes plus tard.
   "gants-de-mineur": {
     id: "gants-de-mineur", nom: "Miner's Gloves", categorie: "gant", rarete: "commun",
