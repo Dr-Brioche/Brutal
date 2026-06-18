@@ -230,22 +230,35 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     }
   });
 
-  // Clic sur le FOND NOIR (en dehors du panneau) pendant qu'on tient un objet :
-  // on le repose. On teste `ev.target === overlay` (le clic a atterri sur le
-  // fond lui-même) et non `closest(".inv-panneau")` : car soulever() redessine
-  // la grille, ce qui DÉTACHE l'icône cliquée du DOM — `closest` renverrait alors
-  // null et reposerait l'objet aussitôt soulevé (le bug du déplacement souris).
-  // En boutique, lâcher l'objet hors du panneau = vendre directement.
+  // Lâcher un objet tenu DANS LE VIDE (le fond noir, hors de toute fenêtre) = le
+  // JETER. On teste `ev.target === overlay` (le clic a atterri sur le fond
+  // lui-même) et non `closest(".inv-panneau")` : car soulever() redessine la
+  // grille, ce qui DÉTACHE l'icône cliquée du DOM — `closest` renverrait alors
+  // null et jetterait l'objet aussitôt soulevé (le bug du déplacement souris).
+  // surJeter gère la confirmation pour les objets rares ; Échap (ou clic droit)
+  // reste le moyen SÛR d'annuler sans rien jeter. La VENTE, elle, se fait en
+  // lâchant sur la fenêtre du marchand (cf. le listener sur #dialogue ci-dessous).
   overlay.addEventListener("click", (ev) => {
     if (!tenu || ev.target !== overlay) return;
-    if (surVendre && document.body.classList.contains("en-boutique")) {
-      const o = tenu.objet;
-      lacher();
-      surVendre(o);
-    } else {
-      annulerTenu();
-    }
+    const o = tenu.objet;
+    lacher();
+    if (surJeter) surJeter({ objet: o });
   });
+
+  // En boutique : lâcher un objet tenu SUR la fenêtre du marchand = le VENDRE.
+  // Phase capture, pour passer AVANT les options du dialogue (qu'on ne veut PAS
+  // déclencher quand on tient un objet). En boutique, seul `.dialogue-boite`
+  // capte la souris (le reste de #dialogue est transparent) : un clic ici signifie
+  // donc bien « lâché sur la fenêtre du marchand ».
+  const elDialogue = document.getElementById("dialogue");
+  elDialogue.addEventListener("click", (ev) => {
+    if (!tenu || !surVendre) return;
+    if (!document.body.classList.contains("en-boutique")) return;
+    ev.stopImmediatePropagation();
+    const o = tenu.objet;
+    lacher();
+    surVendre(o);
+  }, true);
 
   // Clic droit = menu Equip/Discard. Pendant qu'on tient un objet, il repose.
   window.addEventListener("contextmenu", (ev) => {
@@ -408,17 +421,19 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     if (!elAide || overlay.hidden) return;
     const enBoutique = dialogueActif();
     if (tenu) {
-      elAide.textContent = "Click a cell to drop · click a slot to equip · X: equip/discard · Esc: cancel";
+      // En tenant un objet : en boutique on le VEND en le lâchant sur le marchand ;
+      // partout, le lâcher dans le VIDE le jette (Échap reste le moyen sûr d'annuler).
+      elAide.textContent = enBoutique
+        ? "Drop on the merchant to sell · on a slot to equip · in the void to discard · Esc: cancel"
+        : "Drop on a cell to move · on a slot to equip · in the void to discard · Esc: cancel";
     } else if (!enBoutique) {
       elAide.textContent = cursorVisible
         ? "Arrows: move · Enter: pick up/drop · X: equip/discard · [B] to close"
         : "Click an item to pick it up · drop it where you want or on a slot · [B] to close · arrows: keyboard mode";
     } else {
-      elAide.textContent = tenu
-        ? "Drop outside the panel to sell · click a cell to move · click a slot to equip"
-        : (kbFocus
-            ? "Arrows: move · Enter: pick up/drop · X: equip/discard · [Tab]: back to merchant"
-            : "Drag an item outside the panel to sell it · [Tab]: keyboard mode");
+      elAide.textContent = kbFocus
+        ? "Arrows: move · Enter: pick up/drop · X: equip/discard · [Tab]: back to merchant"
+        : "Drag an item onto the merchant to sell it · [Tab]: keyboard mode";
     }
   }
 

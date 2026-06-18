@@ -410,10 +410,18 @@ directement la **collecte** et le **marché**.
   des cartes** qu'il ajoute au deck (mini-cartes, même rendu que le deck) → on sait
   ce qu'on récupère / achète.
 - **Vente au marchand** : on peut revendre les objets du sac contre de l'**or**
-  (prix selon la rareté : commun 2, rare 6, épique 15, légendaire 40). Un choix
-  **« Sell all… »** (dès 2 objets) vend tout le sac d'un coup, **après une
-  confirmation** dont le défaut est « Non » (pas de vente par mégarde).
-- *À venir* : glisser-déposer, navigation clavier, vraies icônes pixel art,
+  (prix selon la rareté : commun 2, rare 6, épique 15, légendaire 40). Trois façons
+  de vendre : via la liste **« Sell items »** ; ou en **glissant un objet du sac
+  sur la fenêtre du marchand** (vente directe). Un choix **« Sell all… »** (dès
+  2 objets) vend tout le sac d'un coup, **après une confirmation** dont le défaut
+  est « Non ». Pour les objets **rare et au-dessus**, chaque vente demande une
+  **confirmation** (évite de vendre un bon objet par mégarde) — désactivable dans
+  l'onglet **Interface** du menu pause.
+- **Glisser-déposer dans le sac** : on soulève un objet d'un clic, on le repose sur
+  une case (réorganisation) ou un slot (équiper). Le lâcher **dans le vide** (hors
+  de toute fenêtre) le **jette** (confirmation pour les objets rares) ; **Échap**
+  annule sans rien jeter.
+- *À venir* : navigation clavier complète, vraies icônes pixel art,
   agrandissement du sac, prix d'**achat** (le marchand de test est encore gratuit).
 
 ## Progression : niveaux & arbre de talents (décision du 13/06/2026)
