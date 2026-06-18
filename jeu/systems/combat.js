@@ -327,6 +327,13 @@ function appliquerEffet(combat, effet, ennemi) {
     combat.hate += effet.valeur;            // Hâte : +30% d'agilité pendant `valeur` tours (la durée se cumule)
   } else if (effet.type === "lenteur") {
     if (ennemi) ennemi.gel += effet.valeur; // Gel : −30% de vitesse pendant `valeur` tours (la durée se cumule)
+  } else if (effet.type === "piocher") {
+    // Pioche `valeur` cartes dans la main (recompose la pioche depuis la défausse
+    // si besoin, comme en début de tour).
+    for (let i = 0; i < effet.valeur; i++) {
+      const c = piocherUne(combat);
+      if (c) combat.main.push(c);
+    }
   }
 }
 

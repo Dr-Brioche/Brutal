@@ -135,10 +135,10 @@ export const ITEMS = {
     id: "collier-de-saphir-parfait", nom: "Perfect Sapphire Amulet", categorie: "collier", rarete: "epique",
     taille: { l: 1, h: 1 }, icone: "#3a86d9", cartes: ["surge-saphir-parfait", "surge-saphir-parfait", "surge-saphir-parfait"],
   },
-  // Gants de mineur : slot « gant » libre ; recevront des cartes plus tard.
+  // Gants de mineur : 2× « Master's Hand » (pioche 2 cartes) → fluidifie le deck.
   "gants-de-mineur": {
     id: "gants-de-mineur", nom: "Miner's Gloves", categorie: "gant", rarete: "commun",
-    taille: { l: 2, h: 1 }, icone: "#7a6a4a",
+    taille: { l: 2, h: 1 }, icone: "#7a6a4a", cartes: ["main-de-maitre", "main-de-maitre"],
   },
   // Bottes vives : injectent « Quicken » (accélère le héros — vitesse d'initiative).
   "bottes-vives": {

@@ -195,6 +195,17 @@ export const CARTES = {
     effets: [{ type: "chaleur", valeur: 3 }],
   },
 
+  // Gants de mineur : « Master's Hand » — pioche 2 cartes (tempo / fluidité du
+  // deck). Premier item qui manipule la PIOCHE plutôt que d'infliger un effet.
+  "main-de-maitre": {
+    id: "main-de-maitre",
+    nom: "Master's Hand",
+    cout: 1,
+    type: "buff", // ni dégât ni bouclier : agit sur la main
+    texte: "Draw 2 cards.",
+    effets: [{ type: "piocher", valeur: 2 }],
+  },
+
   // Bague de sang : saignement qui te SOIGNE à chaque tick (vol de vie lent).
   "coup-de-sang": {
     id: "coup-de-sang",
