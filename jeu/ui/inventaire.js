@@ -191,32 +191,42 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     }
   }
 
+  // Détection MANUELLE du double-clic : on ne peut pas se fier à l'événement
+  // natif `dblclick`. Le 1er clic SOULÈVE l'objet → rendre() reconstruit la
+  // grille → les deux clics tombent sur des éléments DOM différents (puis
+  // détachés), et le navigateur ne déclenche alors plus dblclick de façon fiable.
+  // On mémorise donc l'heure + la case du dernier clic et on compare nous-mêmes.
+  let dernierClic = { t: 0, x: -1, y: -1 };
+  const DELAI_DBLCLIC = 320; // ms max entre deux clics pour valider un double-clic
+
   // Clic dans la grille : pose l'objet tenu, ou soulève celui qui est dessous.
+  // Deux clics rapprochés sur la MÊME case = double-clic → équiper directement.
   elGrille.addEventListener("click", (ev) => {
     if (confirmationActive()) return;
     const c = caseDepuisClient(ev.clientX, ev.clientY);
+    const maintenant = performance.now();
+    const doubleClic = maintenant - dernierClic.t < DELAI_DBLCLIC &&
+                       c.x === dernierClic.x && c.y === dernierClic.y;
+
+    if (doubleClic) {
+      dernierClic.t = 0; // évite qu'un 3e clic enchaîne un autre double-clic
+      // Le 1er clic a déjà soulevé l'objet : on l'équipe directement.
+      const o = tenu ? tenu.objet : objetSousCase(inventaire, c.x, c.y);
+      if (o) {
+        if (tenu) lacher();
+        essayerEquiper(inventaire, heros, o, surChangement, rendre);
+        rendre();
+      }
+      return;
+    }
+    dernierClic = { t: maintenant, x: c.x, y: c.y };
+
     if (tenu) {
       const cible = calculerCible(c.x, c.y);
       poserA(cible.x, cible.y);
     } else {
       const o = objetSousCase(inventaire, c.x, c.y);
       if (o) { soulever(o, c.x - o.x, c.y - o.y); ghostVersSouris(ev.clientX, ev.clientY); }
-    }
-  });
-
-  // Double-clic gauche = équiper directement. Le 1er clic soulève l'objet, le 2e
-  // le repose à sa place d'origine ; le dblclick qui suit trouve l'objet et l'équipe.
-  // Si le 2e clic n'a pas pu reposer (tenu encore actif), on annule et on équipe.
-  elGrille.addEventListener("dblclick", (ev) => {
-    if (confirmationActive()) return;
-    const c = caseDepuisClient(ev.clientX, ev.clientY);
-    if (tenu) {
-      const o = tenu.objet;
-      lacher();
-      essayerEquiper(inventaire, heros, o, surChangement, rendre);
-    } else {
-      const o = objetSousCase(inventaire, c.x, c.y);
-      if (o) essayerEquiper(inventaire, heros, o, surChangement, rendre);
     }
   });
 
