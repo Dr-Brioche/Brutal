@@ -417,6 +417,24 @@ function resoudreCiblee(combat, carte, cible) {
   let ennemi = combat.ennemis[cible];
   if (!ennemiVivant(ennemi)) ennemi = combat.ennemis[premierVivant(combat)];
 
+  // Burning Hand : défausse TOUTE la main restante ; chaque carte défaussée
+  // envoie `valeur` de brûlure à un ennemi vivant AU HASARD (cumulable — un même
+  // ennemi peut brûler plusieurs fois). La carte n'a pas d'autre effet.
+  const defBrul = carte.effets.find((e) => e.type === "defausse-brulante");
+  if (defBrul) {
+    const n = combat.main.length;
+    combat.defausse.push(...combat.main);
+    combat.main = [];
+    for (let k = 0; k < n; k++) {
+      const vivants = combat.ennemis.filter(ennemiVivant);
+      if (!vivants.length) break;
+      const v = vivants[Math.floor(Math.random() * vivants.length)];
+      v.feu += defBrul.valeur;
+      v.feuDeCarte = true;
+    }
+    return;
+  }
+
   for (const effet of carte.effets) {
     if (!EFFETS_POSITIONNELS.has(effet.type)) appliquerEffet(combat, effet, ennemi);
   }

@@ -149,6 +149,12 @@ export const ITEMS = {
     id: "gants-de-mineur", nom: "Miner's Gloves", categorie: "gant", rarete: "commun",
     taille: { l: 2, h: 1 }, icone: "#7a6a4a", cartes: ["main-de-maitre", "main-de-maitre"],
   },
+  // Gants d'onyx : pièce du set Onyx. 2× Burning Hand (défausse → brûlure dispersée)
+  // + 2× Onyx Fist (Pierre + feu). Build feu/brûlure.
+  "gants-onyx": {
+    id: "gants-onyx", nom: "Onyx Glove", categorie: "gant", rarete: "epique",
+    taille: { l: 2, h: 1 }, icone: "#2b2433", cartes: ["main-brulante", "main-brulante", "poing-onyx", "poing-onyx"],
+  },
   // Bottes vives : injectent « Quicken » (accélère le héros — vitesse d'initiative).
   "bottes-vives": {
     id: "bottes-vives", nom: "Swift Boots", categorie: "botte", rarete: "rare",

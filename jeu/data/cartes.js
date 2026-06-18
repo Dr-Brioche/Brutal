@@ -353,4 +353,28 @@ export const CARTES = {
     texte: "Spend all Forge Heat. Apply 3 Burning per Heat spent to ALL enemies.",
     effets: [{ type: "rejet-chaleur", valeur: 3 }],
   },
+
+  // ---- Onyx Glove (gants) : build feu « brûlure dispersée » -------------------
+
+  // Burning Hand : défausse toute la main et envoie 3 Feu par carte défaussée à
+  // un ennemi AU HASARD (peut frapper plusieurs fois le même). Gratuite : à jouer
+  // en dernier dans le tour pour transformer une main inutile en brûlure.
+  "main-brulante": {
+    id: "main-brulante",
+    nom: "Burning Hand",
+    cout: 0,
+    type: "attaque",
+    texte: "Discard your hand. For each card discarded, apply 3 Burning to a random enemy.",
+    effets: [{ type: "defausse-brulante", valeur: 3 }],
+  },
+
+  // Onyx Fist : coup mixte défense + feu — 5 Pierre, 2 dégâts et 1 Feu sur la cible.
+  "poing-onyx": {
+    id: "poing-onyx",
+    nom: "Onyx Fist",
+    cout: 1,
+    type: "attaque",
+    texte: "Gain 5 Stone. Deal 2 damage and apply 1 Burning.",
+    effets: [{ type: "pierre", valeur: 5 }, { type: "degats", valeur: 2 }, { type: "feu", valeur: 1 }],
+  },
 };
