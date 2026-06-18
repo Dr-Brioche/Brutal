@@ -11,6 +11,7 @@
 
 import { montrerInfobulle, suivreInfobulle, cacherInfobulle, montrerInfobulleEl } from "./infobulle.js";
 import { itemDef, couleurRarete } from "../data/items.js";
+import { confirmationActive } from "./confirmation.js";
 
 // Touches captées par le dialogue (bloquées pour le reste du jeu pendant qu'il
 // est ouvert : pas de menu pause, pas de déplacement parasite).
@@ -136,6 +137,7 @@ export function ouvrirDialogue(dialogue, surFin) {
   }
 
   function surTouche(e) {
+    if (confirmationActive()) return; // une confirmation modale est ouverte par-dessus : on lui cède le clavier
     if (!TOUCHES.has(e.code)) return; // on laisse passer le reste
     e.preventDefault();
     e.stopPropagation();              // bloque menu pause / déplacement pendant le dialogue

@@ -1122,6 +1122,8 @@
     .confirm-message { color: #cbd0d6; font-size: 0.9rem; margin-bottom: 18px; }
     .confirm-boutons { display: flex; gap: 10px; }
     .confirm-btn { flex: 1; padding: 11px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; }
+    /* Bouton visé au clavier : liseré doré (même repère que partout ailleurs). */
+    .confirm-btn:focus { outline: 3px solid #ffcf57; outline-offset: 2px; }
     .confirm-non { background: #2f2d3a; border: 1px solid #45424f; color: #cbd0d6; }
     .confirm-oui { background: linear-gradient(135deg, #b45309, #7c2d12); color: #fff; }
     .confirm-oui.confirm-danger { background: linear-gradient(135deg, #c0392b, #7a1f15); }
