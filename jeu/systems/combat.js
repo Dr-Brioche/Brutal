@@ -329,9 +329,10 @@ function appliquerEffet(combat, effet, ennemi) {
   } else if (effet.type === "celerite") {
     combat.hate += effet.valeur;            // Hâte : +30% d'agilité pendant `valeur` tours (la durée se cumule)
   } else if (effet.type === "celerite-chaleur") {
-    // Hâte proportionnelle : autant de tours d'agilité que de Chaleur ACTIVE au
-    // moment de jouer (lue après le coût de la carte). Récompense de jouer chaud.
-    combat.hate += combat.chaleur;
+    // Hâte proportionnelle : autant de tours d'agilité que de Chaleur disponible
+    // AU MOMENT DE JOUER la carte (AVANT d'en payer le coût). Récompense de jouer
+    // chaud, sans pénaliser du coût de la carte elle-même.
+    combat.hate += combat.chaleurAvantCarte ?? combat.chaleur;
   } else if (effet.type === "lenteur") {
     if (ennemi) ennemi.gel += effet.valeur; // Gel : −30% de vitesse pendant `valeur` tours (la durée se cumule)
   } else if (effet.type === "piocher") {
@@ -374,6 +375,9 @@ export function jouerCarte(combat, index, cible = combat.cible) {
   const carte = combat.main[index];
   if (!carte || carte.cout > combat.chaleur) return false;
 
+  // Chaleur disponible AVANT de payer le coût : certains effets la lisent telle
+  // quelle (ex. Burning Run compte la Chaleur du moment, coût de la carte inclus).
+  combat.chaleurAvantCarte = combat.chaleur;
   combat.chaleur -= carte.cout;
   // La carte quitte la main AVANT de résoudre ses effets : certaines cartes
   // agissent sur le RESTE de la main (ex. défausse) et ne doivent pas se compter.
