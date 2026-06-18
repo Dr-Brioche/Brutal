@@ -478,6 +478,11 @@ devient exponentielle — chaque level up est un vrai événement.
 | `maitrise1` | **Ancestral Mastery** | forge4 + agile1 | Jouer une carte 200 fois = la maîtriser ; **3 emplacements** pour ajouter des maîtrisées au deck |
 | `maitrise2` | **Ancestral Legacy** | maitrise1 | **+2 emplacements** de Maîtrise (5 au total) ; coût 2 |
 | `ambidextrie` | **Ambidexterity** | agile1 | Équiper **deux armes à 1 main** simultanément (main + main off) ; les cartes des deux armes s'ajoutent au deck |
+| `deuxMains` | **Giant's Grip** | agile1 | Équiper les **armes à deux mains** (haches/épées massives) ; sans ce talent elles sont **trop lourdes** pour être portées |
+
+> Les deux styles d'arme avancés — **Giant's Grip** (2 mains) et **Ambidexterity**
+> (dual-wield) — partent du **même nœud** *Fleet Strikes* (`agile1`) : c'est un
+> **choix d'orientation** au combat, pas dispo au tout début de la partie.
 
 ### Règles de la Maîtrise des Ancêtres
 
@@ -510,8 +515,9 @@ devient exponentielle — chaque level up est un vrai événement.
   **arme à 1 main** peut y être posée.
 - **Comportement automatique** : si arme1 porte déjà une arme 1M et qu'arme2
   est libre, équiper une 2e arme la pose directement en arme2.
-- **Arme à 2 mains** : bloque arme2 comme d'habitude (l'équiper renvoie l'arme
-  off-hand au sac).
+- **Arme à 2 mains** : nécessite le talent **Giant's Grip** pour être équipée
+  (sinon « trop lourde »). Une fois portée, elle bloque arme2 comme d'habitude
+  (l'équiper renvoie l'arme off-hand au sac).
 - **Deck** : les cartes des deux armes s'empilent normalement dans la composition
   du deck (`cartesEquipees` lit tous les slots sans distinction).
 

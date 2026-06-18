@@ -66,6 +66,18 @@ export const TALENTS = {
     effet: { ambidextrie: 1 },
     description: "Wield a one-handed weapon in each hand — both weapons' cards are added to your deck.",
   },
+
+  // Talent LÉGENDAIRE : branche Combat — manier les armes à deux mains.
+  // Même prérequis qu'Ambidextrie (agile1) : les deux styles avancés forkent
+  // depuis Fleet Strikes. Sans ce talent, les armes mains:2 sont trop lourdes.
+  deuxMains: {
+    id: "deuxMains", nom: "Giant's Grip",
+    x: 3, y: 4, cout: 3,
+    requis: ["agile1"],
+    legendaire: true,
+    effet: { deuxMains: 1 },
+    description: "Wield massive two-handed weapons (greataxes, greatswords) — too heavy to equip without it.",
+  },
 };
 
 // Taille de la grille (pour dimensionner l'écran).
@@ -89,6 +101,7 @@ const NOM_EFFET = {
   maitrise: "Ancestral Mastery",
   slots: "Mastery slots",
   ambidextrie: "Ambidexterity",
+  deuxMains: "Two-handed weapons",
 };
 
 // Décrit l'effet d'un nœud, ex. "+10 Max HP".

@@ -131,6 +131,9 @@ function slotCible(inv, id, heros) {
 // ou "plein" si le sac n'a pas la place pour accueillir les items déplacés.
 export function equiper(inv, objet, heros) {
   const d = itemDef(objet.id);
+  // Arme à deux mains : trop lourde sans le talent Giant's Grip (on peut la
+  // garder/revendre dans le sac, mais pas l'équiper). Cf. data/talents.js.
+  if (d?.mains === 2 && !((heros?.talents?.deuxMains ?? 0) > 0)) return "deux-mains";
   const slot = slotCible(inv, objet.id, heros);
   if (!slot) return false;
   // Bloquer arme2 si arme1 est une arme à deux mains (la seconde main est occupée).

@@ -52,6 +52,10 @@ function essayerEquiper(inventaire, heros, objet, surChangement, rendre) {
     montrerToast("🎒 Bag is full — make some room before swapping gear.");
     return;
   }
+  if (res === "deux-mains") {
+    afficherMessage("⚠ Two-handed weapons need the Giant's Grip talent before you can wield them.");
+    return;
+  }
   if (arme2Bloquee(inventaire) && itemDef(objet.id).categorie === "bouclier") {
     afficherMessage("⚠ Your two-handed weapon occupies both hands — unequip it first.");
   }
