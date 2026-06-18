@@ -1,0 +1,23 @@
+MUSIQUE D'AMBIANCE — ÉCRAN DE TITRE (PLAYLIST)
+===============================================
+
+Jouée dès l'affichage de l'écran de titre, jusqu'à l'entrée dans le jeu.
+Même logique que la ville : intro jouée UNE SEULE FOIS, puis boucle sans fin.
+
+  1.mp3  ─  INTRO  — joué UNE SEULE FOIS à l'ouverture du jeu
+  2.mp3  ┐
+  3.mp3  ┘  BOUCLE — tournent sans fin : 2 → 3 → 2 → 3 → …
+
+Dès que le joueur entre dans le jeu (clic New Game ou Load), la musique du
+titre s'arrête et la musique de la zone (ville, tunnels…) prend le relais.
+
+NOTE NAVIGATEUR : les navigateurs modernes bloquent le son tant que
+l'utilisateur n'a pas cliqué sur la page. La musique démarre donc au plus
+tôt au 1er clic (bouton Play). Si le navigateur a déjà mémorisé que le
+joueur a interagi avec le site, elle peut démarrer plus tôt.
+
+OÙ C'EST DÉFINI :
+  jeu/core/sons.js  →  table PLAYLISTS, clé "ambiance-titre"
+    intro  : ["ambiance/titre/1.mp3"]
+    boucle : ["ambiance/titre/2.mp3", "ambiance/titre/3.mp3"]
+  index.html (script module) → jouerMusique("ambiance-titre") au chargement

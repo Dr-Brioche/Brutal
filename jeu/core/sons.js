@@ -22,9 +22,15 @@ const MUSIQUES = {
 // PLAYLISTS d'ambiance : une SUITE de morceaux qui s'enchaînent. `intro` est
 // joué UNE SEULE FOIS à l'arrivée, puis `boucle` tourne sans fin (jamais de
 // retour à l'intro). Chemins relatifs à sons/.
+//   Titre   : 1 = intro d'ouverture,  puis 2-3 en boucle (écran-titre + menus).
 //   Ville   : 1-2 = intro d'arrivée (un seul fichier), puis 3-4-5 en boucle.
-//   Tunnels : 1-2 = intro d'entrée,  puis 3-4-5 en boucle (ambiance d'explo).
+//   Tunnels : 1-2 = intro d'entrée,   puis 3-4-5 en boucle (ambiance d'explo).
 const PLAYLISTS = {
+  // Écran de titre et menus de démarrage (avant l'entrée dans le jeu).
+  "ambiance-titre": {
+    intro:  ["ambiance/titre/1.mp3"],
+    boucle: ["ambiance/titre/2.mp3", "ambiance/titre/3.mp3"],
+  },
   "ambiance-city": {
     intro:  ["ambiance/city/1-2.mp3"],
     boucle: ["ambiance/city/3.mp3", "ambiance/city/4.mp3", "ambiance/city/5.mp3"],
@@ -242,6 +248,17 @@ export function arreterMusique() {
   const a = musiqueEnCours.audio;
   if (a) { a.pause(); a.currentTime = 0; }
   musiqueEnCours = null; // coupe aussi une playlist (avancerPlaylist vérifie `seq`)
+}
+
+// Relance la musique si le navigateur l'avait bloquée (politique autoplay :
+// certains navigateurs refusent le son avant la 1re interaction utilisateur).
+// À appeler dès qu'un clic se produit sur la page.
+export function relancerMusiqueBloquee() {
+  const a = musiqueEnCours?.audio;
+  if (a && a.paused) {
+    const p = a.play();
+    if (p?.catch) p.catch(() => {});
+  }
 }
 
 export function reglerVolumeMusique(v) {

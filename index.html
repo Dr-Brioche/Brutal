@@ -1549,6 +1549,7 @@
     import { installerDemarrage } from "./jeu/ui/demarrage.js";
     import { installerTactile } from "./jeu/ui/tactile.js";
     import { planchesDuJeu, prechargerImages } from "./jeu/core/prechargement.js";
+    import { jouerMusique, relancerMusiqueBloquee } from "./jeu/core/sons.js";
 
     const ecranTitre = document.getElementById("ecran-titre");
     const canvas = document.getElementById("jeu");
@@ -1557,8 +1558,14 @@
     const chargementFill = document.getElementById("chargement-fill");
     const chargementTxt = document.getElementById("chargement-txt");
 
-    // Ce script s'exécute UNE FOIS tous les modules JS chargés : on quitte le mode
-    // indéterminé (balayage) et on précharge les images en affichant la vraie progression.
+    // Ce script s'exécute UNE FOIS tous les modules JS chargés.
+    // On tente de lancer la musique du titre dès maintenant. Si le navigateur
+    // bloque l'autoplay (politique de lecture auto), relancerMusiqueBloquee()
+    // reprend au 1er clic — l'utilisateur entendra la musique dès qu'il touche Play.
+    jouerMusique("ambiance-titre");
+    document.addEventListener("click", () => relancerMusiqueBloquee(), { once: true });
+
+    // On quitte le mode indéterminé (balayage) et on précharge les images.
     chargementTxt.textContent = "Loading assets…";
     chargementFill.parentElement.classList.remove("indetermine");
 
