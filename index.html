@@ -61,41 +61,14 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-end;  /* contenu poussé vers le bas */
+      padding-bottom: 11vh;       /* positionne dans la zone vide du bas */
       text-align: center;
-      background:
-        radial-gradient(circle at 50% 35%, rgba(220, 38, 38, 0.25), transparent 60%),
-        #0a0a0f;
-    }
-
-    .titre {
-      font-size: clamp(3.5rem, 18vw, 11rem);
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      line-height: 1;
-      background: linear-gradient(180deg, #ffffff 0%, #ff4d4d 55%, #b91c1c 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 40px rgba(239, 68, 68, 0.35);
-      animation: pulse 3s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50%      { transform: scale(1.03); }
-    }
-
-    .sous-titre {
-      margin-top: 0.5rem;
-      font-size: clamp(0.9rem, 3.5vw, 1.3rem);
-      letter-spacing: 0.35em;
-      text-transform: uppercase;
-      color: #9ca3af;
+      background: url('images/titre/ecran-accueil.png') center center / cover no-repeat, #0a0a0f;
     }
 
     .bouton {
-      margin-top: 3rem;
+      margin-top: 0;
       padding: 1rem 3.5rem;
       font-size: 1.2rem;
       font-weight: 700;
@@ -119,7 +92,7 @@
 
     /* ---- La barre de chargement de l'écran-titre ---- */
     .chargement {
-      margin-top: 3rem;
+      margin-top: 1.2rem;
       width: min(320px, 80vw);
       display: flex;
       flex-direction: column;
@@ -157,21 +130,6 @@
       letter-spacing: 0.1em;
       color: #8b8f98;
       font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-    }
-
-    .aide {
-      margin-top: 1.5rem;
-      font-size: 0.95rem;
-      color: #6b7280;
-      letter-spacing: 0.05em;
-    }
-
-    .pied {
-      position: absolute;
-      bottom: 1.2rem;
-      font-size: 0.8rem;
-      color: #4b5563;
-      letter-spacing: 0.1em;
     }
 
     /* ---- Le menu pause (touche Échap) ---- */
@@ -299,7 +257,7 @@
     /* ---- Le choix au démarrage (sur l'écran de titre) ---- */
     .demarrage {
       width: min(460px, 92vw);
-      margin-top: 2.4rem;
+      margin-top: 1.2rem;
     }
 
     /* ---- Le fondu au noir (transitions entre zones) ---- */
@@ -1563,8 +1521,6 @@
 
   <!-- L'écran de titre -->
   <main class="ecran-titre" id="ecran-titre">
-    <h1 class="titre">BRUTAL</h1>
-    <p class="sous-titre">Deep under the mountain</p>
 
     <!-- « Play » masqué tant que le préchargement n'est pas fini (évite le clic
          dans le vide pendant que les modules / images se chargent). -->
@@ -1586,9 +1542,6 @@
       <div class="menu-slots" id="demarrage-slots"></div>
     </div>
 
-    <p class="aide">Move: WASD / ZQSD or arrows &nbsp;·&nbsp; Space: talk / confirm &nbsp;·&nbsp; B: inventory &nbsp;·&nbsp; N: deck &nbsp;·&nbsp; T: talents &nbsp;·&nbsp; Esc: menu</p>
-
-    <footer class="pied">v0.9 — steel meets stone</footer>
   </main>
 
   <script type="module">
