@@ -368,39 +368,76 @@ export function jouerCarte(combat, index, cible = combat.cible) {
   if (!carte || carte.cout > combat.chaleur) return false;
 
   combat.chaleur -= carte.cout;
-
-  if (carteAOE(carte)) {
-    // AOE : les effets offensifs frappent TOUS les ennemis vivants.
-    // Les effets défensifs (pierre, chaleur, célérité) s'appliquent normalement.
-    const vivants = combat.ennemis.filter(ennemiVivant);
-    for (const effet of carte.effets) {
-      if (effetViseEnnemi(effet)) for (const e of vivants) appliquerEffet(combat, effet, e);
-      else appliquerEffet(combat, effet, null);
-    }
-  } else {
-    // Carte ciblée : on vise un ennemi VIVANT (sinon on retombe sur le premier vivant).
-    let ennemi = combat.ennemis[cible];
-    if (!ennemiVivant(ennemi)) ennemi = combat.ennemis[premierVivant(combat)];
-    // Les effets normaux s'appliquent à la cible (`rebond` est traité séparément).
-    for (const effet of carte.effets) {
-      if (effet.type !== "rebond") appliquerEffet(combat, effet, ennemi);
-    }
-    // Rebond (Cleave) : si la cible meurt, les mêmes dégâts frappent le prochain
-    // ennemi vivant DERRIÈRE elle (vers la droite = index suivant). Si personne
-    // n'est derrière (cible tout au bout de la file), le rebond se perd — il ne
-    // « boucle » plus sur le premier ennemi.
-    const rebondEff = carte.effets.find((e) => e.type === "rebond");
-    if (rebondEff && ennemi && ennemi.pv <= 0) {
-      const idx = combat.ennemis.indexOf(ennemi);
-      const suivant = combat.ennemis.find((e, i) => i > idx && ennemiVivant(e));
-      if (suivant) appliquerEffet(combat, { type: "degats", valeur: rebondEff.valeur }, suivant);
-    }
-  }
-
+  // La carte quitte la main AVANT de résoudre ses effets : certaines cartes
+  // agissent sur le RESTE de la main (ex. défausse) et ne doivent pas se compter.
   combat.main.splice(index, 1);
   combat.defausse.push(carte);
+
+  if (carteAOE(carte)) resoudreAOE(combat, carte);
+  else                 resoudreCiblee(combat, carte, cible);
+
   verifierFin(combat);
   return true;
+}
+
+// L'ennemi situé DERRIÈRE `ennemi` dans la file (vers la droite = index suivant),
+// le premier VIVANT. null s'il est en bout de file. Sert aux effets positionnels
+// (rebond, éclaboussure, transfert de feu).
+function ennemiDerriere(combat, ennemi) {
+  const idx = combat.ennemis.indexOf(ennemi);
+  return combat.ennemis.find((e, i) => i > idx && ennemiVivant(e)) ?? null;
+}
+
+// Résout une carte AOE : effets offensifs sur TOUS les ennemis vivants, effets
+// défensifs/utilitaires sur le héros. Les effets « dépense-tout » (rejet de
+// Chaleur) sont calculés UNE fois, sinon le 1er ennemi viderait la ressource.
+function resoudreAOE(combat, carte) {
+  const vivants = combat.ennemis.filter(ennemiVivant);
+  for (const effet of carte.effets) {
+    if (effet.type === "rejet-chaleur") {
+      // Trempe OFFENSIVE : convertit toute la Chaleur en brûlure (×valeur) sur
+      // chaque ennemi vivant, puis la forge refroidit (chaleur → 0).
+      const brulure = combat.chaleur * effet.valeur;
+      combat.chaleur = 0;
+      for (const e of vivants) { e.feu += brulure; e.feuDeCarte = true; }
+    } else if (effetViseEnnemi(effet)) {
+      for (const e of vivants) appliquerEffet(combat, effet, e);
+    } else {
+      appliquerEffet(combat, effet, null);
+    }
+  }
+}
+
+// Effets résolus à part (positionnels), APRÈS les effets normaux de la carte.
+const EFFETS_POSITIONNELS = new Set(["rebond", "eclaboussure"]);
+
+// Résout une carte ciblée (un ennemi). Effets normaux sur la cible, puis les
+// effets POSITIONNELS qui regardent l'ennemi situé DERRIÈRE elle.
+function resoudreCiblee(combat, carte, cible) {
+  let ennemi = combat.ennemis[cible];
+  if (!ennemiVivant(ennemi)) ennemi = combat.ennemis[premierVivant(combat)];
+
+  for (const effet of carte.effets) {
+    if (!EFFETS_POSITIONNELS.has(effet.type)) appliquerEffet(combat, effet, ennemi);
+  }
+
+  const derriere = ennemiDerriere(combat, ennemi);
+  for (const effet of carte.effets) {
+    if (effet.type === "rebond") {
+      // Cleave : si la cible MEURT, ses dégâts rebondissent sur l'ennemi derrière
+      // (rien si personne derrière — il ne « boucle » pas sur le premier ennemi).
+      if (ennemi && ennemi.pv <= 0 && derriere) {
+        appliquerEffet(combat, { type: "degats", valeur: effet.valeur }, derriere);
+      }
+    } else if (effet.type === "eclaboussure") {
+      // Onyx Slash : la moitié (dégâts + brûlure) éclabousse l'ennemi derrière,
+      // qu'il survive ou non (contrairement au rebond, conditionné à la mort).
+      if (derriere) {
+        if (effet.degats) appliquerEffet(combat, { type: "degats", valeur: effet.degats }, derriere);
+        if (effet.feu)    appliquerEffet(combat, { type: "feu", valeur: effet.feu }, derriere);
+      }
+    }
+  }
 }
 
 // Tick d'un statut « dégâts dans le temps » sur un ennemi (poison/feu) : il perd

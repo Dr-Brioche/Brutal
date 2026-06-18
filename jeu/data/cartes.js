@@ -310,4 +310,47 @@ export const CARTES = {
     texte: "Detonate all Burning: deal 2 damage per Burning on ALL enemies.",
     effets: [{ type: "embrasement", valeur: 2 }],
   },
+
+  // ---- Big Onyx Sword (arme 2 mains) : build feu « brûlure » ------------------
+  // Onyx Radiance (mise en place AOE), Onyx Slash (gros coup + éclaboussure), et
+  // Heat Rejection (trempe offensive : la Chaleur devient de la brûlure de masse).
+
+  // Onyx Radiance : pose un peu de Feu sur TOUS les ennemis (amorce du combo brûlure).
+  "onyx-radiance": {
+    id: "onyx-radiance",
+    nom: "Onyx Radiance",
+    cout: 1,
+    type: "attaque",
+    aoe: true,
+    texte: "Apply 2 Burning to ALL enemies.",
+    effets: [{ type: "feu", valeur: 2 }],
+  },
+
+  // Onyx Slash : coup lourd (12 dégâts + 4 Feu) qui ÉCLABOUSSE l'ennemi derrière
+  // la cible avec la MOITIÉ (6 dégâts + 2 Feu), qu'il survive ou non.
+  "onyx-slash": {
+    id: "onyx-slash",
+    nom: "Onyx Slash",
+    cout: 2,
+    type: "attaque",
+    texte: "Deal 12 damage and 4 Burning. The enemy behind takes half (6 damage, 2 Burning).",
+    effets: [
+      { type: "degats", valeur: 12 },
+      { type: "feu", valeur: 4 },
+      { type: "eclaboussure", degats: 6, feu: 2 },
+    ],
+  },
+
+  // Heat Rejection : « trempe offensive ». Dépense TOUTE la Chaleur et la projette
+  // en brûlure (×3 par Chaleur) sur TOUS les ennemis. Gratuite, mais ne vaut que
+  // si la forge est chaude → récompense de jouer en surchauffe (miroir de Quench).
+  "rejet-chaleur": {
+    id: "rejet-chaleur",
+    nom: "Heat Rejection",
+    cout: 0,
+    type: "attaque",
+    aoe: true,
+    texte: "Spend all Forge Heat. Apply 3 Burning per Heat spent to ALL enemies.",
+    effets: [{ type: "rejet-chaleur", valeur: 3 }],
+  },
 };

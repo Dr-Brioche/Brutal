@@ -78,6 +78,15 @@ export const ITEMS = {
     planche: "images/armes/hache.png", degats: 8, mains: 2,
     cartes: ["coup-de-pommeau", "coup-de-pommeau", "giant-swing", "couper-en-deux", "couper-en-deux"],
   },
+  // Épée d'onyx : arme deux mains épique, build « feu/brûlure ». 1× Onyx Radiance
+  // (amorce AOE) + 2× Onyx Slash (gros coup + éclaboussure) + 2× Heat Rejection
+  // (trempe offensive : la Chaleur devient brûlure de masse). Pièce maîtresse du
+  // build Onyx aux côtés de la plaque d'onyx.
+  "epee-onyx": {
+    id: "epee-onyx", nom: "Big Onyx Sword", categorie: "arme", rarete: "epique",
+    taille: { l: 1, h: 3 }, icone: "#2b2433", degats: 9, mains: 2,
+    cartes: ["onyx-radiance", "onyx-slash", "onyx-slash", "rejet-chaleur", "rejet-chaleur"],
+  },
 
   // ---- Boucliers (slot off-hand) ----
   // Bouclier-tour : 1× « Shield Wall » (Pierre/blocage) + 2× « Shield Bash » (étourdit
