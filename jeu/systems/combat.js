@@ -447,7 +447,7 @@ export function agirEnnemi(combat, i) {
   const e = combat.ennemis[i];
   const evt = {
     poison: 0, feu: 0, sang: 0, soin: 0, mortStatut: false,
-    attaque: 0, stun: false,
+    attaque: 0, armureAbsorbe: 0, stun: false,
     soin_allie: 0,  // PV soignés sur un allié
     idx_soin: -1,   // index de l'ennemi soigné (pour le floater UI)
     haste_allie: 0, // tours de hâte donnés aux alliés vivants
@@ -476,9 +476,11 @@ export function agirEnnemi(combat, i) {
   if (e.pv <= 0) { evt.mortStatut = true; verifierFin(combat); return evt; }
   if (e.stun > 0) { e.stun -= 1; evt.stun = true; return evt; } // étourdi : pas d'action
   if (e.intention?.type === "attaque") {
-    const avant = combat.pvHeros;
+    const avantPv = combat.pvHeros;
+    const avantPierre = combat.pierre;
     subirDegats(combat, e.intention.valeur);
-    evt.attaque = avant - combat.pvHeros; // PV réellement perdus (après la Pierre)
+    evt.attaque = avantPv - combat.pvHeros;          // PV réellement perdus (après la Pierre)
+    evt.armureAbsorbe = avantPierre - combat.pierre; // Pierre retirée par le coup (coup encaissé)
   } else if (e.intention?.type === "soigner") {
     // Soigne la cible VERROUILLÉE à la préparation (l'allié au % le plus bas
     // alors), sauf si elle est morte entre-temps → une nouvelle est verrouillée.

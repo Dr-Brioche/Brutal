@@ -556,10 +556,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (evt.sang > 0) { u.secousse = 0.3; ajouterFlottant(`🩸${evt.sang}`, u.ecran.cx, u.ecran.sommet - 32, "#e05a5a"); }
     if (evt.soin > 0) ajouterFlottant(`+${evt.soin}`, heroEcran.cx, heroEcran.sommet - 16, "#86e08a");
     if (evt.mortStatut) { if (!u.mort.actif && !u.partis) exploser(u); return; }
-    if (evt.attaque > 0) { // il frappe : son anim d'attaque + le héros encaisse
+    if (evt.attaque > 0 || evt.armureAbsorbe > 0) { // il frappe : PV perdus OU armure entamée
       jouerAnim(u, "attaque");
       secousseHeros = 0.3;
-      ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
+      // PV perdus → chiffre rouge ; coup entièrement encaissé par la Pierre → chiffre bleu.
+      if (evt.attaque > 0) ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
+      else ajouterFlottant(`-${evt.armureAbsorbe}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
       if (pierreAvantTour > 0) jouerSonCoupArmure(); else jouerSonCoup();
     }
     if (evt.soin_allie > 0) { // le chaman soigne un allié
