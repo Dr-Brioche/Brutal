@@ -410,6 +410,15 @@ directement la **collecte** et le **marché**.
   Il ne donne **pas de stats chiffrées** — les CHIFFRES viennent de l'**arbre de
   talents** (voir section *Progression*). La bulle d'un objet montre **ses cartes**.
   On part avec un stuff de base ; on s'équipe ensuite **via le sac** (plus de touches R/E).
+- **Sets d'armure (bonus de panoplie)** (ajouté le 18/06/2026) : porter **toutes
+  les pièces d'armure d'un set** (torse + gants + bottes — **l'arme ne compte
+  PAS**) débloque un **bonus passif** qui s'ajoute **au-dessus des règles
+  normales**, déclenché par un **événement de combat**. C'est un moteur de
+  collecte (courir après la dernière pièce). 1er set : **Onyx** — *quand le héros
+  est frappé en mêlée, l'attaquant prend 1 brûlure* (qui **ne se propage pas**).
+  Données dans `SETS` (`jeu/data/items.js`), appliquées via `combat.passifs`. Les
+  pièces Onyx (plaque, gants, bottes, et l'épée d'onyx hors-condition) tournent
+  toutes autour du **feu/brûlure** → set thématique cohérent.
 - **Bulle d'info** : au survol d'un objet (sac OU marchand), on voit le **visuel
   des cartes** qu'il ajoute au deck (mini-cartes, même rendu que le deck) → on sait
   ce qu'on récupère / achète.

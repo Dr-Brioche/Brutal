@@ -129,7 +129,7 @@ export function ennemiVivant(e) { return e && e.pv > 0; }
 // `opts` : { pv, pvMax, cartes, stats } — vie (persiste) + cartes de l'équipement
 // + réglages chiffrés (`stats`) venant de l'arbre de talents.
 export function creerCombat(ennemisDefs, opts = {}) {
-  const { pv = 40, pvMax = 40, cartes = [], cartesSupp = [], mains = {}, stats = {} } = opts;
+  const { pv = 40, pvMax = 40, cartes = [], cartesSupp = [], mains = {}, stats = {}, passifs = [] } = opts;
   // Les TALENTS modifient les réglages de la Chaleur de Forge (seuil, plafond,
   // recharge, énergie de départ) — cf. bonusTalents() de l'arbre de talents.
   const chaleurSeuil = CHALEUR_SEUIL + (stats.chaleurSeuil || 0);
@@ -169,6 +169,8 @@ export function creerCombat(ennemisDefs, opts = {}) {
     tourJoueur: false,     // devient true au 1er tour du héros (commencerTourHeros)
     fini: false,
     resultat: null,
+    // Passifs (bonus de set d'armure) déclenchés sur événement — cf. agirEnnemi.
+    passifs,
   };
   prevoirIntentions(combat);
   combat.cible = premierVivant(combat);
@@ -514,6 +516,21 @@ function propagerFeu(combat) {
   for (const e of combat.ennemis) e.feuDeCarte = false;
 }
 
+// Déclenche les passifs « frappeMelee » (bonus de set) sur l'ATTAQUANT `e` quand
+// il vient de frapper le héros en mêlée. Le feu de rétorsion NE se propage PAS
+// (pas de feuDeCarte) — c'est une morsure ciblée, pas une carte. Renvoie le total
+// de brûlure infligée à l'attaquant (pour l'affichage).
+function declencherFrappeMelee(combat, e) {
+  let brulure = 0;
+  for (const p of combat.passifs ?? []) {
+    if (p.declencheur !== "frappeMelee") continue;
+    for (const ef of p.effets) {
+      if (ef.type === "feu") { e.feu += ef.valeur; brulure += ef.valeur; }
+    }
+  }
+  return brulure;
+}
+
 // Un ennemi agit : poison + feu + saignement (le sang SOIGNE le héros), puis il
 // exécute son intention — SAUF s'il est étourdi (stun). (La propagation du Feu est
 // résolue à la fin du tour du héros, cf. propagerFeu, pas ici.)
@@ -526,6 +543,7 @@ export function agirEnnemi(combat, i) {
     soin_allie: 0,  // PV soignés sur un allié
     idx_soin: -1,   // index de l'ennemi soigné (pour le floater UI)
     haste_allie: 0, // tours de hâte donnés aux alliés vivants
+    brulureRetour: 0, // brûlure renvoyée à l'attaquant par un passif (set Onyx)
   };
   if (!e || e.pv <= 0) return evt;
   // Ordre des malus dans le temps : poison, puis feu, et le VOL DE VIE EN DERNIER.
@@ -556,6 +574,9 @@ export function agirEnnemi(combat, i) {
     subirDegats(combat, e.intention.valeur);
     evt.attaque = avantPv - combat.pvHeros;          // PV réellement perdus (après la Pierre)
     evt.armureAbsorbe = avantPierre - combat.pierre; // Pierre retirée par le coup (coup encaissé)
+    // Passifs « quand frappé en mêlée » (set Onyx : l'attaquant prend du feu).
+    // Se déclenche même si la Pierre a tout absorbé (on a quand même été frappé).
+    evt.brulureRetour = declencherFrappeMelee(combat, e);
   } else if (e.intention?.type === "soigner") {
     // Soigne la cible VERROUILLÉE à la préparation (l'allié au % le plus bas
     // alors), sauf si elle est morte entre-temps → une nouvelle est verrouillée.

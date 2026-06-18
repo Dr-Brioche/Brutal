@@ -17,6 +17,7 @@ import {
   simulerFile, ratioInitiativeHeros, ratioInitiativeEnnemi, cibleSoinVerrou,
 } from "../systems/combat.js";
 import { cartesEquipees, mainsOccupees } from "../systems/inventaire.js";
+import { setsActifs } from "../data/items.js";
 import { bonusTalents } from "../systems/talents.js";
 import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
@@ -75,6 +76,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     cartesSupp: maitrise?.choisies ?? [],
     mains: mainsOccupees(inventaire), // cartes de base seulement pour les mains libres
     stats: bonusTalents(heros),
+    passifs: setsActifs(inventaire.slots).map((s) => s.bonus), // bonus de set d'armure
   });
 
   // Héros : coin haut-gauche du sprite (pieds sur le sol) + repère écran.
@@ -563,6 +565,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (evt.attaque > 0) ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
       else ajouterFlottant(`-${evt.armureAbsorbe}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
       if (pierreAvantTour > 0) jouerSonCoupArmure(); else jouerSonCoup();
+      // Set Onyx : l'attaquant prend du feu de rétorsion → chiffre sur LUI.
+      if (evt.brulureRetour > 0) ajouterFlottant(`🔥${evt.brulureRetour}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c");
     }
     if (evt.soin_allie > 0) { // le chaman soigne un allié
       jouerAnim(u, "attaque");

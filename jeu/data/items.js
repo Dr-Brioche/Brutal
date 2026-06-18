@@ -208,6 +208,44 @@ export function rareteAuMoins(id, seuilCle) {
   return (RARETES[it.rarete]?.rang ?? 0) >= (RARETES[seuilCle]?.rang ?? 0);
 }
 
+// ---- Sets d'armure (bonus de panoplie) -------------------------------------
+// Un SET d'armure donne un BONUS PASSIF qui s'active SEULEMENT si TOUTES ses
+// pièces d'armure sont équipées en même temps (torse + gants + bottes ;
+// l'ARME ne compte PAS dans la condition). Le bonus se déclenche sur un
+// ÉVÉNEMENT du combat (cf. systems/combat.js → combat.passifs), AU-DESSUS des
+// règles normales — c'est ce qui rend la complétion d'un set désirable.
+//
+// Champs d'un bonus :
+//   declencheur : quel événement l'active. Pour l'instant :
+//                 "frappeMelee" = quand le héros encaisse une attaque de mêlée.
+//   effets      : effets appliqués au déclenchement (même vocabulaire que les
+//                 cartes). Pour "frappeMelee", la cible est l'ATTAQUANT.
+export const SETS = {
+  onyx: {
+    id: "onyx",
+    nom: "Onyx Set",
+    pieces: ["plate-onyx", "gants-onyx", "bottes-onyx"], // torse + gants + bottes
+    bonus: {
+      declencheur: "frappeMelee",
+      texte: "When hit by a melee attack, the attacker takes 1 Burning (no spread).",
+      effets: [{ type: "feu", valeur: 1 }],
+    },
+  },
+};
+
+// Les bonus de set ACTIFS pour un équipement donné : ceux dont TOUTES les pièces
+// sont équipées. `slots` = inv.slots ({ armure, gant, botte, ... }).
+export function setsActifs(slots) {
+  const equipes = new Set(Object.values(slots || {}).filter(Boolean));
+  return Object.values(SETS).filter((s) => s.pieces.every((id) => equipes.has(id)));
+}
+
+// Le set auquel appartient un item (ou null) — pour l'afficher dans sa bulle / le
+// catalogue. Un item peut n'appartenir à aucun set.
+export function setDeItem(id) {
+  return Object.values(SETS).find((s) => s.pieces.includes(id)) ?? null;
+}
+
 // Noms lisibles (anglais) pour les bulles d'info.
 const NOM_CATEGORIE = {
   arme: "Weapon", bouclier: "Shield", armure: "Armor", gant: "Gloves",
