@@ -30,9 +30,20 @@ export function prechargerImages(chemins, onProgress) {
   if (total === 0) return Promise.resolve();
   return Promise.all(chemins.map((chemin) => new Promise((resoudre) => {
     const img = new Image();
-    const fini = () => { faits += 1; onProgress?.(faits, total); resoudre(); };
+    let appele = false;
+    const fini = () => {
+      if (appele) return; // guard : onload + img.complete ne comptent qu'une fois
+      appele = true;
+      faits += 1;
+      onProgress?.(faits, total);
+      resoudre();
+    };
     img.onload = fini;
     img.onerror = fini; // échec : on avance quand même (pas de blocage)
     img.src = chemin;
+    // Sur Safari mobile et certains caches agressifs, onload ne se déclenche
+    // JAMAIS si l'image est déjà en cache au moment où src est posé.
+    // img.complete détecte ce cas et résout manuellement.
+    if (img.complete) fini();
   })));
 }

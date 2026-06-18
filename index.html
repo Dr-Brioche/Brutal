@@ -1577,7 +1577,7 @@
       <div class="chargement-piste indetermine">
         <div class="chargement-fill" id="chargement-fill"></div>
       </div>
-      <span class="chargement-txt" id="chargement-txt">Loading…</span>
+      <span class="chargement-txt" id="chargement-txt">Loading scripts…</span>
     </div>
 
     <!-- Le choix au démarrage : nouvelle partie ou reprise d'un emplacement -->
@@ -1605,17 +1605,31 @@
     const chargementTxt = document.getElementById("chargement-txt");
 
     // Ce script s'exécute UNE FOIS tous les modules JS chargés : on quitte le mode
-    // indéterminé et on précharge les images en affichant la progression réelle.
+    // indéterminé (balayage) et on précharge les images en affichant la vraie progression.
+    chargementTxt.textContent = "Loading assets…";
     chargementFill.parentElement.classList.remove("indetermine");
+
+    // Révèle le bouton Play. Protégé contre les doubles appels (timeout + then).
+    let pret = false;
+    function reveler() {
+      if (pret) return;
+      pret = true;
+      chargement.hidden = true;
+      boutonJouer.hidden = false;
+      boutonJouer.focus(); // Enter/Espace lancent sans souris
+    }
+
+    // Sécurité : si une image bloque (ni onload ni onerror — cas Safari/cache),
+    // on révèle quand même Play après 10 s pour ne pas laisser l'écran bloqué.
+    const delaiSecurite = setTimeout(reveler, 10000);
+
     prechargerImages(planchesDuJeu(), (faits, total) => {
       const pct = total ? Math.round((faits / total) * 100) : 100;
       chargementFill.style.width = pct + "%";
       chargementTxt.textContent = `Loading… ${pct}%`;
     }).then(() => {
-      // Tout est en cache : on révèle « Play » (lancement instantané au clic).
-      chargement.hidden = true;
-      boutonJouer.hidden = false;
-      boutonJouer.focus(); // Enter/Espace lancent sans souris
+      clearTimeout(delaiSecurite);
+      reveler();
     });
 
     // L'écran de démarrage décide : nouvelle partie (null) ou sauvegarde
