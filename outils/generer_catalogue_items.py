@@ -168,6 +168,30 @@ def construire():
         c.alignment = GAUCHE
         r += 1
 
+    # Tableau de référence d'équilibrage (repère de design, fourni par Brioche).
+    r += 1
+    ws.cell(r, 1, "Tableau de référence pour garder une certaine balance").font = F_GRAS
+    r += 1
+    bal_entetes = ["Rareté", "Nb de cartes", "Dégât / énergie", "Armure / énergie"]
+    for j, txt in enumerate(bal_entetes):
+        c = ws.cell(r, 1 + j, txt); c.font = F_GRAS; c.alignment = GAUCHE
+    r += 1
+    bal_lignes = [
+        ("Common", 5, 6, 5),
+        ("Uncommon", 6, 9, 8),
+        ("Rare", 6, 12, 10),
+        ("Epic", 7, 16, 14),
+        ("Legendary", 8, 20, 18),
+    ]
+    for nom_r, nb, deg, arm in bal_lignes:
+        for j, val in enumerate([nom_r, nb, deg, arm]):
+            ws.cell(r, 1 + j, val).alignment = GAUCHE
+        r += 1
+    ws.cell(r, 1, "Armes à deux mains : ×1,5 sur dégât et armure/énergie (moins de cartes), "
+                  "souvent via des sorts chers en énergie.").alignment = GAUCHE
+    for col in ("B", "C", "D"):
+        ws.column_dimensions[col].width = 18
+
     # =================== Feuille 2 : Items ===================
     ws = wb.create_sheet("Items")
     ws.sheet_properties.tabColor = "2E2640"

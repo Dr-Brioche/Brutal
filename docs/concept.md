@@ -401,6 +401,26 @@ directement la **collecte** et le **marché**.
   à la fois**, avec une petite pause, pilotée par l'**initiative** (voir la section
   *Initiative / vitesse* plus haut) — on comprend ce qui arrive.
 
+### Cartes « combo » (récompensent une mise en place)
+
+Plusieurs cartes ont un effet RENFORCÉ selon l'état de la cible — l'intérêt est
+de préparer le terrain avant de frapper :
+
+- **Wound Opening** (Basilisk Fang) : 18 dégâts, **DOUBLÉS** si la cible porte au
+  moins un malus (poison, feu, saignement, étourdissement, gel). `degats-execution`.
+- **Poison Dance** (Basilisk Fang, AOE) : **3 frappes** de 3 dégâts sur tous,
+  + poison à chaque frappe — **1** normalement, **2** si l'ennemi était **déjà
+  empoisonné** au début de la carte. `danse-poison`.
+- **Armor Forging** (Magma Hammer, AOE) : **10 brûlure** à tous ; un ennemi **déjà
+  en feu** en reçoit le **double**, puis **toute sa brûlure est consommée et forgée
+  en Pierre** pour le héros (1 brûlure = 1 Pierre). `forgeage`.
+- **Pickaxe Jab** (Miner's Pick) : 3+3 dégâts ; si la cible **meurt**, un 3e coup
+  de 3 part sur un **autre ennemi au hasard**. `coup-de-grace`.
+- **Rusty Cleave** (Rusty Axe) : 6 à la cible + **4 à chacun des deux voisins**
+  directs. `cleave-adjacent`.
+- **Splash Strike** (Forge Hammer) : 15 à la cible ; chaque voisin a **50 %** de
+  prendre 5 brûlure. `brulure-adjacent`.
+
 ## Items, butin & inventaire (1er jet implémenté)
 
 - **Butin par monstre** : chaque ennemi a une table (`butin`) — de l'**or** + des

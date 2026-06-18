@@ -43,40 +43,48 @@ export const SLOT_PAR_CATEGORIE = {
 
 export const ITEMS = {
   // ---- Armes ----
+  // Hache rouillée : arme de départ. 2× Rusty Cleave (balayage) + 3× Strike.
   "hache-rouillee": {
     id: "hache-rouillee", nom: "Rusty Axe", categorie: "arme", rarete: "commun",
     taille: { l: 1, h: 2 }, icone: "#9a6b3a",
-    planche: "images/armes/hache.png", degats: 5, mains: 1, cartes: ["coup-de-hache", "coup-de-hache"],
+    planche: "images/armes/hache.png", degats: 5, mains: 1,
+    cartes: ["coup-de-hache", "coup-de-hache", "frappe", "frappe", "frappe"],
   },
+  // Marteau de forge : 3× Forge Smash + 2× Strike + 1× Splash Strike (éclaboussure).
   "marteau-de-forge": {
     id: "marteau-de-forge", nom: "Forge Hammer", categorie: "arme", rarete: "uncommon",
     taille: { l: 1, h: 2 }, icone: "#8a8f98",
-    planche: "images/armes/marteau.png", degats: 4, mains: 1, cartes: ["ecrasement", "ecrasement"],
+    planche: "images/armes/marteau.png", degats: 4, mains: 1,
+    cartes: ["ecrasement", "ecrasement", "ecrasement", "frappe", "frappe", "eclaboussure-de-frappe"],
   },
+  // Pioche de mineur : 2× Pickaxe Jab + 3× Strike.
   "pioche-de-mineur": {
     id: "pioche-de-mineur", nom: "Miner's Pick", categorie: "arme", rarete: "commun",
     taille: { l: 1, h: 2 }, icone: "#7d7a72",
-    planche: "images/armes/pioche.png", degats: 3, mains: 1, cartes: ["coup-de-pioche", "coup-de-pioche"],
+    planche: "images/armes/pioche.png", degats: 3, mains: 1,
+    cartes: ["coup-de-pioche", "coup-de-pioche", "frappe", "frappe", "frappe"],
   },
-  // Croc de basilic : arme à poison (pas encore de sprite). Injecte « Venom Stab ».
+  // Croc de basilic : arme à poison. 3× Venom Stab + 1× Poison Dance (AOE) + 2× Wound Opening.
   "croc-de-basilic": {
     id: "croc-de-basilic", nom: "Basilisk Fang", categorie: "arme", rarete: "rare",
     taille: { l: 1, h: 2 }, icone: "#4f7a3a",
-    degats: 4, mains: 1, cartes: ["coup-venimeux", "coup-venimeux"],
+    degats: 4, mains: 1,
+    cartes: ["coup-venimeux", "coup-venimeux", "coup-venimeux", "danse-empoisonnee", "ouverture-des-plaies", "ouverture-des-plaies"],
   },
-  // Marteau de lave : arme de feu (pas encore de sprite). Injecte « Lava Hammer ».
+  // Marteau de lave : arme de feu. 3× Lava Hammer + 1× Armor Forging + 1× Dragon's Blaze + 2× Fire Strike.
   "marteau-de-lave": {
     id: "marteau-de-lave", nom: "Magma Hammer", categorie: "arme", rarete: "epique",
     taille: { l: 1, h: 2 }, icone: "#c0431e",
-    degats: 6, mains: 1, cartes: ["coup-de-lave", "coup-de-lave"],
+    degats: 6, mains: 1,
+    cartes: ["coup-de-lave", "coup-de-lave", "coup-de-lave", "forgeage-d-armure", "embrasement-dragon", "feu-frappe", "feu-frappe"],
   },
 
-  // Battle Axe : arme deux mains épique. Cartes : 2× pommeau, 1× grand arc (AOE), 2× Cleave.
+  // War Axe : arme deux mains RARE. 2× Pommel Strike + 2× Giant Swing (AOE) + 2× Cleave.
   "hache-de-guerre": {
-    id: "hache-de-guerre", nom: "War Axe", categorie: "arme", rarete: "epique",
+    id: "hache-de-guerre", nom: "War Axe", categorie: "arme", rarete: "rare",
     taille: { l: 1, h: 3 }, icone: "#8a3a1a",
     planche: "images/armes/hache.png", degats: 8, mains: 2,
-    cartes: ["coup-de-pommeau", "coup-de-pommeau", "giant-swing", "couper-en-deux", "couper-en-deux"],
+    cartes: ["coup-de-pommeau", "coup-de-pommeau", "giant-swing", "giant-swing", "couper-en-deux", "couper-en-deux"],
   },
   // Épée d'onyx : arme deux mains épique, build « feu/brûlure ». 1× Onyx Radiance
   // (amorce AOE) + 2× Onyx Slash (gros coup + éclaboussure) + 2× Heat Rejection
@@ -85,7 +93,7 @@ export const ITEMS = {
   "epee-onyx": {
     id: "epee-onyx", nom: "Big Onyx Sword", categorie: "arme", rarete: "epique",
     taille: { l: 1, h: 3 }, icone: "#2b2433", degats: 9, mains: 2,
-    cartes: ["onyx-radiance", "onyx-slash", "onyx-slash", "rejet-chaleur", "rejet-chaleur"],
+    cartes: ["onyx-radiance", "onyx-radiance", "onyx-slash", "onyx-slash", "onyx-slash", "rejet-chaleur", "onyx-overheat"],
   },
 
   // ---- Boucliers (slot off-hand) ----
@@ -106,7 +114,7 @@ export const ITEMS = {
   // Plaque d'onyx : armure « dragon ». 2× Onyx Armor (gros bloc de Pierre) +
   // 2× Dragon's Blaze (détonateur de feu) + 2× Onyx Breath (pose du feu en masse).
   "plate-onyx": {
-    id: "plate-onyx", nom: "Onyx Guard Plate", categorie: "armure", rarete: "rare",
+    id: "plate-onyx", nom: "Onyx Guard Plate", categorie: "armure", rarete: "epique",
     taille: { l: 2, h: 2 }, icone: "#3b4250",
     planche: "images/heros/nain-onyx.png", defense: 5,
     cartes: ["onyx-armor", "onyx-armor", "embrasement-dragon", "embrasement-dragon", "souffle-onyx", "souffle-onyx"],
@@ -227,8 +235,8 @@ export const SETS = {
     pieces: ["plate-onyx", "gants-onyx", "bottes-onyx"], // torse + gants + bottes
     bonus: {
       declencheur: "frappeMelee",
-      texte: "When hit by a melee attack, the attacker takes 1 Burning (no spread).",
-      effets: [{ type: "feu", valeur: 1 }],
+      texte: "When hit by a melee attack, the attacker takes 3 Burning (no spread).",
+      effets: [{ type: "feu", valeur: 3 }],
     },
   },
 };
