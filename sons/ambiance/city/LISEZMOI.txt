@@ -3,18 +3,20 @@ MUSIQUE D'AMBIANCE DE LA VILLE — PLAYLIST
 
 La ville n'a pas UN morceau en boucle mais une SUITE qui s'enchaîne :
 
-  1.mp3  ┐  INTRO  — joués UNE SEULE FOIS, à chaque arrivée en ville
-  2.mp3  ┘
+  1-2.mp3  ─  INTRO  — joué UNE SEULE FOIS, à chaque arrivée en ville
   3.mp3  ┐
   4.mp3  ├ BOUCLE — tournent sans fin : 3 → 4 → 5 → 3 → 4 → 5 → …
-  5.mp3  ┘           (au bout de 5, on revient à 3, JAMAIS à l'intro 1-2)
+  5.mp3  ┘           (au bout de 5, on revient à 3, JAMAIS à l'intro)
 
-Donc : on entre en ville → 1, 2, 3, 4, 5, 3, 4, 5, 3, 4, 5, …
+Donc : on entre en ville → 1-2, 3, 4, 5, 3, 4, 5, 3, 4, 5, …
 On ressort puis on revient → l'intro 1-2 rejoue depuis le début.
+
+(L'intro tient maintenant dans UN seul fichier, 1-2.mp3 — avant c'était deux
+ morceaux séparés 1.mp3 et 2.mp3.)
 
 OÙ C'EST DÉFINI :
   jeu/core/sons.js  →  table PLAYLISTS, clé "ambiance-city"
-    intro  : ["ambiance/city/1.mp3", "ambiance/city/2.mp3"]
+    intro  : ["ambiance/city/1-2.mp3"]
     boucle : ["ambiance/city/3.mp3", "ambiance/city/4.mp3", "ambiance/city/5.mp3"]
 
 POUR CHANGER LA RÉPARTITION (ex. 3 morceaux d'intro, 4 en boucle) :

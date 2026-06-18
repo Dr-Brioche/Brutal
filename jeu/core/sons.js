@@ -22,11 +22,11 @@ const MUSIQUES = {
 // PLAYLISTS d'ambiance : une SUITE de morceaux qui s'enchaînent. `intro` est
 // joué UNE SEULE FOIS à l'arrivée, puis `boucle` tourne sans fin (jamais de
 // retour à l'intro). Chemins relatifs à sons/.
-//   Ville   : 1-2 = intro d'arrivée, puis 3-4-5 en boucle (3 suit 5, pas 1).
+//   Ville   : 1-2 = intro d'arrivée (un seul fichier), puis 3-4-5 en boucle.
 //   Tunnels : 1-2 = intro d'entrée,  puis 3-4-5 en boucle (ambiance d'explo).
 const PLAYLISTS = {
   "ambiance-city": {
-    intro:  ["ambiance/city/1.mp3", "ambiance/city/2.mp3"],
+    intro:  ["ambiance/city/1-2.mp3"],
     boucle: ["ambiance/city/3.mp3", "ambiance/city/4.mp3", "ambiance/city/5.mp3"],
   },
   // Eastern Under-tunnels : ambiance d'EXPLORATION (le combat a sa propre
