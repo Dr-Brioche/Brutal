@@ -24,8 +24,10 @@
 //            - "pierre" : ajoute `valeur` de défense "Pierre" au héros
 //            - "poison" : ajoute `valeur` de Poison à l'ennemi (dégâts/tour qui
 //                         baissent de 1 par tour, ignorent la Pierre)
-//            - "feu"    : ajoute `valeur` d'Enflammé à l'ennemi (comme le poison ;
-//                         se propage aux ennemis adjacents non encore enflammés)
+//            - "feu"    : ajoute `valeur` d'Enflammé à l'ennemi (dégâts/tour comme le
+//                         poison). À la FIN du tour où une carte pose du Feu, l'ennemi
+//                         en répand la moitié (arrondie au sup.) à ses voisins vivants,
+//                         une seule fois — pas de réaction en chaîne (cf. propagerFeu)
 //            - "embrasement": consomme TOUT le Feu de l'ennemi et le convertit en
 //                         dégâts instantanés (× `valeur`). Ex. 5 Feu × 2 = 10 dégâts.
 //            - "sang"   : ajoute `valeur` de Saignement à l'ennemi (comme le poison,

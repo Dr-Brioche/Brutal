@@ -113,7 +113,7 @@ function creerEnnemiCombat(def) {
   return {
     def, pv: def.pv, pvMax: def.pv,
     poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps ; sang = vol de vie)
-    feuDeCarte: false,             // true = feu posé par une carte, propagera au 1er tick
+    feuDeCarte: false,             // true = feu posé par une carte ce tour : propagera à la FIN du tour du héros
     stun: 0,                       // étourdissement : nb de SES tours encore sautés
     dernierPoison: 0, dernierFeu: 0, dernierSang: 0, // dégâts subis au dernier tour (UI)
     intention: null,              // ce qu'il prépare (télégraphié)
@@ -415,20 +415,33 @@ function tiquerHeros(combat, nom) {
   return n;
 }
 
-// Propagation de l'Enflammé : une seule fois par ennemi ayant du feu de CARTE,
-// au premier tick. Ajoute `force` stacks aux voisins VIVANTS (cumul si déjà en feu).
-// Ne touche PAS `feuDeCarte` des voisins : le feu reçu par propagation ne propage
-// jamais à son tour — seul le feu posé par une carte déclenche une vague.
-function propagerDepuis(combat, i, force) {
-  if (force <= 0) return;
-  for (const j of [i - 1, i + 1]) {
-    const v = combat.ennemis[j];
-    if (v && v.pv > 0) v.feu += force;
-  }
+// Propagation de l'Enflammé, résolue à la FIN DU TOUR DU HÉROS (cf. finirTourHeros).
+// Chaque ennemi qui a reçu du Feu d'une CARTE ce tour-ci (feuDeCarte) en répand la
+// MOITIÉ, arrondie au supérieur, à CHACUN de ses voisins vivants. Tout est calculé
+// sur une PHOTO prise avant le moindre ajout → propagation SIMULTANÉE : le Feu reçu
+// par un voisin ne se propage pas à son tour, et il n'y a qu'UNE vague (jamais de
+// réaction en chaîne).
+//   Ex. 3 ennemis, Feu 4 sur le centre → +2 à gauche, +2 à droite.
+//   Ex. Feu 8 sur les 3 (AOE) → 8+4 / 8+4+4 / 8+4 = 12 / 16 / 12.
+function propagerFeu(combat) {
+  // Force répandue par chaque ennemi : figée AVANT tout ajout (vague simultanée).
+  const force = combat.ennemis.map((e) =>
+    (e.pv > 0 && e.feuDeCarte && e.feu > 0) ? Math.ceil(e.feu / 2) : 0
+  );
+  combat.ennemis.forEach((e, i) => {
+    if (force[i] <= 0) return;
+    for (const j of [i - 1, i + 1]) {
+      const v = combat.ennemis[j];
+      if (v && v.pv > 0) v.feu += force[i];
+    }
+  });
+  // Marqueur consommé : sans nouvelle carte de Feu, plus aucune propagation ensuite.
+  for (const e of combat.ennemis) e.feuDeCarte = false;
 }
 
-// Un ennemi agit : poison + feu (+ propagation) + saignement (le sang SOIGNE le
-// héros), puis il exécute son intention — SAUF s'il est étourdi (stun).
+// Un ennemi agit : poison + feu + saignement (le sang SOIGNE le héros), puis il
+// exécute son intention — SAUF s'il est étourdi (stun). (La propagation du Feu est
+// résolue à la fin du tour du héros, cf. propagerFeu, pas ici.)
 // Renvoie ce qui s'est passé, pour que l'écran l'anime.
 export function agirEnnemi(combat, i) {
   const e = combat.ennemis[i];
@@ -440,16 +453,11 @@ export function agirEnnemi(combat, i) {
     haste_allie: 0, // tours de hâte donnés aux alliés vivants
   };
   if (!e || e.pv <= 0) return evt;
-  const enFeuAvant = e.feu > 0;
   // Ordre des malus dans le temps : poison, puis feu, et le VOL DE VIE EN DERNIER.
+  // (La PROPAGATION du Feu, elle, est résolue à la FIN DU TOUR DU HÉROS — cf.
+  // propagerFeu() appelé par finirTourHeros — et non plus au tick de l'ennemi.)
   evt.poison = e.dernierPoison = tiquerEnnemi(e, "poison");
   evt.feu = e.dernierFeu = tiquerEnnemi(e, "feu");
-  // Propagation : uniquement si le feu vient d'une CARTE (feuDeCarte = true),
-  // une seule fois au premier tick. Le feu reçu par propagation ne se propage jamais.
-  if (enFeuAvant && e.feuDeCarte) {
-    e.feuDeCarte = false;
-    propagerDepuis(combat, i, e.feu); // force = stacks restants après le tick
-  }
   // Vol de vie (saignement) TOUJOURS en dernier : si l'ennemi est DÉJÀ MORT du
   // poison ou du feu, il ne saigne plus → AUCUNE régénération pour le héros.
   if (e.pv > 0) {
@@ -522,6 +530,7 @@ export function commencerTourHeros(combat) {
 // Fin du tour du héros : la main repart en défausse. L'initiative désignera la suite.
 export function finirTourHeros(combat) {
   combat.tourJoueur = false;
+  propagerFeu(combat); // le Feu posé par une carte ce tour se répand une fois aux voisins
   combat.defausse.push(...combat.main);
   combat.main = [];
 }

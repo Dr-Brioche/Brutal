@@ -358,11 +358,17 @@ directement la **collecte** et le **marché**.
   Implémentés :
   - **Poison** : ronge la cible en début de son tour, baisse de 1/tour, ignore la
     Pierre (ex. *Croc de basilic* → carte *Venom Stab*).
-  - **Enflammé (feu)** : même principe que le poison, **mais se propage aux
-    ennemis adjacents NON encore enflammés** à la fin du tour ennemi (ils prennent
-    le feu du voisin le plus ardent ; un ennemi déjà en feu ne se ré-enflamme pas,
-    il continue de brûler). Un ennemi qui **meurt de son propre feu** ce tour-ci
-    **propage quand même** ses flammes avant de disparaître. Ex. *Magma Hammer* →
+  - **Enflammé (feu) — propagation simplifiée (révisée 18/06/2026)** : ronge la
+    cible chaque tour comme le poison (baisse de 1/tour, ignore la Pierre). **À la
+    fin du tour du héros où une CARTE a posé du Feu**, chaque ennemi ainsi enflammé
+    **répand la MOITIÉ de son Feu (arrondie au supérieur) à chacun de ses voisins
+    vivants**, en **une seule vague simultanée** : le Feu reçu par un voisin ne se
+    propage pas à son tour → **jamais de réaction en chaîne**. La propagation n'a
+    lieu **qu'une fois, le tour où la carte est jouée** (pas à chaque tour tant qu'il
+    reste du Feu, et un ennemi déjà mort ne répand rien). Ex. : 3 ennemis 1-2-3,
+    *Lava Hammer* (Feu 4) sur le centre → fin de tour : **+2 sur le 1 et +2 sur le
+    3**. *Onyx Breath* (Feu 8 sur les 3) → fin de tour : **12 / 16 / 12** (chacun
+    garde ses 8 et reçoit 4 par voisin vivant). Ex. d'arme : *Magma Hammer* →
     carte *Lava Hammer*.
   - **Saignement (sang)** : comme le poison, mais le sang absorbé **soigne le
     héros** du même montant à chaque tick (vol de vie lent). Ex. *Blood Ring* →

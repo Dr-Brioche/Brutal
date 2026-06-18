@@ -501,7 +501,21 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   function finDeTour() {
     if (phaseCiblage || combat.fini || !combat.tourJoueur) return;
-    finirTourHeros(combat); // défausse la main → l'initiative reprend
+    const feuAvants = combat.ennemis.map((e) => e.feu);
+    finirTourHeros(combat); // défausse la main + propage le Feu → l'initiative reprend
+    // Propagation du Feu (fin de tour) : un floater 🔥 sur chaque voisin qui en reçoit.
+    let propage = false;
+    combat.ennemis.forEach((e, idx) => {
+      const u = ennemisUI[idx];
+      if (!u || !e || e.pv <= 0) return;
+      const gain = e.feu - feuAvants[idx];
+      if (gain > 0) {
+        u.secousse = 0.3;
+        ajouterFlottant(`🔥+${gain}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c");
+        propage = true;
+      }
+    });
+    if (propage) jouerSonSortilege();
     minuterie = PAS_AVANT;
     rafraichir();           // main vide, boutons grisés
   }
