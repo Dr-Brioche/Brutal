@@ -490,10 +490,10 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       return l;
     }));
 
-    const seuil = xpPourNiveau(heros.niveau);
-    const pct = seuil > 0 ? Math.max(0, Math.min(100, heros.xp / seuil * 100)) : 0;
+    const seuilXp = xpPourNiveau(heros.niveau);
+    const pct = seuilXp > 0 ? Math.max(0, Math.min(100, heros.xp / seuilXp * 100)) : 0;
     elXpFill.style.width = pct + "%";
-    elXpTxt.textContent = `${heros.xp} / ${seuil} XP`;
+    elXpTxt.textContent = `${heros.xp} / ${seuilXp} XP`;
   }
 
   function rendreGrille() {
