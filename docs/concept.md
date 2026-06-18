@@ -131,6 +131,12 @@ joue, End Turn) ou **une attaque** pour un ennemi.
   jouer la carte deux fois **cumule la durée**. Des monstres **véloces** (ex. *Goblin
   Skirmisher*, vitesse 18, **teinté plus froid** pour le repérer d'un coup d'œil)
   peuvent jouer 2× contre un héros lent.
+- **Annulation feu ↔ gel** : appliquer du **feu sur un ennemi gelé** supprime
+  immédiatement le gel (la glace fond), puis le feu s'applique normalement.
+  Appliquer du **gel sur un ennemi en feu** éteint toute la brûlure, puis le
+  gel s'applique normalement. Vaut aussi **sur le héros** (futur, si des ennemis
+  peuvent appliquer ces statuts au héros). Les deux éléments s'annulent toujours
+  en totalité — pas de neutralisation partielle.
 - **Tension** : chaque tour du héros recharge la Chaleur **et** subit la surchauffe
   → foncer vite quand on est en surchauffe, ça brûle plus souvent.
 - **Affichage** : une **file d'ordre des tours** en haut (carrés-portraits : tête

@@ -143,6 +143,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     pierre: 0,
     poisonHeros: 0,
     feuHeros: 0,
+    gelHeros: 0,    // gel du héros : ralentit (−30% vitesse) ; annulé par feuHeros et vice-versa
     // Chaleur de Forge + surchauffe (réglages modifiés par l'équipement)
     chaleur: chaleurDepart,
     chaleurRecharge,
@@ -178,7 +179,8 @@ export function creerCombat(ennemisDefs, opts = {}) {
 
 // Vitesse EFFECTIVE (après les statuts de vitesse Hâte/Gel). Jamais < 1.
 export function vitesseHeros(combat) {
-  const v = combat.hate > 0 ? combat.vitesseHerosBase * HATE_MULT : combat.vitesseHerosBase;
+  let v = combat.hate > 0 ? combat.vitesseHerosBase * HATE_MULT : combat.vitesseHerosBase;
+  if (combat.gelHeros > 0) v *= GEL_MULT; // Gel héros : −30% de vitesse
   return Math.max(1, v);
 }
 export function vitesseEnnemi(e) {
@@ -300,6 +302,8 @@ function appliquerEffet(combat, effet, ennemi) {
     if (ennemi) ennemi.poison += effet.valeur;
   } else if (effet.type === "feu") {
     if (ennemi) {
+      // Feu sur ennemi gelé : le feu fond la glace (gel annulé), feu appliqué normalement.
+      if (ennemi.gel > 0) ennemi.gel = 0;
       ennemi.feu += effet.valeur;
       ennemi.feuDeCarte = true; // feu posé par carte : propagera au premier tick
     }
@@ -339,7 +343,11 @@ function appliquerEffet(combat, effet, ennemi) {
     // chaud, sans pénaliser du coût de la carte elle-même.
     combat.hate += combat.chaleurAvantCarte ?? combat.chaleur;
   } else if (effet.type === "lenteur") {
-    if (ennemi) ennemi.gel += effet.valeur; // Gel : −30% de vitesse pendant `valeur` tours (la durée se cumule)
+    if (ennemi) {
+      // Gel sur ennemi brûlant : la glace éteint le feu (brûlure annulée), gel appliqué normalement.
+      if (ennemi.feu > 0) { ennemi.feu = 0; ennemi.feuDeCarte = false; }
+      ennemi.gel += effet.valeur; // Gel : −30% de vitesse pendant `valeur` tours (la durée se cumule)
+    }
   } else if (effet.type === "piocher") {
     // Pioche `valeur` cartes dans la main (recompose la pioche depuis la défausse
     // si besoin, comme en début de tour).
@@ -482,6 +490,17 @@ function resoudreCiblee(combat, carte, cible) {
   }
 }
 
+// Applique du feu / gel AU HÉROS avec annulation mutuelle (pour les futures
+// capacités ennemies). Feu sur héros gelé → gel annulé. Gel sur héros brûlant → feu annulé.
+export function appliquerFeuHeros(combat, valeur) {
+  if (combat.gelHeros > 0) combat.gelHeros = 0; // le feu fond la glace
+  combat.feuHeros += valeur;
+}
+export function appliquerGelHeros(combat, valeur) {
+  if (combat.feuHeros > 0) combat.feuHeros = 0; // la glace éteint le feu
+  combat.gelHeros += valeur;
+}
+
 // Tick d'un statut « dégâts dans le temps » sur un ennemi (poison/feu) : il perd
 // `n` PV (ignore la Pierre), puis le statut baisse de 1. Renvoie les dégâts.
 function tiquerEnnemi(e, nom) {
@@ -621,7 +640,8 @@ export function commencerTourHeros(combat) {
     verifierFin(combat);
     if (combat.fini) return;
   }
-  if (combat.hate > 0) combat.hate -= 1; // la Hâte s'écoule (1 tour du héros)
+  if (combat.hate   > 0) combat.hate   -= 1; // la Hâte s'écoule (1 tour du héros)
+  if (combat.gelHeros > 0) combat.gelHeros -= 1; // le Gel héros s'écoule (1 tour du héros)
   piocherMain(combat);
   prevoirIntentions(combat);
   combat.cible = premierVivant(combat);
