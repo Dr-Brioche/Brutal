@@ -138,9 +138,9 @@ export function creerSonRemplissage() {
     gate.gain.value = 0.5;       // offset DC : gain oscille entre 0,15 et 0,85
     lfoGain.connect(gate.gain);
 
-    // Volume global calé sur les bruitages (discret : × 0,3 car son long)
+    // Volume global calé sur les bruitages (× 0,6 pour que le son soit audible)
     const master = ctx.createGain();
-    master.gain.value = volBruitages * 0.3;
+    master.gain.value = volBruitages * 0.6;
 
     src.connect(filtre).connect(gate).connect(master).connect(ctx.destination);
     src.start();
@@ -156,6 +156,39 @@ export function creerSonRemplissage() {
     // Web Audio non disponible ou bloqué : pas de son, l'animation reste intacte.
     return function stop() {};
   }
+}
+
+// Tintement de fin d'animation XP : ton de clochette clair qui résonne ~1,8 s.
+// Fondamental Do6 (1046 Hz) + shimmer inharmonique (2637 Hz) qui s'évanouit vite.
+export function jouerSonDing() {
+  try {
+    const ctx = obtenirContexte();
+    const t = ctx.currentTime;
+
+    const f1 = ctx.createOscillator();
+    f1.type = "sine";
+    f1.frequency.value = 1046; // Do6 : ton net de clochette
+    const g1 = ctx.createGain();
+    g1.gain.setValueAtTime(0, t);
+    g1.gain.linearRampToValueAtTime(0.7, t + 0.008);
+    g1.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
+
+    const f2 = ctx.createOscillator(); // shimmer métallique (~2,5× fondamental)
+    f2.type = "sine";
+    f2.frequency.value = 2637;
+    const g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0, t);
+    g2.gain.linearRampToValueAtTime(0.25, t + 0.008);
+    g2.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+
+    const master = ctx.createGain();
+    master.gain.value = volBruitages * 0.7;
+
+    f1.connect(g1).connect(master).connect(ctx.destination);
+    f2.connect(g2).connect(master);
+    f1.start(t); f1.stop(t + 1.8);
+    f2.start(t); f2.stop(t + 0.7);
+  } catch (_) {}
 }
 
 // ---- Musique ----------------------------------------------------------------

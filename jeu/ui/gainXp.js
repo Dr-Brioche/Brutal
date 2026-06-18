@@ -14,7 +14,7 @@
 // etat = { niveauDepart, xpDepart, gain }
 
 import { xpPourNiveau } from "../systems/progression.js";
-import { jouerSon, creerSonRemplissage } from "../core/sons.js";
+import { jouerSon, creerSonRemplissage, jouerSonDing } from "../core/sons.js";
 
 // Durée d'animation proportionnelle au % de barre gagnée (choisi avec Brioche).
 // Tout est en millisecondes.
@@ -168,7 +168,8 @@ export function animerGainXp(refs, etat) {
   }
 
   // Pose l'état final exact et résout la promesse (une seule fois).
-  function finaliser(celebrationRestante) {
+  // `avecDing` = false uniquement pour `arreter()` (fermeture forcée sans geste du joueur).
+  function finaliser(celebrationRestante, avecDing = true) {
     if (fini) return;
     fini = true;
     stopSon?.(); stopSon = null; // coupe le drdrdrdr si un zap ou fermeture arrive en plein milieu
@@ -178,6 +179,7 @@ export function animerGainXp(refs, etat) {
     if (celebrationRestante) celebrer(); // un palier restait : on le marque quand même
     refs.niveau.textContent = String(final.niveau);
     poser(final.xp, final.seuil, false);
+    if (avecDing) jouerSonDing(); // tintement de fin (fin naturelle ou zap du joueur)
     resoudrePromesse();
   }
 
@@ -193,10 +195,10 @@ export function animerGainXp(refs, etat) {
       zappe = true;
       finaliser(niveauxCelebres < totalNiveaux); // marque le coup si un palier restait
     },
-    // Arrêt net (fenêtre fermée autrement) : pas de célébration.
+    // Arrêt net (fenêtre fermée autrement) : pas de célébration ni de ding.
     arreter() {
       zappe = true;
-      finaliser(false);
+      finaliser(false, false);
     },
   };
 }
