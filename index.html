@@ -1563,7 +1563,8 @@
     // bloque l'autoplay (politique de lecture auto), relancerMusiqueBloquee()
     // reprend au 1er clic — l'utilisateur entendra la musique dès qu'il touche Play.
     jouerMusique("ambiance-titre");
-    document.addEventListener("click", () => relancerMusiqueBloquee(), { once: true });
+    // Relance la musique bloquée par l'autoplay à chaque clic (no-op si déjà en cours).
+    document.addEventListener("click", () => relancerMusiqueBloquee());
 
     // On quitte le mode indéterminé (balayage) et on précharge les images.
     chargementTxt.textContent = "Loading assets…";

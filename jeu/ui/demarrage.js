@@ -25,23 +25,23 @@ export function installerDemarrage({ lancer }) {
 
   boutonJouer.addEventListener("click", () => {
     const slots = tousLesSlots();
+    const aDesSauvegardes = slots.some(({ donnees }) => donnees);
 
-    if (slots.every(({ donnees }) => !donnees)) {
-      lancerUneFois(null); // première visite : rien à choisir
-      return;
-    }
-
+    // On affiche TOUJOURS le panneau (même sans sauvegarde) pour laisser la
+    // musique du titre se lancer avant l'entrée dans le jeu.
     conteneurSlots.replaceChildren();
-    for (const { numero, donnees } of slots) {
-      conteneurSlots.append(
-        creerLigneSlot(numero, donnees, [
-          { texte: "Load", desactive: !donnees, surClic: () => lancerUneFois(donnees) },
-        ])
-      );
+    if (aDesSauvegardes) {
+      for (const { numero, donnees } of slots) {
+        conteneurSlots.append(
+          creerLigneSlot(numero, donnees, [
+            { texte: "Load", desactive: !donnees, surClic: () => lancerUneFois(donnees) },
+          ])
+        );
+      }
     }
     boutonJouer.hidden = true;
     panneau.hidden = false;
-    boutonNouvelle.focus(); // Tab navigue ensuite vers les slots Load
+    boutonNouvelle.focus();
   });
 
   boutonNouvelle.addEventListener("click", () => lancerUneFois(null));
