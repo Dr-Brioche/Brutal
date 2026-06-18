@@ -7,13 +7,60 @@
 // peut la placer SOUS LA SOURIS (montrerInfobulle) ou À CÔTÉ D'UN ÉLÉMENT
 // (montrerInfobulleEl) — ce dernier sert à la navigation au CLAVIER.
 
-import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES } from "../data/items.js";
+import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES, setDeItem } from "../data/items.js";
 import { CARTES } from "../data/cartes.js";
 import { garnirCarte } from "./carte.js";
 
 let tip = null;
 function bulle() {
   return (tip ||= document.getElementById("inv-tip"));
+}
+
+// Source de l'équipement courant (pour colorer les pièces d'un set : vert =
+// équipée, gris = manquante). On stocke un GETTER et non l'objet slots, car il
+// est recréé au chargement d'une sauvegarde (cf. chargerInventaire).
+let sourceEquipement = null;
+export function definirSourceEquipement(fn) { sourceEquipement = fn; }
+function equipementActuel() {
+  try { return sourceEquipement?.() ?? {}; } catch (_) { return {}; }
+}
+
+// Construit le bloc « set d'armure » d'un item qui appartient à un set : nom du
+// set + ses pièces (vert si équipée, gris sinon) + le bonus (mis en avant quand
+// les 3 pièces sont réunies). Renvoie null si l'item n'est dans aucun set.
+function blocSet(id) {
+  const set = setDeItem(id);
+  if (!set) return null;
+  const equipes = new Set(Object.values(equipementActuel() || {}).filter(Boolean));
+  const nbEq = set.pieces.filter((p) => equipes.has(p)).length;
+  const complet = nbEq === set.pieces.length;
+
+  const bloc = document.createElement("div");
+  bloc.className = "inv-tip-set" + (complet ? " inv-tip-set--actif" : "");
+
+  const titre = document.createElement("div");
+  titre.className = "inv-tip-set-titre";
+  titre.textContent = `${set.nom} · ${nbEq}/${set.pieces.length}`;
+  bloc.append(titre);
+
+  const liste = document.createElement("div");
+  liste.className = "inv-tip-set-pieces";
+  for (const pid of set.pieces) {
+    const estEquipe = equipes.has(pid);
+    const p = document.createElement("div");
+    p.className = "inv-tip-set-piece" + (estEquipe ? " inv-tip-set-piece--equipe" : "");
+    const def = itemDef(pid);
+    p.textContent = (estEquipe ? "✓ " : "• ") + (def ? def.nom : pid);
+    liste.append(p);
+  }
+  bloc.append(liste);
+
+  const bonus = document.createElement("div");
+  bonus.className = "inv-tip-set-bonus";
+  bonus.textContent = (complet ? "" : "Full set: ") + (set.bonus?.texte ?? "");
+  bloc.append(bonus);
+
+  return bloc;
 }
 
 // Remplit la bulle pour l'objet `id` (sans la positionner). Renvoie false si l'id
@@ -63,6 +110,10 @@ function construire(id) {
     }
     enfants.push(cont);
   }
+
+  // Bloc « set d'armure » si l'objet en fait partie (pièces équipées en vert).
+  const set = blocSet(id);
+  if (set) enfants.push(set);
 
   t.replaceChildren(...enfants);
   t.hidden = false;

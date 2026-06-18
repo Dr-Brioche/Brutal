@@ -18,6 +18,7 @@ import {
 } from "./systems/maitrise.js";
 import { demanderConfirmation } from "./ui/confirmation.js";
 import { installerInventaire } from "./ui/inventaire.js";
+import { definirSourceEquipement } from "./ui/infobulle.js";
 import { installerDeck } from "./ui/deck.js";
 import { installerTalents } from "./ui/talents.js";
 import { appliquerTalents } from "./systems/talents.js";
@@ -84,6 +85,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   heros.x = carte.departX;
   heros.y = carte.departY;
   const inventaire = creerInventaire();
+  // La bulle d'info lit l'équipement courant pour colorer les pièces d'un set.
+  definirSourceEquipement(() => inventaire.slots);
   inventaire.slots.armure = "tenue-de-voyageur"; // habits de base (corps)
   // On démarre VRAIMENT sans arme (sac vide) : il faut looter/forger sa 1re arme.
   // En attendant, le deck de base (Tap + Brace) sert de filet (cf. cartesDeBase).
