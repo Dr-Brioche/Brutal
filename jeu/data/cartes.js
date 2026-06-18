@@ -87,14 +87,14 @@ export const CARTES = {
   // ---- Cartes signature d'arme (une par arme) -----------------------------
   // Équiper l'arme injecte sa carte dans le deck (voir jeu/data/armes.js).
 
-  // Hache : la plus brutale → un gros coup unique.
+  // Hache rouillée : large balayage → frappe la cible ET ses deux voisins directs.
   "coup-de-hache": {
     id: "coup-de-hache",
     nom: "Rusty Cleave",
     cout: 2,
     type: "attaque",
-    texte: "Deal 12 damage.",
-    effets: [{ type: "degats", valeur: 12 }],
+    texte: "Deal 6 damage to the target and 4 damage to each adjacent enemy.",
+    effets: [{ type: "degats", valeur: 6 }, { type: "cleave-adjacent", valeur: 4 }],
   },
 
   // Marteau de forge : frappe + renforce → dégâts ET de la Pierre.
@@ -107,14 +107,26 @@ export const CARTES = {
     effets: [{ type: "degats", valeur: 10 }, { type: "pierre", valeur: 8 }],
   },
 
-  // Pioche de mineur : deux coups acharnés (thème « creuser »).
+  // Marteau de forge — Éclaboussure de frappe : gros coup ciblé dont les étincelles
+  // brûlent parfois (50%) chacun des deux voisins directs.
+  "eclaboussure-de-frappe": {
+    id: "eclaboussure-de-frappe",
+    nom: "Splash Strike",
+    cout: 3,
+    type: "attaque",
+    texte: "Deal 15 damage. Each adjacent enemy has a 50% chance to take 5 Burning.",
+    effets: [{ type: "degats", valeur: 15 }, { type: "brulure-adjacent", feu: 5, proba: 0.5 }],
+  },
+
+  // Pioche de mineur : deux coups acharnés ; si la cible tombe, un 3e coup part
+  // sur un autre ennemi au hasard (le « combo » de la pioche).
   "coup-de-pioche": {
     id: "coup-de-pioche",
     nom: "Pickaxe Jab",
     cout: 1,
     type: "attaque",
-    texte: "Deal 3 damage twice.",
-    effets: [{ type: "degats", valeur: 3 }, { type: "degats", valeur: 3 }],
+    texte: "Deal 3 damage twice. If the target dies, hit a random other enemy for 3.",
+    effets: [{ type: "degats", valeur: 3 }, { type: "degats", valeur: 3 }, { type: "coup-de-grace", valeur: 3 }],
   },
 
   // Croc de basilic : morsure venimeuse → un peu de dégâts + du Poison qui
@@ -128,6 +140,30 @@ export const CARTES = {
     effets: [{ type: "degats", valeur: 4 }, { type: "poison", valeur: 4 }],
   },
 
+  // Croc de basilic — Danse empoisonnée : 3 frappes (3 dégâts) sur TOUS les ennemis,
+  // + poison à chaque frappe. Combo : un ennemi DÉJÀ empoisonné prend 2 poison/frappe
+  // au lieu de 1 (déterminé au début de la carte).
+  "danse-empoisonnee": {
+    id: "danse-empoisonnee",
+    nom: "Poison Dance",
+    cout: 3,
+    type: "attaque",
+    aoe: true,
+    texte: "Hit ALL enemies 3 times for 3 damage. Apply 1 Poison per hit (2 if the enemy was already poisoned).",
+    effets: [{ type: "danse-poison", hits: 3, degats: 3 }],
+  },
+
+  // Croc de basilic — Ouverture des plaies : gros coup unique, DOUBLÉ si la cible
+  // porte déjà un malus (poison, feu, saignement, étourdissement, gel).
+  "ouverture-des-plaies": {
+    id: "ouverture-des-plaies",
+    nom: "Wound Opening",
+    cout: 2,
+    type: "attaque",
+    texte: "Deal 18 damage. Doubled if the target has a negative status.",
+    effets: [{ type: "degats-execution", valeur: 18 }],
+  },
+
   // Marteau de lave : un coup TRÈS lourd + de l'Enflammé (feu dans le temps qui
   // se propage à la fin du tour aux ennemis adjacents).
   "coup-de-lave": {
@@ -137,6 +173,29 @@ export const CARTES = {
     type: "attaque",
     texte: "Deal 28 damage. Apply 4 Burning.",
     effets: [{ type: "degats", valeur: 28 }, { type: "feu", valeur: 4 }],
+  },
+
+  // Magma Hammer — Fire Strike : frappe simple qui amorce un peu de brûlure.
+  "feu-frappe": {
+    id: "feu-frappe",
+    nom: "Fire Strike",
+    cout: 1,
+    type: "attaque",
+    texte: "Deal 12 damage. Apply 3 Burning.",
+    effets: [{ type: "degats", valeur: 12 }, { type: "feu", valeur: 3 }],
+  },
+
+  // Magma Hammer — Forgeage d'armure : brûlure de masse (10) sur TOUS. Combo : un
+  // ennemi DÉJÀ en feu en reçoit le double (20 de plus), puis toute sa brûlure est
+  // consommée et forgée en Pierre pour le héros (1 brûlure = 1 Pierre).
+  "forgeage-d-armure": {
+    id: "forgeage-d-armure",
+    nom: "Armor Forging",
+    cout: 4,
+    type: "attaque",
+    aoe: true,
+    texte: "Apply 10 Burning to ALL enemies. Already-burning enemies take double, then their Burning is forged into Stone for you.",
+    effets: [{ type: "forgeage", feu: 10 }],
   },
 
   // Bouclier-tour : 2 cartes de Pierre (blocage) + 1 carte qui étourdit.
@@ -354,6 +413,16 @@ export const CARTES = {
     aoe: true,
     texte: "Spend all Forge Heat. Apply 8 Burning per Heat spent to ALL enemies.",
     effets: [{ type: "rejet-chaleur", valeur: 8 }],
+  },
+
+  // Big Onyx Sword — Onyx Overheat : grosse relance d'énergie (surchauffe la forge).
+  "onyx-overheat": {
+    id: "onyx-overheat",
+    nom: "Onyx Overheat",
+    cout: 0,
+    type: "buff", // ni dégât ni bouclier : régénère de l'énergie
+    texte: "Gain 5 Forge Heat (energy).",
+    effets: [{ type: "chaleur", valeur: 5 }],
   },
 
   // ---- Onyx Glove (gants) : build feu « brûlure dispersée » -------------------
