@@ -20,14 +20,36 @@ LIGNES_VIDES = 6 # cases vides offertes sous chaque type pour ajouter des items
 
 
 def extraire_donnees():
-    """Importe ITEMS / RARETES / CARTES depuis les modules JS et renvoie un dict."""
+    """Importe ITEMS / RARETES / CARTES / SETS depuis les modules JS et renvoie un dict."""
     code = (
-        'import { ITEMS, RARETES } from "./jeu/data/items.js";'
+        'import { ITEMS, RARETES, SETS } from "./jeu/data/items.js";'
         'import { CARTES } from "./jeu/data/cartes.js";'
-        'process.stdout.write(JSON.stringify({ITEMS, RARETES, CARTES}));'
+        'process.stdout.write(JSON.stringify({ITEMS, RARETES, CARTES, SETS}));'
     )
     out = subprocess.check_output(["node", "--input-type=module", "-e", code], cwd=ROOT)
     return json.loads(out)
+
+
+# Libellé lisible d'un déclencheur de bonus de set.
+DECLENCHEURS = {
+    "frappeMelee": "Quand le héros est frappé en mêlée",
+}
+
+
+def effets_hors_carte(item, set_par_item):
+    """Texte décrivant ce qu'un item apporte EN DEHORS de ses cartes (sac, deux
+    mains, appartenance à un set). Vide si l'item n'apporte rien hors carte."""
+    parts = []
+    if item.get("mains") == 2:
+        parts.append("Deux mains")
+    if item.get("rangsBonus"):
+        parts.append(f"+{item['rangsBonus']} rangées de sac")
+    if item.get("defense"):
+        parts.append(f"Défense {item['defense']}")
+    nom_set = set_par_item.get(item["id"])
+    if nom_set:
+        parts.append(f"Set : {nom_set}")
+    return "  ·  ".join(parts)
 
 
 # ---- Styles partagés --------------------------------------------------------
@@ -84,7 +106,13 @@ def cartes_comptees(item):
 def construire():
     data = extraire_donnees()
     ITEMS, RARETES, CARTES = data["ITEMS"], data["RARETES"], data["CARTES"]
+    SETS = data.get("SETS", {})
     nom_carte = {cid: c["nom"] for cid, c in CARTES.items()}
+    # Item -> nom du set auquel il appartient (pour la colonne « Effet hors-carte »).
+    set_par_item = {}
+    for s in SETS.values():
+        for pid in s.get("pieces", []):
+            set_par_item[pid] = s["nom"]
 
     wb = Workbook()
 
@@ -107,6 +135,13 @@ def construire():
         ("3) Si une carte EXISTE déjà, prends son nom dans l'onglet « Cartes » (référence).  "
          "Si tu inventes une NOUVELLE carte, écris son nom dans une colonne Carte et décris son "
          "effet (dégâts, Pierre, Poison, coût en Chaleur…) dans la colonne « Notes ».", None, None),
+        ("", None, None),
+        ("Effets HORS carte (sac, deux mains, set d'armure)", F_GRAS, None),
+        ("La colonne « Effet hors-carte » (onglet Items) décrit ce qu'un objet apporte EN DEHORS "
+         "de ses cartes : rangées de sac, arme à deux mains, appartenance à un set. Pour un nouvel "
+         "objet, écris ici son effet hors-carte (ex. « +4 rangées de sac »).", None, None),
+        ("Les SETS d'armure ont leur propre onglet « Sets » : un bonus s'active quand on porte TOUTES "
+         "les pièces d'armure du set (l'arme ne compte pas). Propose un set sur une ligne vide.", None, None),
         ("", None, None),
         ("Important : une arme n'a PAS de « dégâts » propres", F_GRAS, None),
         ("Dans BRUTAL, tout le combat passe par les CARTES du deck — une arme/armure ne fait que "
@@ -138,9 +173,10 @@ def construire():
     ws.sheet_properties.tabColor = "2E2640"
     entetes = (["Nom", "ID", "Rareté", "Nb cartes"]
                + sum([[f"Carte {i}", "Qté"] for i in range(1, MAX_CARTES + 1)], [])
-               + ["Notes / nouvelles cartes"])
+               + ["Effet hors-carte", "Notes / nouvelles cartes"])
     ncol = len(entetes)
     last = chr(ord("A") + ncol - 1)
+    col_hors_carte = ncol - 1  # avant-dernière colonne (« Effet hors-carte »)
 
     # Titre + note
     ws.merge_cells(f"A1:{last}1")
@@ -163,7 +199,8 @@ def construire():
     for i in range(MAX_CARTES):
         ws.column_dimensions[chr(ord("E") + i * 2)].width = 19   # Carte i
         ws.column_dimensions[chr(ord("E") + i * 2 + 1)].width = 6  # Qté i
-    ws.column_dimensions[last].width = 40
+    ws.column_dimensions[chr(ord("A") + col_hors_carte - 1)].width = 26  # Effet hors-carte
+    ws.column_dimensions[last].width = 40                                # Notes
 
     row = 4
     for titre, test in GROUPES:
@@ -190,6 +227,7 @@ def construire():
                     cid, qte = cc[i]
                     ws.cell(row, col, nom_carte.get(cid, cid))
                     ws.cell(row, col + 1, qte).alignment = CENTRE
+            ws.cell(row, col_hors_carte, effets_hors_carte(it, set_par_item)).font = F_NOTE
             for j in range(1, ncol + 1):
                 ws.cell(row, j).border = BORD
                 if ws.cell(row, j).alignment.horizontal is None:
@@ -239,9 +277,46 @@ def construire():
             ws.cell(row, j).border = BORD
         row += 1
 
+    # =================== Feuille 4 : Sets d'armure ===================
+    # Décrit les bonus de PANOPLIE (effets hors-carte qui s'activent quand toutes
+    # les pièces d'armure d'un set sont équipées — l'arme ne compte pas).
+    ws = wb.create_sheet("Sets")
+    ws.sheet_properties.tabColor = "7C2D12"
+    nom_item = {iid: it["nom"] for iid, it in ITEMS.items()}
+    entetes3 = ["Set", "Pièces requises (armure seulement)", "Déclencheur", "Bonus"]
+    ws.merge_cells("A1:D1")
+    t = ws.cell(1, 1, "BRUTAL — Sets d'armure (bonus de panoplie, hors cartes)")
+    t.font = F_TITRE; t.fill = FOND_TITRE; t.alignment = CENTRE
+    ws.row_dimensions[1].height = 24
+    ws.merge_cells("A2:D2")
+    ws.cell(2, 1, "Le bonus s'active quand TOUTES les pièces sont équipées en même temps "
+                  "(l'arme n'est pas requise). Écris un nouveau set sur une ligne vide.").font = F_NOTE
+    for j, h in enumerate(entetes3, 1):
+        c = ws.cell(3, j, h); c.font = F_ENTETE; c.fill = FOND_ENTETE; c.alignment = CENTRE; c.border = BORD
+    ws.freeze_panes = "A4"
+    for col, w in {"A": 18, "B": 40, "C": 34, "D": 60}.items():
+        ws.column_dimensions[col].width = w
+    row = 4
+    for s in SETS.values():
+        pieces = "  +  ".join(nom_item.get(p, p) for p in s.get("pieces", []))
+        bonus = s.get("bonus", {})
+        decl = DECLENCHEURS.get(bonus.get("declencheur"), bonus.get("declencheur", ""))
+        ws.cell(row, 1, s["nom"]).font = F_GRAS
+        ws.cell(row, 2, pieces).alignment = GAUCHE
+        ws.cell(row, 3, decl).alignment = GAUCHE
+        ws.cell(row, 4, bonus.get("texte", "")).alignment = GAUCHE
+        for j in range(1, 5):
+            ws.cell(row, j).border = BORD
+        row += 1
+    # quelques lignes vides pour proposer de nouveaux sets
+    for _ in range(LIGNES_VIDES):
+        for j in range(1, 5):
+            cell = ws.cell(row, j, None); cell.border = BORD; cell.fill = FOND_VIDE
+        row += 1
+
     os.makedirs(os.path.dirname(SORTIE), exist_ok=True)
     wb.save(SORTIE)
-    print(f"OK -> {SORTIE}  ({len(ITEMS)} items, {len(CARTES)} cartes)")
+    print(f"OK -> {SORTIE}  ({len(ITEMS)} items, {len(CARTES)} cartes, {len(SETS)} set(s))")
 
 
 if __name__ == "__main__":
