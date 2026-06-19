@@ -46,6 +46,8 @@ def effets_hors_carte(item, set_par_item):
         parts.append("Deux mains")
     if item.get("armureDepart"):
         parts.append(f"Ajoute {item['armureDepart']} d'armure en début de combat")
+    if item.get("celeritePct") or item.get("vitesseBonus"):
+        parts.append(f"+{item.get('celeritePct', 0)}% célérité, +{item.get('vitesseBonus', 0)} move speed")
     if item.get("passifPropre", {}).get("texte"):
         parts.append(item["passifPropre"]["texte"])
     if item.get("rangsBonus"):
@@ -326,7 +328,14 @@ def construire():
         else:
             cr = ws.cell(row, 5, "—"); cr.alignment = CENTRE; cr.font = Font(color="888888")
         ws.cell(row, 6, "Oui" if cd.get("aoe") else "").alignment = CENTRE
-        ws.cell(row, 7, ", ".join(donne_par.get(cd["id"], [])) or "— (deck de base)").alignment = GAUCHE
+        src = donne_par.get(cd["id"], [])
+        if src:
+            donne = ", ".join(src)
+        elif cd["id"] in ("coup-faible", "garde-faible"):
+            donne = "— (deck de base)"
+        else:
+            donne = "— (non équipée)"  # carte existante mais sur aucun objet actuellement
+        ws.cell(row, 7, donne).alignment = GAUCHE
         ws.cell(row, 8, cd.get("texte", "")).alignment = GAUCHE
         for j in range(1, 9):
             ws.cell(row, j).border = BORD
