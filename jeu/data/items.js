@@ -168,35 +168,103 @@ export const ITEMS = {
     taille: { l: 2, h: 1 }, icone: "#7a6a4a", cartes: ["main-de-maitre", "main-de-maitre"],
   },
   // Gants d'onyx : pièce du set Onyx. 2× Burning Hand (défausse → brûlure dispersée)
-  // + 2× Onyx Fist (Pierre + feu). Build feu/brûlure.
+  // + 2× Onyx Fist (Pierre + feu) + 2× Forge from Ashes (recycle la main). Build feu.
   "gants-onyx": {
     id: "gants-onyx", nom: "Onyx Glove", categorie: "gant", rarete: "epique",
-    taille: { l: 2, h: 1 }, icone: "#2b2433", cartes: ["main-brulante", "main-brulante", "poing-onyx", "poing-onyx"],
+    taille: { l: 2, h: 1 }, icone: "#2b2433",
+    cartes: ["main-brulante", "main-brulante", "poing-onyx", "poing-onyx", "forge-des-cendres", "forge-des-cendres"],
   },
-  // Bottes vives : injectent « Quicken » (accélère le héros — vitesse d'initiative).
+  // Bottes vives : 3× Quicken (hâte) + 1× Second Wind (échange de la hâte contre
+  // de l'énergie). Build tempo/mobilité.
   "bottes-vives": {
-    id: "bottes-vives", nom: "Swift Boots", categorie: "botte", rarete: "rare",
-    taille: { l: 2, h: 1 }, icone: "#3a7a5a", cartes: ["celerite-vive", "celerite-vive"],
+    id: "bottes-vives", nom: "Swift Boots", categorie: "botte", rarete: "uncommon",
+    taille: { l: 2, h: 1 }, icone: "#3a7a5a",
+    cartes: ["celerite-vive", "celerite-vive", "celerite-vive", "second-souffle"],
   },
-  // Bottes d'onyx : pièce du set Onyx. 1× Burning Run (hâte selon la Chaleur) +
-  // 2× Flaming Kick (déplace la brûlure d'un ennemi vers celui derrière).
+  // Bottes d'onyx : pièce du set Onyx. 1× Burning Run + 1× Flaming Kick +
+  // 2× Fire Boost (feu héros → énergie) + 2× Boost (relance d'énergie). Build feu.
   "bottes-onyx": {
     id: "bottes-onyx", nom: "Onyx Boots", categorie: "botte", rarete: "epique",
-    taille: { l: 2, h: 1 }, icone: "#2b2433", cartes: ["course-ardente", "coup-de-pied-ardent", "coup-de-pied-ardent"],
+    taille: { l: 2, h: 1 }, icone: "#2b2433",
+    cartes: ["course-ardente", "coup-de-pied-ardent", "boost-feu", "boost-feu", "boost", "boost"],
   },
   // Anneau de givre : injecte « Frostbite » (ralentit un ennemi).
   "anneau-de-givre": {
     id: "anneau-de-givre", nom: "Frost Ring", categorie: "bague", rarete: "uncommon",
     taille: { l: 1, h: 1 }, icone: "#5aa6d9", cartes: ["givre-lent", "givre-lent"],
   },
+  // Anneau de givre parfait : 2× Frost Cascade (gel en chaîne). Build gel/contrôle.
+  "anneau-de-givre-parfait": {
+    id: "anneau-de-givre-parfait", nom: "Perfect Frost Ring", categorie: "bague", rarete: "rare",
+    taille: { l: 1, h: 1 }, icone: "#7fc6ff", cartes: ["gel-cascade", "gel-cascade"],
+  },
+
+  // ---- Sacs (rangées d'inventaire) — progression 1 / 2 / 3 / 4 / 6 / 10 -------
   "sac-en-cuir": {
     id: "sac-en-cuir", nom: "Leather Pouch", categorie: "sac", rarete: "commun",
-    taille: { l: 2, h: 2 }, icone: "#6b4a2b", rangsBonus: 2,
+    taille: { l: 2, h: 2 }, icone: "#6b4a2b", rangsBonus: 1,
   },
-  // Grande bourse : 1 rangée de plus que la bourse de base (+3 au lieu de +2).
   "grand-sac-en-cuir": {
     id: "grand-sac-en-cuir", nom: "Big Leather Pouch", categorie: "sac", rarete: "uncommon",
-    taille: { l: 2, h: 2 }, icone: "#7a5630", rangsBonus: 3,
+    taille: { l: 2, h: 2 }, icone: "#7a5630", rangsBonus: 2,
+  },
+  // Énorme bourse : +3 rangées.
+  "enorme-sac-en-cuir": {
+    id: "enorme-sac-en-cuir", nom: "Huge Leather Pouch", categorie: "sac", rarete: "rare",
+    taille: { l: 2, h: 2 }, icone: "#8a6238", rangsBonus: 3,
+  },
+  // Sac à dos : +4 rangées.
+  "sac-a-dos": {
+    id: "sac-a-dos", nom: "Backpack", categorie: "sac", rarete: "rare",
+    taille: { l: 2, h: 2 }, icone: "#6a4f33", rangsBonus: 4,
+  },
+  // Sac sans fond : +6 rangées (épique).
+  "sac-sans-fond": {
+    id: "sac-sans-fond", nom: "Bottomless Bag", categorie: "sac", rarete: "epique",
+    taille: { l: 2, h: 2 }, icone: "#4a3a6a", rangsBonus: 6,
+  },
+  // Sac de maître mineur : +10 rangées (légendaire).
+  "sac-maitre-mineur": {
+    id: "sac-maitre-mineur", nom: "Master Miner's Bag", categorie: "sac", rarete: "legendaire",
+    taille: { l: 2, h: 2 }, icone: "#c8a13a", rangsBonus: 10,
+  },
+
+  // ---- Mail Set (gants + bottes ; le torse est la Forgemaster's Mail) ---------
+  // Gants de maille : tempo du build tank. 2× Master's Hand + 2× Outnumbered
+  // (pioche selon les ennemis) + 1× Mail Advantage (Pierre + hâte).
+  "gants-de-maille": {
+    id: "gants-de-maille", nom: "Mail Glove", categorie: "gant", rarete: "rare",
+    taille: { l: 2, h: 1 }, icone: "#8a8f98",
+    cartes: ["main-de-maitre", "main-de-maitre", "surnombre", "surnombre", "avantage-maille"],
+  },
+  // Bottes de maille : 2× Quicken + 1× Mail Advantage + 2× Boost. Tempo/énergie.
+  "bottes-de-maille": {
+    id: "bottes-de-maille", nom: "Mail Boots", categorie: "botte", rarete: "rare",
+    taille: { l: 2, h: 1 }, icone: "#8a8f98",
+    cartes: ["celerite-vive", "celerite-vive", "avantage-maille", "boost", "boost"],
+  },
+
+  // ---- Chevalier Croisé : set LUMIÈRE + Confusion (éblouissement) -------------
+  // Crusader Plate (torse) : 2× Radiant Strike + 3× Sacred Ground + 1× Blinding
+  // Flash. +15 Pierre de départ. Skin provisoire = nain de base (à dessiner).
+  "plate-croise": {
+    id: "plate-croise", nom: "Crusader Plate", categorie: "armure", rarete: "rare",
+    taille: { l: 2, h: 2 }, icone: "#e8d9a0",
+    planche: "images/heros/nain.png",
+    armureDepart: 15,
+    cartes: ["frappe-radiante", "frappe-radiante", "terre-sacree", "terre-sacree", "terre-sacree", "eclair-aveuglant"],
+  },
+  // Crusader Gauntlets (gants) : 2× Lumen Jab + 1× Halo Burst.
+  "gants-croise": {
+    id: "gants-croise", nom: "Crusader Gauntlets", categorie: "gant", rarete: "rare",
+    taille: { l: 2, h: 1 }, icone: "#e8d9a0",
+    cartes: ["coup-de-lumiere", "coup-de-lumiere", "eclat-de-halo"],
+  },
+  // Crusader Greaves (bottes) : 1× Crusader's Charge + 2× Dazzling Kick.
+  "bottes-croise": {
+    id: "bottes-croise", nom: "Crusader Greaves", categorie: "botte", rarete: "rare",
+    taille: { l: 2, h: 1 }, icone: "#e8d9a0",
+    cartes: ["charge-du-croise", "coup-eblouissant", "coup-eblouissant"],
   },
 };
 
@@ -247,6 +315,31 @@ export const SETS = {
       declencheur: "frappeMelee",
       texte: "When hit by a melee attack, the attacker takes 3 Burning (no spread).",
       effets: [{ type: "feu", valeur: 3 }],
+    },
+  },
+  // Mail Set : bonus DÉFENSIF en début de combat. Plus il y a d'ennemis, plus on
+  // entre blindé — synergie avec le build tank (Pierre) de la Forgemaster's Mail.
+  mail: {
+    id: "mail",
+    nom: "Mail Set",
+    pieces: ["maille-de-forge", "gants-de-maille", "bottes-de-maille"], // torse + gants + bottes
+    bonus: {
+      declencheur: "debutCombat",
+      texte: "At the start of combat, gain 10 Stone per enemy faced.",
+      effets: [{ type: "pierre", valeur: 10, parEnnemi: true }],
+    },
+  },
+  // Chevalier Croisé : bonus de CONTRÔLE (lumière). Frapper le croisé en mêlée,
+  // c'est s'exposer à son éclat → l'attaquant est ébloui (Confusion). Complète les
+  // cartes de Confusion du set : on punit l'ennemi qui ose s'approcher.
+  croise: {
+    id: "croise",
+    nom: "Crusader Set",
+    pieces: ["plate-croise", "gants-croise", "bottes-croise"], // torse + gants + bottes
+    bonus: {
+      declencheur: "frappeMelee",
+      texte: "When hit by a melee attack, the attacker is Dazzled (1 Confusion).",
+      effets: [{ type: "confusion", valeur: 1 }],
     },
   },
 };
