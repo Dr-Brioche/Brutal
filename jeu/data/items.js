@@ -266,6 +266,29 @@ export const ITEMS = {
     taille: { l: 2, h: 1 }, icone: "#e8d9a0",
     cartes: ["charge-du-croise", "coup-eblouissant", "coup-eblouissant"],
   },
+
+  // ---- Set de Sang : build SAIGNEMENT épique (à coupler à une arme à saignement)
+  // Blood Plate (torse) : 3× Crimson Carve + 2× Sanguine Guard + 2× Bloodbath.
+  // +20 Pierre de départ. Skin provisoire = nain de base (à dessiner).
+  "plate-sang": {
+    id: "plate-sang", nom: "Blood Plate", categorie: "armure", rarete: "epique",
+    taille: { l: 2, h: 2 }, icone: "#7a1320",
+    planche: "images/heros/nain.png",
+    armureDepart: 20,
+    cartes: ["carve-cramoisi", "carve-cramoisi", "carve-cramoisi", "garde-sanguine", "garde-sanguine", "bain-de-sang", "bain-de-sang"],
+  },
+  // Blood Gauntlets (gants) : 2× Open Veins + 2× Contagion (empile + propage).
+  "gants-sang": {
+    id: "gants-sang", nom: "Blood Gauntlets", categorie: "gant", rarete: "epique",
+    taille: { l: 2, h: 1 }, icone: "#7a1320",
+    cartes: ["ouvrir-les-veines", "ouvrir-les-veines", "contagion", "contagion"],
+  },
+  // Blood Greaves (bottes) : 2× Hemorrhage + 2× Blood Rush (détone + carburant).
+  "bottes-sang": {
+    id: "bottes-sang", nom: "Blood Greaves", categorie: "botte", rarete: "epique",
+    taille: { l: 2, h: 1 }, icone: "#7a1320",
+    cartes: ["hemorragie", "hemorragie", "ruee-de-sang", "ruee-de-sang"],
+  },
 };
 
 export function itemDef(id) {
@@ -340,6 +363,20 @@ export const SETS = {
       declencheur: "frappeMelee",
       texte: "When hit by a melee attack, the attacker is Dazzled (1 Confusion).",
       effets: [{ type: "confusion", valeur: 1 }],
+    },
+  },
+  // Set de Sang : bonus VAMPIRIQUE. Chaque combo de saignement (frapper un ennemi
+  // qui saigne déjà avec une carte de saignement → dégâts bonus) soigne le héros
+  // d'AUTANT. Réintroduit le soin par saignement, gated derrière le set complet —
+  // l'« item spécifique » que le concept réservait. Récompense directe du moteur sang.
+  sang: {
+    id: "sang",
+    nom: "Blood Set",
+    pieces: ["plate-sang", "gants-sang", "bottes-sang"], // torse + gants + bottes
+    bonus: {
+      declencheur: "saignementCombo",
+      texte: "When a Bleed combo deals bonus damage, heal the hero for that amount.",
+      effets: [{ type: "soin", ratio: 1 }],
     },
   },
 };
