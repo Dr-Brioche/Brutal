@@ -198,22 +198,22 @@ export const CARTES = {
     effets: [{ type: "forgeage", feu: 10 }],
   },
 
-  // Bouclier-tour : 2 cartes de Pierre (blocage) + 1 carte qui étourdit.
+  // Bouclier-tour : 3 cartes de Pierre (blocage) + 2 cartes qui étourdissent + 1 Stacking Shield.
   "mur-bouclier": {
     id: "mur-bouclier",
     nom: "Shield Wall",
     cout: 1,
     type: "defense",
-    texte: "Gain 5 Stone.",
-    effets: [{ type: "pierre", valeur: 5 }],
+    texte: "Gain 10 Stone.",
+    effets: [{ type: "pierre", valeur: 10 }],
   },
   "coup-de-bouclier": {
     id: "coup-de-bouclier",
     nom: "Shield Bash",
     cout: 2,
     type: "attaque",
-    texte: "Deal 3 damage. Stun the enemy for 2 turns.",
-    effets: [{ type: "degats", valeur: 3 }, { type: "stun", valeur: 2 }],
+    texte: "Deal 10 damage. Stun the enemy for 3 turns.",
+    effets: [{ type: "degats", valeur: 10 }, { type: "stun", valeur: 3 }],
   },
 
   // Bottes vives : HÂTE le héros (+30% d'agilité) pendant quelques tours.
@@ -231,8 +231,8 @@ export const CARTES = {
     nom: "Frostbite",
     cout: 1,
     type: "attaque",
-    texte: "Deal 2 damage. Chill: -30% speed for 3 turns.",
-    effets: [{ type: "degats", valeur: 2 }, { type: "lenteur", valeur: 3 }],
+    texte: "Deal 5 damage. Chill: -30% speed for 3 turns.",
+    effets: [{ type: "degats", valeur: 5 }, { type: "lenteur", valeur: 3 }],
   },
 
   // Collier de saphir : régénère de l'énergie (Chaleur). Sans cible, joué sur soi.
@@ -312,17 +312,18 @@ export const CARTES = {
 
   // ---- Forgemaster's Mail (armure) : 1re armure qui DONNE des cartes ----------
 
-  // Mail Armor : bloc de Pierre fiable, peu cher (build défensif/tank).
+  // Mail Armor : bloc de Pierre qui SCALE avec le nombre d'ennemis encore vivants.
+  // Plus il y en a en face, plus la protection est forte — récompense les batailles longues.
   "mail-armor": {
     id: "mail-armor",
     nom: "Mail Armor",
     cout: 1,
     type: "defense",
-    texte: "Gain 5 Stone.",
-    effets: [{ type: "pierre", valeur: 5 }],
+    texte: "Gain 7 Stone for every enemy still alive.",
+    effets: [{ type: "pierre-par-ennemi", valeur: 7 }],
   },
 
-  // Trempe : vide toute la Chaleur et la fige en Pierre (×4). Gratuite, mais ne
+  // Trempe : vide toute la Chaleur et la fige en Pierre (×10). Gratuite, mais ne
   // vaut que si la forge est chaude → récompense de jouer en surchauffe, et fait
   // retomber la surchauffe d'un coup. Passerelle d'identité naine : Chaleur → Pierre.
   "trempe": {
@@ -330,8 +331,8 @@ export const CARTES = {
     nom: "Quench",
     cout: 0,
     type: "defense",
-    texte: "Spend all Forge Heat. Gain 4 Stone per Heat spent.",
-    effets: [{ type: "trempe", valeur: 4 }],
+    texte: "Spend all Forge Heat. Gain 10 Stone per Heat spent.",
+    effets: [{ type: "trempe", valeur: 10 }],
   },
 
   // ---- Onyx Guard Plate (armure) : build « brûlure / dragon » -----------------
@@ -339,25 +340,25 @@ export const CARTES = {
   // 2× Onyx Breath (pose du feu en masse). Combo : empiler le Feu (Souffle), puis
   // le faire exploser d'un coup (Embrasement) — burst AOE qui récompense la mise en place.
 
-  // Onyx Armor : gros mur de Pierre (build tank lourd).
+  // Onyx Armor : mur de Pierre massif (build tank lourd).
   "onyx-armor": {
     id: "onyx-armor",
     nom: "Onyx Armor",
     cout: 2,
     type: "defense",
-    texte: "Gain 15 Stone.",
-    effets: [{ type: "pierre", valeur: 15 }],
+    texte: "Gain 30 Stone.",
+    effets: [{ type: "pierre", valeur: 30 }],
   },
 
-  // Onyx Breath : souffle ardent → 8 Feu sur TOUS les ennemis (mise en place du combo).
+  // Onyx Breath : souffle ardent → 20 Feu sur TOUS les ennemis (mise en place du combo).
   "souffle-onyx": {
     id: "souffle-onyx",
     nom: "Onyx Breath",
-    cout: 4,
+    cout: 3,
     type: "attaque",
     aoe: true,
-    texte: "Apply 8 Burning to ALL enemies.",
-    effets: [{ type: "feu", valeur: 8 }],
+    texte: "Apply 20 Burning to ALL enemies.",
+    effets: [{ type: "feu", valeur: 20 }],
   },
 
   // Dragon's Blaze : fait DÉTONER tout le Feu en cours → chaque point de Feu
@@ -427,7 +428,7 @@ export const CARTES = {
 
   // ---- Onyx Glove (gants) : build feu « brûlure dispersée » -------------------
 
-  // Burning Hand : défausse toute la main et envoie 3 Feu par carte défaussée à
+  // Burning Hand : défausse toute la main et envoie 8 Feu par carte défaussée à
   // un ennemi AU HASARD (peut frapper plusieurs fois le même). Gratuite : à jouer
   // en dernier dans le tour pour transformer une main inutile en brûlure.
   "main-brulante": {
@@ -435,18 +436,18 @@ export const CARTES = {
     nom: "Burning Hand",
     cout: 0,
     type: "attaque",
-    texte: "Discard your hand. For each card discarded, apply 3 Burning to a random enemy.",
-    effets: [{ type: "defausse-brulante", valeur: 3 }],
+    texte: "Discard your hand. For each card discarded, apply 8 Burning to a random enemy.",
+    effets: [{ type: "defausse-brulante", valeur: 8 }],
   },
 
-  // Onyx Fist : coup mixte défense + feu — 5 Pierre, 2 dégâts et 1 Feu sur la cible.
+  // Onyx Fist : coup mixte défense + feu — 10 Pierre, 10 dégâts et 3 Feu sur la cible.
   "poing-onyx": {
     id: "poing-onyx",
     nom: "Onyx Fist",
     cout: 1,
     type: "attaque",
-    texte: "Gain 5 Stone. Deal 2 damage and apply 1 Burning.",
-    effets: [{ type: "pierre", valeur: 5 }, { type: "degats", valeur: 2 }, { type: "feu", valeur: 1 }],
+    texte: "Gain 10 Stone. Deal 10 damage and apply 3 Burning.",
+    effets: [{ type: "pierre", valeur: 10 }, { type: "degats", valeur: 10 }, { type: "feu", valeur: 3 }],
   },
 
   // ---- Onyx Boots (bottes) : feu + mobilité -----------------------------------
@@ -471,5 +472,65 @@ export const CARTES = {
     type: "attaque",
     texte: "Move all Burning from the target to the enemy behind it.",
     effets: [{ type: "transfert-feu" }],
+  },
+
+  // ---- Tower Shield (bouclier) : build tank bastion ----------------------------
+
+  // Stacking Shield : double la Pierre actuelle — récompense un build qui capitalise.
+  "bouclier-empilant": {
+    id: "bouclier-empilant",
+    nom: "Stacking Shield",
+    cout: 4,
+    type: "defense",
+    texte: "Double your current Stone.",
+    effets: [{ type: "doublerPierre" }],
+  },
+
+  // ---- Traveler's Garb (armure) : build mobilité légère -----------------------
+
+  // Light Armor : un peu de Pierre (armure légère, peu chère).
+  "armure-legere": {
+    id: "armure-legere",
+    nom: "Light Armor",
+    cout: 1,
+    type: "defense",
+    texte: "Gain 5 Stone.",
+    effets: [{ type: "pierre", valeur: 5 }],
+  },
+
+  // Free Movement : élan qui accélère le héros pour les 5 prochains tours.
+  "mouvement-degage": {
+    id: "mouvement-degage",
+    nom: "Free Movement",
+    cout: 2,
+    type: "buff",
+    texte: "Haste for 5 of your turns.",
+    effets: [{ type: "celerite", valeur: 5 }],
+  },
+
+  // ---- Onyx Guard Plate (armure) : All Should Be Fire -------------------------
+
+  // All Should Be Fire : convertit TOUS les statuts ennemis (positifs et négatifs)
+  // en Feu, puis les DOUBLE. Une horde empoisonnée/stun explose en brûlure de masse.
+  "tout-en-feu": {
+    id: "tout-en-feu",
+    nom: "All Should Be Fire",
+    cout: 2,
+    type: "attaque",
+    aoe: true,
+    texte: "Convert ALL enemy statuses (positive and negative) to Burning, then double the Burning.",
+    effets: [{ type: "tout-en-feu" }],
+  },
+
+  // ---- Forgemaster's Mail (armure) : bouclier lourd ---------------------------
+
+  // Heavy Armor : gros bloc de Pierre (build tank solide).
+  "armure-lourde": {
+    id: "armure-lourde",
+    nom: "Heavy Armor",
+    cout: 2,
+    type: "defense",
+    texte: "Gain 20 Stone.",
+    effets: [{ type: "pierre", valeur: 20 }],
   },
 };

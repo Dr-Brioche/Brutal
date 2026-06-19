@@ -130,6 +130,7 @@ export function ennemiVivant(e) { return e && e.pv > 0; }
 // + réglages chiffrés (`stats`) venant de l'arbre de talents.
 export function creerCombat(ennemisDefs, opts = {}) {
   const { pv = 40, pvMax = 40, cartes = [], cartesSupp = [], mains = {}, stats = {}, passifs = [] } = opts;
+  const armureDepart = stats.armureDepart || 0;
   // Les TALENTS modifient les réglages de la Chaleur de Forge (seuil, plafond,
   // recharge, énergie de départ) — cf. bonusTalents() de l'arbre de talents.
   const chaleurSeuil = CHALEUR_SEUIL + (stats.chaleurSeuil || 0);
@@ -140,7 +141,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     // Héros
     pvHerosMax: pvMax,
     pvHeros: pv,
-    pierre: 0,
+    pierre: armureDepart, // Pierre de départ des armures équipées
     poisonHeros: 0,
     feuHeros: 0,
     gelHeros: 0,    // gel du héros : ralentit (−30% vitesse) ; annulé par feuHeros et vice-versa
@@ -270,7 +271,8 @@ export function carteVise(carte) {
     (e) => e.type === "degats" || e.type === "degats-execution" ||
            e.type === "poison" || e.type === "feu" ||
            e.type === "sang" || e.type === "stun" || e.type === "lenteur" ||
-           e.type === "transfert-feu" // vise l'ennemi SOURCE dont on déplace la brûlure
+           e.type === "transfert-feu" || // vise l'ennemi SOURCE dont on déplace la brûlure
+           e.type === "tout-en-feu"     // AOE offensif sur tous les ennemis
   );
 }
 
@@ -368,6 +370,12 @@ function appliquerEffet(combat, effet, ennemi) {
       const c = piocherUne(combat);
       if (c) combat.main.push(c);
     }
+  } else if (effet.type === "doublerPierre") {
+    combat.pierre *= 2;
+  } else if (effet.type === "pierre-par-ennemi") {
+    // Pierre proportionnelle au nombre d'ennemis encore vivants.
+    const nbVivants = combat.ennemis.filter(ennemiVivant).length;
+    combat.pierre += effet.valeur * nbVivants;
   }
 }
 
@@ -470,6 +478,16 @@ function resoudreAOE(combat, carte) {
           e.feu += effet.feu;
           e.feuDeCarte = true;
         }
+      }
+    } else if (effet.type === "tout-en-feu") {
+      // All Should Be Fire : somme TOUS les statuts de chaque ennemi (poison,
+      // feu, sang, stun, gel, haste), les convertit en Feu × 2. Un stun de 3
+      // et un poison de 5 deviennent 16 de brûlure — explosion de masse.
+      for (const e of vivants) {
+        const total = e.poison + e.feu + e.sang + e.stun + e.gel + e.haste;
+        e.feu = total * 2;
+        e.feuDeCarte = e.feu > 0;
+        e.poison = 0; e.sang = 0; e.stun = 0; e.gel = 0; e.haste = 0;
       }
     } else if (effetViseEnnemi(effet)) {
       for (const e of vivants) appliquerEffet(combat, effet, e);
@@ -613,16 +631,19 @@ function propagerFeu(combat) {
   for (const e of combat.ennemis) e.feuDeCarte = false;
 }
 
-// Déclenche les passifs « frappeMelee » (bonus de set) sur l'ATTAQUANT `e` quand
-// il vient de frapper le héros en mêlée. Le feu de rétorsion NE se propage PAS
-// (pas de feuDeCarte) — c'est une morsure ciblée, pas une carte. Renvoie le total
-// de brûlure infligée à l'attaquant (pour l'affichage).
+// Déclenche les passifs « frappeMelee » quand l'attaquant `e` vient de frapper le
+// héros en mêlée. Effets sur l'ATTAQUANT (feu) ou sur le HÉROS (pierre, si cible:"heros").
+// Renvoie la brûlure totale infligée à l'attaquant (pour l'affichage UI).
 function declencherFrappeMelee(combat, e) {
   let brulure = 0;
   for (const p of combat.passifs ?? []) {
     if (p.declencheur !== "frappeMelee") continue;
     for (const ef of p.effets) {
-      if (ef.type === "feu") { e.feu += ef.valeur; brulure += ef.valeur; }
+      if (ef.cible === "heros") {
+        if (ef.type === "pierre") combat.pierre += ef.valeur;
+      } else {
+        if (ef.type === "feu") { e.feu += ef.valeur; brulure += ef.valeur; }
+      }
     }
   }
   return brulure;
