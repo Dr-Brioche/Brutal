@@ -34,6 +34,7 @@ def extraire_donnees():
 DECLENCHEURS = {
     "frappeMelee": "Quand le héros est frappé en mêlée",
     "debutCombat": "En début de combat",
+    "saignementCombo": "Quand un combo de saignement inflige des dégâts bonus",
 }
 
 
