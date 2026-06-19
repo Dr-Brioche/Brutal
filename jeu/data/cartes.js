@@ -617,13 +617,13 @@ export const CARTES = {
     effets: [{ type: "chaleur", valeur: 3 }],
   },
 
-  // ---- Set Chevalier Croisé : LUMIÈRE + Confusion (éblouissement) -------------
-  // Identité : moins de dégâts bruts que les autres armes, mais beaucoup de
-  // CONTRÔLE via la Confusion — l'ennemi ébloui frappe une cible au hasard (héros,
-  // un autre ennemi, ou lui-même). Combo redoutable à plusieurs ennemis.
+  // ---- Set Chevalier Croisé : LUMIÈRE — Confusion + soutien ------------------
+  // Identité : contrôle par Confusion (éblouissement → l'ennemi frappe au hasard)
+  // ET soutien lumineux (soin, purification, Pierre). Peu de dégâts bruts, beaucoup
+  // d'utilité. Combo : éblouir en masse, puis amplifier la Confusion (Halo Burst).
 
-  // Crusader Plate (torse) ----------------------------------------------------
-  // Radiant Strike : coup de lumière qui éblouit (dégâts + Confusion).
+  // Radiant Strike : coup de lumière qui éblouit (dégâts + Confusion). Carte libre
+  // (plus donnée par une pièce du set pour l'instant, gardée pour un futur item).
   "frappe-radiante": {
     id: "frappe-radiante",
     nom: "Radiant Strike",
@@ -632,139 +632,152 @@ export const CARTES = {
     texte: "Deal 14 damage. Apply 2 Confusion.",
     effets: [{ type: "degats", valeur: 14 }, { type: "confusion", valeur: 2 }],
   },
-  // Sacred Ground : mur de Pierre béni (le pan défensif du croisé).
-  "terre-sacree": {
-    id: "terre-sacree",
-    nom: "Sacred Ground",
-    cout: 2,
+
+  // Crusader Plate (torse) ----------------------------------------------------
+  // Armor of light : Pierre + éblouit l'ennemi le plus proche (2 Confusion).
+  "armure-de-lumiere": {
+    id: "armure-de-lumiere",
+    nom: "Armor of light",
+    cout: 1,
     type: "defense",
-    texte: "Gain 18 Stone.",
-    effets: [{ type: "pierre", valeur: 18 }],
+    texte: "Gain 6 Stone. Dazzle the nearest enemy (2 Confusion).",
+    effets: [{ type: "pierre", valeur: 6 }, { type: "confusion-proche", valeur: 2 }],
   },
-  // Blinding Flash : éclair aveuglant → Confusion sur TOUS les ennemis (AOE pur contrôle).
+  // Blinding Flash : éclair aveuglant → Confusion sur TOUS les ennemis (AOE).
   "eclair-aveuglant": {
     id: "eclair-aveuglant",
     nom: "Blinding Flash",
-    cout: 3,
+    cout: 5,
     type: "attaque",
     aoe: true,
     texte: "Apply 2 Confusion to ALL enemies.",
     effets: [{ type: "confusion", valeur: 2 }],
   },
+  // Holy light : soin pur (le pan « soutien » du croisé).
+  "lumiere-sacree": {
+    id: "lumiere-sacree",
+    nom: "Holy light",
+    cout: 2,
+    type: "defense",
+    texte: "Heal 30 HP.",
+    effets: [{ type: "soin-heros", valeur: 30 }],
+  },
 
   // Crusader Gauntlets (gants) -------------------------------------------------
-  // Lumen Jab : petit coup de lumière qui éblouit un peu (entrée de gamme).
-  "coup-de-lumiere": {
-    id: "coup-de-lumiere",
-    nom: "Lumen Jab",
-    cout: 1,
-    type: "attaque",
-    texte: "Deal 8 damage. Apply 1 Confusion.",
-    effets: [{ type: "degats", valeur: 8 }, { type: "confusion", valeur: 1 }],
-  },
-  // Halo Burst : éclat de halo → dégâts de lumière légers sur TOUS les ennemis.
+  // Halo Burst : amplifie la Confusion → +1 Confusion à chaque ennemi DÉJÀ confus.
   "eclat-de-halo": {
     id: "eclat-de-halo",
     nom: "Halo Burst",
-    cout: 2,
+    cout: 1,
     type: "attaque",
     aoe: true,
-    texte: "Deal 6 damage to ALL enemies.",
-    effets: [{ type: "degats", valeur: 6 }],
+    texte: "Apply 1 more Confusion to each already-confused enemy.",
+    effets: [{ type: "confusion-si-confus", valeur: 1 }],
+  },
+  // Lay on Hands : retire complètement 1 malus du héros au hasard.
+  "imposition-des-mains": {
+    id: "imposition-des-mains",
+    nom: "Lay on Hands",
+    cout: 1,
+    type: "buff",
+    texte: "Remove one random negative status from the hero.",
+    effets: [{ type: "purifier-hero" }],
   },
 
   // Crusader Greaves (bottes) --------------------------------------------------
-  // Crusader's Charge : élan du croisé → hâte (mobilité de la lignée lumière).
-  "charge-du-croise": {
-    id: "charge-du-croise",
-    nom: "Crusader's Charge",
+  // Kick of light : coup de lumière qui éblouit un peu.
+  "coup-de-lumiere": {
+    id: "coup-de-lumiere",
+    nom: "Kick of light",
     cout: 1,
-    type: "buff",
-    texte: "Haste: +30% attack speed for 3 turns.",
-    effets: [{ type: "celerite", valeur: 3 }],
-  },
-  // Dazzling Kick : coup éblouissant → dégâts + grosse Confusion (la finisseuse).
-  "coup-eblouissant": {
-    id: "coup-eblouissant",
-    nom: "Dazzling Kick",
-    cout: 2,
     type: "attaque",
-    texte: "Deal 10 damage. Apply 3 Confusion.",
-    effets: [{ type: "degats", valeur: 10 }, { type: "confusion", valeur: 3 }],
+    texte: "Deal 6 damage. Apply 1 Confusion.",
+    effets: [{ type: "degats", valeur: 6 }, { type: "confusion", valeur: 1 }],
   },
 
-  // ---- Set de Sang : moteur SAIGNEMENT (empiler → propager → encaisser → éclater)
-  // Combo inter-pièces : on empile le saignement (Plate/Gauntlets), on le COPIE sur
-  // les voisins (Contagion), on en tire de la Pierre/énergie (Sanguine Guard / Blood
-  // Rush), puis on le fait ÉCLATER (Hemorrhage). Le bonus de set soigne le héros à
-  // chaque combo de saignement (vampirisme — l'« item spécifique » du concept).
+  // ---- Set de Sang : SACRIFICE → SAIGNEMENT → vampirisme ---------------------
+  // On paie en sang (PV ou Pierre) pour empiler du saignement de masse, on le
+  // propage/égalise (Contagion), puis on le convertit en soin/Pierre/énergie
+  // (Sanguine Guard, Absorption, Blood Rush) ou en contrôle (Blood Slide). Très
+  // gros sustain. Le bonus de set soigne en plus à chaque combo de saignement.
 
   // Blood Plate (torse) -------------------------------------------------------
-  // Crimson Carve : entaille profonde → dégâts + saignement (l'empileur principal).
-  "carve-cramoisi": {
-    id: "carve-cramoisi",
-    nom: "Crimson Carve",
-    cout: 2,
-    type: "attaque",
-    texte: "Deal 9 damage. Apply 3 Bleed.",
-    effets: [{ type: "degats", valeur: 9 }, { type: "sang", valeur: 3 }],
-  },
-  // Sanguine Guard : armure de sang → Pierre selon le saignement TOTAL sur le champ.
+  // Sanguine Guard : Pierre ET soin proportionnels au saignement TOTAL sur le champ.
   "garde-sanguine": {
     id: "garde-sanguine",
     nom: "Sanguine Guard",
-    cout: 2,
+    cout: 1,
     type: "defense",
-    texte: "Gain 1 Stone per Bleed among ALL enemies.",
-    effets: [{ type: "pierre-par-sang", valeur: 1 }],
+    texte: "Per Bleed among ALL enemies: gain 3 Stone and heal 2 HP.",
+    effets: [{ type: "pierre-par-sang", valeur: 3 }, { type: "soin-par-sang", valeur: 2 }],
   },
-  // Bloodbath : saignement de masse → 4 saignement sur TOUS les ennemis (mise en place).
+  // Bloodbath : le héros encaisse 10 dégâts (Pierre possible), puis 5 saignement à TOUS.
   "bain-de-sang": {
     id: "bain-de-sang",
     nom: "Bloodbath",
     cout: 3,
     type: "attaque",
     aoe: true,
-    texte: "Apply 4 Bleed to ALL enemies.",
-    effets: [{ type: "sang", valeur: 4 }],
+    texte: "Take 10 damage. Apply 5 Bleed to ALL enemies.",
+    effets: [{ type: "auto-degats", valeur: 10 }, { type: "sang", valeur: 5 }],
+  },
+  // Drink blood : sacrifice 20 PV → 10 dégâts + 1 saignement à TOUS ; chaque ennemi
+  // TUÉ par ce coup rend 20 PV au héros (cumulable s'il en tue plusieurs).
+  "boire-le-sang": {
+    id: "boire-le-sang",
+    nom: "Drink blood",
+    cout: 2,
+    type: "attaque",
+    aoe: true,
+    texte: "Lose 20 HP. Deal 10 damage and 1 Bleed to ALL enemies. Heal 20 HP per enemy killed by this.",
+    effets: [{ type: "boire-le-sang", hp: 20, degats: 10, sang: 1, soinMort: 20 }],
   },
 
   // Blood Gauntlets (gants) ---------------------------------------------------
-  // Open Veins : petite entaille très saignante (empileur pas cher).
+  // Open Veins : le héros encaisse 10 dégâts (Pierre possible), applique 4 saignement.
   "ouvrir-les-veines": {
     id: "ouvrir-les-veines",
     nom: "Open Veins",
     cout: 1,
     type: "attaque",
-    texte: "Deal 3 damage. Apply 4 Bleed.",
-    effets: [{ type: "degats", valeur: 3 }, { type: "sang", valeur: 4 }],
+    texte: "Take 10 damage. Apply 4 Bleed.",
+    effets: [{ type: "auto-degats", valeur: 10 }, { type: "sang", valeur: 4 }],
   },
-  // Contagion : la plaie de la cible CONTAMINE ses deux voisins (copie son saignement).
+  // Contagion : les voisins de la cible ÉGALISENT leur saignement sur celui de la cible.
   "contagion": {
     id: "contagion",
     nom: "Contagion",
     cout: 2,
     type: "attaque",
-    texte: "Deal 5 damage. Both adjacent enemies gain Bleed equal to the target's Bleed.",
-    effets: [{ type: "degats", valeur: 5 }, { type: "contagion" }],
+    texte: "Both adjacent enemies match the target's Bleed.",
+    effets: [{ type: "contagion" }],
+  },
+  // Blood Absorption : soigne 5 PV par saignement TOTAL, puis efface TOUT le saignement ennemi.
+  "absorption-de-sang": {
+    id: "absorption-de-sang",
+    nom: "Blood Absorption",
+    cout: 2,
+    type: "buff",
+    texte: "Heal 5 HP per Bleed among ALL enemies, then remove all their Bleed.",
+    effets: [{ type: "absorption-sang", valeur: 5 }],
   },
 
   // Blood Greaves (bottes) ----------------------------------------------------
-  // Hemorrhage : ouvre toutes les plaies d'un coup → consomme TOUT le saignement de
-  // la cible et le convertit en dégâts (×2). Le détonateur/finisher du build.
-  "hemorragie": {
-    id: "hemorragie",
-    nom: "Hemorrhage",
+  // Blood Slide : étourdit 2 tours TOUS les ennemis qui portent du saignement.
+  "glissade-sur-sang": {
+    id: "glissade-sur-sang",
+    nom: "Blood Slide",
     cout: 2,
     type: "attaque",
-    texte: "Consume all the target's Bleed: deal 2 damage per Bleed consumed.",
-    effets: [{ type: "hemorragie", valeur: 2 }],
+    aoe: true,
+    texte: "Stun for 2 turns every enemy that has Bleed.",
+    effets: [{ type: "stun-si-sang", valeur: 2 }],
   },
   // Blood Rush : l'ivresse du sang → énergie selon le saignement TOTAL (1 par 5 points).
   "ruee-de-sang": {
     id: "ruee-de-sang",
     nom: "Blood Rush",
-    cout: 1,
+    cout: 0,
     type: "buff",
     texte: "Gain 1 Forge Heat per 5 Bleed among ALL enemies.",
     effets: [{ type: "chaleur-par-sang", par: 5 }],
