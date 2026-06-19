@@ -478,27 +478,27 @@ plus l'ennemi s'acharne au corps à corps, plus il finit par taper de travers.
 La Crusader Plate donne **+15 Pierre de départ** (skin provisoire = nain de base,
 à dessiner).
 
-### Set de Sang : moteur saignement (épique)
+### Set de Sang : moteur saignement (uncommon)
 
-Set **épique** à 3 pièces, à coupler à une **arme à saignement** (War Axe, Blood
-Ring…). Il transforme le saignement — d'habitude faible (1 dégât/tick) — en un vrai
-moteur **empiler → propager → encaisser → faire éclater**, avec **vampirisme**.
-Cartes (combo inter-pièces) :
-- **Crimson Carve** (torse) : 12 dégâts + 4 saignement (l'empileur principal).
+Set **uncommon** à 3 pièces (accessible tôt), à coupler à une **arme à saignement**
+(War Axe, Blood Ring…). Il transforme le saignement — d'habitude faible (1 dégât/tick)
+— en un vrai moteur **empiler → propager → encaisser → faire éclater**, avec
+**vampirisme**. Cartes (combo inter-pièces) :
+- **Crimson Carve** (torse) : 9 dégâts + 3 saignement (l'empileur principal).
 - **Sanguine Guard** (torse) : **1 Pierre par point de saignement TOTAL** sur le
   champ → l'armure scale avec ta mise en place. `pierre-par-sang`.
-- **Bloodbath** (torse, AOE) : 5 saignement à **tous** les ennemis (mise en place de masse).
-- **Open Veins** (gants) : 4 dégâts + 5 saignement (empileur pas cher).
-- **Contagion** (gants) : 6 dégâts ; les **deux voisins** gagnent autant de
+- **Bloodbath** (torse, AOE) : 4 saignement à **tous** les ennemis (mise en place de masse).
+- **Open Veins** (gants) : 3 dégâts + 4 saignement (empileur pas cher).
+- **Contagion** (gants) : 5 dégâts ; les **deux voisins** gagnent autant de
   saignement que la cible en porte (copie). `contagion`.
-- **Hemorrhage** (bottes) : **consomme tout** le saignement de la cible → **3 dégâts
+- **Hemorrhage** (bottes) : **consomme tout** le saignement de la cible → **2 dégâts
   par point** consommé (le détonateur/finisher). `hemorragie`.
-- **Blood Rush** (bottes) : **1 Chaleur par 4 points** de saignement total (carburant). `chaleur-par-sang`.
+- **Blood Rush** (bottes) : **1 Chaleur par 5 points** de saignement total (carburant). `chaleur-par-sang`.
 
-**Boucle type** : *Bloodbath* (5 partout) → *Contagion* (copie sur les voisins) →
+**Boucle type** : *Bloodbath* (4 partout) → *Contagion* (copie sur les voisins) →
 re-frappes (*Crimson Carve*/*Open Veins*) qui détonnent le bonus **et soignent** (set)
 → *Sanguine Guard*/*Blood Rush* convertissent les stacks en Pierre/énergie →
-*Hemorrhage* fait tout éclater. La **Blood Plate** donne **+20 Pierre de départ**
+*Hemorrhage* fait tout éclater. La **Blood Plate** donne **+12 Pierre de départ**
 (skin provisoire = nain de base, à dessiner).
 
 ## Items, butin & inventaire (1er jet implémenté)

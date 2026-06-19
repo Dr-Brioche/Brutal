@@ -267,25 +267,25 @@ export const ITEMS = {
     cartes: ["charge-du-croise", "coup-eblouissant", "coup-eblouissant"],
   },
 
-  // ---- Set de Sang : build SAIGNEMENT épique (à coupler à une arme à saignement)
-  // Blood Plate (torse) : 3× Crimson Carve + 2× Sanguine Guard + 2× Bloodbath.
-  // +20 Pierre de départ. Skin provisoire = nain de base (à dessiner).
+  // ---- Set de Sang : build SAIGNEMENT uncommon (à coupler à une arme à saignement)
+  // Blood Plate (torse) : 3× Crimson Carve + 2× Sanguine Guard + 1× Bloodbath.
+  // +12 Pierre de départ. Skin provisoire = nain de base (à dessiner).
   "plate-sang": {
-    id: "plate-sang", nom: "Blood Plate", categorie: "armure", rarete: "epique",
+    id: "plate-sang", nom: "Blood Plate", categorie: "armure", rarete: "uncommon",
     taille: { l: 2, h: 2 }, icone: "#7a1320",
     planche: "images/heros/nain.png",
-    armureDepart: 20,
-    cartes: ["carve-cramoisi", "carve-cramoisi", "carve-cramoisi", "garde-sanguine", "garde-sanguine", "bain-de-sang", "bain-de-sang"],
+    armureDepart: 12,
+    cartes: ["carve-cramoisi", "carve-cramoisi", "carve-cramoisi", "garde-sanguine", "garde-sanguine", "bain-de-sang"],
   },
   // Blood Gauntlets (gants) : 2× Open Veins + 2× Contagion (empile + propage).
   "gants-sang": {
-    id: "gants-sang", nom: "Blood Gauntlets", categorie: "gant", rarete: "epique",
+    id: "gants-sang", nom: "Blood Gauntlets", categorie: "gant", rarete: "uncommon",
     taille: { l: 2, h: 1 }, icone: "#7a1320",
     cartes: ["ouvrir-les-veines", "ouvrir-les-veines", "contagion", "contagion"],
   },
   // Blood Greaves (bottes) : 2× Hemorrhage + 2× Blood Rush (détone + carburant).
   "bottes-sang": {
-    id: "bottes-sang", nom: "Blood Greaves", categorie: "botte", rarete: "epique",
+    id: "bottes-sang", nom: "Blood Greaves", categorie: "botte", rarete: "uncommon",
     taille: { l: 2, h: 1 }, icone: "#7a1320",
     cartes: ["hemorragie", "hemorragie", "ruee-de-sang", "ruee-de-sang"],
   },
