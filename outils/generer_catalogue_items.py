@@ -39,15 +39,17 @@ DECLENCHEURS = {
 
 
 def effets_hors_carte(item, set_par_item):
-    """Texte décrivant ce qu'un item apporte EN DEHORS de ses cartes (sac, deux
-    mains, appartenance à un set). Vide si l'item n'apporte rien hors carte."""
+    """Texte décrivant ce qu'un item apporte EN DEHORS de ses cartes (armure de
+    départ, passif propre, sac, deux mains, appartenance à un set). Vide si rien."""
     parts = []
     if item.get("mains") == 2:
         parts.append("Deux mains")
+    if item.get("armureDepart"):
+        parts.append(f"Ajoute {item['armureDepart']} d'armure en début de combat")
+    if item.get("passifPropre", {}).get("texte"):
+        parts.append(item["passifPropre"]["texte"])
     if item.get("rangsBonus"):
         parts.append(f"+{item['rangsBonus']} rangées de sac")
-    if item.get("defense"):
-        parts.append(f"Défense {item['defense']}")
     nom_set = set_par_item.get(item["id"])
     if nom_set:
         parts.append(f"Set : {nom_set}")
@@ -138,10 +140,11 @@ def construire():
          "Si tu inventes une NOUVELLE carte, écris son nom dans une colonne Carte et décris son "
          "effet (dégâts, Pierre, Poison, coût en Chaleur…) dans la colonne « Notes ».", None, None),
         ("", None, None),
-        ("Effets HORS carte (sac, deux mains, set d'armure)", F_GRAS, None),
+        ("Effets HORS carte (armure de départ, sac, deux mains, set d'armure)", F_GRAS, None),
         ("La colonne « Effet hors-carte » (onglet Items) décrit ce qu'un objet apporte EN DEHORS "
-         "de ses cartes : rangées de sac, arme à deux mains, appartenance à un set. Pour un nouvel "
-         "objet, écris ici son effet hors-carte (ex. « +4 rangées de sac »).", None, None),
+         "de ses cartes : armure (Pierre) donnée en début de combat, rangées de sac, arme à deux "
+         "mains, passif propre, appartenance à un set. Pour un nouvel objet, écris ici son effet "
+         "hors-carte (ex. « Ajoute 12 d'armure en début de combat », « +4 rangées de sac »).", None, None),
         ("Les SETS d'armure ont leur propre onglet « Sets » : un bonus s'active quand on porte TOUTES "
          "les pièces d'armure du set (l'arme ne compte pas). Propose un set sur une ligne vide.", None, None),
         ("", None, None),
