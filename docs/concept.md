@@ -390,7 +390,11 @@ directement la **collecte** et le **marché**.
     avec les nouveaux. Un ennemi en vie ne vaut rien — une carte pure dégâts ne
     déclenche pas ce bonus. Ex. : ennemi à 5 ticks, attaque « 2 dégâts + 3
     saignement » → 2 + 5 (bonus) = 7 dégâts, sang passe à 8.
-    **Le saignement ne soigne plus le héros** (sauf futur item spécifique).
+    **Le saignement ne soigne plus le héros** — SAUF si le **set de Sang** complet
+    est porté (vampirisme, cf. plus bas) : c'est l'« item spécifique » prévu.
+    Un **détonateur dédié** existe via le set de Sang (*Hemorrhage*) : il **consomme
+    tout** le saignement de la cible pour un gros coup (≠ du combo de re-frappe, qui
+    lui ne consomme pas les ticks).
     **Ordre** : poison, puis feu, puis saignement. Si l'ennemi meurt du poison
     ou du feu avant, il ne saigne plus ce tour-là.
   - **Étourdissement (stun) — implémenté** : l'ennemi **saute ses tours** (n'attaque
@@ -474,6 +478,29 @@ plus l'ennemi s'acharne au corps à corps, plus il finit par taper de travers.
 La Crusader Plate donne **+15 Pierre de départ** (skin provisoire = nain de base,
 à dessiner).
 
+### Set de Sang : moteur saignement (épique)
+
+Set **épique** à 3 pièces, à coupler à une **arme à saignement** (War Axe, Blood
+Ring…). Il transforme le saignement — d'habitude faible (1 dégât/tick) — en un vrai
+moteur **empiler → propager → encaisser → faire éclater**, avec **vampirisme**.
+Cartes (combo inter-pièces) :
+- **Crimson Carve** (torse) : 12 dégâts + 4 saignement (l'empileur principal).
+- **Sanguine Guard** (torse) : **1 Pierre par point de saignement TOTAL** sur le
+  champ → l'armure scale avec ta mise en place. `pierre-par-sang`.
+- **Bloodbath** (torse, AOE) : 5 saignement à **tous** les ennemis (mise en place de masse).
+- **Open Veins** (gants) : 4 dégâts + 5 saignement (empileur pas cher).
+- **Contagion** (gants) : 6 dégâts ; les **deux voisins** gagnent autant de
+  saignement que la cible en porte (copie). `contagion`.
+- **Hemorrhage** (bottes) : **consomme tout** le saignement de la cible → **3 dégâts
+  par point** consommé (le détonateur/finisher). `hemorragie`.
+- **Blood Rush** (bottes) : **1 Chaleur par 4 points** de saignement total (carburant). `chaleur-par-sang`.
+
+**Boucle type** : *Bloodbath* (5 partout) → *Contagion* (copie sur les voisins) →
+re-frappes (*Crimson Carve*/*Open Veins*) qui détonnent le bonus **et soignent** (set)
+→ *Sanguine Guard*/*Blood Rush* convertissent les stacks en Pierre/énergie →
+*Hemorrhage* fait tout éclater. La **Blood Plate** donne **+20 Pierre de départ**
+(skin provisoire = nain de base, à dessiner).
+
 ## Items, butin & inventaire (1er jet implémenté)
 
 - **Butin par monstre** : chaque ennemi a une table (`butin`) — de l'**or** + des
@@ -519,6 +546,11 @@ La Crusader Plate donne **+15 Pierre de départ** (skin provisoire = nain de bas
   - **Chevalier Croisé** (lumière) — déclencheur *frappeMelee* : quand le héros est
     frappé en mêlée, l'attaquant est **ébloui (1 Confusion)** → il risque de frapper
     ses propres alliés. Complète les cartes de Confusion du set.
+  - **Sang** (saignement) — déclencheur *saignementCombo* : chaque fois qu'un
+    **combo de saignement** inflige des dégâts bonus (frapper un ennemi qui saigne
+    déjà avec une carte de saignement), le héros est **soigné d'autant**
+    (**vampirisme**). C'est la **réintroduction du soin par saignement**, réservée
+    par le concept à un « item spécifique » — ici, gated derrière le set complet.
 - **Bulle d'info** : au survol d'un objet (sac OU marchand), on voit le **visuel
   des cartes** qu'il ajoute au deck (mini-cartes, même rendu que le deck) → on sait
   ce qu'on récupère / achète.
