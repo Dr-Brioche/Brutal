@@ -155,7 +155,8 @@ export function creerCombat(ennemisDefs, opts = {}) {
     dernierPoisonHeros: 0,
     dernierFeuHeros: 0,
     // Initiative (ATB)
-    vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0), // + talents d'agilité
+    vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0) + (stats.vitesseBonus || 0), // talents + bottes (move speed)
+    celeritePct: stats.celeritePct || 0, // bonus PASSIF de célérité (%) des bottes (toujours actif)
     hate: 0,               // « Hâte » : nb de tours du héros encore accélérés (+30% agilité)
     initHeros: SEUIL_INIT / 2, // petite avance : le héros OUVRE le combat (jamais frappé avant d'agir)
     premierTourHeros: true, // le 1er tour ne recharge pas la Chaleur (forge froide)
@@ -192,6 +193,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
 // Vitesse EFFECTIVE (après les statuts de vitesse Hâte/Gel). Jamais < 1.
 export function vitesseHeros(combat) {
   let v = combat.hate > 0 ? combat.vitesseHerosBase * HATE_MULT : combat.vitesseHerosBase;
+  if (combat.celeritePct) v *= 1 + combat.celeritePct / 100; // bonus passif des bottes (toujours actif)
   if (combat.gelHeros > 0) v *= GEL_MULT; // Gel héros : −30% de vitesse
   return Math.max(1, v);
 }
@@ -283,7 +285,7 @@ export function carteVise(carte) {
            e.type === "poison" || e.type === "feu" ||
            e.type === "sang" || e.type === "stun" || e.type === "lenteur" ||
            e.type === "confusion" || e.type === "gel-cascade" ||
-           e.type === "hemorragie" ||   // détonateur de saignement sur la cible
+           e.type === "contagion" ||    // vise l'ennemi de référence (ses voisins s'alignent)
            e.type === "transfert-feu" || // vise l'ennemi SOURCE dont on déplace la brûlure
            e.type === "tout-en-feu"     // AOE offensif sur tous les ennemis
   );
@@ -304,7 +306,8 @@ export function necessiteCiblage(carte, nbVivants) {
 function effetViseEnnemi(e) {
   return e.type === "degats" || e.type === "poison" || e.type === "feu" ||
          e.type === "sang"   || e.type === "stun"   || e.type === "lenteur" ||
-         e.type === "confusion" || e.type === "embrasement";
+         e.type === "confusion" || e.type === "embrasement" ||
+         e.type === "confusion-si-confus" || e.type === "stun-si-sang";
 }
 
 // Un ennemi porte-t-il au moins un MALUS (statut négatif) ? Sert aux cartes
@@ -375,13 +378,6 @@ function appliquerEffet(combat, effet, ennemi) {
       }
       ennemi.sang += effet.valeur;
     }
-  } else if (effet.type === "hemorragie") {
-    // Hémorragie : consomme TOUT le saignement de la cible et le convertit en
-    // dégâts INSTANTANÉS (× valeur). Détonateur du build saignement (sang → 0).
-    if (ennemi) {
-      ennemi.pv = Math.max(0, ennemi.pv - ennemi.sang * effet.valeur);
-      ennemi.sang = 0;
-    }
   } else if (effet.type === "pierre-par-sang") {
     // Sanguine Guard : Pierre proportionnelle au saignement TOTAL sur le champ
     // de bataille (récompense d'avoir empilé du saignement partout).
@@ -390,11 +386,43 @@ function appliquerEffet(combat, effet, ennemi) {
     // Blood Rush : énergie selon le saignement TOTAL (1 Chaleur par `par` points).
     const gain = Math.floor(sangTotal(combat) / effet.par);
     combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + gain);
+  } else if (effet.type === "soin-par-sang") {
+    // Sanguine Guard : soigne le héros selon le saignement TOTAL sur le champ.
+    combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.valeur * sangTotal(combat));
+  } else if (effet.type === "absorption-sang") {
+    // Blood Absorption : soigne `valeur` PV par saignement TOTAL, puis efface TOUT
+    // le saignement des ennemis (on « boit » les plaies — ne touche que les ennemis).
+    combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.valeur * sangTotal(combat));
+    for (const e of combat.ennemis) e.sang = 0;
+  } else if (effet.type === "auto-degats") {
+    // Le héros encaisse `valeur` dégâts (la Pierre peut les absorber, comme un coup ennemi).
+    subirDegats(combat, effet.valeur);
+  } else if (effet.type === "soin-heros") {
+    // Holy light : soigne le héros de `valeur` PV (plafonné à la vie max).
+    combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.valeur);
+  } else if (effet.type === "purifier-hero") {
+    // Lay on Hands : retire COMPLÈTEMENT un malus du héros tiré au hasard (poison/feu/gel).
+    const malus = [];
+    if (combat.poisonHeros > 0) malus.push("poisonHeros");
+    if (combat.feuHeros > 0)    malus.push("feuHeros");
+    if (combat.gelHeros > 0)    malus.push("gelHeros");
+    if (malus.length) combat[malus[Math.floor(Math.random() * malus.length)]] = 0;
+  } else if (effet.type === "stun") {
     if (ennemi) ennemi.stun += effet.valeur; // étourdit : l'ennemi saute ses prochains tours (cumulable)
+  } else if (effet.type === "stun-si-sang") {
+    // Blood Slide (AOE) : n'étourdit QUE les ennemis qui portent déjà du saignement.
+    if (ennemi && ennemi.sang > 0) ennemi.stun += effet.valeur;
   } else if (effet.type === "confusion") {
     // Confusion (éblouissement) : pendant `valeur` de ses tours, l'ennemi frappe
     // une cible AU HASARD (héros, un autre ennemi, ou lui-même). Cumulable.
     if (ennemi) ennemi.confusion += effet.valeur;
+  } else if (effet.type === "confusion-si-confus") {
+    // Halo Burst (AOE) : amplifie la Confusion → +`valeur` aux ennemis DÉJÀ confus.
+    if (ennemi && ennemi.confusion > 0) ennemi.confusion += effet.valeur;
+  } else if (effet.type === "confusion-proche") {
+    // Armor of light : éblouit (Confusion) l'ennemi vivant le PLUS PROCHE (le 1er en file).
+    const proche = combat.ennemis[premierVivant(combat)];
+    if (proche && ennemiVivant(proche)) proche.confusion += effet.valeur;
   } else if (effet.type === "chaleur") {
     // Régénère de l'énergie (Chaleur). Peut dépasser le SEUIL → surchauffe au
     // tour suivant : énergie immédiate, mais risque de brûlure (choix tactique).
@@ -567,6 +595,19 @@ function resoudreAOE(combat, carte) {
         e.feuDeCarte = e.feu > 0;
         e.poison = 0; e.sang = 0; e.stun = 0; e.gel = 0; e.haste = 0;
       }
+    } else if (effet.type === "boire-le-sang") {
+      // Drink blood : le héros sacrifie `hp` PV (direct, ignore la Pierre), puis
+      // frappe TOUS les ennemis (`degats` + `sang`). Chaque ennemi TUÉ par ce coup
+      // rend `soinMort` PV (cumulable). Le bilan vie est résolu à la fin de la carte.
+      combat.pvHeros = Math.max(0, combat.pvHeros - effet.hp);
+      let morts = 0;
+      for (const e of vivants) {
+        const avant = e.pv;
+        e.pv = Math.max(0, e.pv - effet.degats);
+        e.sang += effet.sang;
+        if (avant > 0 && e.pv <= 0) morts++;
+      }
+      if (morts > 0) combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.soinMort * morts);
     } else if (effetViseEnnemi(effet)) {
       for (const e of vivants) appliquerEffet(combat, effet, e);
     } else {
@@ -670,10 +711,10 @@ function resoudreCiblee(combat, carte, cible) {
         }
       }
     } else if (effet.type === "contagion") {
-      // Contagion : chaque voisin direct gagne autant de saignement que la cible en
-      // porte ACTUELLEMENT (copie, la cible garde le sien). Propage la mise en place.
+      // Contagion : les voisins directs ÉGALISENT leur saignement sur celui de la
+      // cible (ils prennent EXACTEMENT sa valeur — montée comme descente).
       const sangCible = ennemi ? ennemi.sang : 0;
-      if (sangCible > 0) for (const v of adjacents) v.sang += sangCible;
+      for (const v of adjacents) v.sang = sangCible;
     }
   }
 }
@@ -745,7 +786,8 @@ function declencherFrappeMelee(combat, e) {
       } else if (ef.type === "feu") {
         e.feu += ef.valeur; brulure += ef.valeur;
       } else if (ef.type === "confusion") {
-        e.confusion += ef.valeur; confusion += ef.valeur;
+        // `proba` optionnelle (set Croisé : 50% de chance d'éblouir l'attaquant).
+        if (Math.random() < (ef.proba ?? 1)) { e.confusion += ef.valeur; confusion += ef.valeur; }
       }
     }
   }
