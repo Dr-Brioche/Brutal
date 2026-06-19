@@ -692,4 +692,81 @@ export const CARTES = {
     texte: "Deal 10 damage. Apply 3 Confusion.",
     effets: [{ type: "degats", valeur: 10 }, { type: "confusion", valeur: 3 }],
   },
+
+  // ---- Set de Sang : moteur SAIGNEMENT (empiler → propager → encaisser → éclater)
+  // Combo inter-pièces : on empile le saignement (Plate/Gauntlets), on le COPIE sur
+  // les voisins (Contagion), on en tire de la Pierre/énergie (Sanguine Guard / Blood
+  // Rush), puis on le fait ÉCLATER (Hemorrhage). Le bonus de set soigne le héros à
+  // chaque combo de saignement (vampirisme — l'« item spécifique » du concept).
+
+  // Blood Plate (torse) -------------------------------------------------------
+  // Crimson Carve : entaille profonde → dégâts + saignement (l'empileur principal).
+  "carve-cramoisi": {
+    id: "carve-cramoisi",
+    nom: "Crimson Carve",
+    cout: 2,
+    type: "attaque",
+    texte: "Deal 12 damage. Apply 4 Bleed.",
+    effets: [{ type: "degats", valeur: 12 }, { type: "sang", valeur: 4 }],
+  },
+  // Sanguine Guard : armure de sang → Pierre selon le saignement TOTAL sur le champ.
+  "garde-sanguine": {
+    id: "garde-sanguine",
+    nom: "Sanguine Guard",
+    cout: 2,
+    type: "defense",
+    texte: "Gain 1 Stone per Bleed among ALL enemies.",
+    effets: [{ type: "pierre-par-sang", valeur: 1 }],
+  },
+  // Bloodbath : saignement de masse → 5 saignement sur TOUS les ennemis (mise en place).
+  "bain-de-sang": {
+    id: "bain-de-sang",
+    nom: "Bloodbath",
+    cout: 3,
+    type: "attaque",
+    aoe: true,
+    texte: "Apply 5 Bleed to ALL enemies.",
+    effets: [{ type: "sang", valeur: 5 }],
+  },
+
+  // Blood Gauntlets (gants) ---------------------------------------------------
+  // Open Veins : petite entaille très saignante (empileur pas cher).
+  "ouvrir-les-veines": {
+    id: "ouvrir-les-veines",
+    nom: "Open Veins",
+    cout: 1,
+    type: "attaque",
+    texte: "Deal 4 damage. Apply 5 Bleed.",
+    effets: [{ type: "degats", valeur: 4 }, { type: "sang", valeur: 5 }],
+  },
+  // Contagion : la plaie de la cible CONTAMINE ses deux voisins (copie son saignement).
+  "contagion": {
+    id: "contagion",
+    nom: "Contagion",
+    cout: 2,
+    type: "attaque",
+    texte: "Deal 6 damage. Both adjacent enemies gain Bleed equal to the target's Bleed.",
+    effets: [{ type: "degats", valeur: 6 }, { type: "contagion" }],
+  },
+
+  // Blood Greaves (bottes) ----------------------------------------------------
+  // Hemorrhage : ouvre toutes les plaies d'un coup → consomme TOUT le saignement de
+  // la cible et le convertit en dégâts (×3). Le détonateur/finisher du build.
+  "hemorragie": {
+    id: "hemorragie",
+    nom: "Hemorrhage",
+    cout: 2,
+    type: "attaque",
+    texte: "Consume all the target's Bleed: deal 3 damage per Bleed consumed.",
+    effets: [{ type: "hemorragie", valeur: 3 }],
+  },
+  // Blood Rush : l'ivresse du sang → énergie selon le saignement TOTAL (1 par 4 points).
+  "ruee-de-sang": {
+    id: "ruee-de-sang",
+    nom: "Blood Rush",
+    cout: 1,
+    type: "buff",
+    texte: "Gain 1 Forge Heat per 4 Bleed among ALL enemies.",
+    effets: [{ type: "chaleur-par-sang", par: 4 }],
+  },
 };
