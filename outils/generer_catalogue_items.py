@@ -33,6 +33,7 @@ def extraire_donnees():
 # Libellé lisible d'un déclencheur de bonus de set.
 DECLENCHEURS = {
     "frappeMelee": "Quand le héros est frappé en mêlée",
+    "debutCombat": "En début de combat",
 }
 
 
