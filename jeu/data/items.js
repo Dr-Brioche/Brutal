@@ -121,12 +121,12 @@ export const ITEMS = {
     cartes: ["armure-legere", "armure-legere", "armure-legere", "mouvement-degage"],
   },
   // Plaque d'onyx : armure « dragon ». 3× Onyx Armor + 1× Dragon's Blaze +
-  // 2× Onyx Breath + 1× All Should Be Fire. Donne 30 Pierre de départ.
+  // 2× Onyx Breath + 1× All Should Be Fire. Donne 36 Pierre de départ.
   "plate-onyx": {
     id: "plate-onyx", nom: "Onyx Guard Plate", categorie: "armure", rarete: "epique",
     taille: { l: 2, h: 2 }, icone: "#3b4250",
     planche: "images/heros/nain-onyx.png",
-    armureDepart: 30,
+    armureDepart: 36,
     cartes: ["onyx-armor", "onyx-armor", "onyx-armor", "embrasement-dragon", "souffle-onyx", "souffle-onyx", "tout-en-feu"],
   },
   // Maille de forge : armure tank. 3× Mail Armor (Pierre/ennemi) + 1× Quench
@@ -175,17 +175,20 @@ export const ITEMS = {
     cartes: ["main-brulante", "main-brulante", "poing-onyx", "poing-onyx", "forge-des-cendres", "forge-des-cendres"],
   },
   // Bottes vives : 3× Quicken (hâte) + 1× Second Wind (échange de la hâte contre
-  // de l'énergie). Build tempo/mobilité.
+  // de l'énergie). Build tempo/mobilité. Bonus passif : +15% célérité, +3 move speed.
   "bottes-vives": {
     id: "bottes-vives", nom: "Swift Boots", categorie: "botte", rarete: "uncommon",
     taille: { l: 2, h: 1 }, icone: "#3a7a5a",
+    celeritePct: 15, vitesseBonus: 3,
     cartes: ["celerite-vive", "celerite-vive", "celerite-vive", "second-souffle"],
   },
   // Bottes d'onyx : pièce du set Onyx. 1× Burning Run + 1× Flaming Kick +
   // 2× Fire Boost (feu héros → énergie) + 2× Boost (relance d'énergie). Build feu.
+  // Bonus passif : +30% célérité, +8 move speed.
   "bottes-onyx": {
     id: "bottes-onyx", nom: "Onyx Boots", categorie: "botte", rarete: "epique",
     taille: { l: 2, h: 1 }, icone: "#2b2433",
+    celeritePct: 30, vitesseBonus: 8,
     cartes: ["course-ardente", "coup-de-pied-ardent", "boost-feu", "boost-feu", "boost", "boost"],
   },
   // Anneau de givre : injecte « Frostbite » (ralentit un ennemi).
@@ -238,56 +241,62 @@ export const ITEMS = {
     cartes: ["main-de-maitre", "main-de-maitre", "surnombre", "surnombre", "avantage-maille"],
   },
   // Bottes de maille : 2× Quicken + 1× Mail Advantage + 2× Boost. Tempo/énergie.
+  // Bonus passif : +20% célérité, +5 move speed.
   "bottes-de-maille": {
     id: "bottes-de-maille", nom: "Mail Boots", categorie: "botte", rarete: "rare",
     taille: { l: 2, h: 1 }, icone: "#8a8f98",
+    celeritePct: 20, vitesseBonus: 5,
     cartes: ["celerite-vive", "celerite-vive", "avantage-maille", "boost", "boost"],
   },
 
-  // ---- Chevalier Croisé : set LUMIÈRE + Confusion (éblouissement) -------------
-  // Crusader Plate (torse) : 2× Radiant Strike + 3× Sacred Ground + 1× Blinding
-  // Flash. +15 Pierre de départ. Skin provisoire = nain de base (à dessiner).
+  // ---- Chevalier Croisé : set LUMIÈRE — Confusion + soutien (soin/purif) ------
+  // Crusader Plate (torse) : 1× Heavy Armor + 3× Armor of light + 1× Blinding
+  // Flash + 1× Holy light. +30 Pierre de départ. Skin provisoire = nain de base.
   "plate-croise": {
     id: "plate-croise", nom: "Crusader Plate", categorie: "armure", rarete: "rare",
     taille: { l: 2, h: 2 }, icone: "#e8d9a0",
     planche: "images/heros/nain.png",
-    armureDepart: 15,
-    cartes: ["frappe-radiante", "frappe-radiante", "terre-sacree", "terre-sacree", "terre-sacree", "eclair-aveuglant"],
+    armureDepart: 30,
+    cartes: ["armure-lourde", "armure-de-lumiere", "armure-de-lumiere", "armure-de-lumiere", "eclair-aveuglant", "lumiere-sacree"],
   },
-  // Crusader Gauntlets (gants) : 2× Lumen Jab + 1× Halo Burst.
+  // Crusader Gauntlets (gants) : 2× Master's Hand + 1× Halo Burst + 2× Lay on Hands.
   "gants-croise": {
     id: "gants-croise", nom: "Crusader Gauntlets", categorie: "gant", rarete: "rare",
     taille: { l: 2, h: 1 }, icone: "#e8d9a0",
-    cartes: ["coup-de-lumiere", "coup-de-lumiere", "eclat-de-halo"],
+    cartes: ["main-de-maitre", "main-de-maitre", "eclat-de-halo", "imposition-des-mains", "imposition-des-mains"],
   },
-  // Crusader Greaves (bottes) : 1× Crusader's Charge + 2× Dazzling Kick.
+  // Crusader Greaves (bottes) : 1× Quicken + 2× Kick of light + 2× Boost.
+  // Bonus passif : +20% célérité, +5 move speed.
   "bottes-croise": {
     id: "bottes-croise", nom: "Crusader Greaves", categorie: "botte", rarete: "rare",
     taille: { l: 2, h: 1 }, icone: "#e8d9a0",
-    cartes: ["charge-du-croise", "coup-eblouissant", "coup-eblouissant"],
+    celeritePct: 20, vitesseBonus: 5,
+    cartes: ["celerite-vive", "coup-de-lumiere", "coup-de-lumiere", "boost", "boost"],
   },
 
-  // ---- Set de Sang : build SAIGNEMENT uncommon (à coupler à une arme à saignement)
-  // Blood Plate (torse) : 3× Crimson Carve + 2× Sanguine Guard + 1× Bloodbath.
-  // +12 Pierre de départ. Skin provisoire = nain de base (à dessiner).
+  // ---- Set de Sang : build SAIGNEMENT rare (à coupler à une arme à saignement)
+  // Blood Plate (torse) : 2× Heavy Armor + 2× Sanguine Guard + 1× Bloodbath +
+  // 1× Drink blood. +20 Pierre de départ. Skin provisoire = nain de base.
   "plate-sang": {
-    id: "plate-sang", nom: "Blood Plate", categorie: "armure", rarete: "uncommon",
+    id: "plate-sang", nom: "Blood Plate", categorie: "armure", rarete: "rare",
     taille: { l: 2, h: 2 }, icone: "#7a1320",
     planche: "images/heros/nain.png",
-    armureDepart: 12,
-    cartes: ["carve-cramoisi", "carve-cramoisi", "carve-cramoisi", "garde-sanguine", "garde-sanguine", "bain-de-sang"],
+    armureDepart: 20,
+    cartes: ["armure-lourde", "armure-lourde", "garde-sanguine", "garde-sanguine", "bain-de-sang", "boire-le-sang"],
   },
-  // Blood Gauntlets (gants) : 2× Open Veins + 2× Contagion (empile + propage).
+  // Blood Gauntlets (gants) : 2× Open Veins + 2× Contagion + 1× Blood Absorption.
   "gants-sang": {
-    id: "gants-sang", nom: "Blood Gauntlets", categorie: "gant", rarete: "uncommon",
+    id: "gants-sang", nom: "Blood Gauntlets", categorie: "gant", rarete: "rare",
     taille: { l: 2, h: 1 }, icone: "#7a1320",
-    cartes: ["ouvrir-les-veines", "ouvrir-les-veines", "contagion", "contagion"],
+    cartes: ["ouvrir-les-veines", "ouvrir-les-veines", "contagion", "contagion", "absorption-de-sang"],
   },
-  // Blood Greaves (bottes) : 2× Hemorrhage + 2× Blood Rush (détone + carburant).
+  // Blood Greaves (bottes) : 1× Blood Slide + 2× Blood Rush + 1× Quicken + 1× Boost.
+  // Bonus passif : +20% célérité, +5 move speed.
   "bottes-sang": {
-    id: "bottes-sang", nom: "Blood Greaves", categorie: "botte", rarete: "uncommon",
+    id: "bottes-sang", nom: "Blood Greaves", categorie: "botte", rarete: "rare",
     taille: { l: 2, h: 1 }, icone: "#7a1320",
-    cartes: ["hemorragie", "hemorragie", "ruee-de-sang", "ruee-de-sang"],
+    celeritePct: 20, vitesseBonus: 5,
+    cartes: ["glissade-sur-sang", "ruee-de-sang", "ruee-de-sang", "celerite-vive", "boost"],
   },
 };
 
@@ -361,8 +370,8 @@ export const SETS = {
     pieces: ["plate-croise", "gants-croise", "bottes-croise"], // torse + gants + bottes
     bonus: {
       declencheur: "frappeMelee",
-      texte: "When hit by a melee attack, the attacker is Dazzled (1 Confusion).",
-      effets: [{ type: "confusion", valeur: 1 }],
+      texte: "When hit by a melee attack, the attacker has a 50% chance to be Dazzled (1 Confusion).",
+      effets: [{ type: "confusion", valeur: 1, proba: 0.5 }],
     },
   },
   // Set de Sang : bonus VAMPIRIQUE. Chaque combo de saignement (frapper un ennemi
