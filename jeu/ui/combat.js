@@ -17,7 +17,7 @@ import {
   simulerFile, ratioInitiativeHeros, ratioInitiativeEnnemi, cibleSoinVerrou,
 } from "../systems/combat.js";
 import { cartesEquipees, mainsOccupees } from "../systems/inventaire.js";
-import { setsActifs } from "../data/items.js";
+import { setsActifs, itemDef } from "../data/items.js";
 import { bonusTalents } from "../systems/talents.js";
 import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
@@ -70,13 +70,20 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   fondCombat.style.setProperty("--fond-url", fond ? `url("${fond}")` : "none");
   fondCombat.hidden = false;
 
+  // Items équipés (slots armure, bottes, gants… + armes, bijoux).
+  const itemsEquipes = Object.values(inventaire.slots ?? {}).filter(Boolean).map(itemDef).filter(Boolean);
+  // Armure de départ : somme des armureDepart de tous les items équipés.
+  const armureDepart = itemsEquipes.reduce((s, d) => s + (d.armureDepart ?? 0), 0);
+  // Passifs individuels (ex. Tower Shield : +2 Pierre par frappe).
+  const passifsItems = itemsEquipes.flatMap((d) => d.passifPropre ? [d.passifPropre] : []);
+
   const combat = creerCombat(ennemis, {
     pv: heros.pv, pvMax: heros.pvMax,
     cartes: cartesEquipees(inventaire),
     cartesSupp: maitrise?.choisies ?? [],
     mains: mainsOccupees(inventaire), // cartes de base seulement pour les mains libres
-    stats: bonusTalents(heros),
-    passifs: setsActifs(inventaire.slots).map((s) => s.bonus), // bonus de set d'armure
+    stats: { ...bonusTalents(heros), armureDepart },
+    passifs: [...setsActifs(inventaire.slots).map((s) => s.bonus), ...passifsItems],
   });
 
   // Héros : coin haut-gauche du sprite (pieds sur le sol) + repère écran.

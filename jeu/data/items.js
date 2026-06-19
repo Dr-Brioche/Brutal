@@ -97,36 +97,46 @@ export const ITEMS = {
   },
 
   // ---- Boucliers (slot off-hand) ----
-  // Bouclier-tour : 1× « Shield Wall » (Pierre/blocage) + 2× « Shield Bash » (étourdit
-  // l'ennemi 2 tours). Plus offensif/contrôle qu'avant (2 étourdissements).
+  // Bouclier-tour : 3× Shield Wall + 2× Shield Bash (stun 3 tours) + 1× Stacking
+  // Shield (double la Pierre). Passif : +2 Pierre à chaque frappe de mêlée reçue.
   "bouclier-tour": {
-    id: "bouclier-tour", nom: "Tower Shield", categorie: "bouclier", rarete: "epique",
+    id: "bouclier-tour", nom: "Tower Shield", categorie: "bouclier", rarete: "rare",
     taille: { l: 2, h: 2 }, icone: "#5a6b7a",
-    cartes: ["mur-bouclier", "coup-de-bouclier", "coup-de-bouclier"],
+    cartes: ["mur-bouclier", "mur-bouclier", "mur-bouclier", "coup-de-bouclier", "coup-de-bouclier", "bouclier-empilant"],
+    passifPropre: {
+      declencheur: "frappeMelee",
+      texte: "When hit by a melee attack, gain 2 Stone.",
+      effets: [{ type: "pierre", valeur: 2, cible: "heros" }],
+    },
   },
 
   // ---- Armures (changent le skin du nain) ----
+  // Tenue de voyageur : armure légère. 3× Light Armor + 1× Free Movement.
+  // Donne 8 Pierre de départ au combat.
   "tenue-de-voyageur": {
     id: "tenue-de-voyageur", nom: "Traveler's Garb", categorie: "armure", rarete: "commun",
     taille: { l: 2, h: 2 }, icone: "#6a5a44",
-    planche: "images/heros/nain.png", defense: 0,
+    planche: "images/heros/nain.png",
+    armureDepart: 8,
+    cartes: ["armure-legere", "armure-legere", "armure-legere", "mouvement-degage"],
   },
-  // Plaque d'onyx : armure « dragon ». 2× Onyx Armor (gros bloc de Pierre) +
-  // 2× Dragon's Blaze (détonateur de feu) + 2× Onyx Breath (pose du feu en masse).
+  // Plaque d'onyx : armure « dragon ». 3× Onyx Armor + 1× Dragon's Blaze +
+  // 2× Onyx Breath + 1× All Should Be Fire. Donne 30 Pierre de départ.
   "plate-onyx": {
     id: "plate-onyx", nom: "Onyx Guard Plate", categorie: "armure", rarete: "epique",
     taille: { l: 2, h: 2 }, icone: "#3b4250",
-    planche: "images/heros/nain-onyx.png", defense: 5,
-    cartes: ["onyx-armor", "onyx-armor", "embrasement-dragon", "embrasement-dragon", "souffle-onyx", "souffle-onyx"],
+    planche: "images/heros/nain-onyx.png",
+    armureDepart: 30,
+    cartes: ["onyx-armor", "onyx-armor", "onyx-armor", "embrasement-dragon", "souffle-onyx", "souffle-onyx", "tout-en-feu"],
   },
-  // Maille de forge : 1re ARMURE qui donne des cartes. 3× « Mail Armor » (bloc de
-  // Pierre fiable) + 1× « Quench » (trempe : vide la Chaleur en Pierre ×4) → build
-  // tank qui récompense de chauffer fort puis de tremper.
+  // Maille de forge : armure tank. 3× Mail Armor (Pierre/ennemi) + 1× Quench
+  // (Chaleur → Pierre ×10) + 2× Heavy Armor (gros bloc). Donne 22 Pierre de départ.
   "maille-de-forge": {
     id: "maille-de-forge", nom: "Forgemaster's Mail", categorie: "armure", rarete: "rare",
     taille: { l: 2, h: 2 }, icone: "#7a4a2a",
-    planche: "images/heros/nain-forge.png", defense: 3,
-    cartes: ["mail-armor", "mail-armor", "mail-armor", "trempe"],
+    planche: "images/heros/nain-forge.png",
+    armureDepart: 22,
+    cartes: ["mail-armor", "mail-armor", "mail-armor", "trempe", "armure-lourde", "armure-lourde"],
   },
 
   // ---- Bijoux & divers (donnent des CARTES, ou une utilité comme le sac) ----
@@ -276,5 +286,7 @@ export function statsLisibles(id) {
   const lignes = [];
   if (d.mains === 2) lignes.push("Two-handed");
   if (d.rangsBonus) lignes.push(`+${d.rangsBonus} bag rows`);
+  if (d.armureDepart) lignes.push(`+${d.armureDepart} Stone at combat start`);
+  if (d.passifPropre) lignes.push(d.passifPropre.texte);
   return lignes;
 }
