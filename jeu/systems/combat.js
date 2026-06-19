@@ -115,6 +115,7 @@ function creerEnnemiCombat(def) {
     poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps)
     feuDeCarte: false,             // true = feu posé par une carte ce tour : propagera à la FIN du tour du héros
     stun: 0,                       // étourdissement : nb de SES tours encore sautés
+    confusion: 0,                  // « Confusion » (éblouissement) : nb de SES tours où il frappe une cible AU HASARD
     dernierPoison: 0, dernierFeu: 0, dernierSang: 0, // dégâts subis au dernier tour (UI)
     intention: null,              // ce qu'il prépare (télégraphié)
     vitesse: def.vitesse ?? VITESSE_HEROS_BASE, // vitesse d'initiative (agilité)
@@ -173,6 +174,16 @@ export function creerCombat(ennemisDefs, opts = {}) {
     // Passifs (bonus de set d'armure) déclenchés sur événement — cf. agirEnnemi.
     passifs,
   };
+  // Passifs « début de combat » (set Mail : Pierre par ennemi rencontré). Appliqués
+  // une fois, par-dessus l'armure de départ, avant le tout 1er tour.
+  for (const p of passifs) {
+    if (p.declencheur !== "debutCombat") continue;
+    for (const ef of p.effets) {
+      if (ef.type === "pierre") {
+        combat.pierre += ef.parEnnemi ? ef.valeur * combat.ennemis.length : ef.valeur;
+      }
+    }
+  }
   prevoirIntentions(combat);
   combat.cible = premierVivant(combat);
   return combat; // la 1re main est piochée par le 1er commencerTourHeros (via l'initiative)
@@ -271,6 +282,7 @@ export function carteVise(carte) {
     (e) => e.type === "degats" || e.type === "degats-execution" ||
            e.type === "poison" || e.type === "feu" ||
            e.type === "sang" || e.type === "stun" || e.type === "lenteur" ||
+           e.type === "confusion" || e.type === "gel-cascade" ||
            e.type === "transfert-feu" || // vise l'ennemi SOURCE dont on déplace la brûlure
            e.type === "tout-en-feu"     // AOE offensif sur tous les ennemis
   );
@@ -291,13 +303,13 @@ export function necessiteCiblage(carte, nbVivants) {
 function effetViseEnnemi(e) {
   return e.type === "degats" || e.type === "poison" || e.type === "feu" ||
          e.type === "sang"   || e.type === "stun"   || e.type === "lenteur" ||
-         e.type === "embrasement";
+         e.type === "confusion" || e.type === "embrasement";
 }
 
 // Un ennemi porte-t-il au moins un MALUS (statut négatif) ? Sert aux cartes
 // « combo » qui récompensent de frapper une cible déjà affaiblie.
 function aMalus(e) {
-  return e && (e.poison > 0 || e.feu > 0 || e.sang > 0 || e.stun > 0 || e.gel > 0);
+  return e && (e.poison > 0 || e.feu > 0 || e.sang > 0 || e.stun > 0 || e.gel > 0 || e.confusion > 0);
 }
 
 // Applique un effet de carte : les effets offensifs touchent `ennemi` (la cible),
@@ -339,6 +351,10 @@ function appliquerEffet(combat, effet, ennemi) {
     }
   } else if (effet.type === "stun") {
     if (ennemi) ennemi.stun += effet.valeur; // étourdit : l'ennemi saute ses prochains tours (cumulable)
+  } else if (effet.type === "confusion") {
+    // Confusion (éblouissement) : pendant `valeur` de ses tours, l'ennemi frappe
+    // une cible AU HASARD (héros, un autre ennemi, ou lui-même). Cumulable.
+    if (ennemi) ennemi.confusion += effet.valeur;
   } else if (effet.type === "chaleur") {
     // Régénère de l'énergie (Chaleur). Peut dépasser le SEUIL → surchauffe au
     // tour suivant : énergie immédiate, mais risque de brûlure (choix tactique).
@@ -376,6 +392,28 @@ function appliquerEffet(combat, effet, ennemi) {
     // Pierre proportionnelle au nombre d'ennemis encore vivants.
     const nbVivants = combat.ennemis.filter(ennemiVivant).length;
     combat.pierre += effet.valeur * nbVivants;
+  } else if (effet.type === "piocher-par-ennemi") {
+    // Pioche autant de cartes qu'il reste d'ennemis vivants en face.
+    const nbVivants = combat.ennemis.filter(ennemiVivant).length;
+    for (let i = 0; i < nbVivants; i++) { const c = piocherUne(combat); if (c) combat.main.push(c); }
+  } else if (effet.type === "refaire-main") {
+    // Défausse TOUTE la main restante et repioche autant de cartes (relance propre).
+    const n = combat.main.length;
+    combat.defausse.push(...combat.main);
+    combat.main = [];
+    for (let i = 0; i < n; i++) { const c = piocherUne(combat); if (c) combat.main.push(c); }
+  } else if (effet.type === "celerite-vers-energie") {
+    // Échange `cout` tours de Hâte contre `gain` Chaleur. Rien si pas assez de Hâte.
+    if (combat.hate >= effet.cout) {
+      combat.hate -= effet.cout;
+      combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + effet.gain);
+    }
+  } else if (effet.type === "feu-vers-energie") {
+    // Transforme `cout` ticks de Feu DU HÉROS en `gain` Chaleur. Rien si pas assez de Feu.
+    if (combat.feuHeros >= effet.cout) {
+      combat.feuHeros -= effet.cout;
+      combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + effet.gain);
+    }
   }
 }
 
@@ -527,6 +565,24 @@ function resoudreCiblee(combat, carte, cible) {
     return;
   }
 
+  // Frost Cascade : frappe la cible (dégâts + Gel) ; si elle était DÉJÀ gelée
+  // avant le coup, le même coup rebondit sur l'ennemi suivant (vers l'arrière de
+  // la file), et ainsi de suite tant que chaque cible touchée était déjà gelée.
+  const casc = carte.effets.find((e) => e.type === "gel-cascade");
+  if (casc) {
+    const debut = combat.ennemis.indexOf(ennemi);
+    for (let i = debut; i < combat.ennemis.length; i++) {
+      const cible = combat.ennemis[i];
+      if (!ennemiVivant(cible)) continue;
+      const dejaGele = cible.gel > 0;
+      cible.pv = Math.max(0, cible.pv - casc.degats);
+      if (cible.feu > 0) { cible.feu = 0; cible.feuDeCarte = false; } // gel éteint le feu
+      cible.gel += casc.gel;
+      if (!dejaGele) break; // la chaîne s'arrête sur le premier ennemi pas déjà gelé
+    }
+    return;
+  }
+
   for (const effet of carte.effets) {
     if (!EFFETS_POSITIONNELS.has(effet.type)) appliquerEffet(combat, effet, ennemi);
   }
@@ -632,21 +688,23 @@ function propagerFeu(combat) {
 }
 
 // Déclenche les passifs « frappeMelee » quand l'attaquant `e` vient de frapper le
-// héros en mêlée. Effets sur l'ATTAQUANT (feu) ou sur le HÉROS (pierre, si cible:"heros").
-// Renvoie la brûlure totale infligée à l'attaquant (pour l'affichage UI).
+// héros en mêlée. Effets sur l'ATTAQUANT (feu, confusion) ou sur le HÉROS (pierre,
+// si cible:"heros"). Renvoie ce qui a été infligé à l'attaquant (pour l'affichage UI).
 function declencherFrappeMelee(combat, e) {
-  let brulure = 0;
+  let brulure = 0, confusion = 0;
   for (const p of combat.passifs ?? []) {
     if (p.declencheur !== "frappeMelee") continue;
     for (const ef of p.effets) {
       if (ef.cible === "heros") {
         if (ef.type === "pierre") combat.pierre += ef.valeur;
-      } else {
-        if (ef.type === "feu") { e.feu += ef.valeur; brulure += ef.valeur; }
+      } else if (ef.type === "feu") {
+        e.feu += ef.valeur; brulure += ef.valeur;
+      } else if (ef.type === "confusion") {
+        e.confusion += ef.valeur; confusion += ef.valeur;
       }
     }
   }
-  return brulure;
+  return { brulure, confusion };
 }
 
 // Un ennemi agit : poison + feu + saignement (le sang SOIGNE le héros), puis il
@@ -662,6 +720,10 @@ export function agirEnnemi(combat, i) {
     idx_soin: -1,   // index de l'ennemi soigné (pour le floater UI)
     haste_allie: 0, // tours de hâte donnés aux alliés vivants
     brulureRetour: 0, // brûlure renvoyée à l'attaquant par un passif (set Onyx)
+    confusionRetour: 0, // confusion infligée à l'attaquant par un passif (set Croisé)
+    confus: false,  // true = l'attaque a été déviée par la Confusion
+    attaqueAllie: 0, // PV retirés à un allié/soi-même par une attaque confuse
+    idxAttaqueAllie: -1, // index de la victime de l'attaque confuse (pour le floater UI)
   };
   if (!e || e.pv <= 0) return evt;
   // Ordre des malus dans le temps : poison, puis feu, saignement en dernier.
@@ -677,19 +739,43 @@ export function agirEnnemi(combat, i) {
   } else {
     e.dernierSang = 0;
   }
+  const confusActif = e.confusion > 0; // figé AVANT de décrémenter (l'attaque de CE tour est-elle confuse ?)
   if (e.gel   > 0) e.gel   -= 1; // le Gel s'écoule (1 de SES tours), même étourdi
   if (e.haste > 0) e.haste -= 1; // la Hâte s'écoule (1 de SES tours)
+  if (e.confusion > 0) e.confusion -= 1; // la Confusion s'écoule (1 de SES tours)
   if (e.pv <= 0) { evt.mortStatut = true; verifierFin(combat); return evt; }
   if (e.stun > 0) { e.stun -= 1; evt.stun = true; return evt; } // étourdi : pas d'action
   if (e.intention?.type === "attaque") {
-    const avantPv = combat.pvHeros;
-    const avantPierre = combat.pierre;
-    subirDegats(combat, e.intention.valeur);
-    evt.attaque = avantPv - combat.pvHeros;          // PV réellement perdus (après la Pierre)
-    evt.armureAbsorbe = avantPierre - combat.pierre; // Pierre retirée par le coup (coup encaissé)
-    // Passifs « quand frappé en mêlée » (set Onyx : l'attaquant prend du feu).
-    // Se déclenche même si la Pierre a tout absorbé (on a quand même été frappé).
-    evt.brulureRetour = declencherFrappeMelee(combat, e);
+    // Confusion (éblouissement) : la frappe part sur une cible AU HASARD parmi le
+    // héros, les autres ennemis vivants, ou l'ennemi LUI-MÊME.
+    let cibleConf = "heros";
+    if (confusActif) {
+      const pool = [{ t: "heros" }];
+      combat.ennemis.forEach((o, j) => { if (ennemiVivant(o)) pool.push({ t: "ennemi", j }); });
+      const choix = pool[Math.floor(Math.random() * pool.length)];
+      cibleConf = choix.t === "heros" ? "heros" : choix.j;
+      evt.confus = true;
+    }
+    if (cibleConf === "heros") {
+      const avantPv = combat.pvHeros;
+      const avantPierre = combat.pierre;
+      subirDegats(combat, e.intention.valeur);
+      evt.attaque = avantPv - combat.pvHeros;          // PV réellement perdus (après la Pierre)
+      evt.armureAbsorbe = avantPierre - combat.pierre; // Pierre retirée par le coup (coup encaissé)
+      // Passifs « quand frappé en mêlée » (set Onyx : l'attaquant prend du feu ;
+      // set Croisé : l'attaquant est ébloui). Même si la Pierre a tout absorbé.
+      const retour = declencherFrappeMelee(combat, e);
+      evt.brulureRetour = retour.brulure;
+      evt.confusionRetour = retour.confusion;
+    } else {
+      // Confusion : frappe un allié (ou soi-même). Pas de Pierre côté ennemi, pas
+      // de passif de mêlée (le héros n'est pas touché). Friendly fire pur.
+      const victime = combat.ennemis[cibleConf];
+      const avant = victime.pv;
+      victime.pv = Math.max(0, victime.pv - e.intention.valeur);
+      evt.attaqueAllie = avant - victime.pv;
+      evt.idxAttaqueAllie = cibleConf;
+    }
   } else if (e.intention?.type === "soigner") {
     // Soigne la cible VERROUILLÉE à la préparation (l'allié au % le plus bas
     // alors), sauf si elle est morte entre-temps → une nouvelle est verrouillée.

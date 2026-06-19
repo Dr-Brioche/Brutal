@@ -378,6 +378,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const pvAvants     = combat.ennemis.map((e) => e.pv);
     const stunAvants   = combat.ennemis.map((e) => e.stun);
     const gelAvants    = combat.ennemis.map((e) => e.gel);
+    const confusAvants = combat.ennemis.map((e) => e.confusion);
     const feuAvants    = combat.ennemis.map((e) => e.feu);
     const poisonAvants = combat.ennemis.map((e) => e.poison);
     const sangAvants   = combat.ennemis.map((e) => e.sang);
@@ -411,6 +412,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (e.gel > gelAvants[idx]) { // Gel posé (−30% vitesse) → flocon au-dessus de l'ennemi
         u.secousse = Math.max(u.secousse, 0.3);
         ajouterFlottant(`❄ ${e.gel}`, u.ecran.cx, u.ecran.sommet - 32, "#9fdfff");
+        if (!sonJoue) { jouerSonSortilege(); sonJoue = true; }
+      }
+      if (e.confusion > confusAvants[idx]) { // Confusion posée (éblouissement) → étoiles
+        u.secousse = Math.max(u.secousse, 0.3);
+        ajouterFlottant(`✨ ${e.confusion}`, u.ecran.cx, u.ecran.sommet - 48, "#ffe9a8");
         if (!sonJoue) { jouerSonSortilege(); sonJoue = true; }
       }
       // Statuts de durée (feu, poison, sang) : son de sortilège au moment de l'application.
@@ -574,6 +580,20 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (pierreAvantTour > 0) jouerSonCoupArmure(); else jouerSonCoup();
       // Set Onyx : l'attaquant prend du feu de rétorsion → chiffre sur LUI.
       if (evt.brulureRetour > 0) ajouterFlottant(`🔥${evt.brulureRetour}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c");
+      // Set Croisé : l'attaquant est ébloui (confusion) → étoiles sur LUI.
+      if (evt.confusionRetour > 0) ajouterFlottant(`✨${evt.confusionRetour}`, u.ecran.cx, u.ecran.sommet - 32, "#ffe9a8");
+    }
+    if (evt.attaqueAllie > 0) { // Confusion : il frappe un allié (ou lui-même) au lieu du héros
+      jouerAnim(u, "attaque");
+      const victime = ennemisUI[evt.idxAttaqueAllie];
+      if (victime) {
+        victime.secousse = Math.max(victime.secousse, 0.3);
+        if (combat.ennemis[evt.idxAttaqueAllie]?.pv <= 0) exploser(victime);
+        else jouerAnim(victime, "touche");
+        ajouterFlottant(`-${evt.attaqueAllie}`, victime.ecran.cx, victime.ecran.sommet, "#ff7a7a");
+        ajouterFlottant(`✨`, u.ecran.cx, u.ecran.sommet - 16, "#ffe9a8"); // signale la frappe confuse
+      }
+      jouerSonCoup();
     }
     if (evt.soin_allie > 0) { // le chaman soigne un allié
       jouerAnim(u, "attaque");
@@ -700,6 +720,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (e.sang > 0) l.push({ texte: `🩸${e.sang}`, couleur: "#e05a5a", nature: "malus" });
     if (e.stun > 0) l.push({ texte: `💫${e.stun}`, couleur: "#ffd966", nature: "malus" }); // tours d'étourdissement restants
     if (e.gel > 0) l.push({ texte: `❄${e.gel}`, couleur: "#9fdfff", nature: "malus" });   // Gel (−30% vitesse)
+    if (e.confusion > 0) l.push({ texte: `✨${e.confusion}`, couleur: "#ffe9a8", nature: "malus" }); // Confusion (frappe au hasard)
     return l;
   }
 
