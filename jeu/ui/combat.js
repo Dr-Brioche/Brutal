@@ -384,6 +384,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const sangAvants   = combat.ennemis.map((e) => e.sang);
     const pierreAvant = combat.pierre;
     const hateAvant = combat.hate;
+    const pvHerosAvant = combat.pvHeros; // pour le soin vampirique (set Sang)
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
     if (maitrise) incrementerMaitrise(maitrise, heros, carte.id);
 
@@ -431,6 +432,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (combat.hate > hateAvant) { // Hâte posée (+30% agilité) → éclair au-dessus du héros
       ajouterFlottant(`⚡ ${combat.hate}`, heroEcran.cx, heroEcran.sommet, "#dff4ff");
       if (!sonJoue) jouerSonSortilege();
+    }
+    if (combat.pvHeros > pvHerosAvant) { // Soin vampirique (set Sang) → cœur vert sur le héros
+      ajouterFlottant(`💚+${combat.pvHeros - pvHerosAvant}`, heroEcran.cx, heroEcran.sommet - 16, "#7edf82");
     }
     phaseCiblage = false;
     recalerCible();

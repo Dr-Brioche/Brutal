@@ -283,6 +283,7 @@ export function carteVise(carte) {
            e.type === "poison" || e.type === "feu" ||
            e.type === "sang" || e.type === "stun" || e.type === "lenteur" ||
            e.type === "confusion" || e.type === "gel-cascade" ||
+           e.type === "hemorragie" ||   // détonateur de saignement sur la cible
            e.type === "transfert-feu" || // vise l'ennemi SOURCE dont on déplace la brûlure
            e.type === "tout-en-feu"     // AOE offensif sur tous les ennemis
   );
@@ -310,6 +311,26 @@ function effetViseEnnemi(e) {
 // « combo » qui récompensent de frapper une cible déjà affaiblie.
 function aMalus(e) {
   return e && (e.poison > 0 || e.feu > 0 || e.sang > 0 || e.stun > 0 || e.gel > 0 || e.confusion > 0);
+}
+
+// Saignement TOTAL sur tous les ennemis vivants (cartes du set Sang qui scalent dessus).
+function sangTotal(combat) {
+  return combat.ennemis.reduce((s, e) => s + (ennemiVivant(e) ? e.sang : 0), 0);
+}
+
+// Set Sang (vampirique) : quand un combo de saignement inflige des dégâts bonus
+// (`bonus`), les passifs « saignementCombo » soignent le héros d'une fraction
+// (`ratio`, 1 = 100%). Renvoie le total soigné (pour l'affichage). Sans set : 0.
+function soinSaignementCombo(combat, bonus) {
+  let soin = 0;
+  for (const p of combat.passifs ?? []) {
+    if (p.declencheur !== "saignementCombo") continue;
+    for (const ef of p.effets) {
+      if (ef.type === "soin") soin += Math.round(bonus * (ef.ratio ?? 1));
+    }
+  }
+  if (soin > 0) combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + soin);
+  return soin;
 }
 
 // Applique un effet de carte : les effets offensifs touchent `ennemi` (la cible),
@@ -346,10 +367,29 @@ function appliquerEffet(combat, effet, ennemi) {
       // Les ticks existants restent ET font des dégâts bonus immédiats (sans être
       // consommés). Les nouveaux ticks s'empilent par-dessus. Plus les stacks sont
       // hauts, plus chaque attaque de saignement suivante fait mal.
-      if (ennemi.sang > 0) ennemi.pv = Math.max(0, ennemi.pv - ennemi.sang);
+      if (ennemi.sang > 0) {
+        const bonus = ennemi.sang;
+        ennemi.pv = Math.max(0, ennemi.pv - bonus);
+        // Set Sang (vampirique) : ce combo soigne le héros d'autant — cf. soinSaignementCombo.
+        soinSaignementCombo(combat, bonus);
+      }
       ennemi.sang += effet.valeur;
     }
-  } else if (effet.type === "stun") {
+  } else if (effet.type === "hemorragie") {
+    // Hémorragie : consomme TOUT le saignement de la cible et le convertit en
+    // dégâts INSTANTANÉS (× valeur). Détonateur du build saignement (sang → 0).
+    if (ennemi) {
+      ennemi.pv = Math.max(0, ennemi.pv - ennemi.sang * effet.valeur);
+      ennemi.sang = 0;
+    }
+  } else if (effet.type === "pierre-par-sang") {
+    // Sanguine Guard : Pierre proportionnelle au saignement TOTAL sur le champ
+    // de bataille (récompense d'avoir empilé du saignement partout).
+    combat.pierre += effet.valeur * sangTotal(combat);
+  } else if (effet.type === "chaleur-par-sang") {
+    // Blood Rush : énergie selon le saignement TOTAL (1 Chaleur par `par` points).
+    const gain = Math.floor(sangTotal(combat) / effet.par);
+    combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + gain);
     if (ennemi) ennemi.stun += effet.valeur; // étourdit : l'ennemi saute ses prochains tours (cumulable)
   } else if (effet.type === "confusion") {
     // Confusion (éblouissement) : pendant `valeur` de ses tours, l'ennemi frappe
@@ -538,7 +578,7 @@ function resoudreAOE(combat, carte) {
 // Effets résolus à part (positionnels), APRÈS les effets normaux de la carte.
 const EFFETS_POSITIONNELS = new Set([
   "rebond", "eclaboussure", "transfert-feu",
-  "cleave-adjacent", "brulure-adjacent", "coup-de-grace",
+  "cleave-adjacent", "brulure-adjacent", "coup-de-grace", "contagion",
 ]);
 
 // Résout une carte ciblée (un ennemi). Effets normaux sur la cible, puis les
@@ -629,6 +669,11 @@ function resoudreCiblee(combat, carte, cible) {
           appliquerEffet(combat, { type: "degats", valeur: effet.valeur }, cible2);
         }
       }
+    } else if (effet.type === "contagion") {
+      // Contagion : chaque voisin direct gagne autant de saignement que la cible en
+      // porte ACTUELLEMENT (copie, la cible garde le sien). Propage la mise en place.
+      const sangCible = ennemi ? ennemi.sang : 0;
+      if (sangCible > 0) for (const v of adjacents) v.sang += sangCible;
     }
   }
 }
