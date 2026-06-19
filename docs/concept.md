@@ -1,7 +1,7 @@
 # BRUTAL — Concept du jeu
 
 > Document vivant : c'est la « bible » du projet. On le modifie au fil de l'eau.
-> Dernière mise à jour : 2026-06-17.
+> Dernière mise à jour : 2026-06-19.
 
 ## Pitch
 
@@ -347,22 +347,24 @@ directement la **collecte** et le **marché**.
 - **Défense « Pierre » — CONFIRMÉ et implémenté** : la Pierre **persiste entre
   les tours** (≠ Blocage qui disparaît chaque tour). Les nains sont coriaces →
   le jeu défensif/tank devient une vraie stratégie.
-- **Trempe (« Quench ») — passerelle Chaleur → Pierre (validé 17/06/2026)** :
-  carte **gratuite** qui **vide toute la Chaleur** et la **fige en Pierre (×4 par
+- **Trempe (« Quench ») — passerelle Chaleur → Pierre** :
+  carte **gratuite** qui **vide toute la Chaleur** et la **fige en Pierre (×10 par
   point)**, puis la forge **refroidit (chaleur → 0)**. Récompense de jouer en
   **surchauffe** (plus on a chauffé, plus le bouclier est gros) et **fait retomber
-  la surchauffe** d'un coup → 1re mécanique qui **relie** les deux ressources naines
-  (Chaleur ↔ Pierre). Apportée par la **Forgemaster's Mail**, **première armure à
-  injecter des cartes** (3× *Mail Armor* — 5 Pierre pour 1 Chaleur — + 1× *Quench*).
-- **Embrasement (« Dragon's Blaze ») — détonateur de feu (validé 17/06/2026)** :
+  la surchauffe** d'un coup → mécanique qui **relie** les deux ressources naines
+  (Chaleur ↔ Pierre). Apportée par la **Forgemaster's Mail** : 3× *Mail Armor*
+  (7 Pierre × nb d'ennemis vivants, pour 1 Chaleur) + 1× *Quench* + 2× *Heavy
+  Armor* (20 Pierre pour 2 Chaleur). La maille **donne 22 Pierre de départ** au
+  combat.
+- **Embrasement (« Dragon's Blaze ») — détonateur de feu** :
   carte qui **consomme TOUT le Feu** en cours sur les ennemis et le **convertit en
   dégâts instantanés (×2 par point de Feu)**, sur **tous les ennemis** (AOE). Ouvre
   un **combo « brûlure »** : on **empile le Feu**, puis on le **fait exploser d'un
   coup** au lieu d'attendre qu'il s'égrène tour par tour. Apportée par l'**Onyx
-  Guard Plate** (2e armure à cartes, build « dragon ») : 3× *Onyx Armor* (15 Pierre
-  pour 2 Chaleur — gros mur défensif), 1× *Dragon's Blaze* (l'embrasement, 4 Chaleur)
-  et 2× *Onyx Breath* (8 Feu sur tous les ennemis, 4 Chaleur — la mise en place). Le
-  combo complet *Souffle → Embrasement* tient en **un tour à pleine forge** (4+4=8).
+  Guard Plate** (build « dragon ») : 3× *Onyx Armor* (30 Pierre pour 2 Chaleur),
+  1× *Dragon's Blaze* (4 Chaleur), 2× *Onyx Breath* (20 Feu sur tous, 3 Chaleur),
+  1× *All Should Be Fire* (convert tous les statuts ennemis en Feu ×2). La plaque
+  **donne 30 Pierre de départ** au combat.
 - **Statuts (1er jet)** : effets qui durent dans le temps, affichés **sous la
   barre de vie**, apportés par des **cartes** (que l'équipement ajoute au deck).
   Implémentés :
@@ -396,15 +398,14 @@ directement la **collecte** et le **marché**.
     baisse de 1 à chaque tour sauté. **Cumulable** (les ticks s'additionnent →
     plusieurs tours). Affiché en badge `💫 N` sous l'ennemi (N = tours restants), et
     son intention d'attaque est masquée. Ex. *Tower Shield* (bouclier) → carte
-    *Shield Bash* (3 dégâts + stun 2).
+    *Shield Bash* (10 dégâts + stun 3).
 - **Actions au RALENTI** : chaque action (ennemi qui attaque, etc.) se joue **une
   à la fois**, avec une petite pause, pilotée par l'**initiative** (voir la section
   *Initiative / vitesse* plus haut) — on comprend ce qui arrive.
 
 ### Cartes « combo » (récompensent une mise en place)
 
-Plusieurs cartes ont un effet RENFORCÉ selon l'état de la cible — l'intérêt est
-de préparer le terrain avant de frapper :
+Plusieurs cartes ont un effet RENFORCÉ selon l'état de la cible ou du héros :
 
 - **Wound Opening** (Basilisk Fang) : 18 dégâts, **DOUBLÉS** si la cible porte au
   moins un malus (poison, feu, saignement, étourdissement, gel). `degats-execution`.
@@ -414,6 +415,13 @@ de préparer le terrain avant de frapper :
 - **Armor Forging** (Magma Hammer, AOE) : **10 brûlure** à tous ; un ennemi **déjà
   en feu** en reçoit le **double**, puis **toute sa brûlure est consommée et forgée
   en Pierre** pour le héros (1 brûlure = 1 Pierre). `forgeage`.
+- **All Should Be Fire** (Onyx Guard Plate, AOE) : **convertit TOUS les statuts**
+  de chaque ennemi (poison, feu, sang, stun, gel, hâte) en Feu × 2. Un ennemi
+  avec 3 stun + 5 poison → 16 de brûlure. `tout-en-feu`.
+- **Stacking Shield** (Tower Shield) : **double la Pierre actuelle** du héros.
+  Juste après une longue série de Shield Wall, c'est un multiplicateur massif. `doublerPierre`.
+- **Mail Armor** (Forgemaster's Mail) : **7 Pierre × nombre d'ennemis vivants**
+  (scalait avec la menace). 3 ennemis → 21 Pierre. `pierre-par-ennemi`.
 - **Pickaxe Jab** (Miner's Pick) : 3+3 dégâts ; si la cible **meurt**, un 3e coup
   de 3 part sur un **autre ennemi au hasard**. `coup-de-grace`.
 - **Rusty Cleave** (Rusty Axe) : 6 à la cible + **4 à chacun des deux voisins**
@@ -441,12 +449,20 @@ de préparer le terrain avant de frapper :
   Il ne donne **pas de stats chiffrées** — les CHIFFRES viennent de l'**arbre de
   talents** (voir section *Progression*). La bulle d'un objet montre **ses cartes**.
   On part avec un stuff de base ; on s'équipe ensuite **via le sac** (plus de touches R/E).
-- **Sets d'armure (bonus de panoplie)** (ajouté le 18/06/2026) : porter **toutes
-  les pièces d'armure d'un set** (torse + gants + bottes — **l'arme ne compte
-  PAS**) débloque un **bonus passif** qui s'ajoute **au-dessus des règles
-  normales**, déclenché par un **événement de combat**. C'est un moteur de
-  collecte (courir après la dernière pièce). 1er set : **Onyx** — *quand le héros
-  est frappé en mêlée, l'attaquant prend 1 brûlure* (qui **ne se propage pas**).
+- **Armure de départ** : certains items donnent de la **Pierre** dès le début du
+  combat (champ `armureDepart`). Cette Pierre persiste comme les autres. Exemples :
+  *Traveler's Garb* (+8), *Forgemaster's Mail* (+22), *Onyx Guard Plate* (+30).
+  C'est le remplacement des stats de défense statiques — la différence de niveau
+  se lit directement sur la barre Pierre dès le premier tour.
+- **Passifs individuels d'items** : en plus des sets, un item peut avoir son propre
+  **passif déclencheur**. Ex. *Tower Shield* — quand le héros est frappé en mêlée,
+  il gagne **+2 Pierre** (s'empile avec le passif du set Onyx si les deux sont actifs).
+  Déclaré dans `passifPropre` sur l'item, collecté et passé à `combat.passifs` au
+  lancement du combat.
+- **Sets d'armure (bonus de panoplie)** : porter **toutes les pièces d'armure d'un
+  set** (torse + gants + bottes — **l'arme ne compte PAS**) débloque un **bonus
+  passif** déclenché par un **événement de combat**. 1er set : **Onyx** — *quand
+  le héros est frappé en mêlée, l'attaquant prend 3 brûlure* (sans propagation).
   Données dans `SETS` (`jeu/data/items.js`), appliquées via `combat.passifs`. Les
   pièces Onyx (plaque, gants, bottes, et l'épée d'onyx hors-condition) tournent
   toutes autour du **feu/brûlure** → set thématique cohérent.
