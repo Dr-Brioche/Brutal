@@ -399,6 +399,14 @@ directement la **collecte** et le **marché**.
     plusieurs tours). Affiché en badge `💫 N` sous l'ennemi (N = tours restants), et
     son intention d'attaque est masquée. Ex. *Tower Shield* (bouclier) → carte
     *Shield Bash* (10 dégâts + stun 3).
+  - **Confusion (éblouissement) — implémenté** : l'ennemi **ébloui** frappe une
+    cible **AU HASARD** parmi le **héros**, **un autre ennemi**, ou **lui-même**
+    (tirage à chances égales à chaque attaque). Sa puissance d'attaque ne change
+    pas, seul le destinataire devient aléatoire → redoutable à plusieurs ennemis
+    (ils se tapent dessus). Compteur en **tours**, baisse de 1 par tour de l'ennemi,
+    **cumulable**. Badge `✨ N` sous l'ennemi. L'intention reste affichée (on voit
+    la valeur du coup, mais pas qui il touchera). Vient des cartes de **lumière**
+    du set *Chevalier Croisé* et de son bonus de panoplie.
 - **Actions au RALENTI** : chaque action (ennemi qui attaque, etc.) se joue **une
   à la fois**, avec une petite pause, pilotée par l'**initiative** (voir la section
   *Initiative / vitesse* plus haut) — on comprend ce qui arrive.
@@ -428,6 +436,43 @@ Plusieurs cartes ont un effet RENFORCÉ selon l'état de la cible ou du héros :
   directs. `cleave-adjacent`.
 - **Splash Strike** (Forge Hammer) : 15 à la cible ; chaque voisin a **50 %** de
   prendre 5 brûlure. `brulure-adjacent`.
+- **Frost Cascade** (Perfect Frost Ring) : 8 dégâts + 3 Gel ; si la cible était
+  **déjà gelée**, le coup **rebondit** sur l'ennemi suivant, et ainsi de suite tant
+  que chaque cible touchée était déjà gelée (chaîne de gel). `gel-cascade`.
+
+### Cartes de tempo / conversion (gèrent l'énergie et la main)
+
+Un sous-ensemble de cartes ne fait ni dégât ni Pierre : elles **manipulent les
+ressources** (énergie, main, vitesse). Elles donnent de la profondeur aux builds
+sans surcharger le combat de dégâts.
+
+- **Outnumbered** (Mail Glove) : pioche **1 carte par ennemi vivant**. `piocher-par-ennemi`.
+- **Forge from Ashes** (Onyx Glove) : défausse la main et **repioche autant** de
+  cartes (relance propre, sans brûler). `refaire-main`.
+- **Mail Advantage** (Mail Glove/Boots) : **8 Pierre + 2 tours de Hâte** (liant tank/tempo).
+- **Second Wind** (Swift Boots) : échange **5 tours de Hâte → 3 Chaleur**
+  (rien sous 5 Hâte). `celerite-vers-energie`.
+- **Fire Boost** (Onyx Boots) : transforme **4 ticks de Feu du héros → 2 Chaleur**
+  (rien sous 4 Feu). `feu-vers-energie`.
+- **Boost** (Onyx/Mail Boots) : +3 Chaleur gratuite.
+
+### Set Chevalier Croisé : lumière & Confusion
+
+Set **rare** à 3 pièces (Crusader Plate / Gauntlets / Greaves) qui troque des
+**dégâts bruts plus faibles** contre du **contrôle par Confusion** (cf. statut
+*Confusion* plus haut). Cartes :
+- **Radiant Strike** (torse) : 14 dégâts + 2 Confusion.
+- **Sacred Ground** (torse) : 18 Pierre (le pan défensif).
+- **Blinding Flash** (torse, AOE) : 2 Confusion à **tous** les ennemis (contrôle pur).
+- **Lumen Jab** (gants) : 8 dégâts + 1 Confusion.
+- **Halo Burst** (gants, AOE) : 6 dégâts à tous.
+- **Crusader's Charge** (bottes) : Hâte 3 tours.
+- **Dazzling Kick** (bottes) : 10 dégâts + 3 Confusion (la finisseuse).
+
+Le **bonus de panoplie** (éblouir tout attaquant de mêlée) boucle l'identité :
+plus l'ennemi s'acharne au corps à corps, plus il finit par taper de travers.
+La Crusader Plate donne **+15 Pierre de départ** (skin provisoire = nain de base,
+à dessiner).
 
 ## Items, butin & inventaire (1er jet implémenté)
 
@@ -441,6 +486,8 @@ Plusieurs cartes ont un effet RENFORCÉ selon l'état de la cible ou du héros :
 - **Inventaire façon Diablo** (touche **B**) : un **sac** en cases ; chaque objet
   a une **empreinte** (l×h) et prend de la place. Le sac est **petit au départ**
   et s'**agrandira** avec des sacs (loot/craft). Rangement automatique pour l'instant.
+  Lignée de sacs (rangées ajoutées) : Leather Pouch **+1**, Big **+2**, Huge **+3**,
+  Backpack **+4**, Bottomless Bag **+6** (épique), Master Miner's Bag **+10** (légendaire).
 - **Poupée d'équipement** (« sur soi ») : **arme1 + arme2** (2 mains, ou 1 main +
   bouclier), **armure** (= skin), **gants**, **bottes**, **collier**, **5 bagues**,
   **sac à dos**. Catalogue dans `jeu/data/items.js`.
@@ -461,11 +508,17 @@ Plusieurs cartes ont un effet RENFORCÉ selon l'état de la cible ou du héros :
   lancement du combat.
 - **Sets d'armure (bonus de panoplie)** : porter **toutes les pièces d'armure d'un
   set** (torse + gants + bottes — **l'arme ne compte PAS**) débloque un **bonus
-  passif** déclenché par un **événement de combat**. 1er set : **Onyx** — *quand
-  le héros est frappé en mêlée, l'attaquant prend 3 brûlure* (sans propagation).
-  Données dans `SETS` (`jeu/data/items.js`), appliquées via `combat.passifs`. Les
-  pièces Onyx (plaque, gants, bottes, et l'épée d'onyx hors-condition) tournent
-  toutes autour du **feu/brûlure** → set thématique cohérent.
+  passif** déclenché par un **événement de combat**. Données dans `SETS`
+  (`jeu/data/items.js`), appliquées via `combat.passifs`. Trois sets aujourd'hui,
+  chacun avec sa **thématique** :
+  - **Onyx** (feu) — déclencheur *frappeMelee* : quand le héros est frappé en
+    mêlée, l'attaquant prend **3 brûlure** (sans propagation).
+  - **Mail** (tank) — déclencheur *debutCombat* : au tout début du combat, le héros
+    gagne **10 Pierre par ennemi** rencontré (s'empile sur l'armure de départ de la
+    Forgemaster's Mail → on entre d'autant plus blindé qu'on est en surnombre).
+  - **Chevalier Croisé** (lumière) — déclencheur *frappeMelee* : quand le héros est
+    frappé en mêlée, l'attaquant est **ébloui (1 Confusion)** → il risque de frapper
+    ses propres alliés. Complète les cartes de Confusion du set.
 - **Bulle d'info** : au survol d'un objet (sac OU marchand), on voit le **visuel
   des cartes** qu'il ajoute au deck (mini-cartes, même rendu que le deck) → on sait
   ce qu'on récupère / achète.
