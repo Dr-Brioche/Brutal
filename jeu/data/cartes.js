@@ -533,4 +533,163 @@ export const CARTES = {
     texte: "Gain 20 Stone.",
     effets: [{ type: "pierre", valeur: 20 }],
   },
+
+  // ---- Perfect Frost Ring (bague) : gel en chaîne -----------------------------
+
+  // Frost Cascade : 8 dégâts + 3 Gel. Combo : si la cible était DÉJÀ gelée, le
+  // même coup rebondit sur l'ennemi suivant, et ainsi de suite tant que chaque
+  // cible touchée était déjà gelée avant (chaîne de gel).
+  "gel-cascade": {
+    id: "gel-cascade",
+    nom: "Frost Cascade",
+    cout: 2,
+    type: "attaque",
+    texte: "Deal 8 damage and apply 3 Chill. If the target was already chilled, cascade the same hit to the next enemy, and so on.",
+    effets: [{ type: "gel-cascade", degats: 8, gel: 3 }],
+  },
+
+  // ---- Mail Glove (gants) : tempo du build maille -----------------------------
+
+  // Outnumbered : pioche autant de cartes qu'il reste d'ennemis vivants en face.
+  "surnombre": {
+    id: "surnombre",
+    nom: "Outnumbered",
+    cout: 2,
+    type: "buff",
+    texte: "Draw 1 card per living enemy.",
+    effets: [{ type: "piocher-par-ennemi" }],
+  },
+
+  // Mail Advantage : un peu de Pierre ET un peu de hâte — liant tank/tempo.
+  "avantage-maille": {
+    id: "avantage-maille",
+    nom: "Mail Advantage",
+    cout: 1,
+    type: "buff",
+    texte: "Gain 8 Stone and Haste for 2 turns.",
+    effets: [{ type: "pierre", valeur: 8 }, { type: "celerite", valeur: 2 }],
+  },
+
+  // ---- Onyx Glove (gants) : recyclage de main ---------------------------------
+
+  // Forge from Ashes : défausse toute la main et REPIOCHE autant de cartes
+  // (relance une main bloquée sans la brûler — variante « propre » de Burning Hand).
+  "forge-des-cendres": {
+    id: "forge-des-cendres",
+    nom: "Forge from Ashes",
+    cout: 2,
+    type: "buff",
+    texte: "Discard your hand and draw that many cards.",
+    effets: [{ type: "refaire-main" }],
+  },
+
+  // ---- Swift Boots (bottes) : conversion vitesse → énergie --------------------
+
+  // Second Wind : échange 5 tours de Hâte contre 3 Chaleur. Sans 5 Hâte, rien.
+  "second-souffle": {
+    id: "second-souffle",
+    nom: "Second Wind",
+    cout: 0,
+    type: "buff",
+    texte: "Trade 5 Haste turns for 3 Forge Heat. No effect below 5 Haste.",
+    effets: [{ type: "celerite-vers-energie", cout: 5, gain: 3 }],
+  },
+
+  // ---- Onyx Boots (bottes) : conversion feu → énergie + relance ---------------
+
+  // Fire Boost : transforme 4 ticks de Feu du héros en 2 Chaleur. Sans 4 Feu, rien.
+  "boost-feu": {
+    id: "boost-feu",
+    nom: "Fire Boost",
+    cout: 1,
+    type: "buff",
+    texte: "Convert 4 of your own Burning into 2 Forge Heat. No effect below 4 Burning.",
+    effets: [{ type: "feu-vers-energie", cout: 4, gain: 2 }],
+  },
+
+  // Boost : petite relance d'énergie (surchauffe la forge).
+  "boost": {
+    id: "boost",
+    nom: "Boost",
+    cout: 0,
+    type: "buff",
+    texte: "Gain 3 Forge Heat (energy).",
+    effets: [{ type: "chaleur", valeur: 3 }],
+  },
+
+  // ---- Set Chevalier Croisé : LUMIÈRE + Confusion (éblouissement) -------------
+  // Identité : moins de dégâts bruts que les autres armes, mais beaucoup de
+  // CONTRÔLE via la Confusion — l'ennemi ébloui frappe une cible au hasard (héros,
+  // un autre ennemi, ou lui-même). Combo redoutable à plusieurs ennemis.
+
+  // Crusader Plate (torse) ----------------------------------------------------
+  // Radiant Strike : coup de lumière qui éblouit (dégâts + Confusion).
+  "frappe-radiante": {
+    id: "frappe-radiante",
+    nom: "Radiant Strike",
+    cout: 2,
+    type: "attaque",
+    texte: "Deal 14 damage. Apply 2 Confusion.",
+    effets: [{ type: "degats", valeur: 14 }, { type: "confusion", valeur: 2 }],
+  },
+  // Sacred Ground : mur de Pierre béni (le pan défensif du croisé).
+  "terre-sacree": {
+    id: "terre-sacree",
+    nom: "Sacred Ground",
+    cout: 2,
+    type: "defense",
+    texte: "Gain 18 Stone.",
+    effets: [{ type: "pierre", valeur: 18 }],
+  },
+  // Blinding Flash : éclair aveuglant → Confusion sur TOUS les ennemis (AOE pur contrôle).
+  "eclair-aveuglant": {
+    id: "eclair-aveuglant",
+    nom: "Blinding Flash",
+    cout: 3,
+    type: "attaque",
+    aoe: true,
+    texte: "Apply 2 Confusion to ALL enemies.",
+    effets: [{ type: "confusion", valeur: 2 }],
+  },
+
+  // Crusader Gauntlets (gants) -------------------------------------------------
+  // Lumen Jab : petit coup de lumière qui éblouit un peu (entrée de gamme).
+  "coup-de-lumiere": {
+    id: "coup-de-lumiere",
+    nom: "Lumen Jab",
+    cout: 1,
+    type: "attaque",
+    texte: "Deal 8 damage. Apply 1 Confusion.",
+    effets: [{ type: "degats", valeur: 8 }, { type: "confusion", valeur: 1 }],
+  },
+  // Halo Burst : éclat de halo → dégâts de lumière légers sur TOUS les ennemis.
+  "eclat-de-halo": {
+    id: "eclat-de-halo",
+    nom: "Halo Burst",
+    cout: 2,
+    type: "attaque",
+    aoe: true,
+    texte: "Deal 6 damage to ALL enemies.",
+    effets: [{ type: "degats", valeur: 6 }],
+  },
+
+  // Crusader Greaves (bottes) --------------------------------------------------
+  // Crusader's Charge : élan du croisé → hâte (mobilité de la lignée lumière).
+  "charge-du-croise": {
+    id: "charge-du-croise",
+    nom: "Crusader's Charge",
+    cout: 1,
+    type: "buff",
+    texte: "Haste: +30% attack speed for 3 turns.",
+    effets: [{ type: "celerite", valeur: 3 }],
+  },
+  // Dazzling Kick : coup éblouissant → dégâts + grosse Confusion (la finisseuse).
+  "coup-eblouissant": {
+    id: "coup-eblouissant",
+    nom: "Dazzling Kick",
+    cout: 2,
+    type: "attaque",
+    texte: "Deal 10 damage. Apply 3 Confusion.",
+    effets: [{ type: "degats", valeur: 10 }, { type: "confusion", valeur: 3 }],
+  },
 };
