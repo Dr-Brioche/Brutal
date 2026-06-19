@@ -390,11 +390,8 @@ directement la **collecte** et le **marché**.
     avec les nouveaux. Un ennemi en vie ne vaut rien — une carte pure dégâts ne
     déclenche pas ce bonus. Ex. : ennemi à 5 ticks, attaque « 2 dégâts + 3
     saignement » → 2 + 5 (bonus) = 7 dégâts, sang passe à 8.
-    **Le saignement ne soigne plus le héros** — SAUF si le **set de Sang** complet
-    est porté (vampirisme, cf. plus bas) : c'est l'« item spécifique » prévu.
-    Un **détonateur dédié** existe via le set de Sang (*Hemorrhage*) : il **consomme
-    tout** le saignement de la cible pour un gros coup (≠ du combo de re-frappe, qui
-    lui ne consomme pas les ticks).
+    **Le saignement ne soigne plus le héros** — SAUF via le **set de Sang**
+    (vampirisme + cartes de soin, cf. plus bas) : c'est l'« item spécifique » prévu.
     **Ordre** : poison, puis feu, puis saignement. Si l'ennemi meurt du poison
     ou du feu avant, il ne saigne plus ce tour-là.
   - **Étourdissement (stun) — implémenté** : l'ennemi **saute ses tours** (n'attaque
@@ -462,44 +459,46 @@ sans surcharger le combat de dégâts.
 
 ### Set Chevalier Croisé : lumière & Confusion
 
-Set **rare** à 3 pièces (Crusader Plate / Gauntlets / Greaves) qui troque des
-**dégâts bruts plus faibles** contre du **contrôle par Confusion** (cf. statut
-*Confusion* plus haut). Cartes :
-- **Radiant Strike** (torse) : 14 dégâts + 2 Confusion.
-- **Sacred Ground** (torse) : 18 Pierre (le pan défensif).
-- **Blinding Flash** (torse, AOE) : 2 Confusion à **tous** les ennemis (contrôle pur).
-- **Lumen Jab** (gants) : 8 dégâts + 1 Confusion.
-- **Halo Burst** (gants, AOE) : 6 dégâts à tous.
-- **Crusader's Charge** (bottes) : Hâte 3 tours.
-- **Dazzling Kick** (bottes) : 10 dégâts + 3 Confusion (la finisseuse).
+Set **rare** à 3 pièces (Crusader Plate / Gauntlets / Greaves) : **contrôle par
+Confusion** (cf. statut *Confusion* plus haut) **+ soutien lumineux** (soin,
+purification, Pierre). Peu de dégâts bruts, beaucoup d'utilité. Cartes :
+- **Armor of light** (torse) : 6 Pierre + éblouit l'ennemi **le plus proche** (2 Confusion).
+- **Blinding Flash** (torse, AOE, coût 5) : 2 Confusion à **tous** les ennemis.
+- **Holy light** (torse) : **soigne 30 PV** (le pan « soutien »).
+- **Halo Burst** (gants, AOE) : **+1 Confusion** à chaque ennemi **déjà confus**
+  (amplifie la mise en place). `confusion-si-confus`.
+- **Lay on Hands** (gants) : retire **1 malus du héros** au hasard. `purifier-hero`.
+- **Kick of light** (bottes) : 6 dégâts + 1 Confusion.
 
-Le **bonus de panoplie** (éblouir tout attaquant de mêlée) boucle l'identité :
-plus l'ennemi s'acharne au corps à corps, plus il finit par taper de travers.
-La Crusader Plate donne **+15 Pierre de départ** (skin provisoire = nain de base,
-à dessiner).
+**Combo** : éblouir en masse (*Blinding Flash* / *Armor of light*), puis **amplifier**
+avec *Halo Burst* sur tous les confus. Le **bonus de panoplie** : tout attaquant de
+mêlée a **50 % de chance** d'être ébloui (1 Confusion). La Crusader Plate donne
+**+30 Pierre de départ** (skin provisoire = nain de base, à dessiner).
 
-### Set de Sang : moteur saignement (uncommon)
+### Set de Sang : sacrifice & vampirisme (rare)
 
-Set **uncommon** à 3 pièces (accessible tôt), à coupler à une **arme à saignement**
-(War Axe, Blood Ring…). Il transforme le saignement — d'habitude faible (1 dégât/tick)
-— en un vrai moteur **empiler → propager → encaisser → faire éclater**, avec
-**vampirisme**. Cartes (combo inter-pièces) :
-- **Crimson Carve** (torse) : 9 dégâts + 3 saignement (l'empileur principal).
-- **Sanguine Guard** (torse) : **1 Pierre par point de saignement TOTAL** sur le
-  champ → l'armure scale avec ta mise en place. `pierre-par-sang`.
-- **Bloodbath** (torse, AOE) : 4 saignement à **tous** les ennemis (mise en place de masse).
-- **Open Veins** (gants) : 3 dégâts + 4 saignement (empileur pas cher).
-- **Contagion** (gants) : 5 dégâts ; les **deux voisins** gagnent autant de
-  saignement que la cible en porte (copie). `contagion`.
-- **Hemorrhage** (bottes) : **consomme tout** le saignement de la cible → **2 dégâts
-  par point** consommé (le détonateur/finisher). `hemorragie`.
-- **Blood Rush** (bottes) : **1 Chaleur par 5 points** de saignement total (carburant). `chaleur-par-sang`.
+Set **rare** à 3 pièces, à coupler à une **arme à saignement** (War Axe, Blood
+Ring…). On **paie en sang** (PV, parfois absorbés par la Pierre) pour empiler du
+saignement de masse, puis on le **convertit** en soin / Pierre / énergie / contrôle.
+Très gros **sustain**. Cartes (combo inter-pièces) :
+- **Sanguine Guard** (torse, coût 1) : par point de saignement TOTAL, **+3 Pierre
+  ET +2 PV de soin**. `pierre-par-sang` + `soin-par-sang`.
+- **Bloodbath** (torse, AOE) : le héros **encaisse 10 dégâts**, puis 5 saignement à tous. `auto-degats`.
+- **Drink blood** (torse, AOE) : sacrifice **20 PV** → 10 dégâts + 1 saignement à
+  tous ; **+20 PV par ennemi tué** par ce coup (cumulable). `boire-le-sang`.
+- **Open Veins** (gants) : le héros **encaisse 10 dégâts**, 4 saignement à la cible.
+- **Contagion** (gants) : les **deux voisins ÉGALISENT** leur saignement sur celui
+  de la cible (montée comme descente). `contagion`.
+- **Blood Absorption** (gants) : soigne **5 PV par saignement TOTAL**, puis **efface
+  tout** le saignement ennemi. `absorption-sang`.
+- **Blood Slide** (bottes, AOE) : **étourdit 2 tours** tous les ennemis qui saignent. `stun-si-sang`.
+- **Blood Rush** (bottes) : **1 Chaleur par 5 points** de saignement total. `chaleur-par-sang`.
 
-**Boucle type** : *Bloodbath* (4 partout) → *Contagion* (copie sur les voisins) →
-re-frappes (*Crimson Carve*/*Open Veins*) qui détonnent le bonus **et soignent** (set)
-→ *Sanguine Guard*/*Blood Rush* convertissent les stacks en Pierre/énergie →
-*Hemorrhage* fait tout éclater. La **Blood Plate** donne **+12 Pierre de départ**
-(skin provisoire = nain de base, à dessiner).
+**Boucle type** : *Bloodbath*/*Drink blood* posent du saignement partout (en payant
+des PV) → *Contagion* égalise → *Sanguine Guard* rend Pierre+soin, *Blood Slide*
+verrouille, *Blood Absorption* encaisse le tout en gros soin. Le **bonus de
+panoplie** (vampirisme) soigne en plus à chaque combo de saignement. La **Blood
+Plate** donne **+20 Pierre de départ** (skin provisoire = nain de base, à dessiner).
 
 ## Items, butin & inventaire (1er jet implémenté)
 
@@ -525,9 +524,15 @@ re-frappes (*Crimson Carve*/*Open Veins*) qui détonnent le bonus **et soignent*
   On part avec un stuff de base ; on s'équipe ensuite **via le sac** (plus de touches R/E).
 - **Armure de départ** : certains items donnent de la **Pierre** dès le début du
   combat (champ `armureDepart`). Cette Pierre persiste comme les autres. Exemples :
-  *Traveler's Garb* (+8), *Forgemaster's Mail* (+22), *Onyx Guard Plate* (+30).
-  C'est le remplacement des stats de défense statiques — la différence de niveau
-  se lit directement sur la barre Pierre dès le premier tour.
+  *Traveler's Garb* (+8), *Blood Plate* (+20), *Forgemaster's Mail* (+22),
+  *Crusader Plate* (+30), *Onyx Guard Plate* (+36). C'est le remplacement des stats
+  de défense statiques — la différence de niveau se lit directement sur la barre
+  Pierre dès le premier tour.
+- **Vitesse passive des bottes** : les bottes donnent un bonus d'initiative de
+  combat **toujours actif** — un **% de célérité** (multiplie la vitesse) et un
+  **move speed** (plat, ajouté à la base). Champs `celeritePct` / `vitesseBonus`,
+  sommés sur l'équipement. Ex. *Swift Boots* (+15 %/+3), *Onyx Boots* (+30 %/+8),
+  les autres bottes (+20 %/+5). Se cumule avec la Hâte temporaire (*Quicken*…).
 - **Passifs individuels d'items** : en plus des sets, un item peut avoir son propre
   **passif déclencheur**. Ex. *Tower Shield* — quand le héros est frappé en mêlée,
   il gagne **+2 Pierre** (s'empile avec le passif du set Onyx si les deux sont actifs).
@@ -536,7 +541,7 @@ re-frappes (*Crimson Carve*/*Open Veins*) qui détonnent le bonus **et soignent*
 - **Sets d'armure (bonus de panoplie)** : porter **toutes les pièces d'armure d'un
   set** (torse + gants + bottes — **l'arme ne compte PAS**) débloque un **bonus
   passif** déclenché par un **événement de combat**. Données dans `SETS`
-  (`jeu/data/items.js`), appliquées via `combat.passifs`. Trois sets aujourd'hui,
+  (`jeu/data/items.js`), appliquées via `combat.passifs`. Quatre sets aujourd'hui,
   chacun avec sa **thématique** :
   - **Onyx** (feu) — déclencheur *frappeMelee* : quand le héros est frappé en
     mêlée, l'attaquant prend **3 brûlure** (sans propagation).
@@ -544,8 +549,8 @@ re-frappes (*Crimson Carve*/*Open Veins*) qui détonnent le bonus **et soignent*
     gagne **10 Pierre par ennemi** rencontré (s'empile sur l'armure de départ de la
     Forgemaster's Mail → on entre d'autant plus blindé qu'on est en surnombre).
   - **Chevalier Croisé** (lumière) — déclencheur *frappeMelee* : quand le héros est
-    frappé en mêlée, l'attaquant est **ébloui (1 Confusion)** → il risque de frapper
-    ses propres alliés. Complète les cartes de Confusion du set.
+    frappé en mêlée, l'attaquant a **50 % de chance** d'être **ébloui (1 Confusion)**
+    → il risque de frapper ses propres alliés. Complète les cartes de Confusion du set.
   - **Sang** (saignement) — déclencheur *saignementCombo* : chaque fois qu'un
     **combo de saignement** inflige des dégâts bonus (frapper un ennemi qui saigne
     déjà avec une carte de saignement), le héros est **soigné d'autant**
