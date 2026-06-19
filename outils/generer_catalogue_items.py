@@ -148,6 +148,12 @@ def construire():
          "fournir des cartes. C'est pourquoi ce tableau se concentre sur les cartes et leur quantité, "
          "pas sur un chiffre de dégâts.", None, None),
         ("", None, None),
+        ("Rareté des cartes (onglet « Cartes »)", F_GRAS, None),
+        ("La couleur de rareté d'une carte = celle de l'objet LE MOINS rare qui la débloque "
+         "(ex. « Strike » est Common car des armes communes la donnent). Calculée automatiquement "
+         "à la génération — c'est PUREMENT indicatif pour s'y retrouver, cette rareté n'existe pas "
+         "dans le jeu. « — » = carte du deck de base (donnée par aucun objet).", None, None),
+        ("", None, None),
         ("Légende des raretés", F_GRAS, None),
     ]
     r = 1
@@ -274,15 +280,27 @@ def construire():
         for cid in set(it.get("cartes") or []):
             donne_par.setdefault(cid, []).append(it["nom"])
 
-    entetes2 = ["Nom", "ID", "Coût (Chaleur)", "Type", "AOE", "Donnée par", "Effet"]
-    ws.merge_cells("A1:G1")
+    # Rareté d'une carte = celle de l'objet LE MOINS rare qui la débloque (rang
+    # minimal). Ex. « Strike », donnée par des armes communes → Common. None si
+    # aucun objet ne la donne (cartes du deck de base). PUREMENT pour le catalogue :
+    # cette rareté n'existe pas dans le jeu, elle aide juste à s'y retrouver ici.
+    rang_de = {cle: RARETES[cle]["rang"] for cle in RARETES}
+    rarete_par_carte = {}
+    for it in ITEMS.values():
+        for cid in set(it.get("cartes") or []):
+            actuelle = rarete_par_carte.get(cid)
+            if actuelle is None or rang_de[it["rarete"]] < rang_de[actuelle]:
+                rarete_par_carte[cid] = it["rarete"]
+
+    entetes2 = ["Nom", "ID", "Coût (Chaleur)", "Type", "Rareté", "AOE", "Donnée par", "Effet"]
+    ws.merge_cells("A1:H1")
     t = ws.cell(1, 1, "BRUTAL — Cartes existantes (référence pour composer des items)")
     t.font = F_TITRE; t.fill = FOND_TITRE; t.alignment = CENTRE
     ws.row_dimensions[1].height = 24
     for j, h in enumerate(entetes2, 1):
         c = ws.cell(2, j, h); c.font = F_ENTETE; c.fill = FOND_ENTETE; c.alignment = CENTRE; c.border = BORD
     ws.freeze_panes = "A3"
-    for col, w in {"A": 18, "B": 21, "C": 13, "D": 11, "E": 6, "F": 28, "G": 62}.items():
+    for col, w in {"A": 18, "B": 21, "C": 13, "D": 11, "E": 12, "F": 6, "G": 28, "H": 62}.items():
         ws.column_dimensions[col].width = w
 
     ordre = {"attaque": 0, "defense": 1, "buff": 2}
@@ -294,10 +312,18 @@ def construire():
         ws.cell(row, 3, cd["cout"]).alignment = CENTRE
         tnom, tcol = TYPE_CARTE.get(cd["type"], (cd["type"], "555555"))
         ct = ws.cell(row, 4, tnom); ct.fill = fill(tcol); ct.font = Font(bold=True, color="FFFFFF"); ct.alignment = CENTRE
-        ws.cell(row, 5, "Oui" if cd.get("aoe") else "").alignment = CENTRE
-        ws.cell(row, 6, ", ".join(donne_par.get(cd["id"], [])) or "— (deck de base)").alignment = GAUCHE
-        ws.cell(row, 7, cd.get("texte", "")).alignment = GAUCHE
-        for j in range(1, 8):
+        # Rareté (pastille colorée) — la moins rare des sources, ou « — » si deck de base.
+        rcle = rarete_par_carte.get(cd["id"])
+        if rcle:
+            rr = RARETES[rcle]
+            cr = ws.cell(row, 5, rr["nom"]); cr.fill = fill(rr["couleur"]); cr.alignment = CENTRE
+            cr.font = Font(bold=True, color=("000000" if rcle == "commun" else "FFFFFF"))
+        else:
+            cr = ws.cell(row, 5, "—"); cr.alignment = CENTRE; cr.font = Font(color="888888")
+        ws.cell(row, 6, "Oui" if cd.get("aoe") else "").alignment = CENTRE
+        ws.cell(row, 7, ", ".join(donne_par.get(cd["id"], [])) or "— (deck de base)").alignment = GAUCHE
+        ws.cell(row, 8, cd.get("texte", "")).alignment = GAUCHE
+        for j in range(1, 9):
             ws.cell(row, j).border = BORD
         row += 1
 
