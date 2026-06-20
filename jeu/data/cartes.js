@@ -782,4 +782,126 @@ export const CARTES = {
     texte: "Gain 1 Forge Heat per 5 Bleed among ALL enemies.",
     effets: [{ type: "chaleur-par-sang", par: 5 }],
   },
+
+  // ============================================================================
+  // CARTES GÉNÉRIQUES (commons / uncommons) — `nouveau: true` = surligné dans l'Excel.
+  // Beaucoup sont PARTAGÉES par plusieurs items (cartes « de base » d'un archétype) ;
+  // les signatures, plus rares, donnent son identité à un item uncommon.
+  // ============================================================================
+
+  // ---- Cartes de base PARTAGÉES (réutilisées par de nombreux items) ----------
+  // Slash : un cran au-dessus de Strike (l'attaque martiale de référence).
+  "taillade": { id: "taillade", nom: "Slash", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 8 damage.", effets: [{ type: "degats", valeur: 8 }] },
+  // Heavy Blow : gros coup unique, un peu plus cher.
+  "coup-lourd": { id: "coup-lourd", nom: "Heavy Blow", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal 12 damage.", effets: [{ type: "degats", valeur: 12 }] },
+  // Double Strike : deux petits coups (synergie avec la Force : +Force À CHAQUE coup).
+  "double-frappe": { id: "double-frappe", nom: "Double Strike", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 4 damage twice.", effets: [{ type: "degats", valeur: 4 }, { type: "degats", valeur: 4 }] },
+  // Gash : entaille saignante de base (alimente le build saignement).
+  "entaille": { id: "entaille", nom: "Gash", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 5 damage. Apply 2 Bleed.", effets: [{ type: "degats", valeur: 5 }, { type: "sang", valeur: 2 }] },
+  // Poison Dart : pique empoisonnée de base (alimente le build poison).
+  "dard-empoisonne": { id: "dard-empoisonne", nom: "Poison Dart", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 3 damage. Apply 3 Poison.", effets: [{ type: "degats", valeur: 3 }, { type: "poison", valeur: 3 }] },
+  // Ice Shard : éclat de glace de base (ralentit — alimente le build gel).
+  "eclat-de-glace": { id: "eclat-de-glace", nom: "Ice Shard", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 5 damage. Chill: -30% speed for 2 turns.", effets: [{ type: "degats", valeur: 5 }, { type: "lenteur", valeur: 2 }] },
+  // Ember : braise de base (pose un peu de feu — alimente le build feu/Onyx).
+  "braise": { id: "braise", nom: "Ember", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 4 damage. Apply 2 Burning.", effets: [{ type: "degats", valeur: 4 }, { type: "feu", valeur: 2 }] },
+  // Iron Wall : bloc de Pierre de base, plus solide que Guard.
+  "mur-de-fer": { id: "mur-de-fer", nom: "Iron Wall", cout: 1, type: "defense", nouveau: true,
+    texte: "Gain 8 Stone.", effets: [{ type: "pierre", valeur: 8 }] },
+  // Spark : petite relance d'énergie de base.
+  "etincelle": { id: "etincelle", nom: "Spark", cout: 0, type: "buff", nouveau: true,
+    texte: "Gain 1 Forge Heat (energy).", effets: [{ type: "chaleur", valeur: 1 }] },
+  // Nimble Hands : pioche 1 carte (tempo de base, gratuite).
+  "mains-vives": { id: "mains-vives", nom: "Nimble Hands", cout: 0, type: "buff", nouveau: true,
+    texte: "Draw 1 card.", effets: [{ type: "piocher", valeur: 1 }] },
+  // Flex : gagne 2 Force (NOUVELLE méta : la Force ajoute +N à chaque coup, tout le combat).
+  "flexion": { id: "flexion", nom: "Flex", cout: 1, type: "buff", nouveau: true,
+    texte: "Gain 2 Strength (+2 damage to every attack this combat).", effets: [{ type: "force", valeur: 2 }] },
+  // Stone Fist : inflige des dégâts égaux à ta Pierre actuelle (sans la consommer).
+  "choc-de-pierre": { id: "choc-de-pierre", nom: "Stone Fist", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal damage equal to your current Stone.", effets: [{ type: "pierre-vers-degats", valeur: 1 }] },
+  // Regenerate : gagne 3 Régénération (soigne 3 PV au début de chacun de tes tours).
+  "regeneration": { id: "regeneration", nom: "Regenerate", cout: 1, type: "buff", nouveau: true,
+    texte: "Gain 3 Regen (heal 3 HP at the start of each of your turns).", effets: [{ type: "regen", valeur: 3 }] },
+
+  // ---- Signatures d'ARMES uncommon -------------------------------------------
+  // Venom Spit : grosse dose de poison (Venomfang Dagger).
+  "crachat-venimeux": { id: "crachat-venimeux", nom: "Venom Spit", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 4 damage. Apply 5 Poison.", effets: [{ type: "degats", valeur: 4 }, { type: "poison", valeur: 5 }] },
+  // Shatter : dégâts DOUBLÉS de bonus si la cible est gelée (Frostbrand).
+  "brise-glace": { id: "brise-glace", nom: "Shatter", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal 8 damage, +8 more if the target is Chilled.", effets: [{ type: "degats-si-gel", valeur: 8, bonus: 8 }] },
+  // Flame Slash : coup enflammé (Emberblade) — alimente le combo brûlure.
+  "entaille-ardente": { id: "entaille-ardente", nom: "Flame Slash", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 8 damage. Apply 3 Burning.", effets: [{ type: "degats", valeur: 8 }, { type: "feu", valeur: 3 }] },
+  // Rend : entaille saignante plus profonde (Reaver Axe).
+  "dechirure": { id: "dechirure", nom: "Rend", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 6 damage. Apply 3 Bleed.", effets: [{ type: "degats", valeur: 6 }, { type: "sang", valeur: 3 }] },
+  // Reckless Swing : très gros coup, mais le héros se blesse (Berserker Axe).
+  "coup-imprudent": { id: "coup-imprudent", nom: "Reckless Swing", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 14 damage. Lose 4 HP.", effets: [{ type: "degats", valeur: 14 }, { type: "auto-degats", valeur: 4 }] },
+  // Power Strike : frappe qui renforce (dégâts + Force) — pilier du build Force.
+  "coup-de-force": { id: "coup-de-force", nom: "Power Strike", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal 6 damage. Gain 2 Strength.", effets: [{ type: "degats", valeur: 6 }, { type: "force", valeur: 2 }] },
+  // Earthshatter : Stone Fist qui rend aussi un peu de Pierre (Warhammer).
+  "seisme": { id: "seisme", nom: "Earthshatter", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal damage equal to your Stone, then gain 5 Stone.", effets: [{ type: "pierre-vers-degats", valeur: 1 }, { type: "pierre", valeur: 5 }] },
+  // Flurry : trois coups rapides (Twin Daggers) — multi-hit, énorme avec la Force.
+  "volee": { id: "volee", nom: "Flurry", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 3 damage three times.", effets: [{ type: "degats", valeur: 3 }, { type: "degats", valeur: 3 }, { type: "degats", valeur: 3 }] },
+  // Execute : achève une cible sous 50% de PV (dégâts doublés) — Executioner's Blade.
+  "execution": { id: "execution", nom: "Execute", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal 10 damage. Doubled if the target is below 50% HP.", effets: [{ type: "degats-si-faible", valeur: 10, seuil: 0.5 }] },
+  // Whirl : moulinet AOE qui saigne (Spiked Flail).
+  "tourbillon": { id: "tourbillon", nom: "Whirl", cout: 2, type: "attaque", aoe: true, nouveau: true,
+    texte: "Deal 6 damage and apply 2 Bleed to ALL enemies.", effets: [{ type: "degats", valeur: 6 }, { type: "sang", valeur: 2 }] },
+  // Arcane Bolt : éclair qui rend un peu d'énergie (Crystal Wand).
+  "eclair-arcanique": { id: "eclair-arcanique", nom: "Arcane Bolt", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 6 damage. Gain 2 Forge Heat.", effets: [{ type: "degats", valeur: 6 }, { type: "chaleur", valeur: 2 }] },
+
+  // ---- Signatures d'ARMURE / BOTTES / GANTS uncommon -------------------------
+  // Fortify : gros bloc de Pierre (Iron Plate).
+  "fortification": { id: "fortification", nom: "Fortify", cout: 2, type: "defense", nouveau: true,
+    texte: "Gain 15 Stone.", effets: [{ type: "pierre", valeur: 15 }] },
+  // Bloodrage : gagne beaucoup de Force d'un coup (Berserker Hide).
+  "rage-sanguine": { id: "rage-sanguine", nom: "Bloodrage", cout: 1, type: "buff", nouveau: true,
+    texte: "Gain 4 Strength.", effets: [{ type: "force", valeur: 4 }] },
+  // Dash : hâte + pioche (Swift Striders).
+  "ruee": { id: "ruee", nom: "Dash", cout: 1, type: "buff", nouveau: true,
+    texte: "Haste for 3 turns. Draw 1 card.", effets: [{ type: "celerite", valeur: 3 }, { type: "piocher", valeur: 1 }] },
+  // Sleight : grosse pioche + un peu d'énergie (Thief's Gloves) — moteur « cycle ».
+  "tour-de-main": { id: "tour-de-main", nom: "Sleight", cout: 1, type: "buff", nouveau: true,
+    texte: "Draw 2 cards. Gain 1 Forge Heat.", effets: [{ type: "piocher", valeur: 2 }, { type: "chaleur", valeur: 1 }] },
+  // Poison Coat : empoisonne TOUS les ennemis (Venom Gloves) — AOE poison.
+  "enduit-toxique": { id: "enduit-toxique", nom: "Poison Coat", cout: 1, type: "attaque", aoe: true, nouveau: true,
+    texte: "Apply 2 Poison to ALL enemies.", effets: [{ type: "poison", valeur: 2 }] },
+
+  // ---- Signatures de BAGUES / COLLIERS uncommon ------------------------------
+  // Venom Nova : poison de masse (Toxic Ring).
+  "nuee-toxique": { id: "nuee-toxique", nom: "Venom Nova", cout: 2, type: "attaque", aoe: true, nouveau: true,
+    texte: "Apply 3 Poison to ALL enemies.", effets: [{ type: "poison", valeur: 3 }] },
+  // Empower : gros gain de Force (Ring of Might).
+  "galvanisation": { id: "galvanisation", nom: "Empower", cout: 1, type: "buff", nouveau: true,
+    texte: "Gain 3 Strength.", effets: [{ type: "force", valeur: 3 }] },
+  // Frost Nova : gel de masse (Frost Signet).
+  "nova-de-givre": { id: "nova-de-givre", nom: "Frost Nova", cout: 2, type: "attaque", aoe: true, nouveau: true,
+    texte: "Chill ALL enemies (-30% speed for 2 turns).", effets: [{ type: "lenteur", valeur: 2 }] },
+  // Bloodthirst : saignement qui soigne le héros (Bloodthirst Ring).
+  "soif-de-sang": { id: "soif-de-sang", nom: "Bloodthirst", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 5 damage, apply 3 Bleed, and heal 3 HP.", effets: [{ type: "degats", valeur: 5 }, { type: "sang", valeur: 3 }, { type: "soin-heros", valeur: 3 }] },
+  // Overclock : grosse relance d'énergie (Forge Ring).
+  "surcharge": { id: "surcharge", nom: "Overclock", cout: 1, type: "buff", nouveau: true,
+    texte: "Gain 4 Forge Heat (energy).", effets: [{ type: "chaleur", valeur: 4 }] },
+  // Focus : pioche + énergie (Amulet of Focus).
+  "concentration": { id: "concentration", nom: "Focus", cout: 1, type: "buff", nouveau: true,
+    texte: "Draw 1 card. Gain 2 Forge Heat.", effets: [{ type: "piocher", valeur: 1 }, { type: "chaleur", valeur: 2 }] },
+  // Drain : vol de vie (Vampiric Pendant).
+  "drain": { id: "drain", nom: "Drain", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 6 damage and heal 4 HP.", effets: [{ type: "degats", valeur: 6 }, { type: "soin-heros", valeur: 4 }] },
 };
