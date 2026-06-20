@@ -500,6 +500,39 @@ verrouille, *Blood Absorption* encaisse le tout en gros soin. Le **bonus de
 panoplie** (vampirisme) soigne en plus à chaque combo de saignement. La **Blood
 Plate** donne **+20 Pierre de départ** (skin provisoire = nain de base, à dessiner).
 
+### Items génériques & métas d'archétype (commons / uncommons)
+
+Au-delà des sets rares/épiques, un **large socle d'items communs et uncommon**
+(armes, armures, bottes, gants, **bagues**, colliers) alimente des **archétypes**
+qu'on assemble en combinant des objets — façon *Slay the Spire* / *Monster Train*.
+Principe (validé 19/06/2026) :
+- Les **commons** donnent surtout des **cartes de base PARTAGÉES** (réutilisées par
+  beaucoup d'items) : *Strike, Slash, Heavy Blow, Guard, Iron Wall, Poison Dart,
+  Ice Shard, Ember, Gash, Spark, Nimble Hands, Flex, Stone Fist, Regenerate*…
+- Chaque **uncommon** porte **1-2 cartes « signature »** qui définissent son
+  identité (parfois partagées entre 2-3 objets du même archétype) ; un **common**
+  en a de temps en temps.
+- Les archétypes **alimentent les sets rares** : poison → *Basilisk Fang*, feu →
+  *Onyx*, saignement → *Blood*, gel → *Frost*, énergie → *Sapphire*, bloc → *Mail*.
+
+**Nouvelles métas (mécaniques moteur ajoutées)** :
+- **Force** (`force`) — buff qui ajoute **+N à CHAQUE dégât** du héros pour tout le
+  combat (affiché 💪). Énorme avec le **multi-hit** (*Double Strike*, *Flurry* :
+  +Force par coup). Sources : *Flex, Power Strike, Empower, Bloodrage*.
+- **Stone Fist** (`pierre-vers-degats`) — inflige des **dégâts = ta Pierre actuelle**
+  (sans la consommer) : transforme un build bloc (*Mail*, armures) en attaque
+  (« Body Slam »). Sources : *Stone Fist, Earthshatter, Stonetread/Stone Hammer*.
+- **Régénération** (`regen`) — soigne **N PV au début de chaque tour** du héros
+  (affiché ❤). Build sustain. Sources : *Regenerate, Hide Armor, Vigor Ring*.
+- **Shatter** (`degats-si-gel`) — dégâts **+bonus si la cible est gelée** (paie le gel).
+- **Execute** (`degats-si-faible`) — dégâts **doublés sous 50 % de PV** (achève).
+- **Épines** (passif `frappeMelee` de dégâts) — l'attaquant **se blesse** en frappant
+  (ex. *Spiked Armor* : 2 dégâts de rétorsion).
+
+> **Revue dans l'Excel** : tout nouvel item/carte porte un champ `nouveau: true`
+> dans le code ; le générateur du catalogue **surligne ces lignes en jaune** pour
+> que Brioche les relise facilement. (À retirer une fois validés.)
+
 ## Items, butin & inventaire (1er jet implémenté)
 
 - **Butin par monstre** : chaque ennemi a une table (`butin`) — de l'**or** + des
