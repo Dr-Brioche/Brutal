@@ -566,6 +566,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (combat.derniereBrulure > 0) { secousseHeros = 0.3; pulserJauge(); }
     if (combat.dernierPoisonHeros > 0) { secousseHeros = 0.3; ajouterFlottant(`☠${combat.dernierPoisonHeros}`, heroEcran.cx, heroEcran.sommet - 32, "#7ec850"); }
     if (combat.dernierFeuHeros > 0) { secousseHeros = 0.3; ajouterFlottant(`🔥${combat.dernierFeuHeros}`, heroEcran.cx, heroEcran.sommet - 48, "#ff8a2c"); }
+    if (combat.dernierSoin > 0) ajouterFlottant(`❤+${combat.dernierSoin}`, heroEcran.cx, heroEcran.sommet - 16, "#7edf82"); // régénération
   }
 
   // Anime l'action d'UN ennemi (statuts, mort, ou attaque/sort). Étourdi → rien.
@@ -715,6 +716,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   function etatsHeros() {
     const l = [];
     if (combat.hate > 0) l.push({ texte: `⚡${combat.hate}`, couleur: "#dff4ff", nature: "buff" }); // Hâte (+30% agilité)
+    if (combat.force > 0) l.push({ texte: `💪${combat.force}`, couleur: "#ffb070", nature: "buff" }); // Force (+dégâts)
+    if (combat.regen > 0) l.push({ texte: `❤${combat.regen}`, couleur: "#7edf82", nature: "buff" }); // Régénération (PV/tour)
     if (combat.poisonHeros > 0) l.push({ texte: `☠${combat.poisonHeros}`, couleur: "#7ec850", nature: "malus" });
     if (combat.feuHeros > 0) l.push({ texte: `🔥${combat.feuHeros}`, couleur: "#ff8a2c", nature: "malus" });
     return l;

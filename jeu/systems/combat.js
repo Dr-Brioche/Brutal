@@ -143,6 +143,8 @@ export function creerCombat(ennemisDefs, opts = {}) {
     pvHerosMax: pvMax,
     pvHeros: pv,
     pierre: armureDepart, // Pierre de départ des armures équipées
+    force: 0,       // « Force » : +N à CHAQUE effet de dégât du héros (persiste tout le combat)
+    regen: 0,       // « Régénération » : PV rendus au héros au début de chacun de ses tours
     poisonHeros: 0,
     feuHeros: 0,
     gelHeros: 0,    // gel du héros : ralentit (−30% vitesse) ; annulé par feuHeros et vice-versa
@@ -282,6 +284,8 @@ function prevoirIntentions(combat) {
 export function carteVise(carte) {
   return (carte?.effets ?? []).some(
     (e) => e.type === "degats" || e.type === "degats-execution" ||
+           e.type === "degats-si-gel" || e.type === "degats-si-faible" ||
+           e.type === "pierre-vers-degats" ||
            e.type === "poison" || e.type === "feu" ||
            e.type === "sang" || e.type === "stun" || e.type === "lenteur" ||
            e.type === "confusion" || e.type === "gel-cascade" ||
@@ -340,13 +344,35 @@ function soinSaignementCombo(combat, bonus) {
 // les défensifs touchent le héros.
 function appliquerEffet(combat, effet, ennemi) {
   if (effet.type === "degats") {
-    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - effet.valeur);
+    // Tout dégât direct du héros profite de la FORCE (+combat.force par coup).
+    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (effet.valeur + combat.force));
   } else if (effet.type === "degats-execution") {
-    // Dégâts DOUBLÉS si la cible porte au moins un malus (poison/feu/sang/stun/gel).
+    // Dégâts (Force incluse) DOUBLÉS si la cible porte au moins un malus.
     if (ennemi) {
-      const deg = aMalus(ennemi) ? effet.valeur * 2 : effet.valeur;
+      const base = effet.valeur + combat.force;
+      ennemi.pv = Math.max(0, ennemi.pv - (aMalus(ennemi) ? base * 2 : base));
+    }
+  } else if (effet.type === "degats-si-gel") {
+    // Shatter : dégâts de base + bonus si la cible est GELÉE (récompense le frost).
+    if (ennemi) {
+      const deg = effet.valeur + combat.force + (ennemi.gel > 0 ? effet.bonus : 0);
       ennemi.pv = Math.max(0, ennemi.pv - deg);
     }
+  } else if (effet.type === "degats-si-faible") {
+    // Execute : dégâts DOUBLÉS si la cible est sous `seuil` % de PV (achève les blessés).
+    if (ennemi) {
+      const base = effet.valeur + combat.force;
+      const faible = ennemi.pv <= ennemi.pvMax * (effet.seuil ?? 0.5);
+      ennemi.pv = Math.max(0, ennemi.pv - (faible ? base * 2 : base));
+    }
+  } else if (effet.type === "pierre-vers-degats") {
+    // Stone Fist : inflige des dégâts égaux à la Pierre actuelle (× valeur), SANS
+    // la consommer. Paie le build « bloc » (Mail, armures) en attaque.
+    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (combat.pierre * effet.valeur + combat.force));
+  } else if (effet.type === "force") {
+    combat.force += effet.valeur; // gagne de la Force (persiste tout le combat)
+  } else if (effet.type === "regen") {
+    combat.regen += effet.valeur; // régénération : PV/tour du héros
   } else if (effet.type === "pierre") {
     combat.pierre += effet.valeur;
   } else if (effet.type === "poison") {
@@ -789,6 +815,8 @@ function declencherFrappeMelee(combat, e) {
       } else if (ef.type === "confusion") {
         // `proba` optionnelle (set Croisé : 50% de chance d'éblouir l'attaquant).
         if (Math.random() < (ef.proba ?? 1)) { e.confusion += ef.valeur; confusion += ef.valeur; }
+      } else if (ef.type === "degats") {
+        e.pv = Math.max(0, e.pv - ef.valeur); // Épines : l'attaquant se blesse en frappant
       }
     }
   }
@@ -906,6 +934,10 @@ export function commencerTourHeros(combat) {
   }
   if (combat.hate   > 0) combat.hate   -= 1; // la Hâte s'écoule (1 tour du héros)
   if (combat.gelHeros > 0) combat.gelHeros -= 1; // le Gel héros s'écoule (1 tour du héros)
+  if (combat.regen > 0) { // Régénération : PV rendus au début de chaque tour du héros
+    combat.dernierSoin = Math.min(combat.regen, combat.pvHerosMax - combat.pvHeros);
+    combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + combat.regen);
+  } else combat.dernierSoin = 0;
   piocherMain(combat);
   prevoirIntentions(combat);
   combat.cible = premierVivant(combat);
