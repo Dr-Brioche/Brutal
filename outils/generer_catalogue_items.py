@@ -75,6 +75,7 @@ FOND_ENTETE  = fill("23202E")
 FOND_SECTION = fill("2E2640")
 FOND_TITRE   = fill("7C2D12")
 FOND_VIDE    = fill("FBF8F2")
+FOND_NOUVEAU = fill("FFF3C4")  # surlignage des items/cartes marqués `nouveau` (revue facile)
 
 # Couleur de fond d'une cartouche de type de carte (= couleurs du jeu).
 TYPE_CARTE = {
@@ -160,6 +161,11 @@ def construire():
          "(ex. « Strike » est Common car des armes communes la donnent). Calculée automatiquement "
          "à la génération — c'est PUREMENT indicatif pour s'y retrouver, cette rareté n'existe pas "
          "dans le jeu. « — » = carte du deck de base (donnée par aucun objet).", None, None),
+        ("", None, None),
+        ("Lignes surlignées en JAUNE", F_GRAS, None),
+        ("Les items et cartes récemment ajoutés (à relire/valider) sont surlignés en jaune "
+         "dans les onglets « Items » et « Cartes ». Une fois que tu les as validés, dis-le moi "
+         "et je retire le surlignage.", None, None),
         ("", None, None),
         ("Légende des raretés", F_GRAS, None),
     ]
@@ -269,6 +275,9 @@ def construire():
                 ws.cell(row, j).border = BORD
                 if ws.cell(row, j).alignment.horizontal is None:
                     ws.cell(row, j).alignment = GAUCHE
+                # Surlignage des NOUVEAUX items (sauf la pastille de rareté, col 3).
+                if it.get("nouveau") and j != 3:
+                    ws.cell(row, j).fill = FOND_NOUVEAU
             row += 1
         # lignes vides à remplir
         for _ in range(LIGNES_VIDES):
@@ -339,6 +348,9 @@ def construire():
         ws.cell(row, 8, cd.get("texte", "")).alignment = GAUCHE
         for j in range(1, 9):
             ws.cell(row, j).border = BORD
+            # Surlignage des NOUVELLES cartes (sauf type col 4 et rareté col 5, déjà colorées).
+            if cd.get("nouveau") and j not in (4, 5):
+                ws.cell(row, j).fill = FOND_NOUVEAU
         row += 1
 
     # =================== Feuille 4 : Sets d'armure ===================
