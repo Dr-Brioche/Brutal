@@ -40,8 +40,10 @@ export function mettreAJourHeros(heros, clavier, dt, carte) {
   if (heros.enMarche) {
     // En diagonale on normalise, sinon le héros irait plus vite (Pythagore !)
     const longueur = Math.hypot(dx, dy);
-    const pasX = (dx / longueur) * heros.vitesse * dt;
-    const pasY = (dy / longueur) * heros.vitesse * dt;
+    // Vitesse de marche = base/talents (heros.vitesse) + bonus d'équipement (bottes).
+    const v = heros.vitesse + (heros.vitesseEquip || 0);
+    const pasX = (dx / longueur) * v * dt;
+    const pasY = (dy / longueur) * v * dt;
 
     // Chaque axe est testé séparément contre les murs : si un seul des
     // deux est bloqué, on glisse le long du mur au lieu de rester planté.

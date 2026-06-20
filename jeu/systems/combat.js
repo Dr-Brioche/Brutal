@@ -155,8 +155,8 @@ export function creerCombat(ennemisDefs, opts = {}) {
     dernierPoisonHeros: 0,
     dernierFeuHeros: 0,
     // Initiative (ATB)
-    vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0) + (stats.vitesseBonus || 0), // talents + bottes (move speed)
-    celeritePct: stats.celeritePct || 0, // bonus PASSIF de célérité (%) des bottes (toujours actif)
+    vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0), // + talents d'agilité
+    celeritePct: stats.celeritePct || 0, // bonus PASSIF de célérité (%) des bottes (toujours actif en combat)
     hate: 0,               // « Hâte » : nb de tours du héros encore accélérés (+30% agilité)
     initHeros: SEUIL_INIT / 2, // petite avance : le héros OUVRE le combat (jamais frappé avant d'agir)
     premierTourHeros: true, // le 1er tour ne recharge pas la Chaleur (forge froide)
@@ -395,8 +395,9 @@ function appliquerEffet(combat, effet, ennemi) {
     combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.valeur * sangTotal(combat));
     for (const e of combat.ennemis) e.sang = 0;
   } else if (effet.type === "auto-degats") {
-    // Le héros encaisse `valeur` dégâts (la Pierre peut les absorber, comme un coup ennemi).
-    subirDegats(combat, effet.valeur);
+    // Coût en sang : PV DIRECTS du héros (la Pierre ne protège PAS — c'est un
+    // sacrifice). Peut faire tomber le héros ; le bilan vie est vérifié en fin de carte.
+    combat.pvHeros = Math.max(0, combat.pvHeros - effet.valeur);
   } else if (effet.type === "soin-heros") {
     // Holy light : soigne le héros de `valeur` PV (plafonné à la vie max).
     combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.valeur);

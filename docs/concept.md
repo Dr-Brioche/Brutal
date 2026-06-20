@@ -478,15 +478,15 @@ mêlée a **50 % de chance** d'être ébloui (1 Confusion). La Crusader Plate do
 ### Set de Sang : sacrifice & vampirisme (rare)
 
 Set **rare** à 3 pièces, à coupler à une **arme à saignement** (War Axe, Blood
-Ring…). On **paie en sang** (PV, parfois absorbés par la Pierre) pour empiler du
-saignement de masse, puis on le **convertit** en soin / Pierre / énergie / contrôle.
-Très gros **sustain**. Cartes (combo inter-pièces) :
+Ring…). On **paie en sang** (PV **directs** — la Pierre ne protège PAS de son propre
+sacrifice) pour empiler du saignement de masse, puis on le **convertit** en soin /
+Pierre / énergie / contrôle. Très gros **sustain**. Cartes (combo inter-pièces) :
 - **Sanguine Guard** (torse, coût 1) : par point de saignement TOTAL, **+3 Pierre
   ET +2 PV de soin**. `pierre-par-sang` + `soin-par-sang`.
-- **Bloodbath** (torse, AOE) : le héros **encaisse 10 dégâts**, puis 5 saignement à tous. `auto-degats`.
+- **Bloodbath** (torse, AOE) : le héros **perd 10 PV** (directs), puis 5 saignement à tous. `auto-degats`.
 - **Drink blood** (torse, AOE) : sacrifice **20 PV** → 10 dégâts + 1 saignement à
   tous ; **+20 PV par ennemi tué** par ce coup (cumulable). `boire-le-sang`.
-- **Open Veins** (gants) : le héros **encaisse 10 dégâts**, 4 saignement à la cible.
+- **Open Veins** (gants) : le héros **perd 10 PV** (directs), 4 saignement à la cible.
 - **Contagion** (gants) : les **deux voisins ÉGALISENT** leur saignement sur celui
   de la cible (montée comme descente). `contagion`.
 - **Blood Absorption** (gants) : soigne **5 PV par saignement TOTAL**, puis **efface
@@ -528,11 +528,13 @@ Plate** donne **+20 Pierre de départ** (skin provisoire = nain de base, à dess
   *Crusader Plate* (+30), *Onyx Guard Plate* (+36). C'est le remplacement des stats
   de défense statiques — la différence de niveau se lit directement sur la barre
   Pierre dès le premier tour.
-- **Vitesse passive des bottes** : les bottes donnent un bonus d'initiative de
-  combat **toujours actif** — un **% de célérité** (multiplie la vitesse) et un
-  **move speed** (plat, ajouté à la base). Champs `celeritePct` / `vitesseBonus`,
-  sommés sur l'équipement. Ex. *Swift Boots* (+15 %/+3), *Onyx Boots* (+30 %/+8),
-  les autres bottes (+20 %/+5). Se cumule avec la Hâte temporaire (*Quicken*…).
+- **Vitesse passive des bottes (deux stats distinctes)** : les bottes donnent
+  - une **célérité** (`celeritePct`, %) = bonus d'**initiative de COMBAT** toujours
+    actif (multiplie la vitesse ATB ; se cumule avec la Hâte temporaire de *Quicken*) ;
+  - un **move speed** (`vitesseBonus`, plat) = bonus de **vitesse de DÉPLACEMENT en
+    EXPLORATION** (marche du nain sur la carte ; ajouté à `heros.vitesse`, recalculé
+    à chaque changement d'équipement dans `appliquerEquipement`).
+  Ex. *Swift Boots* (+15 %/+3), *Onyx Boots* (+30 %/+8), les autres bottes (+20 %/+5).
 - **Passifs individuels d'items** : en plus des sets, un item peut avoir son propre
   **passif déclencheur**. Ex. *Tower Shield* — quand le héros est frappé en mêlée,
   il gagne **+2 Pierre** (s'empile avec le passif du set Onyx si les deux sont actifs).

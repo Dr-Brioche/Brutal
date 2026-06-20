@@ -74,9 +74,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const itemsEquipes = Object.values(inventaire.slots ?? {}).filter(Boolean).map(itemDef).filter(Boolean);
   // Armure de départ : somme des armureDepart de tous les items équipés.
   const armureDepart = itemsEquipes.reduce((s, d) => s + (d.armureDepart ?? 0), 0);
-  // Bonus de vitesse passifs des bottes : célérité (%) + move speed (plat).
+  // Célérité passive (% d'initiative de combat) des bottes. Le « move speed » des
+  // bottes, lui, agit en EXPLORATION (cf. appliquerEquipement), pas en combat.
   const celeritePct = itemsEquipes.reduce((s, d) => s + (d.celeritePct ?? 0), 0);
-  const vitesseBonus = itemsEquipes.reduce((s, d) => s + (d.vitesseBonus ?? 0), 0);
   // Passifs individuels (ex. Tower Shield : +2 Pierre par frappe).
   const passifsItems = itemsEquipes.flatMap((d) => d.passifPropre ? [d.passifPropre] : []);
 
@@ -85,7 +85,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     cartes: cartesEquipees(inventaire),
     cartesSupp: maitrise?.choisies ?? [],
     mains: mainsOccupees(inventaire), // cartes de base seulement pour les mains libres
-    stats: { ...bonusTalents(heros), armureDepart, celeritePct, vitesseBonus },
+    stats: { ...bonusTalents(heros), armureDepart, celeritePct },
     passifs: [...setsActifs(inventaire.slots).map((s) => s.bonus), ...passifsItems],
   });
 

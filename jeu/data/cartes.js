@@ -711,7 +711,7 @@ export const CARTES = {
     texte: "Per Bleed among ALL enemies: gain 3 Stone and heal 2 HP.",
     effets: [{ type: "pierre-par-sang", valeur: 3 }, { type: "soin-par-sang", valeur: 2 }],
   },
-  // Bloodbath : le héros encaisse 10 dégâts (Pierre possible), puis 5 saignement à TOUS.
+  // Bloodbath : le héros perd 10 PV (directs, la Pierre ne protège pas), puis 5 saignement à TOUS.
   "bain-de-sang": {
     id: "bain-de-sang",
     nom: "Bloodbath",
@@ -734,7 +734,7 @@ export const CARTES = {
   },
 
   // Blood Gauntlets (gants) ---------------------------------------------------
-  // Open Veins : le héros encaisse 10 dégâts (Pierre possible), applique 4 saignement.
+  // Open Veins : le héros perd 10 PV (directs, la Pierre ne protège pas), applique 4 saignement.
   "ouvrir-les-veines": {
     id: "ouvrir-les-veines",
     nom: "Open Veins",

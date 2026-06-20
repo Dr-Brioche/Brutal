@@ -237,11 +237,17 @@ export function cartesEquipees(inv) {
   return cartes;
 }
 
-// Applique le skin (armure) + le calque d'arme au héros.
+// Applique le skin (armure) + le calque d'arme au héros, et recalcule le bonus
+// de « move speed » (vitesse de déplacement en exploration) donné par l'équipement
+// (surtout les bottes). À rappeler à chaque changement d'équipement.
 export function appliquerEquipement(heros, inv, planches) {
   const arme = armeEquipee(inv);
   heros.plancheArmure = planches.get(armureEquipee(inv).planche);
   heros.plancheArme = arme ? planches.get(arme.planche) : null;
+  // Move speed (exploration) = somme des vitesseBonus des items équipés (bottes…).
+  heros.vitesseEquip = Object.values(inv.slots || {})
+    .filter(Boolean)
+    .reduce((s, id) => s + (itemDef(id)?.vitesseBonus || 0), 0);
 }
 
 // ---- Sauvegarde ----------------------------------------------------------
