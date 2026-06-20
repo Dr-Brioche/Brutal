@@ -87,7 +87,7 @@ TYPE_CARTE = {
 GROUPES = [
     ("Armes — une main",      lambda it: it["categorie"] == "arme" and it.get("mains") == 1),
     ("Armes — deux mains",    lambda it: it["categorie"] == "arme" and it.get("mains") == 2),
-    ("Boucliers (main 2nde)", lambda it: it["categorie"] == "bouclier"),
+    ("Main seconde / Off-hand (boucliers, grimoires, sceptres, torches)", lambda it: it["categorie"] == "bouclier"),
     ("Armures",               lambda it: it["categorie"] == "armure"),
     ("Colliers",              lambda it: it["categorie"] == "collier"),
     ("Bagues",                lambda it: it["categorie"] == "bague"),

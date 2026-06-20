@@ -457,6 +457,34 @@ export const ITEMS = {
     taille: { l: 1, h: 1 }, icone: "#4a7ad9", cartes: ["concentration", "mains-vives"] },
   "pendentif-vampire": { id: "pendentif-vampire", nom: "Vampiric Pendant", categorie: "collier", rarete: "uncommon", nouveau: true,
     taille: { l: 1, h: 1 }, icone: "#8a3a4a", cartes: ["drain", "entaille"] },
+
+  // ---- Main seconde / Off-hand (boucliers, grimoires, sceptres, torches) ------
+  // COMMONS (7) — cartes de base partagées, plutôt défense / utilité / caster.
+  "bouclier-bois": { id: "bouclier-bois", nom: "Wooden Shield", categorie: "bouclier", rarete: "commun", nouveau: true,
+    taille: { l: 2, h: 2 }, icone: "#7a5a3a", cartes: ["garde", "garde", "mur-de-fer"] },
+  "targe": { id: "targe", nom: "Buckler", categorie: "bouclier", rarete: "commun", nouveau: true,
+    taille: { l: 1, h: 2 }, icone: "#9aa0a6", cartes: ["garde", "mains-vives"] },
+  "grimoire": { id: "grimoire", nom: "Spellbook", categorie: "bouclier", rarete: "commun", nouveau: true,
+    taille: { l: 1, h: 2 }, icone: "#3a5ad9", cartes: ["etincelle", "mains-vives"] },
+  "fanal": { id: "fanal", nom: "Hand Torch", categorie: "bouclier", rarete: "commun", nouveau: true,
+    taille: { l: 1, h: 2 }, icone: "#d97a2c", cartes: ["braise", "braise"] },
+  "sceptre-apprenti": { id: "sceptre-apprenti", nom: "Apprentice Scepter", categorie: "bouclier", rarete: "commun", nouveau: true,
+    taille: { l: 1, h: 3 }, icone: "#b8a23a", cartes: ["flexion", "etincelle"] },
+  "grimoire-soin": { id: "grimoire-soin", nom: "Tome of Mending", categorie: "bouclier", rarete: "commun", nouveau: true,
+    taille: { l: 1, h: 2 }, icone: "#5a9d5a", cartes: ["regeneration", "garde"] },
+  "bouclier-renforce": { id: "bouclier-renforce", nom: "Reinforced Shield", categorie: "bouclier", rarete: "commun", nouveau: true,
+    taille: { l: 2, h: 2 }, icone: "#82827a", cartes: ["mur-de-fer", "mur-de-fer"] },
+
+  // UNCOMMONS (4) — 1 signature chacun.
+  "grimoire-flammes": { id: "grimoire-flammes", nom: "Grimoire of Flames", categorie: "bouclier", rarete: "uncommon", nouveau: true,
+    taille: { l: 1, h: 2 }, icone: "#e0681e", cartes: ["boule-de-feu", "braise", "braise"] },
+  "sceptre-commandement": { id: "sceptre-commandement", nom: "Scepter of Command", categorie: "bouclier", rarete: "uncommon", nouveau: true,
+    taille: { l: 1, h: 3 }, icone: "#d9a82c", cartes: ["ralliement", "flexion"] },
+  "bouclier-protecteur": { id: "bouclier-protecteur", nom: "Warding Shield", categorie: "bouclier", rarete: "uncommon", nouveau: true,
+    taille: { l: 2, h: 2 }, icone: "#4a7a9d", cartes: ["egide", "mur-de-fer", "garde"],
+    passifPropre: { declencheur: "frappeMelee", texte: "When hit by a melee attack, the attacker takes 2 damage.", effets: [{ type: "degats", valeur: 2 }] } },
+  "grimoire-puissance": { id: "grimoire-puissance", nom: "Tome of Power", categorie: "bouclier", rarete: "uncommon", nouveau: true,
+    taille: { l: 1, h: 2 }, icone: "#7a3ad9", cartes: ["vague-arcanique", "etincelle", "mains-vives"] },
 };
 
 export function itemDef(id) {

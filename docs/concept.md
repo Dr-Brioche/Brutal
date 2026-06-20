@@ -503,8 +503,12 @@ Plate** donne **+20 Pierre de départ** (skin provisoire = nain de base, à dess
 ### Items génériques & métas d'archétype (commons / uncommons)
 
 Au-delà des sets rares/épiques, un **large socle d'items communs et uncommon**
-(armes, armures, bottes, gants, **bagues**, colliers) alimente des **archétypes**
-qu'on assemble en combinant des objets — façon *Slay the Spire* / *Monster Train*.
+(armes, armures, bottes, gants, **bagues**, colliers, et **main seconde / off-hand** :
+boucliers, grimoires, sceptres, torches) alimente des **archétypes** qu'on assemble
+en combinant des objets — façon *Slay the Spire* / *Monster Train*. La **main seconde**
+(slot « Off », catégorie `bouclier`) penche défense / utilité / caster pour compléter
+l'arme principale ; signatures off-hand : *Fireball* (feu AOE), *Rally* (Force+pioche),
+*Aegis* (Pierre+régén), *Arcane Surge* (dégâts AOE+énergie).
 Principe (validé 19/06/2026) :
 - Les **commons** donnent surtout des **cartes de base PARTAGÉES** (réutilisées par
   beaucoup d'items) : *Strike, Slash, Heavy Blow, Guard, Iron Wall, Poison Dart,

@@ -904,4 +904,18 @@ export const CARTES = {
   // Drain : vol de vie (Vampiric Pendant).
   "drain": { id: "drain", nom: "Drain", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 6 damage and heal 4 HP.", effets: [{ type: "degats", valeur: 6 }, { type: "soin-heros", valeur: 4 }] },
+
+  // ---- Signatures de MAIN SECONDE (off-hand : boucliers, grimoires, sceptres) -
+  // Fireball : sort de zone enflammé (Grimoire of Flames).
+  "boule-de-feu": { id: "boule-de-feu", nom: "Fireball", cout: 2, type: "attaque", aoe: true, nouveau: true,
+    texte: "Deal 5 damage and apply 3 Burning to ALL enemies.", effets: [{ type: "degats", valeur: 5 }, { type: "feu", valeur: 3 }] },
+  // Rally : commandement qui renforce et fait piocher (Scepter of Command).
+  "ralliement": { id: "ralliement", nom: "Rally", cout: 1, type: "buff", nouveau: true,
+    texte: "Gain 3 Strength. Draw 1 card.", effets: [{ type: "force", valeur: 3 }, { type: "piocher", valeur: 1 }] },
+  // Aegis : gros bloc défensif + régénération (Warding Shield).
+  "egide": { id: "egide", nom: "Aegis", cout: 2, type: "defense", nouveau: true,
+    texte: "Gain 12 Stone and 2 Regen.", effets: [{ type: "pierre", valeur: 12 }, { type: "regen", valeur: 2 }] },
+  // Arcane Surge : décharge de zone qui rend de l'énergie (Tome of Power).
+  "vague-arcanique": { id: "vague-arcanique", nom: "Arcane Surge", cout: 2, type: "attaque", aoe: true, nouveau: true,
+    texte: "Deal 4 damage to ALL enemies. Gain 2 Forge Heat.", effets: [{ type: "degats", valeur: 4 }, { type: "chaleur", valeur: 2 }] },
 };
