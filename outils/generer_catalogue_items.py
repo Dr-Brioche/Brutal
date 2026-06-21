@@ -247,7 +247,10 @@ def construire():
 
     row = 4
     for titre, test in GROUPES:
-        membres = [it for it in ITEMS.values() if test(it)]
+        membres = sorted(
+            [it for it in ITEMS.values() if test(it)],
+            key=lambda it: RARETES.get(it.get("rarete", "commun"), {}).get("rang", 0)
+        )
         # ligne de section
         ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=ncol)
         c = ws.cell(row, 1, f"{titre}   ({len(membres)})")
