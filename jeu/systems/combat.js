@@ -113,7 +113,8 @@ function ajusterCarteBase(combat, carteId, cible) {
   }
 }
 
-// Un ennemi EN COMBAT : sa définition (stats/sprite) + son état mutable.
+// Force totale appliquée à chaque coup = buff temporaire (tick) + bonus permanent.
+function forceTotal(combat) { return combat.force + (combat.forcePerm ?? 0); }
 function creerEnnemiCombat(def) {
   return {
     def, pv: def.pv, pvMax: def.pv,
@@ -148,7 +149,8 @@ export function creerCombat(ennemisDefs, opts = {}) {
     pvHerosMax: pvMax,
     pvHeros: pv,
     pierre: armureDepart, // Pierre de départ des armures équipées
-    force: 0,       // « Force » : +N à CHAQUE effet de dégât du héros (persiste tout le combat)
+    force: 0,       // « Force » temporaire : +N à CHAQUE coup, diminue de 1 par tour du héros
+    forcePerm: stats.forcePerm ?? 0, // Force permanente (déclarée par les items) : +N tout le combat
     regen: 0,       // « Régénération » : PV rendus au héros au début de chacun de ses tours
     poisonHeros: 0,
     feuHeros: 0,
@@ -351,31 +353,31 @@ function soinSaignementCombo(combat, bonus) {
 // les défensifs touchent le héros.
 function appliquerEffet(combat, effet, ennemi) {
   if (effet.type === "degats") {
-    // Tout dégât direct du héros profite de la FORCE (+combat.force par coup).
-    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (effet.valeur + combat.force));
+    // Tout dégât direct du héros profite de la FORCE totale (+forceTotal par coup).
+    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (effet.valeur + forceTotal(combat)));
   } else if (effet.type === "degats-execution") {
     // Dégâts (Force incluse) DOUBLÉS si la cible porte au moins un malus.
     if (ennemi) {
-      const base = effet.valeur + combat.force;
+      const base = effet.valeur + forceTotal(combat);
       ennemi.pv = Math.max(0, ennemi.pv - (aMalus(ennemi) ? base * 2 : base));
     }
   } else if (effet.type === "degats-si-gel") {
     // Shatter : dégâts de base + bonus si la cible est GELÉE (récompense le frost).
     if (ennemi) {
-      const deg = effet.valeur + combat.force + (ennemi.gel > 0 ? effet.bonus : 0);
+      const deg = effet.valeur + forceTotal(combat) + (ennemi.gel > 0 ? effet.bonus : 0);
       ennemi.pv = Math.max(0, ennemi.pv - deg);
     }
   } else if (effet.type === "degats-si-faible") {
     // Execute : dégâts DOUBLÉS si la cible est sous `seuil` % de PV (achève les blessés).
     if (ennemi) {
-      const base = effet.valeur + combat.force;
+      const base = effet.valeur + forceTotal(combat);
       const faible = ennemi.pv <= ennemi.pvMax * (effet.seuil ?? 0.5);
       ennemi.pv = Math.max(0, ennemi.pv - (faible ? base * 2 : base));
     }
   } else if (effet.type === "pierre-vers-degats") {
     // Stone Fist : inflige des dégâts égaux à la Pierre actuelle (× valeur), SANS
     // la consommer. Paie le build « bloc » (Mail, armures) en attaque.
-    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (combat.pierre * effet.valeur + combat.force));
+    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (combat.pierre * effet.valeur + forceTotal(combat)));
   } else if (effet.type === "force") {
     combat.force += effet.valeur; // gagne de la Force (persiste tout le combat)
   } else if (effet.type === "regen") {
@@ -955,6 +957,7 @@ export function commencerTourHeros(combat) {
     if (combat.fini) return;
   }
   if (combat.hate   > 0) combat.hate   -= 1; // la Hâte s'écoule (1 tour du héros)
+  if (combat.force  > 0) combat.force  -= 1; // la Force temporaire s'écoule (1 tour du héros)
   // Glace brisée (héros) : à GEL_EXPLOSION stacks, il saute son tour, perd
   // GEL_EXPLOSION stacks et subit DEGATS_GEL_EXPLOSION dégâts directs. (Aucun
   // ennemi ne gèle le héros pour l'instant, mais la règle est prête.)

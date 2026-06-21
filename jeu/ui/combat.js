@@ -77,6 +77,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Célérité passive (% d'initiative de combat) des bottes. Le « move speed » des
   // bottes, lui, agit en EXPLORATION (cf. appliquerEquipement), pas en combat.
   const celeritePct = itemsEquipes.reduce((s, d) => s + (d.celeritePct ?? 0), 0);
+  // Force permanente : bonus de dégâts fixe pour TOUT le combat (déclaré par items).
+  const forcePerm = itemsEquipes.reduce((s, d) => s + (d.forcePerm ?? 0), 0);
   // Passifs individuels (ex. Tower Shield : +2 Pierre par frappe).
   const passifsItems = itemsEquipes.flatMap((d) => d.passifPropre ? [d.passifPropre] : []);
 
@@ -85,7 +87,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     cartes: cartesEquipees(inventaire),
     cartesSupp: maitrise?.choisies ?? [],
     mains: mainsOccupees(inventaire), // cartes de base seulement pour les mains libres
-    stats: { ...bonusTalents(heros), armureDepart, celeritePct },
+    stats: { ...bonusTalents(heros), armureDepart, celeritePct, forcePerm },
     passifs: [...setsActifs(inventaire.slots).map((s) => s.bonus), ...passifsItems],
   });
 
@@ -131,6 +133,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const boutonFin = document.getElementById("combat-fin");
   const panneauResultat = document.getElementById("combat-resultat");
   const texteResultat = document.getElementById("combat-resultat-texte");
+  const elPermBuff = document.getElementById("combat-permanents");
   const boutonContinuer = document.getElementById("combat-continuer");
   // La jauge de Chaleur (barre HTML horizontale)
   const jauge = document.getElementById("combat-jauge");
@@ -275,7 +278,23 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     elPiocheNb.textContent = combat.pioche.length;
     elDefausseNb.textContent = combat.defausse.length;
     majSelection();
+    rendrePermanents();
   }
+
+  // Affiche les bonus PERMANENTS (tout le combat) en haut à gauche de l'écran.
+  // Chaque entrée est un bouton avec un tooltip au survol.
+  function rendrePermanents() {
+    elPermBuff.replaceChildren();
+    if (combat.forcePerm > 0) {
+      const el = document.createElement("div");
+      el.className = "combat-perm-buff";
+      el.textContent = `💪 +${combat.forcePerm}`;
+      el.dataset.tooltip = `Permanent Force: every hit deals +${combat.forcePerm} bonus damage for the whole combat.`;
+      elPermBuff.append(el);
+    }
+    elPermBuff.hidden = elPermBuff.childElementCount === 0;
+  }
+
   function disposerEventail() {
     const cartes = [...conteneurMain.children];
     resserrerMain(cartes);

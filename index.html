@@ -598,6 +598,51 @@
     /* Défausse : miroir à droite */
     .combat-defausse { position: absolute; right: 4cqw; bottom: 6cqh; }
 
+    /* Bonus permanents (top-left, tout le combat) */
+    .combat-permanents {
+      position: absolute;
+      top: 2cqh;
+      left: 1.5cqw;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8cqh;
+      pointer-events: auto;
+      z-index: 5;
+    }
+    .combat-perm-buff {
+      display: flex;
+      align-items: center;
+      gap: 0.5cqw;
+      background: rgba(14, 12, 20, 0.82);
+      border: 0.2cqh solid #4a3820;
+      border-radius: 1cqh;
+      padding: 0.5cqh 1.2cqw;
+      font-size: 2.8cqh;
+      font-weight: 700;
+      color: #ffb070;
+      cursor: default;
+      white-space: nowrap;
+      position: relative;
+    }
+    /* Tooltip au survol */
+    .combat-perm-buff[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: calc(100% + 1cqw);
+      top: 50%;
+      transform: translateY(-50%);
+      background: #14121a;
+      border: 1px solid #3b2030;
+      border-radius: 0.8cqh;
+      padding: 0.6cqh 1.2cqw;
+      font-size: 2.2cqh;
+      font-weight: 400;
+      color: #f3f4f6;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+    }
+
     /* L'élément sélectionné au clavier (carte ou bouton) */
     .combat-carte.sel, .combat-fin.sel {
       outline: 3px solid #ffcf57;
@@ -1412,6 +1457,8 @@
         </div>
         <div class="combat-jauge-brulure" id="combat-jauge-brulure"></div>
       </div>
+      <!-- Bonus permanents (tout le combat) : affichés en haut à gauche -->
+      <div class="combat-permanents" id="combat-permanents" hidden></div>
       <div class="combat-pile combat-pioche" id="combat-pioche-nb">0</div>
       <div class="combat-pile combat-defausse" id="combat-defausse-nb">0</div>
       <div class="combat-main" id="combat-main"></div>
