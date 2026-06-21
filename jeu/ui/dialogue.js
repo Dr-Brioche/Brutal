@@ -90,9 +90,11 @@ export function ouvrirDialogue(dialogue, surFin) {
   }
 
   // Montre la bulle de l'objet du choix sélectionné, à côté de la ligne (clavier).
+  // Et s'assure que l'option est visible dans la zone scrollable.
   function majApercu() {
     const c = choix[sel];
     const el = elChoix.children[sel];
+    if (el) el.scrollIntoView({ block: "nearest" });
     if (enChoix && c && c.itemId && el) montrerInfobulleEl(c.itemId, el);
     else cacherInfobulle();
   }
