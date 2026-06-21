@@ -331,6 +331,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   function menuCategorie(c) {
     const ids = Object.values(ITEMS)
       .filter((it) => c.cats.includes(it.categorie))
+      .sort((a, b) => (RARETES[b.rarete]?.rang ?? 0) - (RARETES[a.rarete]?.rang ?? 0))
       .map((it) => it.id);
     const choix = ids.map((id) => ({
       texte: `${ITEMS[id].nom}  ·  free`,
