@@ -237,10 +237,10 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Quand l'inventaire change (équiper/déséquiper) pendant un menu marchand, on
   // rafraîchit la liste à chaud (utile dans « Sell items »). null = pas de refresh.
   let surChangementMenu = null;
-  function ouvrirMenuMarchand(nom, choix) {
+  function ouvrirMenuMarchand(nom, choix, selInitial = 0) {
     prochainMenu = null;
     surChangementMenu = null; // chaque menu repose son propre refresh (cf. menuVendre)
-    ouvrirDialogue({ nom, choix }, () => {
+    ouvrirDialogue({ nom, choix, selInitial }, () => {
       const suite = prochainMenu;
       prochainMenu = null;
       if (suite) suite();
@@ -328,23 +328,23 @@ export async function demarrerJeu(donneesInitiales = null) {
   }
 
   // Menu d'une catégorie : ses items (gratuits) + retour aux catégories.
-  function menuCategorie(c) {
+  function menuCategorie(c, selInitial = 0) {
     const ids = Object.values(ITEMS)
       .filter((it) => c.cats.includes(it.categorie))
       .sort((a, b) => (RARETES[a.rarete]?.rang ?? 0) - (RARETES[b.rarete]?.rang ?? 0))
       .map((it) => it.id);
-    const choix = ids.map((id) => ({
+    const choix = ids.map((id, idx) => ({
       texte: `${ITEMS[id].nom}  ·  free`,
       itemId: id, // survol → bulle avec les cartes de l'objet
       action: () => {
-        prochainMenu = () => menuCategorie(c); // on reste dans la catégorie
+        prochainMenu = () => menuCategorie(c, idx); // on reste à la même position
         if (ajouterObjet(inventaire, id)) afficherMessage(`🛒 ${ITEMS[id].nom} added to your bag.`);
         else afficherMessage("Your bag is full — equip or drop something first.");
         inventaireUI.rendre();
       },
     }));
     choix.push({ texte: "←  Back", action: () => { prochainMenu = menuBoutique; } });
-    ouvrirMenuMarchand(`Test Merchant — ${c.nom}`, choix);
+    ouvrirMenuMarchand(`Test Merchant — ${c.nom}`, choix, selInitial);
   }
 
   function fermerBoutique() {

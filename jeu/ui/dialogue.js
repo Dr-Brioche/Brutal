@@ -46,7 +46,7 @@ export function ouvrirDialogue(dialogue, surFin) {
   let choix = dialogue.choix ?? []; // peut être remplacé à chaud (rafraichirChoix)
   let page = 0;
   let enChoix = pages.length === 0;
-  let sel = 0;
+  let sel = Math.max(0, Math.min(dialogue.selInitial ?? 0, Math.max(0, choix.length - 1)));
 
   elNom.textContent = dialogue.nom ?? "";
 
