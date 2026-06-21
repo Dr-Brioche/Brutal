@@ -47,6 +47,8 @@ export function ouvrirDialogue(dialogue, surFin) {
   let page = 0;
   let enChoix = pages.length === 0;
   let sel = Math.max(0, Math.min(dialogue.selInitial ?? 0, Math.max(0, choix.length - 1)));
+  // Si la position initiale tombe sur un séparateur, avancer jusqu'au premier item.
+  while (sel < choix.length - 1 && choix[sel]?.separateur) sel++;
 
   elNom.textContent = dialogue.nom ?? "";
 
@@ -59,6 +61,13 @@ export function ouvrirDialogue(dialogue, surFin) {
       return;
     }
     choix.forEach((c, i) => {
+      if (c.separateur) {
+        const el = document.createElement("div");
+        el.className = "dialogue-separateur";
+        el.textContent = c.texte;
+        elChoix.append(el);
+        return;
+      }
       const el = document.createElement("div");
       el.className = "dialogue-option" + (i === sel ? " sel" : "");
       const fleche = i === sel ? "▶ " : "   ";
@@ -138,16 +147,23 @@ export function ouvrirDialogue(dialogue, surFin) {
     }
   }
 
+  // Navigation qui saute les séparateurs (non cliquables).
+  function deplacer(dir) {
+    const n = Math.max(1, choix.length);
+    let next = sel;
+    do { next = (next + dir + n) % n; } while (choix[next]?.separateur && next !== sel);
+    sel = next;
+  }
+
   function surTouche(e) {
     if (confirmationActive()) return; // une confirmation modale est ouverte par-dessus : on lui cède le clavier
     if (!TOUCHES.has(e.code)) return; // on laisse passer le reste
     e.preventDefault();
     e.stopPropagation();              // bloque menu pause / déplacement pendant le dialogue
-    const n = Math.max(1, choix.length);
     if (e.code === "Escape") { fermerUI(); if (surFin) surFin(); } // Échap : on sort
     else if (e.code === "Space" || e.code === "Enter") avancer();
-    else if (enChoix && (e.code === "KeyW" || e.code === "ArrowUp")) { sel = (sel - 1 + n) % n; rendre(); }
-    else if (enChoix && (e.code === "KeyS" || e.code === "ArrowDown")) { sel = (sel + 1) % n; rendre(); }
+    else if (enChoix && (e.code === "KeyW" || e.code === "ArrowUp")) { deplacer(-1); rendre(); }
+    else if (enChoix && (e.code === "KeyS" || e.code === "ArrowDown")) { deplacer(1); rendre(); }
     // Q/D… : simplement bloqués (aucune action)
   }
 

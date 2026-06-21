@@ -216,10 +216,21 @@ export async function demarrerJeu(donneesInitiales = null) {
   // sous-catégories (armes / armures / bijoux / autres). On choisit ensuite quoi
   // équiper via l'inventaire (ouvert à côté). Échap ou « Leave » ferme la boutique.
   const CATEGORIES_BOUTIQUE = [
-    { nom: "Weapons", icone: "⚔",  cats: ["arme", "bouclier"] },
+    { nom: "Weapons", icone: "⚔",  cats: ["arme", "bouclier"], groupes: [
+      { label: "Weapons — 1 hand",  test: (it) => it.categorie === "arme" && it.mains !== 2 },
+      { label: "Weapons — 2 hands", test: (it) => it.categorie === "arme" && it.mains === 2 },
+      { label: "Off-hand",          test: (it) => it.categorie === "bouclier" },
+    ]},
     { nom: "Armor",   icone: "🛡", cats: ["armure"] },
-    { nom: "Jewelry", icone: "💍", cats: ["bague", "collier"] },
-    { nom: "Other",   icone: "🎒", cats: ["gant", "botte", "sac"] },
+    { nom: "Jewelry", icone: "💍", cats: ["bague", "collier"], groupes: [
+      { label: "Amulets", test: (it) => it.categorie === "collier" },
+      { label: "Rings",   test: (it) => it.categorie === "bague" },
+    ]},
+    { nom: "Other",   icone: "🎒", cats: ["gant", "botte", "sac"], groupes: [
+      { label: "Gloves", test: (it) => it.categorie === "gant" },
+      { label: "Boots",  test: (it) => it.categorie === "botte" },
+      { label: "Bags",   test: (it) => it.categorie === "sac" },
+    ]},
   ];
 
   function parlerAuMarchand() {
@@ -329,20 +340,30 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // Menu d'une catégorie : ses items (gratuits) + retour aux catégories.
   function menuCategorie(c, selInitial = 0) {
-    const ids = Object.values(ITEMS)
+    const tousItems = Object.values(ITEMS)
       .filter((it) => c.cats.includes(it.categorie))
-      .sort((a, b) => (RARETES[a.rarete]?.rang ?? 0) - (RARETES[b.rarete]?.rang ?? 0))
-      .map((it) => it.id);
-    const choix = ids.map((id, idx) => ({
-      texte: `${ITEMS[id].nom}  ·  free`,
-      itemId: id, // survol → bulle avec les cartes de l'objet
-      action: () => {
-        prochainMenu = () => menuCategorie(c, idx); // on reste à la même position
-        if (ajouterObjet(inventaire, id)) afficherMessage(`🛒 ${ITEMS[id].nom} added to your bag.`);
-        else afficherMessage("Your bag is full — equip or drop something first.");
-        inventaireUI.rendre();
-      },
-    }));
+      .sort((a, b) => (RARETES[a.rarete]?.rang ?? 0) - (RARETES[b.rarete]?.rang ?? 0));
+    const groupes = c.groupes ?? [{ label: null, test: () => true }];
+    // Séparateurs seulement si plusieurs sous-groupes sont non vides.
+    const groupesPeuples = groupes.filter((g) => tousItems.some(g.test));
+    const avecSep = groupesPeuples.length > 1;
+    const choix = [];
+    for (const g of groupesPeuples) {
+      if (avecSep) choix.push({ texte: g.label, separateur: true });
+      for (const it of tousItems.filter((x) => g.test(x))) {
+        const fullIdx = choix.length; // position dans le tableau avec séparateurs
+        choix.push({
+          texte: `${it.nom}  ·  free`,
+          itemId: it.id,
+          action: () => {
+            prochainMenu = () => menuCategorie(c, fullIdx);
+            if (ajouterObjet(inventaire, it.id)) afficherMessage(`🛒 ${it.nom} added to your bag.`);
+            else afficherMessage("Your bag is full — equip or drop something first.");
+            inventaireUI.rendre();
+          },
+        });
+      }
+    }
     choix.push({ texte: "←  Back", action: () => { prochainMenu = menuBoutique; } });
     ouvrirMenuMarchand(`Test Merchant — ${c.nom}`, choix, selInitial);
   }
