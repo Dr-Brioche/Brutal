@@ -56,6 +56,11 @@ const SEUIL_INIT = 100;        // jauge d'initiative à remplir pour agir
 // de vitesse. L'intensité, elle, est FIXE : +30% (hâte) ou −30% (gel).
 const HATE_MULT = 1.30; // « Hâte » (célérité) : agilité du héros ×1.30 pendant N tours
 const GEL_MULT  = 0.70; // « Gel » (lenteur)   : vitesse de l'ennemi ×0.70 pendant N tours
+// « Glace brisée » : au début de son tour, un combattant (héros OU ennemi) à
+// GEL_EXPLOSION stacks de Gel ou plus se brise — il SAUTE ce tour, perd
+// GEL_EXPLOSION stacks et subit DEGATS_GEL_EXPLOSION dégâts directs (ignore la Pierre).
+const GEL_EXPLOSION = 5;        // seuil de stacks qui déclenche l'explosion
+const DEGATS_GEL_EXPLOSION = 5; // dégâts directs subis quand la glace se brise
 // ---------------------------------------------------------------------------
 
 // Mélange une copie du tableau (Fisher-Yates : chaque ordre est équiprobable).
@@ -148,6 +153,8 @@ export function creerCombat(ennemisDefs, opts = {}) {
     poisonHeros: 0,
     feuHeros: 0,
     gelHeros: 0,    // gel du héros : ralentit (−30% vitesse) ; annulé par feuHeros et vice-versa
+    tourSaute: false,        // true = le héros saute son tour (glace brisée à 5 stacks)
+    gelExplosionHeros: 0,    // dégâts subis par la glace brisée (pour le floater UI)
     // Chaleur de Forge + surchauffe (réglages modifiés par l'équipement)
     chaleur: chaleurDepart,
     chaleurRecharge,
@@ -840,6 +847,7 @@ export function agirEnnemi(combat, i) {
     confus: false,  // true = l'attaque a été déviée par la Confusion
     attaqueAllie: 0, // PV retirés à un allié/soi-même par une attaque confuse
     idxAttaqueAllie: -1, // index de la victime de l'attaque confuse (pour le floater UI)
+    gelExplosion: 0, // dégâts subis par la « glace brisée » (5 stacks de Gel atteints)
   };
   if (!e || e.pv <= 0) return evt;
   // Ordre des malus dans le temps : poison, puis feu, saignement en dernier.
@@ -856,10 +864,22 @@ export function agirEnnemi(combat, i) {
     e.dernierSang = 0;
   }
   const confusActif = e.confusion > 0; // figé AVANT de décrémenter (l'attaque de CE tour est-elle confuse ?)
-  if (e.gel   > 0) e.gel   -= 1; // le Gel s'écoule (1 de SES tours), même étourdi
+  // Glace brisée : à GEL_EXPLOSION stacks ou plus, la glace se rompt — l'ennemi
+  // saute ce tour, perd GEL_EXPLOSION stacks et subit DEGATS_GEL_EXPLOSION dégâts
+  // directs. Sinon le Gel s'écoule normalement de 1 (durée du ralentissement).
+  let gelBrise = false;
+  if (e.gel >= GEL_EXPLOSION) {
+    e.gel -= GEL_EXPLOSION;
+    e.pv = Math.max(0, e.pv - DEGATS_GEL_EXPLOSION);
+    evt.gelExplosion = DEGATS_GEL_EXPLOSION;
+    gelBrise = true;
+  } else if (e.gel > 0) {
+    e.gel -= 1; // le Gel s'écoule (1 de SES tours), même étourdi
+  }
   if (e.haste > 0) e.haste -= 1; // la Hâte s'écoule (1 de SES tours)
   if (e.confusion > 0) e.confusion -= 1; // la Confusion s'écoule (1 de SES tours)
   if (e.pv <= 0) { evt.mortStatut = true; verifierFin(combat); return evt; }
+  if (gelBrise) return evt; // gelé solide : il saute son tour (pas d'action)
   if (e.stun > 0) { e.stun -= 1; evt.stun = true; return evt; } // étourdi : pas d'action
   if (e.intention?.type === "attaque") {
     // Confusion (éblouissement) : la frappe part sur une cible AU HASARD parmi le
@@ -916,6 +936,8 @@ export function agirEnnemi(combat, i) {
 // surchauffe, le poison/feu du héros tiquent, puis on pioche une main et on
 // prévoit les intentions. Le TOUT 1er tour ne recharge pas (forge froide).
 export function commencerTourHeros(combat) {
+  combat.tourSaute = false;
+  combat.gelExplosionHeros = 0;
   if (combat.premierTourHeros) {
     combat.premierTourHeros = false;
     combat.derniereBrulure = combat.dernierPoisonHeros = combat.dernierFeuHeros = 0;
@@ -933,7 +955,19 @@ export function commencerTourHeros(combat) {
     if (combat.fini) return;
   }
   if (combat.hate   > 0) combat.hate   -= 1; // la Hâte s'écoule (1 tour du héros)
-  if (combat.gelHeros > 0) combat.gelHeros -= 1; // le Gel héros s'écoule (1 tour du héros)
+  // Glace brisée (héros) : à GEL_EXPLOSION stacks, il saute son tour, perd
+  // GEL_EXPLOSION stacks et subit DEGATS_GEL_EXPLOSION dégâts directs. (Aucun
+  // ennemi ne gèle le héros pour l'instant, mais la règle est prête.)
+  if (combat.gelHeros >= GEL_EXPLOSION) {
+    combat.gelHeros -= GEL_EXPLOSION;
+    combat.gelExplosionHeros = DEGATS_GEL_EXPLOSION;
+    combat.pvHeros = Math.max(0, combat.pvHeros - DEGATS_GEL_EXPLOSION);
+    combat.tourSaute = true;
+    verifierFin(combat);
+    return; // gelé solide : pas de pioche ni d'intentions, le tour est sauté
+  } else if (combat.gelHeros > 0) {
+    combat.gelHeros -= 1; // le Gel héros s'écoule (1 tour du héros)
+  }
   if (combat.regen > 0) { // Régénération : PV rendus au début de chaque tour du héros
     combat.dernierSoin = Math.min(combat.regen, combat.pvHerosMax - combat.pvHeros);
     combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + combat.regen);

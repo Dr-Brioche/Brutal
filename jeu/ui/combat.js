@@ -549,6 +549,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     acteurCourant = acteur; // pour la file des tours (1re case = acteur courant)
     if (acteur.id === "heros") {
       commencerTourHeros(combat); // recharge Chaleur + statuts du héros + pioche
+      if (combat.tourSaute) {     // glace brisée : le héros est gelé solide, il saute son tour
+        animerGelExplosionHeros();
+        minuterie = PAS_ENNEMI;   // courte pause, puis l'initiative reprend
+        rafraichir();
+        if (combat.fini) verifierFin();
+        return;
+      }
       animerDebutTourHeros();
       recalerCible();
       rafraichir();               // nouvelle main, input réactivé
@@ -569,6 +576,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (combat.dernierSoin > 0) ajouterFlottant(`❤+${combat.dernierSoin}`, heroEcran.cx, heroEcran.sommet - 16, "#7edf82"); // régénération
   }
 
+  // Glace brisée sur le HÉROS : il a atteint 5 stacks de Gel → dégâts + tour sauté.
+  function animerGelExplosionHeros() {
+    secousseHeros = 0.4;
+    ajouterFlottant(`❄💥 -${combat.gelExplosionHeros}`, heroEcran.cx, heroEcran.sommet - 48, "#9fdfff");
+    jouerSonCoup();
+  }
+
   // Anime l'action d'UN ennemi (statuts, mort, ou attaque/sort). Étourdi → rien.
   // `pierreAvantTour` : valeur de Pierre du héros avant l'action (pour choisir son métallique).
   function animerEnnemi(i, evt, pierreAvantTour = 0) {
@@ -577,6 +591,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (evt.poison > 0) { u.secousse = 0.3; ajouterFlottant(`☠${evt.poison}`, u.ecran.cx, u.ecran.sommet, "#7ec850"); }
     if (evt.feu > 0) { u.secousse = 0.3; ajouterFlottant(`🔥${evt.feu}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c"); }
     if (evt.sang > 0) { u.secousse = 0.3; ajouterFlottant(`🩸${evt.sang}`, u.ecran.cx, u.ecran.sommet - 32, "#e05a5a"); }
+    // Glace brisée : 5 stacks de Gel atteints → l'ennemi se brise (dégâts + tour sauté).
+    if (evt.gelExplosion > 0) {
+      u.secousse = 0.4;
+      ajouterFlottant(`❄💥 -${evt.gelExplosion}`, u.ecran.cx, u.ecran.sommet - 48, "#9fdfff");
+      jouerSonCoup();
+    }
     if (evt.soin > 0) ajouterFlottant(`+${evt.soin}`, heroEcran.cx, heroEcran.sommet - 16, "#86e08a");
     if (evt.mortStatut) { if (!u.mort.actif && !u.partis) exploser(u); return; }
     if (evt.attaque > 0 || evt.armureAbsorbe > 0) { // il frappe : PV perdus OU armure entamée
@@ -720,6 +740,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (combat.regen > 0) l.push({ texte: `❤${combat.regen}`, couleur: "#7edf82", nature: "buff" }); // Régénération (PV/tour)
     if (combat.poisonHeros > 0) l.push({ texte: `☠${combat.poisonHeros}`, couleur: "#7ec850", nature: "malus" });
     if (combat.feuHeros > 0) l.push({ texte: `🔥${combat.feuHeros}`, couleur: "#ff8a2c", nature: "malus" });
+    // Gel du héros (−30% vitesse) ; à 5 stacks la glace va se briser → 💥 télégraphe.
+    if (combat.gelHeros > 0) l.push({ texte: combat.gelHeros >= 5 ? `❄💥${combat.gelHeros}` : `❄${combat.gelHeros}`, couleur: "#9fdfff", nature: "malus" });
     return l;
   }
   function etatsEnnemi(e) {
@@ -729,7 +751,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (e.feu > 0) l.push({ texte: `🔥${e.feu}`, couleur: "#ff8a2c", nature: "malus" });
     if (e.sang > 0) l.push({ texte: `🩸${e.sang}`, couleur: "#e05a5a", nature: "malus" });
     if (e.stun > 0) l.push({ texte: `💫${e.stun}`, couleur: "#ffd966", nature: "malus" }); // tours d'étourdissement restants
-    if (e.gel > 0) l.push({ texte: `❄${e.gel}`, couleur: "#9fdfff", nature: "malus" });   // Gel (−30% vitesse)
+    // Gel (−30% vitesse) ; à 5 stacks la glace va se briser au prochain tour → 💥 télégraphe.
+    if (e.gel > 0) l.push({ texte: e.gel >= 5 ? `❄💥${e.gel}` : `❄${e.gel}`, couleur: "#9fdfff", nature: "malus" });
     if (e.confusion > 0) l.push({ texte: `✨${e.confusion}`, couleur: "#ffe9a8", nature: "malus" }); // Confusion (frappe au hasard)
     return l;
   }
