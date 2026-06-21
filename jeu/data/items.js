@@ -592,7 +592,7 @@ export function setDeItem(id) {
 
 // Noms lisibles (anglais) pour les bulles d'info.
 const NOM_CATEGORIE = {
-  arme: "Weapon", bouclier: "Shield", armure: "Armor", gant: "Gloves",
+  arme: "Weapon", bouclier: "Off-hand", armure: "Armor", gant: "Gloves",
   botte: "Boots", collier: "Amulet", bague: "Ring", sac: "Bag",
 };
 
