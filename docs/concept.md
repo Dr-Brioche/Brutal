@@ -529,9 +529,11 @@ Principe (validé 19/06/2026) :
   *Onyx*, saignement → *Blood*, gel → *Frost*, énergie → *Sapphire*, bloc → *Mail*.
 
 **Nouvelles métas (mécaniques moteur ajoutées)** :
-- **Force** (`force`) — buff qui ajoute **+N à CHAQUE dégât** du héros pour tout le
-  combat (affiché 💪). Énorme avec le **multi-hit** (*Double Strike*, *Flurry* :
-  +Force par coup). Sources : *Flex, Power Strike, Empower, Bloodrage*.
+- **Force** (`force`) — buff qui ajoute **+N à chaque coup de MÊLÉE** du héros pour
+  tout le combat (affiché 💪). ⚠ N'affecte **pas** les sorts ni les attaques à
+  distance (`portee: "range"` sur la carte — ex. *Poison Dart, Ice Shard, Fireball,
+  Arcane Bolt, Drain…*). Énorme avec le **multi-hit de mêlée** (*Double Strike*,
+  *Flurry* : +Force par coup). Sources : *Flex, Power Strike, Empower, Bloodrage*.
 - **Stone Fist** (`pierre-vers-degats`) — inflige des **dégâts = ta Pierre actuelle**
   (sans la consommer) : transforme un build bloc (*Mail*, armures) en attaque
   (« Body Slam »). Sources : *Stone Fist, Earthshatter, Stonetread/Stone Hammer*.

@@ -14,6 +14,8 @@
 //   unique : (optionnel) true = carte « unique » (très puissante). Elle NE peut
 //            PAS être maîtrisée (exclue de la Maîtrise des Ancêtres, comme les
 //            cartes du deck de base) — pour ne pas rendre le jeu déséquilibré.
+//   portee : (optionnel) "range" = sort ou attaque à distance (la Force ne
+//            s'applique pas). Absent = "melee" par défaut.
 //   texte  : description affichée au joueur
 //   image  : (optionnel) PNG illustrant TOUTE la carte. S'il est présent, on
 //            n'affiche par-dessus que le COÛT (un chiffre, pour qu'il puisse
@@ -544,6 +546,7 @@ export const CARTES = {
     nom: "Frost Cascade",
     cout: 2,
     type: "attaque",
+    portee: "range",
     texte: "Deal 8 damage and apply 3 Chill. If the target was already chilled, cascade the same hit to the next enemy, and so on.",
     effets: [{ type: "gel-cascade", degats: 8, gel: 3 }],
   },
@@ -803,10 +806,10 @@ export const CARTES = {
   "entaille": { id: "entaille", nom: "Gash", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 5 damage. Apply 2 Bleed.", effets: [{ type: "degats", valeur: 5 }, { type: "sang", valeur: 2 }] },
   // Poison Dart : pique empoisonnée de base (alimente le build poison).
-  "dard-empoisonne": { id: "dard-empoisonne", nom: "Poison Dart", cout: 1, type: "attaque", nouveau: true,
+  "dard-empoisonne": { id: "dard-empoisonne", nom: "Poison Dart", cout: 1, type: "attaque", portee: "range", nouveau: true,
     texte: "Deal 3 damage. Apply 3 Poison.", effets: [{ type: "degats", valeur: 3 }, { type: "poison", valeur: 3 }] },
   // Ice Shard : éclat de glace de base (ralentit — alimente le build gel).
-  "eclat-de-glace": { id: "eclat-de-glace", nom: "Ice Shard", cout: 1, type: "attaque", nouveau: true,
+  "eclat-de-glace": { id: "eclat-de-glace", nom: "Ice Shard", cout: 1, type: "attaque", portee: "range", nouveau: true,
     texte: "Deal 5 damage. Chill: -30% speed for 2 turns.", effets: [{ type: "degats", valeur: 5 }, { type: "lenteur", valeur: 2 }] },
   // Ember : braise de base (pose un peu de feu — alimente le build feu/Onyx).
   "braise": { id: "braise", nom: "Ember", cout: 1, type: "attaque", nouveau: true,
@@ -832,7 +835,7 @@ export const CARTES = {
 
   // ---- Signatures d'ARMES uncommon -------------------------------------------
   // Venom Spit : grosse dose de poison (Venomfang Dagger).
-  "crachat-venimeux": { id: "crachat-venimeux", nom: "Venom Spit", cout: 1, type: "attaque", nouveau: true,
+  "crachat-venimeux": { id: "crachat-venimeux", nom: "Venom Spit", cout: 1, type: "attaque", portee: "range", nouveau: true,
     texte: "Deal 4 damage. Apply 5 Poison.", effets: [{ type: "degats", valeur: 4 }, { type: "poison", valeur: 5 }] },
   // Shatter : dégâts DOUBLÉS de bonus si la cible est gelée (Frostbrand).
   "brise-glace": { id: "brise-glace", nom: "Shatter", cout: 2, type: "attaque", nouveau: true,
@@ -862,7 +865,7 @@ export const CARTES = {
   "tourbillon": { id: "tourbillon", nom: "Whirl", cout: 2, type: "attaque", aoe: true, nouveau: true,
     texte: "Deal 6 damage and apply 2 Bleed to ALL enemies.", effets: [{ type: "degats", valeur: 6 }, { type: "sang", valeur: 2 }] },
   // Arcane Bolt : éclair qui rend un peu d'énergie (Crystal Wand).
-  "eclair-arcanique": { id: "eclair-arcanique", nom: "Arcane Bolt", cout: 1, type: "attaque", nouveau: true,
+  "eclair-arcanique": { id: "eclair-arcanique", nom: "Arcane Bolt", cout: 1, type: "attaque", portee: "range", nouveau: true,
     texte: "Deal 6 damage. Gain 2 Forge Heat.", effets: [{ type: "degats", valeur: 6 }, { type: "chaleur", valeur: 2 }] },
 
   // ---- Signatures d'ARMURE / BOTTES / GANTS uncommon -------------------------
@@ -884,13 +887,13 @@ export const CARTES = {
 
   // ---- Signatures de BAGUES / COLLIERS uncommon ------------------------------
   // Venom Nova : poison de masse (Toxic Ring).
-  "nuee-toxique": { id: "nuee-toxique", nom: "Venom Nova", cout: 2, type: "attaque", aoe: true, nouveau: true,
+  "nuee-toxique": { id: "nuee-toxique", nom: "Venom Nova", cout: 2, type: "attaque", portee: "range", aoe: true, nouveau: true,
     texte: "Apply 3 Poison to ALL enemies.", effets: [{ type: "poison", valeur: 3 }] },
   // Empower : gros gain de Force (Ring of Might).
   "galvanisation": { id: "galvanisation", nom: "Empower", cout: 1, type: "buff", nouveau: true,
     texte: "Gain 3 Strength.", effets: [{ type: "force", valeur: 3 }] },
   // Frost Nova : gel de masse (Frost Signet).
-  "nova-de-givre": { id: "nova-de-givre", nom: "Frost Nova", cout: 2, type: "attaque", aoe: true, nouveau: true,
+  "nova-de-givre": { id: "nova-de-givre", nom: "Frost Nova", cout: 2, type: "attaque", portee: "range", aoe: true, nouveau: true,
     texte: "Chill ALL enemies (-30% speed for 2 turns).", effets: [{ type: "lenteur", valeur: 2 }] },
   // Bloodthirst : saignement qui soigne le héros (Bloodthirst Ring).
   "soif-de-sang": { id: "soif-de-sang", nom: "Bloodthirst", cout: 1, type: "attaque", nouveau: true,
@@ -902,12 +905,12 @@ export const CARTES = {
   "concentration": { id: "concentration", nom: "Focus", cout: 1, type: "buff", nouveau: true,
     texte: "Draw 1 card. Gain 2 Forge Heat.", effets: [{ type: "piocher", valeur: 1 }, { type: "chaleur", valeur: 2 }] },
   // Drain : vol de vie (Vampiric Pendant).
-  "drain": { id: "drain", nom: "Drain", cout: 1, type: "attaque", nouveau: true,
+  "drain": { id: "drain", nom: "Drain", cout: 1, type: "attaque", portee: "range", nouveau: true,
     texte: "Deal 6 damage and heal 4 HP.", effets: [{ type: "degats", valeur: 6 }, { type: "soin-heros", valeur: 4 }] },
 
   // ---- Signatures de MAIN SECONDE (off-hand : boucliers, grimoires, sceptres) -
   // Fireball : sort de zone enflammé (Grimoire of Flames).
-  "boule-de-feu": { id: "boule-de-feu", nom: "Fireball", cout: 2, type: "attaque", aoe: true, nouveau: true,
+  "boule-de-feu": { id: "boule-de-feu", nom: "Fireball", cout: 2, type: "attaque", portee: "range", aoe: true, nouveau: true,
     texte: "Deal 5 damage and apply 3 Burning to ALL enemies.", effets: [{ type: "degats", valeur: 5 }, { type: "feu", valeur: 3 }] },
   // Rally : commandement qui renforce et fait piocher (Scepter of Command).
   "ralliement": { id: "ralliement", nom: "Rally", cout: 1, type: "buff", nouveau: true,
@@ -916,6 +919,6 @@ export const CARTES = {
   "egide": { id: "egide", nom: "Aegis", cout: 2, type: "defense", nouveau: true,
     texte: "Gain 12 Stone and 2 Regen.", effets: [{ type: "pierre", valeur: 12 }, { type: "regen", valeur: 2 }] },
   // Arcane Surge : décharge de zone qui rend de l'énergie (Tome of Power).
-  "vague-arcanique": { id: "vague-arcanique", nom: "Arcane Surge", cout: 2, type: "attaque", aoe: true, nouveau: true,
+  "vague-arcanique": { id: "vague-arcanique", nom: "Arcane Surge", cout: 2, type: "attaque", portee: "range", aoe: true, nouveau: true,
     texte: "Deal 4 damage to ALL enemies. Gain 2 Forge Heat.", effets: [{ type: "degats", valeur: 4 }, { type: "chaleur", valeur: 2 }] },
 };

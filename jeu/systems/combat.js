@@ -352,32 +352,34 @@ function soinSaignementCombo(combat, bonus) {
 // Applique un effet de carte : les effets offensifs touchent `ennemi` (la cible),
 // les défensifs touchent le héros.
 function appliquerEffet(combat, effet, ennemi) {
+  // Force : s'applique uniquement aux coups de mêlée (portee "melee" par défaut).
+  const portee = combat._porteeCarteCourante ?? "melee";
+  const forceApp = portee === "melee" ? forceTotal(combat) : 0;
   if (effet.type === "degats") {
-    // Tout dégât direct du héros profite de la FORCE totale (+forceTotal par coup).
-    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (effet.valeur + forceTotal(combat)));
+    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (effet.valeur + forceApp));
   } else if (effet.type === "degats-execution") {
     // Dégâts (Force incluse) DOUBLÉS si la cible porte au moins un malus.
     if (ennemi) {
-      const base = effet.valeur + forceTotal(combat);
+      const base = effet.valeur + forceApp;
       ennemi.pv = Math.max(0, ennemi.pv - (aMalus(ennemi) ? base * 2 : base));
     }
   } else if (effet.type === "degats-si-gel") {
     // Shatter : dégâts de base + bonus si la cible est GELÉE (récompense le frost).
     if (ennemi) {
-      const deg = effet.valeur + forceTotal(combat) + (ennemi.gel > 0 ? effet.bonus : 0);
+      const deg = effet.valeur + forceApp + (ennemi.gel > 0 ? effet.bonus : 0);
       ennemi.pv = Math.max(0, ennemi.pv - deg);
     }
   } else if (effet.type === "degats-si-faible") {
     // Execute : dégâts DOUBLÉS si la cible est sous `seuil` % de PV (achève les blessés).
     if (ennemi) {
-      const base = effet.valeur + forceTotal(combat);
+      const base = effet.valeur + forceApp;
       const faible = ennemi.pv <= ennemi.pvMax * (effet.seuil ?? 0.5);
       ennemi.pv = Math.max(0, ennemi.pv - (faible ? base * 2 : base));
     }
   } else if (effet.type === "pierre-vers-degats") {
     // Stone Fist : inflige des dégâts égaux à la Pierre actuelle (× valeur), SANS
     // la consommer. Paie le build « bloc » (Mail, armures) en attaque.
-    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (combat.pierre * effet.valeur + forceTotal(combat)));
+    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (combat.pierre * effet.valeur + forceApp));
   } else if (effet.type === "force") {
     combat.force += effet.valeur; // gagne de la Force (persiste tout le combat)
   } else if (effet.type === "regen") {
@@ -560,8 +562,10 @@ export function jouerCarte(combat, index, cible = combat.cible) {
   combat.main.splice(index, 1);
   combat.defausse.push(carte);
 
+  combat._porteeCarteCourante = carte.portee ?? "melee";
   if (carteAOE(carte)) resoudreAOE(combat, carte);
   else                 resoudreCiblee(combat, carte, cible);
+  delete combat._porteeCarteCourante;
 
   verifierFin(combat);
   return true;
