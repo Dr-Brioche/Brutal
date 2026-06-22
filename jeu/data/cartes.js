@@ -988,4 +988,8 @@ export const CARTES = {
   "pioche-chanceuse": { id: "pioche-chanceuse", nom: "Lucky Draw", cout: 1, type: "buff", nouveau: true,
     texte: "Draw 3 cards. Keep those costing less than 3 Forge Heat, discard the rest.",
     effets: [{ type: "pioche-filtre", valeur: 3, coutMax: 3 }] },
+  // Gimme That (donne moi ça) : vole un bonus de l'ennemi ciblé et se l'applique.
+  "donne-moi-ca": { id: "donne-moi-ca", nom: "Gimme That", cout: 2, type: "buff", nouveau: true,
+    texte: "Steal a random buff from the target enemy and apply it to yourself.",
+    effets: [{ type: "voler-bonus" }] },
 };

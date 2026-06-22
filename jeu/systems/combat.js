@@ -336,6 +336,26 @@ function aMalus(e) {
   return e && (e.poison > 0 || e.feu > 0 || e.sang > 0 || e.stun > 0 || e.gel > 0 || e.confusion > 0);
 }
 
+// --- Bonus (statuts POSITIFS) d'un ennemi : dissipables (Lay on Hands, Glory
+// Strike) et volables (donne moi ça). Système GÉNÉRIQUE et extensible : pour
+// rendre un nouveau bonus ennemi dissipable/volable, il suffit de l'ajouter à
+// CLES_BONUS_ENNEMI et de définir sa traduction sur le héros dans volerBonus().
+// Aujourd'hui le seul bonus qu'un ennemi peut porter est la Hâte alliée.
+const CLES_BONUS_ENNEMI = ["haste"];
+
+// Liste des bonus ACTIFS (valeur > 0) que porte `e`.
+function bonusActifsEnnemi(e) {
+  return e ? CLES_BONUS_ENNEMI.filter((k) => (e[k] ?? 0) > 0) : [];
+}
+
+// Vole un bonus à l'ennemi (le lui retire) et applique l'équivalent au héros.
+function volerBonus(combat, ennemi, cle) {
+  const val = ennemi[cle] ?? 0;
+  ennemi[cle] = 0;
+  if (cle === "haste") combat.hate += val; // Hâte alliée de l'ennemi → célérité du héros
+  // Futurs bonus ennemis (force, regen, pierre…) : mapper leur traduction ici.
+}
+
 // Saignement TOTAL sur tous les ennemis vivants (cartes du set Sang qui scalent dessus).
 function sangTotal(combat) {
   return combat.ennemis.reduce((s, e) => s + (ennemiVivant(e) ? e.sang : 0), 0);
@@ -534,12 +554,22 @@ function appliquerEffet(combat, effet, ennemi) {
       combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + (effet.energie ?? 1));
     }
   } else if (effet.type === "supprimer-bonus") {
-    // Lay on Hands / Glory strike : retire un bonus (statut POSITIF) de la cible.
-    // Le seul bonus qu'un ennemi peut porter aujourd'hui est la Hâte alliée. Si un
-    // bonus a bien été retiré, le héros gagne `regen` Régénération.
-    if (ennemi && ennemi.haste > 0) {
-      ennemi.haste = 0;
-      combat.regen += effet.regen ?? 0;
+    // Lay on Hands / Glory strike : retire UN bonus (statut positif) de la cible,
+    // tiré au hasard parmi ceux qu'elle porte. Si un bonus a bien été retiré, le
+    // héros gagne `regen` Régénération.
+    if (ennemi) {
+      const actifs = bonusActifsEnnemi(ennemi);
+      if (actifs.length) {
+        ennemi[actifs[Math.floor(Math.random() * actifs.length)]] = 0;
+        combat.regen += effet.regen ?? 0;
+      }
+    }
+  } else if (effet.type === "voler-bonus") {
+    // donne moi ça : vole UN bonus de la cible (tiré au hasard) et l'applique au
+    // héros (la cible le perd). Rien si la cible n'a aucun bonus.
+    if (ennemi) {
+      const actifs = bonusActifsEnnemi(ennemi);
+      if (actifs.length) volerBonus(combat, ennemi, actifs[Math.floor(Math.random() * actifs.length)]);
     }
   } else if (effet.type === "piocher-pierre") {
     // Nimble Hands : pioche `valeur` carte(s) ; pour chaque carte piochée, gagne
