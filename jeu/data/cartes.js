@@ -196,6 +196,7 @@ export const CARTES = {
     nom: "Armor Forging",
     cout: 4,
     type: "attaque",
+    portee: "range",
     aoe: true,
     texte: "Apply 10 Burning to ALL enemies. Already-burning enemies take double, then their Burning is forged into Stone for you.",
     effets: [{ type: "forgeage", feu: 10 }],
@@ -225,8 +226,8 @@ export const CARTES = {
     nom: "Quicken",
     cout: 1,
     type: "buff", // ni dégât ni bouclier : accélère le héros
-    texte: "Gain 3 Haste. Each stack: +5% speed. Lose 1 per turn.",
-    effets: [{ type: "celerite", valeur: 3 }],
+    texte: "Gain 4 Haste. Each stack: +5% speed. Lose 1 per turn.",
+    effets: [{ type: "celerite", valeur: 4 }],
   },
   // Anneau de givre : GÈLE l'ennemi visé (−30% de vitesse) pendant quelques tours.
   "givre-lent": {
@@ -234,6 +235,7 @@ export const CARTES = {
     nom: "Frostbite",
     cout: 1,
     type: "attaque",
+    portee: "range",
     texte: "Deal 5 damage. Chill: -30% speed for 3 turns.",
     effets: [{ type: "degats", valeur: 5 }, { type: "lenteur", valeur: 3 }],
   },
@@ -276,6 +278,7 @@ export const CARTES = {
     nom: "Bloodletting",
     cout: 1,
     type: "attaque",
+    portee: "range",
     texte: "Deal 3 damage + current Bleed stacks as bonus damage. Apply 3 Bleed (stacks don't reset).",
     effets: [{ type: "degats", valeur: 3 }, { type: "sang", valeur: 3 }],
   },
@@ -371,6 +374,7 @@ export const CARTES = {
     nom: "Dragon's Blaze",
     cout: 4,
     type: "attaque",
+    portee: "range",
     aoe: true,
     texte: "Detonate all Burning: deal 2 damage per Burning on ALL enemies.",
     effets: [{ type: "embrasement", valeur: 2 }],
@@ -439,6 +443,7 @@ export const CARTES = {
     nom: "Burning Hand",
     cout: 0,
     type: "attaque",
+    portee: "range",
     texte: "Discard your hand. For each card discarded, apply 8 Burning to a random enemy.",
     effets: [{ type: "defausse-brulante", valeur: 8 }],
   },
@@ -473,6 +478,7 @@ export const CARTES = {
     nom: "Flaming Kick",
     cout: 1,
     type: "attaque",
+    portee: "range",
     texte: "Move all Burning from the target to the enemy behind it.",
     effets: [{ type: "transfert-feu" }],
   },
@@ -497,8 +503,8 @@ export const CARTES = {
     nom: "Light Armor",
     cout: 1,
     type: "defense",
-    texte: "Gain 5 Stone.",
-    effets: [{ type: "pierre", valeur: 5 }],
+    texte: "Gain 6 Stone.",
+    effets: [{ type: "pierre", valeur: 6 }],
   },
 
   // Free Movement : élan qui accélère le héros pour les 5 prochains tours.
@@ -507,8 +513,8 @@ export const CARTES = {
     nom: "Free Movement",
     cout: 2,
     type: "buff",
-    texte: "Haste for 5 of your turns.",
-    effets: [{ type: "celerite", valeur: 5 }],
+    texte: "Haste for 4 of your turns.",
+    effets: [{ type: "celerite", valeur: 4 }],
   },
 
   // ---- Onyx Guard Plate (armure) : All Should Be Fire -------------------------
@@ -520,6 +526,7 @@ export const CARTES = {
     nom: "All Should Be Fire",
     cout: 2,
     type: "attaque",
+    portee: "range",
     aoe: true,
     texte: "Convert ALL enemy statuses (positive and negative) to Burning, then double the Burning.",
     effets: [{ type: "tout-en-feu" }],
@@ -533,8 +540,8 @@ export const CARTES = {
     nom: "Heavy Armor",
     cout: 2,
     type: "defense",
-    texte: "Gain 20 Stone.",
-    effets: [{ type: "pierre", valeur: 20 }],
+    texte: "Gain 22 Stone.",
+    effets: [{ type: "pierre", valeur: 22 }],
   },
 
   // ---- Perfect Frost Ring (bague) : gel en chaîne -----------------------------
@@ -653,6 +660,7 @@ export const CARTES = {
     nom: "Blinding Flash",
     cout: 5,
     type: "attaque",
+    portee: "range",
     aoe: true,
     texte: "Apply 2 Confusion to ALL enemies.",
     effets: [{ type: "confusion", valeur: 2 }],
@@ -721,6 +729,7 @@ export const CARTES = {
     nom: "Bloodbath",
     cout: 3,
     type: "attaque",
+    portee: "range",
     aoe: true,
     texte: "Take 10 damage. Apply 5 Bleed to ALL enemies.",
     effets: [{ type: "auto-degats", valeur: 10 }, { type: "sang", valeur: 5 }],
@@ -744,6 +753,7 @@ export const CARTES = {
     nom: "Open Veins",
     cout: 1,
     type: "attaque",
+    portee: "range",
     texte: "Take 10 damage. Apply 4 Bleed.",
     effets: [{ type: "auto-degats", valeur: 10 }, { type: "sang", valeur: 4 }],
   },
@@ -753,6 +763,7 @@ export const CARTES = {
     nom: "Contagion",
     cout: 2,
     type: "attaque",
+    portee: "range",
     texte: "Both adjacent enemies match the target's Bleed.",
     effets: [{ type: "contagion" }],
   },
@@ -773,6 +784,7 @@ export const CARTES = {
     nom: "Blood Slide",
     cout: 2,
     type: "attaque",
+    portee: "range",
     aoe: true,
     texte: "Stun for 2 turns every enemy that has Bleed.",
     effets: [{ type: "stun-si-sang", valeur: 2 }],
@@ -807,10 +819,10 @@ export const CARTES = {
   "entaille": { id: "entaille", nom: "Gash", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 5 damage. Apply 2 Bleed.", effets: [{ type: "degats", valeur: 5 }, { type: "sang", valeur: 2 }] },
   // Poison Dart : pique empoisonnée de base (alimente le build poison).
-  "dard-empoisonne": { id: "dard-empoisonne", nom: "Poison Dart", cout: 1, type: "attaque", portee: "range", nouveau: true,
-    texte: "Deal 3 damage. Apply 3 Poison.", effets: [{ type: "degats", valeur: 3 }, { type: "poison", valeur: 3 }] },
+  "dard-empoisonne": { id: "dard-empoisonne", nom: "Poison Dart", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 3 damage. Apply 4 Poison.", effets: [{ type: "degats", valeur: 3 }, { type: "poison", valeur: 4 }] },
   // Ice Shard : éclat de glace de base (ralentit — alimente le build gel).
-  "eclat-de-glace": { id: "eclat-de-glace", nom: "Ice Shard", cout: 1, type: "attaque", portee: "range", nouveau: true,
+  "eclat-de-glace": { id: "eclat-de-glace", nom: "Ice Shard", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 5 damage. Chill: -30% speed for 2 turns.", effets: [{ type: "degats", valeur: 5 }, { type: "lenteur", valeur: 2 }] },
   // Ember : braise de base (pose un peu de feu — alimente le build feu/Onyx).
   "braise": { id: "braise", nom: "Ember", cout: 1, type: "attaque", nouveau: true,
@@ -828,7 +840,7 @@ export const CARTES = {
   "flexion": { id: "flexion", nom: "Flex", cout: 1, type: "buff", nouveau: true,
     texte: "Gain 2 Strength (+2 damage to every attack this combat).", effets: [{ type: "force", valeur: 2 }] },
   // Stone Fist : inflige des dégâts égaux à ta Pierre actuelle (sans la consommer).
-  "choc-de-pierre": { id: "choc-de-pierre", nom: "Stone Fist", cout: 2, type: "attaque", nouveau: true,
+  "choc-de-pierre": { id: "choc-de-pierre", nom: "Stone Fist", cout: 3, type: "attaque", nouveau: true,
     texte: "Deal damage equal to your current Stone.", effets: [{ type: "pierre-vers-degats", valeur: 1 }] },
   // Regenerate : gagne 3 Régénération (soigne 3 PV au début de chacun de tes tours).
   "regeneration": { id: "regeneration", nom: "Regenerate", cout: 1, type: "buff", nouveau: true,
@@ -836,11 +848,11 @@ export const CARTES = {
 
   // ---- Signatures d'ARMES uncommon -------------------------------------------
   // Venom Spit : grosse dose de poison (Venomfang Dagger).
-  "crachat-venimeux": { id: "crachat-venimeux", nom: "Venom Spit", cout: 1, type: "attaque", portee: "range", nouveau: true,
+  "crachat-venimeux": { id: "crachat-venimeux", nom: "Venom Spit", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 4 damage. Apply 5 Poison.", effets: [{ type: "degats", valeur: 4 }, { type: "poison", valeur: 5 }] },
   // Shatter : dégâts DOUBLÉS de bonus si la cible est gelée (Frostbrand).
   "brise-glace": { id: "brise-glace", nom: "Shatter", cout: 2, type: "attaque", nouveau: true,
-    texte: "Deal 8 damage, +8 more if the target is Chilled.", effets: [{ type: "degats-si-gel", valeur: 8, bonus: 8 }] },
+    texte: "Deal 8 damage, +5 more if the target is Chilled.", effets: [{ type: "degats-si-gel", valeur: 8, bonus: 5 }] },
   // Flame Slash : coup enflammé (Emberblade) — alimente le combo brûlure.
   "entaille-ardente": { id: "entaille-ardente", nom: "Flame Slash", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 8 damage. Apply 3 Burning.", effets: [{ type: "degats", valeur: 8 }, { type: "feu", valeur: 3 }] },
@@ -852,10 +864,10 @@ export const CARTES = {
     texte: "Deal 14 damage. Lose 4 HP.", effets: [{ type: "degats", valeur: 14 }, { type: "auto-degats", valeur: 4 }] },
   // Power Strike : frappe qui renforce (dégâts + Force) — pilier du build Force.
   "coup-de-force": { id: "coup-de-force", nom: "Power Strike", cout: 2, type: "attaque", nouveau: true,
-    texte: "Deal 6 damage. Gain 2 Strength.", effets: [{ type: "degats", valeur: 6 }, { type: "force", valeur: 2 }] },
+    texte: "Deal 14 damage. Gain 3 Strength.", effets: [{ type: "degats", valeur: 14 }, { type: "force", valeur: 3 }] },
   // Earthshatter : Stone Fist qui rend aussi un peu de Pierre (Warhammer).
-  "seisme": { id: "seisme", nom: "Earthshatter", cout: 2, type: "attaque", nouveau: true,
-    texte: "Deal damage equal to your Stone, then gain 5 Stone.", effets: [{ type: "pierre-vers-degats", valeur: 1 }, { type: "pierre", valeur: 5 }] },
+  "seisme": { id: "seisme", nom: "Earthshatter", cout: 3, type: "attaque", nouveau: true,
+    texte: "Deal damage equal to your Stone, then gain 8 Stone.", effets: [{ type: "pierre-vers-degats", valeur: 1 }, { type: "pierre", valeur: 8 }] },
   // Flurry : trois coups rapides (Twin Daggers) — multi-hit, énorme avec la Force.
   "volee": { id: "volee", nom: "Flurry", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 3 damage three times.", effets: [{ type: "degats", valeur: 3 }, { type: "degats", valeur: 3 }, { type: "degats", valeur: 3 }] },
@@ -872,7 +884,7 @@ export const CARTES = {
   // ---- Signatures d'ARMURE / BOTTES / GANTS uncommon -------------------------
   // Fortify : gros bloc de Pierre (Iron Plate).
   "fortification": { id: "fortification", nom: "Fortify", cout: 2, type: "defense", nouveau: true,
-    texte: "Gain 15 Stone.", effets: [{ type: "pierre", valeur: 15 }] },
+    texte: "Gain 18 Stone.", effets: [{ type: "pierre", valeur: 18 }] },
   // Bloodrage : gagne beaucoup de Force d'un coup (Berserker Hide).
   "rage-sanguine": { id: "rage-sanguine", nom: "Bloodrage", cout: 1, type: "buff", nouveau: true,
     texte: "Gain 4 Strength.", effets: [{ type: "force", valeur: 4 }] },
@@ -883,7 +895,7 @@ export const CARTES = {
   "tour-de-main": { id: "tour-de-main", nom: "Sleight", cout: 1, type: "buff", nouveau: true,
     texte: "Draw 2 cards. Gain 1 Forge Heat.", effets: [{ type: "piocher", valeur: 2 }, { type: "chaleur", valeur: 1 }] },
   // Poison Coat : empoisonne TOUS les ennemis (Venom Gloves) — AOE poison.
-  "enduit-toxique": { id: "enduit-toxique", nom: "Poison Coat", cout: 1, type: "attaque", aoe: true, nouveau: true,
+  "enduit-toxique": { id: "enduit-toxique", nom: "Poison Coat", cout: 1, type: "attaque", portee: "range", aoe: true, nouveau: true,
     texte: "Apply 2 Poison to ALL enemies.", effets: [{ type: "poison", valeur: 2 }] },
 
   // ---- Signatures de BAGUES / COLLIERS uncommon ------------------------------
@@ -895,9 +907,9 @@ export const CARTES = {
     texte: "Gain 3 Strength.", effets: [{ type: "force", valeur: 3 }] },
   // Frost Nova : gel de masse (Frost Signet).
   "nova-de-givre": { id: "nova-de-givre", nom: "Frost Nova", cout: 2, type: "attaque", portee: "range", aoe: true, nouveau: true,
-    texte: "Chill ALL enemies (-30% speed for 2 turns).", effets: [{ type: "lenteur", valeur: 2 }] },
+    texte: "Chill ALL enemies (-30% speed for 3 turns).", effets: [{ type: "lenteur", valeur: 3 }] },
   // Bloodthirst : saignement qui soigne le héros (Bloodthirst Ring).
-  "soif-de-sang": { id: "soif-de-sang", nom: "Bloodthirst", cout: 1, type: "attaque", nouveau: true,
+  "soif-de-sang": { id: "soif-de-sang", nom: "Bloodthirst", cout: 1, type: "attaque", portee: "range", nouveau: true,
     texte: "Deal 5 damage, apply 3 Bleed, and heal 3 HP.", effets: [{ type: "degats", valeur: 5 }, { type: "sang", valeur: 3 }, { type: "soin-heros", valeur: 3 }] },
   // Overclock : grosse relance d'énergie (Forge Ring).
   "surcharge": { id: "surcharge", nom: "Overclock", cout: 1, type: "buff", nouveau: true,
@@ -906,7 +918,7 @@ export const CARTES = {
   "concentration": { id: "concentration", nom: "Focus", cout: 1, type: "buff", nouveau: true,
     texte: "Draw 1 card. Gain 2 Forge Heat.", effets: [{ type: "piocher", valeur: 1 }, { type: "chaleur", valeur: 2 }] },
   // Drain : vol de vie (Vampiric Pendant).
-  "drain": { id: "drain", nom: "Drain", cout: 1, type: "attaque", portee: "range", nouveau: true,
+  "drain": { id: "drain", nom: "Drain", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 6 damage and heal 4 HP.", effets: [{ type: "degats", valeur: 6 }, { type: "soin-heros", valeur: 4 }] },
 
   // ---- Signatures de MAIN SECONDE (off-hand : boucliers, grimoires, sceptres) -
@@ -915,10 +927,10 @@ export const CARTES = {
     texte: "Deal 5 damage and apply 3 Burning to ALL enemies.", effets: [{ type: "degats", valeur: 5 }, { type: "feu", valeur: 3 }] },
   // Rally : commandement qui renforce et fait piocher (Scepter of Command).
   "ralliement": { id: "ralliement", nom: "Rally", cout: 1, type: "buff", nouveau: true,
-    texte: "Gain 3 Strength. Draw 1 card.", effets: [{ type: "force", valeur: 3 }, { type: "piocher", valeur: 1 }] },
+    texte: "Gain 4 Strength. Draw 2 cards.", effets: [{ type: "force", valeur: 4 }, { type: "piocher", valeur: 2 }] },
   // Aegis : gros bloc défensif + régénération (Warding Shield).
   "egide": { id: "egide", nom: "Aegis", cout: 2, type: "defense", nouveau: true,
-    texte: "Gain 12 Stone and 2 Regen.", effets: [{ type: "pierre", valeur: 12 }, { type: "regen", valeur: 2 }] },
+    texte: "Gain 12 Stone and 3 Regen.", effets: [{ type: "pierre", valeur: 12 }, { type: "regen", valeur: 3 }] },
   // Arcane Surge : décharge de zone qui rend de l'énergie (Tome of Power).
   "vague-arcanique": { id: "vague-arcanique", nom: "Arcane Surge", cout: 2, type: "attaque", portee: "range", aoe: true, nouveau: true,
     texte: "Deal 4 damage to ALL enemies. Gain 2 Forge Heat.", effets: [{ type: "degats", valeur: 4 }, { type: "chaleur", valeur: 2 }] },
