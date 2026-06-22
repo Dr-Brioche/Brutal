@@ -550,6 +550,22 @@ function appliquerEffet(combat, effet, ennemi) {
       combat.pierre += (c.cout ?? 0) * (effet.mult ?? 2);
       ajouterCarteMain(combat, c);
     }
+  } else if (effet.type === "retirer-feu-hero") {
+    // Vent frais : retire `valeur` ticks de Feu (brûlure) DU HÉROS.
+    combat.feuHeros = Math.max(0, combat.feuHeros - effet.valeur);
+  } else if (effet.type === "chaleur-aleatoire") {
+    // Roll dice : gagne une quantité ALÉATOIRE de Chaleur entre `min` et `max` (inclus).
+    const gain = effet.min + Math.floor(Math.random() * (effet.max - effet.min + 1));
+    combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + gain);
+  } else if (effet.type === "pioche-filtre") {
+    // Lucky Draw : pioche `valeur` cartes, GARDE celles dont le coût est strictement
+    // inférieur à `coutMax`, défausse les autres (les cartes chères).
+    for (let i = 0; i < effet.valeur; i++) {
+      const c = piocherUne(combat);
+      if (!c) break;
+      if ((c.cout ?? 0) < effet.coutMax) ajouterCarteMain(combat, c);
+      else combat.defausse.push(c);
+    }
   }
 }
 
@@ -678,6 +694,11 @@ function resoudreAOE(combat, carte) {
         if (avant > 0 && e.pv <= 0) morts++;
       }
       if (morts > 0) combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.soinMort * morts);
+    } else if (effet.type === "degats-soin-cible") {
+      // Healing Cleave : `degats` à chaque ennemi vivant (Force incluse si mêlée),
+      // puis soigne le héros de `soin` PV par ennemi touché.
+      for (const e of vivants) appliquerEffet(combat, { type: "degats", valeur: effet.degats }, e);
+      combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.soin * vivants.length);
     } else if (effetViseEnnemi(effet)) {
       for (const e of vivants) appliquerEffet(combat, effet, e);
     } else {

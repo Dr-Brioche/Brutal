@@ -969,4 +969,23 @@ export const CARTES = {
   "frappe-de-gloire": { id: "frappe-de-gloire", nom: "Glory Strike", cout: 2, type: "attaque", nouveau: true,
     texte: "Deal 12 damage. Remove a random buff from the target; if one was removed, gain 4 Regen.",
     effets: [{ type: "degats", valeur: 12 }, { type: "supprimer-bonus", regen: 4 }] },
+
+  // ---- Nouvelles cartes (2/2) : nouveaux types d'effets simples ----
+  // Fresh Wind : éteint une partie de la brûlure du héros.
+  "vent-frais": { id: "vent-frais", nom: "Fresh Wind", cout: 1, type: "buff", nouveau: true,
+    texte: "Remove 3 Burning from yourself.", effets: [{ type: "retirer-feu-hero", valeur: 3 }] },
+  // Healing Cleave : balayage soignant (dégâts AOE + soin par cible touchée).
+  "fauchage-soin": { id: "fauchage-soin", nom: "Healing Cleave", cout: 2, type: "attaque", aoe: true, nouveau: true,
+    texte: "Deal 6 damage to ALL enemies. Heal 4 HP per enemy hit.",
+    effets: [{ type: "degats-soin-cible", degats: 6, soin: 4 }] },
+  // Roll 1 Dice : énergie aléatoire (0 à 3).
+  "des-1": { id: "des-1", nom: "Roll 1 Dice", cout: 1, type: "buff", nouveau: true,
+    texte: "Gain 0 to 3 Forge Heat at random.", effets: [{ type: "chaleur-aleatoire", min: 0, max: 3 }] },
+  // Roll 2 Dice : énergie aléatoire (1 à 5).
+  "des-2": { id: "des-2", nom: "Roll 2 Dice", cout: 2, type: "buff", nouveau: true,
+    texte: "Gain 1 to 5 Forge Heat at random.", effets: [{ type: "chaleur-aleatoire", min: 1, max: 5 }] },
+  // Lucky Draw : pioche 3 cartes, ne garde que les bon marché (coût < 3).
+  "pioche-chanceuse": { id: "pioche-chanceuse", nom: "Lucky Draw", cout: 1, type: "buff", nouveau: true,
+    texte: "Draw 3 cards. Keep those costing less than 3 Forge Heat, discard the rest.",
+    effets: [{ type: "pioche-filtre", valeur: 3, coutMax: 3 }] },
 };
