@@ -520,12 +520,12 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const seuil = FORGE_SEUIL + (t.chaleurSeuil || 0);
     const max = FORGE_MAX + (t.chaleurMax || 0);
     const agility = 10 + (t.agilite || 0) + (heros.agiliteEquip || 0); // ATB base (10) + talents + bottes
-    const moveSpeed = Math.round((heros.vitesseEquipPct || 0)); // bonus % de vitesse de déplacement (bottes)
+    const moveSpeed = Math.round(100 * (1 + (heros.vitesseEquipPct || 0) / 100));
     const lignes = [
       ["Level",       `${heros.niveau}  (${heros.pointsTalent} pts)`],
       ["Max HP",      heros.pvMax],
       ["Agility",     agility],
-      ["Move Speed",  `+${moveSpeed}%`],
+      ["Move Speed",  moveSpeed],
       ["Forge Heat",  `${seuil} / ${max}`],
       ["Cards/turn",  BASE_PIOCHE + (t.pioche || 0)],
     ];
