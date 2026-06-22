@@ -552,6 +552,31 @@ Principe (validé 19/06/2026) :
 - **Épines** (passif `frappeMelee` de dégâts) — l'attaquant **se blesse** en frappant
   (ex. *Spiked Armor* : 2 dégâts de rétorsion).
 
+**Révision Excel (juin 2026) — reworks & nouvelles mécaniques** :
+- **Drain** (Vampiric Pendant) — **consomme tout le Saignement** de la cible, **soigne
+  d'autant** de PV, et **+1 Chaleur** (`drain-sang`). Carte combo avec *Gash*.
+- **Bonus ennemis (statuts positifs)** — système **générique** (`CLES_BONUS_ENNEMI`,
+  aujourd'hui juste la **Hâte alliée**). Deux usages :
+  - **Dissiper** (`supprimer-bonus`) — retire un bonus au hasard ; si réussi, **+4 Regen**
+    au héros. Sources : *Lay on Hands* (réécrite), *Glory Strike*.
+  - **Voler** (`voler-bonus`) — le héros **prend** le bonus (la Hâte alliée → sa propre
+    célérité). Source : *Gimme That*.
+- **Nimble Hands** (réécrite) — pioche 1 carte **et gagne en Pierre le double de son coût**
+  (`piocher-pierre`).
+- **Riposte** (`riposte`, statut héros) — renvoie à l'attaquant les **dégâts de MÊLÉE**
+  reçus (pas les attaques à distance), **−1 tick par renvoi**. Source : *Rebound*.
+- **Hâte permanente** (`hatePerm`) — Hâte qui **ne s'écoule pas**. *Long Run* en ajoute
+  **+1/tour tout le combat** (cumulable) : la vitesse **monte** progressivement.
+- **Tour bonus** (`toursBonus`) — le héros **enchaîne un tour de plus** sans laisser
+  agir les ennemis (jauge d'initiative remplie en fin de tour). Source : *Unstoppable*.
+- **Set Stone Age** — compteur `cartesPierre` (cartes pierre jouées : *Stone* = 1,
+  *Many Stone* = 3). Les combos lisent ce total : *Stone Coagulation* (Pierre = compteur),
+  *Pebble Sale* (pioche = compteur/6, borné 1–6), *Melt Stones* (énergie = compteur/8, borné 1–6).
+- **Énergie aléatoire** (`chaleur-aleatoire`) — *Roll 1 Dice* (0–3), *Roll 2 Dice* (1–5).
+- **Pioche filtrée** (`pioche-filtre`) — *Lucky Draw* : pioche 3, garde les cartes **< 3 Chaleur**.
+- **Soin par cible** (`degats-soin-cible`) — *Healing Cleave* : dégâts AOE + soin par ennemi touché.
+- **Anti-feu héros** (`retirer-feu-hero`) — *Fresh Wind* : retire des ticks de brûlure au héros.
+
 > **Revue dans l'Excel** : tout nouvel item/carte porte un champ `nouveau: true`
 > dans le code ; le générateur du catalogue **surligne ces lignes en jaune** pour
 > que Brioche les relise facilement. (À retirer une fois validés.)
