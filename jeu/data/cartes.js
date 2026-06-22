@@ -362,6 +362,7 @@ export const CARTES = {
     nom: "Onyx Breath",
     cout: 3,
     type: "attaque",
+    portee: "range",
     aoe: true,
     texte: "Apply 20 Burning to ALL enemies.",
     effets: [{ type: "feu", valeur: 20 }],
@@ -390,6 +391,7 @@ export const CARTES = {
     nom: "Onyx Radiance",
     cout: 1,
     type: "attaque",
+    portee: "range",
     aoe: true,
     texte: "Apply 8 Burning to ALL enemies.",
     effets: [{ type: "feu", valeur: 8 }],
@@ -418,6 +420,7 @@ export const CARTES = {
     nom: "Heat Rejection",
     cout: 0,
     type: "attaque",
+    portee: "range",
     aoe: true,
     texte: "Spend all Forge Heat. Apply 8 Burning per Heat spent to ALL enemies.",
     effets: [{ type: "rejet-chaleur", valeur: 8 }],
@@ -599,7 +602,7 @@ export const CARTES = {
   // Second Wind : échange 5 tours de Hâte contre 3 Chaleur. Sans 5 Hâte, rien.
   "second-souffle": {
     id: "second-souffle",
-    nom: "Second Wind",
+    nom: "Second breath",
     cout: 0,
     type: "buff",
     texte: "Trade 5 Haste turns for 3 Forge Heat. No effect below 5 Haste.",
@@ -682,6 +685,7 @@ export const CARTES = {
     nom: "Halo Burst",
     cout: 1,
     type: "attaque",
+    portee: "range",
     aoe: true,
     texte: "Apply 1 more Confusion to each already-confused enemy.",
     effets: [{ type: "confusion-si-confus", valeur: 1 }],
@@ -849,16 +853,16 @@ export const CARTES = {
   // ---- Signatures d'ARMES uncommon -------------------------------------------
   // Venom Spit : grosse dose de poison (Venomfang Dagger).
   "crachat-venimeux": { id: "crachat-venimeux", nom: "Venom Spit", cout: 1, type: "attaque", nouveau: true,
-    texte: "Deal 4 damage. Apply 5 Poison.", effets: [{ type: "degats", valeur: 4 }, { type: "poison", valeur: 5 }] },
+    texte: "Deal 5 damage. Apply 5 Poison.", effets: [{ type: "degats", valeur: 5 }, { type: "poison", valeur: 5 }] },
   // Shatter : dégâts DOUBLÉS de bonus si la cible est gelée (Frostbrand).
   "brise-glace": { id: "brise-glace", nom: "Shatter", cout: 2, type: "attaque", nouveau: true,
     texte: "Deal 8 damage, +5 more if the target is Chilled.", effets: [{ type: "degats-si-gel", valeur: 8, bonus: 5 }] },
   // Flame Slash : coup enflammé (Emberblade) — alimente le combo brûlure.
   "entaille-ardente": { id: "entaille-ardente", nom: "Flame Slash", cout: 1, type: "attaque", nouveau: true,
-    texte: "Deal 8 damage. Apply 3 Burning.", effets: [{ type: "degats", valeur: 8 }, { type: "feu", valeur: 3 }] },
+    texte: "Deal 6 damage. Apply 3 Burning.", effets: [{ type: "degats", valeur: 6 }, { type: "feu", valeur: 3 }] },
   // Rend : entaille saignante plus profonde (Reaver Axe).
   "dechirure": { id: "dechirure", nom: "Rend", cout: 1, type: "attaque", nouveau: true,
-    texte: "Deal 6 damage. Apply 3 Bleed.", effets: [{ type: "degats", valeur: 6 }, { type: "sang", valeur: 3 }] },
+    texte: "Deal 6 damage. Apply 4 Bleed.", effets: [{ type: "degats", valeur: 6 }, { type: "sang", valeur: 4 }] },
   // Reckless Swing : très gros coup, mais le héros se blesse (Berserker Axe).
   "coup-imprudent": { id: "coup-imprudent", nom: "Reckless Swing", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 14 damage. Lose 4 HP.", effets: [{ type: "degats", valeur: 14 }, { type: "auto-degats", valeur: 4 }] },
@@ -886,7 +890,7 @@ export const CARTES = {
   "fortification": { id: "fortification", nom: "Fortify", cout: 2, type: "defense", nouveau: true,
     texte: "Gain 18 Stone.", effets: [{ type: "pierre", valeur: 18 }] },
   // Bloodrage : gagne beaucoup de Force d'un coup (Berserker Hide).
-  "rage-sanguine": { id: "rage-sanguine", nom: "Bloodrage", cout: 1, type: "buff", nouveau: true,
+  "rage-sanguine": { id: "rage-sanguine", nom: "Rage", cout: 1, type: "buff", nouveau: true,
     texte: "Gain 4 Strength.", effets: [{ type: "force", valeur: 4 }] },
   // Dash : hâte + pioche (Swift Striders).
   "ruee": { id: "ruee", nom: "Dash", cout: 1, type: "buff", nouveau: true,
@@ -901,7 +905,7 @@ export const CARTES = {
   // ---- Signatures de BAGUES / COLLIERS uncommon ------------------------------
   // Venom Nova : poison de masse (Toxic Ring).
   "nuee-toxique": { id: "nuee-toxique", nom: "Venom Nova", cout: 2, type: "attaque", portee: "range", aoe: true, nouveau: true,
-    texte: "Apply 3 Poison to ALL enemies.", effets: [{ type: "poison", valeur: 3 }] },
+    texte: "Apply 6 Poison to ALL enemies.", effets: [{ type: "poison", valeur: 6 }] },
   // Empower : gros gain de Force (Ring of Might).
   "galvanisation": { id: "galvanisation", nom: "Empower", cout: 1, type: "buff", nouveau: true,
     texte: "Gain 3 Strength.", effets: [{ type: "force", valeur: 3 }] },
