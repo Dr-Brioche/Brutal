@@ -517,6 +517,30 @@
     .combat-carte--defense { border-color: #2f5066; background: #1d2630; }
     .combat-carte--buff    { border-color: #3f7a4d; background: #1b2a20; } /* vert (provisoire) : ni dégât ni bouclier */
 
+    /* Overlay d'animation de dés : résultat Roll Dice qui tourne avant de s'arrêter. */
+    .combat-des-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      background: rgba(0, 0, 0, 0.38);
+      pointer-events: none;
+    }
+    .combat-des-emoji { font-size: 6cqh; line-height: 1; animation: des-apparition 0.12s ease-out; }
+    .combat-des-num {
+      font-size: 10cqh; font-weight: 900; color: #ffb454; margin-top: 0.2em;
+      text-shadow: 0 0 16px rgba(255, 180, 80, 0.65);
+      animation: des-apparition 0.12s ease-out;
+    }
+    .combat-des-num--final { color: #4de888; text-shadow: 0 0 18px rgba(60, 230, 130, 0.7); }
+    @keyframes des-apparition {
+      from { opacity: 0; transform: scale(0.7); }
+      to   { opacity: 1; transform: none; }
+    }
+
     /* Overlay d'animation de pioche : carte piochée affichée en grand au centre.
        Cliquer l'overlay avance à la carte suivante immédiatement. */
     #combat-pioche-anim {

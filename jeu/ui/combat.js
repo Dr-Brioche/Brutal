@@ -415,6 +415,41 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     suivante();
   }
 
+  // Anime le résultat d'un lancer de dés (effet chaleur-aleatoire).
+  // Les chiffres défilent rapidement, puis ralentissent et s'arrêtent sur le résultat.
+  function animerDes({ min, max, gain }) {
+    enAnimPioche = true;
+    const zone = overlay.querySelector(".combat-zone");
+    const div = document.createElement("div");
+    div.className = "combat-des-overlay";
+    const emoji = document.createElement("div");
+    emoji.className = "combat-des-emoji";
+    emoji.textContent = "🎲";
+    const num = document.createElement("div");
+    num.className = "combat-des-num";
+    div.append(emoji, num);
+    zone.appendChild(div);
+    let frame = 0;
+    const FRAMES = 10;
+    function roll() {
+      frame++;
+      if (frame < FRAMES) {
+        num.textContent = min + Math.floor(Math.random() * (max - min + 1));
+        setTimeout(roll, 40 + frame * 16); // commence vite, ralentit
+      } else {
+        num.textContent = gain;
+        num.classList.add("combat-des-num--final");
+        setTimeout(() => {
+          div.remove();
+          enAnimPioche = false;
+          // Floater montrant le gain de Chaleur obtenu.
+          ajouterFlottant(`🔥+${gain}`, heroEcran.cx, heroEcran.sommet - 16, "#ffb454");
+        }, 700);
+      }
+    }
+    roll();
+  }
+
   // Espace sur une carte : si plusieurs ennemis vivants ET carte ciblée (non-AOE)
   // → phase de ciblage. Sinon (1 ennemi, AOE, ou carte défensive) → joue directement.
   function tenterJouer(i) {
@@ -454,6 +489,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // Réinitialiser les compteurs d'overkill/over-heal avant la résolution.
     combat.ennemis.forEach(e => { e.dernierDegats = 0; });
     combat.dernierSoinCarte = 0;
+    combat.dernierGainAleatoire = null;
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
     if (maitrise) incrementerMaitrise(maitrise, heros, carte.id);
 
@@ -514,10 +550,17 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     selection = combat.main.length > 0 ? Math.min(selection, combat.main.length - 1) : -1;
     rafraichir();
     verifierFin();
-    // Cartes piochées EN COURS DE TOUR (effet « piocher »/« piocher-par-ennemi »…).
-    // drawn = nb cartes ajoutées : (taille après) - (taille avant - 1 carte jouée).
-    const drawn = combat.main.length - nbAvant + 1;
-    if (!combat.fini && drawn > 0) animerPioche(combat.main.slice(-drawn), null);
+    if (!combat.fini) {
+      // Lancer de dés (chaleur-aleatoire) : animation qui roule avant de s'arrêter sur le résultat.
+      if (combat.dernierGainAleatoire) {
+        animerDes(combat.dernierGainAleatoire);
+      } else {
+        // Cartes piochées EN COURS DE TOUR (effet « piocher »/« piocher-par-ennemi »…).
+        // drawn = nb cartes ajoutées : (taille après) - (taille avant - 1 carte jouée).
+        const drawn = combat.main.length - nbAvant + 1;
+        if (drawn > 0) animerPioche(combat.main.slice(-drawn), null);
+      }
+    }
   }
 
   // -- Ciblage SOURIS : on saisit une carte et on tire une flèche vers un monstre.

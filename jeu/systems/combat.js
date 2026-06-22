@@ -178,6 +178,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     dernierPoisonHeros: 0,
     dernierFeuHeros: 0,
     dernierSoinCarte: 0, // soin brut rendu par la dernière carte (avant cap au max, pour l'over-heal UI)
+    dernierGainAleatoire: null, // { min, max, gain } — résultat du dernier chaleur-aleatoire (animation dés)
     // Initiative (ATB)
     vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0), // + talents d'agilité
     celeritePct: stats.celeritePct || 0, // bonus PASSIF de célérité (%) des bottes (toujours actif en combat)
@@ -634,6 +635,7 @@ function appliquerEffet(combat, effet, ennemi) {
     // Roll dice : gagne une quantité ALÉATOIRE de Chaleur entre `min` et `max` (inclus).
     const gain = effet.min + Math.floor(Math.random() * (effet.max - effet.min + 1));
     combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + gain);
+    combat.dernierGainAleatoire = { min: effet.min, max: effet.max, gain };
   } else if (effet.type === "pioche-filtre") {
     // Lucky Draw : pioche `valeur` cartes, GARDE celles dont le coût est strictement
     // inférieur à `coutMax`, défausse les autres (les cartes chères).
