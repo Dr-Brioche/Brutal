@@ -17,7 +17,7 @@ import {
   simulerFile, ratioInitiativeHeros, ratioInitiativeEnnemi, cibleSoinVerrou,
 } from "../systems/combat.js";
 import { cartesEquipees, mainsOccupees } from "../systems/inventaire.js";
-import { setsActifs, itemDef } from "../data/items.js";
+import { setsActifs, itemDef, comboArmeActif } from "../data/items.js";
 import { bonusTalents } from "../systems/talents.js";
 import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
@@ -77,8 +77,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Célérité passive (% d'initiative de combat) des items. Le « move speed » des
   // bottes, lui, agit en EXPLORATION (cf. appliquerEquipement), pas en combat.
   const celeritePct = itemsEquipes.reduce((s, d) => s + (d.celeritePct ?? 0), 0);
-  // Force permanente : bonus de dégâts fixe pour TOUT le combat (déclaré par items).
-  const forcePerm = itemsEquipes.reduce((s, d) => s + (d.forcePerm ?? 0), 0);
+  // Force permanente : bonus de dégâts fixe pour TOUT le combat (déclaré par items),
+  // + le combo d'arme actif (ex. Twin Daggers en double, Basilisk Fang + dague off-hand).
+  const forcePerm = itemsEquipes.reduce((s, d) => s + (d.forcePerm ?? 0), 0)
+    + (comboArmeActif(inventaire.slots)?.forcePerm ?? 0);
   // Agilité (vitesse d'attaque ATB) donnée par les items (surtout les bottes) :
   // s'ajoute à l'agilité des talents (base 10).
   const agiliteItems = itemsEquipes.reduce((s, d) => s + (d.agilite ?? 0), 0);

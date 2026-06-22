@@ -7,7 +7,7 @@
 // peut la placer SOUS LA SOURIS (montrerInfobulle) ou À CÔTÉ D'UN ÉLÉMENT
 // (montrerInfobulleEl) — ce dernier sert à la navigation au CLAVIER.
 
-import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES, setDeItem } from "../data/items.js";
+import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES, setDeItem, comboArmeActif } from "../data/items.js";
 import { CARTES } from "../data/cartes.js";
 import { garnirCarte } from "./carte.js";
 
@@ -63,6 +63,28 @@ function blocSet(id) {
   return bloc;
 }
 
+// Bloc « combo d'arme » (ex. Twin Daggers, Basilisk Fang) : le bonus de Force
+// permanente, mis en avant si la condition est REMPLIE par l'équipement actuel
+// (cette arme en main principale + la bonne arme en off-hand). Null sinon.
+function blocCombo(id) {
+  const d = itemDef(id);
+  if (!d?.comboArme) return null;
+  const eq = equipementActuel() || {};
+  const actif = eq.arme1 === id && comboArmeActif(eq) != null;
+
+  const bloc = document.createElement("div");
+  bloc.className = "inv-tip-set" + (actif ? " inv-tip-set--actif" : "");
+  const titre = document.createElement("div");
+  titre.className = "inv-tip-set-titre";
+  titre.textContent = "Weapon Combo";
+  bloc.append(titre);
+  const bonus = document.createElement("div");
+  bonus.className = "inv-tip-set-bonus";
+  bonus.textContent = (actif ? "" : "When set up: ") + d.comboArme.texte;
+  bloc.append(bonus);
+  return bloc;
+}
+
 // Remplit la bulle pour l'objet `id` (sans la positionner). Renvoie false si l'id
 // est inconnu.
 function construire(id) {
@@ -114,6 +136,10 @@ function construire(id) {
   // Bloc « set d'armure » si l'objet en fait partie (pièces équipées en vert).
   const set = blocSet(id);
   if (set) enfants.push(set);
+
+  // Bloc « combo d'arme » (Twin Daggers, Basilisk Fang) si l'objet en a un.
+  const combo = blocCombo(id);
+  if (combo) enfants.push(combo);
 
   t.replaceChildren(...enfants);
   t.hidden = false;

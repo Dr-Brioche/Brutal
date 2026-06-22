@@ -68,7 +68,9 @@ export const ITEMS = {
   "croc-de-basilic": {
     id: "croc-de-basilic", nom: "Basilisk Fang", categorie: "arme", rarete: "rare",
     taille: { l: 1, h: 2 }, icone: "#4f7a3a",
-    degats: 4, mains: 1,
+    degats: 4, mains: 1, sousType: "dague",
+    // Combo : si UNE AUTRE dague est équipée en off-hand → +5 Force permanente au combat.
+    comboArme: { type: "dagueOffhand", forcePerm: 5, texte: "Twin fang: +5 permanent Strength if another dagger is in your off-hand." },
     cartes: ["coup-venimeux", "coup-venimeux", "coup-venimeux", "danse-empoisonnee", "ouverture-des-plaies", "ouverture-des-plaies"],
   },
   // Marteau de lave : arme de feu. 3× Lava Hammer + 1× Armor Forging + 1× Dragon's Blaze + 2× Fire Strike.
@@ -317,9 +319,9 @@ export const ITEMS = {
   "masse": { id: "masse", nom: "Mace", categorie: "arme", rarete: "commun", nouveau: true,
     taille: { l: 1, h: 2 }, icone: "#9aa0a6", mains: 1, cartes: ["coup-lourd", "coup-lourd", "garde", "garde", "fracas"] },
   "dague-rouillee": { id: "dague-rouillee", nom: "Rusty Dagger", categorie: "arme", rarete: "commun", nouveau: true,
-    taille: { l: 1, h: 1 }, icone: "#6a7a4a", mains: 1, cartes: ["dard-empoisonne", "dard-empoisonne", "frappe", "frappe"] },
+    taille: { l: 1, h: 1 }, icone: "#6a7a4a", mains: 1, sousType: "dague", cartes: ["dard-empoisonne", "dard-empoisonne", "frappe", "frappe"] },
   "couteau-serpent": { id: "couteau-serpent", nom: "Serpent Knife", categorie: "arme", rarete: "commun", nouveau: true,
-    taille: { l: 1, h: 1 }, icone: "#5a7a3a", mains: 1, cartes: ["dard-empoisonne", "dard-empoisonne", "dard-empoisonne", "taillade"] },
+    taille: { l: 1, h: 1 }, icone: "#5a7a3a", mains: 1, sousType: "dague", cartes: ["dard-empoisonne", "dard-empoisonne", "dard-empoisonne", "taillade"] },
   "pic-de-glace": { id: "pic-de-glace", nom: "Ice Pick", categorie: "arme", rarete: "commun", nouveau: true,
     taille: { l: 1, h: 2 }, icone: "#7fb0d9", mains: 1, cartes: ["eclat-de-glace", "eclat-de-glace", "frappe", "frappe"] },
   "torche": { id: "torche", nom: "Torch", categorie: "arme", rarete: "commun", nouveau: true,
@@ -339,7 +341,7 @@ export const ITEMS = {
 
   // ---- Armes — une main : UNCOMMONS (10) — 1 signature chacune ----------------
   "dague-venin": { id: "dague-venin", nom: "Venomfang Dagger", categorie: "arme", rarete: "uncommon", nouveau: true,
-    taille: { l: 1, h: 1 }, icone: "#4f8a3a", mains: 1, cartes: ["crachat-venimeux", "dard-empoisonne", "dard-empoisonne", "taillade"] },
+    taille: { l: 1, h: 1 }, icone: "#4f8a3a", mains: 1, sousType: "dague", cartes: ["crachat-venimeux", "dard-empoisonne", "dard-empoisonne", "taillade"] },
   "lame-de-givre": { id: "lame-de-givre", nom: "Frostbrand", categorie: "arme", rarete: "uncommon", nouveau: true,
     taille: { l: 1, h: 2 }, icone: "#5aa6e0", mains: 1, cartes: ["brise-glace", "eclat-de-glace", "eclat-de-glace", "taillade"] },
   "lame-de-braise": { id: "lame-de-braise", nom: "Emberblade", categorie: "arme", rarete: "uncommon", nouveau: true,
@@ -351,7 +353,10 @@ export const ITEMS = {
   "marteau-guerre": { id: "marteau-guerre", nom: "Warhammer", categorie: "arme", rarete: "uncommon", nouveau: true,
     taille: { l: 1, h: 2 }, icone: "#82827a", mains: 1, cartes: ["seisme", "grand-fracas", "mur-de-fer", "mur-de-fer", "grande-frappe"] },
   "dagues-jumelles": { id: "dagues-jumelles", nom: "Twin Daggers", categorie: "arme", rarete: "uncommon", nouveau: true,
-    taille: { l: 1, h: 2 }, icone: "#b0b4bc", mains: 1, cartes: ["volee", "volee", "double-frappe", "grande-frappe", "grande-frappe"] },
+    taille: { l: 1, h: 2 }, icone: "#b0b4bc", mains: 1, sousType: "dague",
+    // Combo jumelle : si la MÊME Twin Dagger est équipée en off-hand → +3 Force permanente.
+    comboArme: { type: "memeArme", forcePerm: 3, texte: "Twin combo: +3 permanent Strength if the same Twin Daggers are in your off-hand." },
+    cartes: ["volee", "volee", "double-frappe", "grande-frappe", "grande-frappe"] },
   "lame-bourreau": { id: "lame-bourreau", nom: "Executioner's Blade", categorie: "arme", rarete: "uncommon", nouveau: true,
     taille: { l: 1, h: 3 }, icone: "#6a4a5a", mains: 1, cartes: ["execution", "execution", "coup-lourd", "taillade", "grande-frappe"] },
   "baguette-cristal": { id: "baguette-cristal", nom: "Crystal Wand", categorie: "arme", rarete: "uncommon", nouveau: true,
@@ -618,6 +623,21 @@ export const SETS = {
 export function setsActifs(slots) {
   const equipes = new Set(Object.values(slots || {}).filter(Boolean));
   return Object.values(SETS).filter((s) => s.pieces.every((id) => equipes.has(id)));
+}
+
+// Combo d'arme ACTIF (Force permanente au combat) selon les deux mains équipées.
+// L'arme principale (arme1) porte un `comboArme` { type, forcePerm, texte } :
+//   - "memeArme"     : la MÊME arme est aussi en off-hand (ex. Twin Daggers, +3).
+//   - "dagueOffhand" : une dague (sousType "dague") est en off-hand (ex. Basilisk Fang, +5).
+// Renvoie le comboArme (avec son bonus + texte) s'il est actif, sinon null.
+export function comboArmeActif(slots) {
+  const a1 = ITEMS[slots?.arme1];
+  const a2 = ITEMS[slots?.arme2];
+  const combo = a1?.comboArme;
+  if (!combo) return null;
+  if (combo.type === "memeArme" && slots.arme1 === slots.arme2) return combo;
+  if (combo.type === "dagueOffhand" && a2?.sousType === "dague") return combo;
+  return null;
 }
 
 // Le set auquel appartient un item (ou null) — pour l'afficher dans sa bulle / le
