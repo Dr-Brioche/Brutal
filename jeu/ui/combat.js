@@ -24,7 +24,7 @@ import { dessinerCaseEchelle } from "../core/sprites.js";
 import { garnirCarte } from "./carte.js";
 import { alerteVie } from "./effets.js";
 import {
-  jouerSonCoup, jouerSonCoupArmure, jouerSonSortilege, jouerSonPierre,
+  jouerSonCoup, jouerSonCoupArmure, jouerSonSortilege, jouerSonPierre, jouerSonPioche,
 } from "../core/sons.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
@@ -136,6 +136,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Éléments d'interface (présents dans index.html)
   const overlay = document.getElementById("combat");
   const conteneurMain = document.getElementById("combat-main");
+  const overlayPioche = document.getElementById("combat-pioche-anim");
   const boutonFin = document.getElementById("combat-fin");
   const panneauResultat = document.getElementById("combat-resultat");
   const texteResultat = document.getElementById("combat-resultat-texte");
@@ -383,6 +384,36 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // -- Actions du joueur ----------------------------------------------------
 
   let _tsDerniereCarteJouee = 0; // anti-double-clic : 200 ms entre deux cartes
+  let enAnimPioche = false;      // bloque jouer/finDeTour pendant l'animation de pioche
+
+  // Affiche chaque carte piochée en grand au centre pendant 500 ms.
+  // Cliquer l'overlay passe immédiatement à la suivante.
+  function animerPioche(cartes, callback) {
+    if (!cartes || cartes.length === 0) { callback?.(); return; }
+    enAnimPioche = true;
+    let idx = 0, timer = 0;
+    function suivante() {
+      if (idx >= cartes.length) {
+        overlayPioche.onclick = null;
+        overlayPioche.hidden = true;
+        overlayPioche.innerHTML = "";
+        enAnimPioche = false;
+        callback?.();
+        return;
+      }
+      const carte = cartes[idx++];
+      overlayPioche.innerHTML = "";
+      const el = document.createElement("div");
+      el.className = "combat-carte";
+      garnirCarte(el, carte);
+      overlayPioche.appendChild(el);
+      overlayPioche.hidden = false;
+      jouerSonPioche();
+      timer = setTimeout(suivante, 500);
+    }
+    overlayPioche.onclick = () => { clearTimeout(timer); idx = cartes.length; suivante(); };
+    suivante();
+  }
 
   // Espace sur une carte : si plusieurs ennemis vivants ET carte ciblée (non-AOE)
   // → phase de ciblage. Sinon (1 ennemi, AOE, ou carte défensive) → joue directement.
@@ -403,11 +434,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   function jouer(i, cible = combat.cible) {
     const maintenant = performance.now();
     if (maintenant - _tsDerniereCarteJouee < 200) return; // anti-double-clic
+    if (enAnimPioche) return; // bloque pendant l'anim de pioche
     _tsDerniereCarteJouee = maintenant;
     const carte = combat.main[i];
     if (!carte) return;
     const elJouee = conteneurMain.children[i] || null; // carte à animer
     // Snapshot AVANT jouerCarte (pour calculer les deltas d'animation).
+    const nbAvant = combat.main.length; // pour détecter les cartes piochées en cours de tour
     const pvAvants     = combat.ennemis.map((e) => e.pv);
     const stunAvants   = combat.ennemis.map((e) => e.stun);
     const gelAvants    = combat.ennemis.map((e) => e.gel);
@@ -481,6 +514,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     selection = combat.main.length > 0 ? Math.min(selection, combat.main.length - 1) : -1;
     rafraichir();
     verifierFin();
+    // Cartes piochées EN COURS DE TOUR (effet « piocher »/« piocher-par-ennemi »…).
+    // drawn = nb cartes ajoutées : (taille après) - (taille avant - 1 carte jouée).
+    const drawn = combat.main.length - nbAvant + 1;
+    if (!combat.fini && drawn > 0) animerPioche(combat.main.slice(-drawn), null);
   }
 
   // -- Ciblage SOURIS : on saisit une carte et on tire une flèche vers un monstre.
@@ -560,6 +597,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   function finDeTour() {
     if (phaseCiblage || combat.fini || !combat.tourJoueur) return;
+    if (enAnimPioche) return;
     const feuAvants = combat.ennemis.map((e) => e.feu);
     finirTourHeros(combat); // défausse la main + propage le Feu → l'initiative reprend
     // Propagation du Feu (fin de tour) : un floater 🔥 sur chaque voisin qui en reçoit.
@@ -585,6 +623,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const acteur = avancerInitiative(combat);
     acteurCourant = acteur; // pour la file des tours (1re case = acteur courant)
     if (acteur.id === "heros") {
+      const nbAvantTour = combat.main.length; // snapshot avant la pioche (= 0 normalement)
       commencerTourHeros(combat); // recharge Chaleur + statuts du héros + pioche
       if (combat.tourSaute) {     // glace brisée : le héros est gelé solide, il saute son tour
         animerGelExplosionHeros();
@@ -596,7 +635,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       animerDebutTourHeros();
       recalerCible();
       rafraichir();               // nouvelle main, input réactivé
-      if (combat.fini) verifierFin(); // mort de surchauffe/poison au début du tour
+      if (combat.fini) { verifierFin(); return; } // mort de surchauffe/poison au début du tour
+      // Montre les cartes nouvellement piochées en grand au centre (0,5 s chacune).
+      animerPioche(combat.main.slice(nbAvantTour), null);
     } else {
       const pierreAvantTour = combat.pierre;
       animerEnnemi(acteur.i, agirEnnemi(combat, acteur.i), pierreAvantTour);

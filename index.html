@@ -517,6 +517,31 @@
     .combat-carte--defense { border-color: #2f5066; background: #1d2630; }
     .combat-carte--buff    { border-color: #3f7a4d; background: #1b2a20; } /* vert (provisoire) : ni dégât ni bouclier */
 
+    /* Overlay d'animation de pioche : carte piochée affichée en grand au centre.
+       Cliquer l'overlay avance à la carte suivante immédiatement. */
+    #combat-pioche-anim {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      background: rgba(0, 0, 0, 0.38);
+      cursor: pointer;
+    }
+    #combat-pioche-anim .combat-carte {
+      --carte-l: 27cqh;
+      transform: none;
+      margin: 0;
+      cursor: default;
+      pointer-events: none;
+      animation: pioche-entree 0.14s ease-out;
+    }
+    @keyframes pioche-entree {
+      from { opacity: 0; transform: translateY(14%) scale(0.82); }
+      to   { opacity: 1; transform: none; }
+    }
+
     /* Le coût en Chaleur : pastille en HAUT À GAUCHE, en léger débordement. Les
        cartes se chevauchent par la droite, donc le coin gauche reste toujours
        visible — on y met ce chiffre important. */
@@ -1462,6 +1487,8 @@
       <div class="combat-pile combat-pioche" id="combat-pioche-nb">0</div>
       <div class="combat-pile combat-defausse" id="combat-defausse-nb">0</div>
       <div class="combat-main" id="combat-main"></div>
+      <!-- Overlay d'animation de pioche : carte(s) centrées 0,5 s chacune -->
+      <div id="combat-pioche-anim" hidden></div>
       <button class="combat-fin" id="combat-fin">End Turn</button>
     </div>
 

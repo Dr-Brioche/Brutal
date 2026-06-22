@@ -466,6 +466,44 @@ export function jouerSonSortilege() {
   } catch (_) {}
 }
 
+export function jouerSonPioche() {
+  try {
+    const ctx = obtenirContexte();
+    const t = ctx.currentTime;
+
+    // Bruit blanc filtré passe-haut (frottement du papier)
+    const bufSize = Math.floor(ctx.sampleRate * 0.11);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+    const bruit = ctx.createBufferSource();
+    bruit.buffer = buf;
+    const filtrePapier = ctx.createBiquadFilter();
+    filtrePapier.type = "highpass";
+    filtrePapier.frequency.value = 2800;
+    const gBruit = ctx.createGain();
+    gBruit.gain.setValueAtTime(0.55, t);
+    gBruit.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+
+    // Sweep descendant court (le "fwip" de la carte tirée)
+    const sweep = ctx.createOscillator();
+    sweep.type = "sine";
+    sweep.frequency.setValueAtTime(950, t);
+    sweep.frequency.exponentialRampToValueAtTime(280, t + 0.075);
+    const gSweep = ctx.createGain();
+    gSweep.gain.setValueAtTime(0.18, t);
+    gSweep.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+
+    const master = ctx.createGain();
+    master.gain.value = volBruitages * 0.75;
+
+    bruit.connect(filtrePapier).connect(gBruit).connect(master).connect(ctx.destination);
+    sweep.connect(gSweep).connect(master);
+    bruit.start(t); bruit.stop(t + 0.11);
+    sweep.start(t); sweep.stop(t + 0.09);
+  } catch (_) {}
+}
+
 export function jouerSonPierre() {
   try {
     const ctx = obtenirContexte();
