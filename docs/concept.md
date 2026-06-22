@@ -609,13 +609,20 @@ Principe (validé 19/06/2026) :
   *Crusader Plate* (+30), *Onyx Guard Plate* (+36). C'est le remplacement des stats
   de défense statiques — la différence de niveau se lit directement sur la barre
   Pierre dès le premier tour.
-- **Vitesse passive des bottes (deux stats distinctes)** : les bottes donnent
-  - une **célérité** (`celeritePct`, %) = bonus d'**initiative de COMBAT** toujours
-    actif (multiplie la vitesse ATB ; se cumule avec la Hâte temporaire de *Quicken*) ;
-  - un **move speed** (`vitesseBonus`, plat) = bonus de **vitesse de DÉPLACEMENT en
-    EXPLORATION** (marche du nain sur la carte ; ajouté à `heros.vitesse`, recalculé
-    à chaque changement d'équipement dans `appliquerEquipement`).
-  Ex. *Swift Boots* (+15 %/+3), *Onyx Boots* (+30 %/+8), les autres bottes (+20 %/+5).
+- **Bottes : deux stats distinctes (refonte juin)** — à ne pas confondre :
+  - **Agilité** (`agilite`, plat) = **vitesse d'ATTAQUE** en combat (base **10**,
+    cumulée avec l'agilité des talents). Les bottes en donnent un montant fixe
+    (*Worn* +1 … *Onyx* +18) ; passe par `stats.agilite` au lancement du combat.
+  - **Vitesse de déplacement** (`vitesseDeplPct`, **%**) = bonus de **déplacement en
+    EXPLORATION** (base **160**), appliqué en pourcentage (*Worn* +5 % … *Onyx* +50 %).
+    Recalculé dans `appliquerEquipement` (`heros.vitesseEquipPct`) ; le déplacement
+    devient `heros.vitesse × (1 + pct/100)`. Talents/items pourront aussi pousser la base.
+- **Combo de dagues** (`comboArme` sur l'arme principale, +Force au début du combat) :
+  - **Twin Daggers** : +3 Force permanente si la **même** Twin Dagger est en off-hand
+    (type `memeArme`, nécessite Ambidextrie).
+  - **Basilisk Fang** : +5 Force permanente si **une autre dague** est en off-hand
+    (type `dagueOffhand` ; les dagues portent `sousType: "dague"`).
+  Affiché dans la bulle de l'arme comme un bonus de set. Helper `comboArmeActif`.
 - **Passifs individuels d'items** : en plus des sets, un item peut avoir son propre
   **passif déclencheur**. Ex. *Tower Shield* — quand le héros est frappé en mêlée,
   il gagne **+2 Pierre** (s'empile avec le passif du set Onyx si les deux sont actifs).
@@ -624,7 +631,7 @@ Principe (validé 19/06/2026) :
 - **Sets d'armure (bonus de panoplie)** : porter **toutes les pièces d'armure d'un
   set** (torse + gants + bottes — **l'arme ne compte PAS**) débloque un **bonus
   passif** déclenché par un **événement de combat**. Données dans `SETS`
-  (`jeu/data/items.js`), appliquées via `combat.passifs`. Quatre sets aujourd'hui,
+  (`jeu/data/items.js`), appliquées via `combat.passifs`. Cinq sets aujourd'hui,
   chacun avec sa **thématique** :
   - **Onyx** (feu) — déclencheur *frappeMelee* : quand le héros est frappé en
     mêlée, l'attaquant prend **3 brûlure** (sans propagation).
@@ -639,6 +646,10 @@ Principe (validé 19/06/2026) :
     déjà avec une carte de saignement), le héros est **soigné d'autant**
     (**vampirisme**). C'est la **réintroduction du soin par saignement**, réservée
     par le concept à un « item spécifique » — ici, gated derrière le set complet.
+  - **Stone Age** (pierre) — déclencheur *paliersPierre* : à chaque **palier de 10
+    cartes « pierre »** jouées dans le combat (compteur `cartesPierre`, *Stone* = 1,
+    *Many Stone* = 3), **tous les ennemis sont étourdis 1 tour**. Récompense d'empiler
+    les cartes pierre (set Stone Armor + Stone Glove + Stone Boots).
 - **Bulle d'info** : au survol d'un objet (sac OU marchand), on voit le **visuel
   des cartes** qu'il ajoute au deck (mini-cartes, même rendu que le deck) → on sait
   ce qu'on récupère / achète.
