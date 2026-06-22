@@ -382,6 +382,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // -- Actions du joueur ----------------------------------------------------
 
+  let _tsDerniereCarteJouee = 0; // anti-double-clic : 200 ms entre deux cartes
+
   // Espace sur une carte : si plusieurs ennemis vivants ET carte ciblée (non-AOE)
   // → phase de ciblage. Sinon (1 ennemi, AOE, ou carte défensive) → joue directement.
   function tenterJouer(i) {
@@ -399,6 +401,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Joue la carte `i` sur l'ennemi `cible` (par défaut : la cible courante).
   // Pour les cartes AOE, `cible` est ignoré : tous les ennemis vivants sont touchés.
   function jouer(i, cible = combat.cible) {
+    const maintenant = performance.now();
+    if (maintenant - _tsDerniereCarteJouee < 200) return; // anti-double-clic
+    _tsDerniereCarteJouee = maintenant;
     const carte = combat.main[i];
     if (!carte) return;
     const elJouee = conteneurMain.children[i] || null; // carte à animer
