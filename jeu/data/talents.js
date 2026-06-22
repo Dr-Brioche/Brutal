@@ -21,6 +21,13 @@ export const TALENTS = {
   forge1:  { id: "forge1",  nom: "Stoked Coals",    x: 1, y: 1, cout: 1, requis: ["racine"],  effet: { chaleurSeuil: 1 } },
   corps1:  { id: "corps1",  nom: "Thick Hide",      x: 2, y: 1, cout: 1, requis: ["racine"],  effet: { pvMax: 10 } },
   esprit1: { id: "esprit1", nom: "Quick Wit",       x: 3, y: 1, cout: 1, requis: ["racine"],  effet: { pioche: 1 } },
+  sacBonus: {
+    id: "sacBonus", nom: "Extra Pouch",
+    x: 4, y: 1, cout: 1,
+    requis: ["racine"],
+    effet: { sacSecondaire: 1 },
+    description: "Unlock a second bag slot — equip two bags at once for more carrying capacity.",
+  },
 
   forge2:  { id: "forge2",  nom: "Deep Reserves",   x: 0, y: 2, cout: 1, requis: ["forge1"],  effet: { chaleurMax: 2 } },
   forge3:  { id: "forge3",  nom: "Ready Forge",     x: 1, y: 2, cout: 1, requis: ["forge1"],  effet: { chaleurDepart: 1 } },
@@ -98,6 +105,7 @@ const NOM_EFFET = {
   pioche: "Cards drawn / turn",
   agilite: "Attack speed",
   evasion: "Fewer encounters",
+  sacSecondaire: "Second bag slot",
   maitrise: "Ancestral Mastery",
   slots: "Mastery slots",
   ambidextrie: "Ambidexterity",

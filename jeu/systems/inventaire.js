@@ -14,7 +14,7 @@ const RANGS_BASE = 4;    // hauteur de base (petite : s'agrandit avec un sac)
 // Tous les slots d'équipement, dans l'ordre d'affichage.
 export const SLOTS = [
   "arme1", "arme2", "armure", "gant", "botte", "collier",
-  "bague1", "bague2", "bague3", "bague4", "bague5", "sac",
+  "bague1", "bague2", "bague3", "bague4", "bague5", "sac", "sac2",
 ];
 
 export function creerInventaire() {
@@ -23,10 +23,11 @@ export function creerInventaire() {
   return { cols: COLS, rangs: RANGS_BASE, objets: [], slots, or: 0 };
 }
 
-// Hauteur réelle de la grille (un sac équipé ajoute des rangées).
+// Hauteur réelle de la grille (les deux sacs équipés ajoutent leurs rangées).
 export function rangsInventaire(inv) {
-  const sac = inv.slots.sac ? itemDef(inv.slots.sac) : null;
-  return inv.rangs + (sac?.rangsBonus ?? 0);
+  const sac  = inv.slots.sac  ? itemDef(inv.slots.sac)  : null;
+  const sac2 = inv.slots.sac2 ? itemDef(inv.slots.sac2) : null;
+  return inv.rangs + (sac?.rangsBonus ?? 0) + (sac2?.rangsBonus ?? 0);
 }
 
 function casesOccupees(inv, sauf = null) {
@@ -115,6 +116,10 @@ function slotCible(inv, id, heros) {
   if (base === "bague") {
     for (let i = 1; i <= 5; i++) if (!inv.slots["bague" + i]) return "bague" + i;
     return "bague1";
+  }
+  // Sac secondaire : si sac est pris, le talent débloqué et sac2 libre → rediriger vers sac2.
+  if (base === "sac" && inv.slots.sac && (heros?.talents?.sacBonus ?? 0) > 0 && !inv.slots.sac2) {
+    return "sac2";
   }
   // Ambidextrie : si arme1 porte une arme 1M et arme2 est libre → rediriger vers arme2.
   if (base === "arme1" && d.mains !== 2 && (heros?.talents?.ambidextrie ?? 0) > 0) {
