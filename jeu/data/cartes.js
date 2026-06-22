@@ -831,7 +831,7 @@ export const CARTES = {
     texte: "Deal damage equal to your current Stone.", effets: [{ type: "pierre-vers-degats", valeur: 1 }] },
   // Regenerate : gagne 3 Régénération (soigne 3 PV au début de chacun de tes tours).
   "regeneration": { id: "regeneration", nom: "Regenerate", cout: 1, type: "buff", nouveau: true,
-    texte: "Gain 3 Regen (heal 3 HP at the start of each of your turns).", effets: [{ type: "regen", valeur: 3 }] },
+    texte: "Gain 3 Regen. Each turn: heal that many HP, then lose 1 Regen.", effets: [{ type: "regen", valeur: 3 }] },
 
   // ---- Signatures d'ARMES uncommon -------------------------------------------
   // Venom Spit : grosse dose de poison (Venomfang Dagger).

@@ -537,8 +537,11 @@ Principe (validé 19/06/2026) :
 - **Stone Fist** (`pierre-vers-degats`) — inflige des **dégâts = ta Pierre actuelle**
   (sans la consommer) : transforme un build bloc (*Mail*, armures) en attaque
   (« Body Slam »). Sources : *Stone Fist, Earthshatter, Stonetread/Stone Hammer*.
-- **Régénération** (`regen`) — soigne **N PV au début de chaque tour** du héros
-  (affiché ❤). Build sustain. Sources : *Regenerate, Hide Armor, Vigor Ring*.
+- **Régénération** (`regen`) — fonctionne comme le **poison à l'envers** : au début
+  de chaque tour, soigne **N PV** puis perd **1 stack** (8 regen → soin 8 ce tour,
+  soin 7 le suivant, etc.). Affiché ❤N. Sources : *Regenerate, Aegis*. À venir :
+  une **Regen permanente** (ne décroît pas) affichée en haut à gauche, comme
+  la Force permanente.
 - **Shatter** (`degats-si-gel`) — dégâts **+bonus si la cible est gelée** (paie le gel).
 - **Execute** (`degats-si-faible`) — dégâts **doublés sous 50 % de PV** (achève).
 - **Épines** (passif `frappeMelee` de dégâts) — l'attaquant **se blesse** en frappant

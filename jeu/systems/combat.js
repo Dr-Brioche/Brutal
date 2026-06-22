@@ -975,9 +975,10 @@ export function commencerTourHeros(combat) {
   } else if (combat.gelHeros > 0) {
     combat.gelHeros -= 1; // le Gel héros s'écoule (1 tour du héros)
   }
-  if (combat.regen > 0) { // Régénération : PV rendus au début de chaque tour du héros
+  if (combat.regen > 0) { // Régénération : soigne `regen` PV, puis -1 stack (comme le poison à l'envers)
     combat.dernierSoin = Math.min(combat.regen, combat.pvHerosMax - combat.pvHeros);
     combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + combat.regen);
+    combat.regen -= 1;
   } else combat.dernierSoin = 0;
   piocherMain(combat);
   prevoirIntentions(combat);
