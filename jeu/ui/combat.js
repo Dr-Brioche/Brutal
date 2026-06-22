@@ -760,12 +760,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // HAUT) ou "malus" (debuff, pastille rouge, rangée du BAS) — cf. dessinerEtats.
   function etatsHeros() {
     const l = [];
-    if (combat.hate > 0) l.push({ texte: `⚡${combat.hate}`, couleur: "#dff4ff", nature: "buff" }); // Hâte (+30% agilité)
-    if (combat.force > 0) l.push({ texte: `💪${combat.force}`, couleur: "#ffb070", nature: "buff" }); // Force (+dégâts)
-    if (combat.regen > 0) l.push({ texte: `❤${combat.regen}`, couleur: "#7edf82", nature: "buff" }); // Régénération (PV/tour)
+    if (combat.hate > 0) l.push({ texte: `⚡${combat.hate}`, couleur: "#dff4ff", nature: "buff" });
+    if (combat.hatePerm > 0) l.push({ texte: `⚡+${combat.hatePerm}`, couleur: "#b0e8ff", nature: "buff" }); // Hâte permanente (Long Run)
+    if (combat.force > 0) l.push({ texte: `💪${combat.force}`, couleur: "#ffb070", nature: "buff" });
+    if (combat.regen > 0) l.push({ texte: `❤${combat.regen}`, couleur: "#7edf82", nature: "buff" });
+    if (combat.riposte > 0) l.push({ texte: `🛡${combat.riposte}`, couleur: "#c0e0ff", nature: "buff" }); // Riposte : renvoie les dégâts de mêlée
+    if (combat.toursBonus > 0) l.push({ texte: `⏩${combat.toursBonus}`, couleur: "#ffe9a8", nature: "buff" }); // Tours bonus (Unstoppable)
     if (combat.poisonHeros > 0) l.push({ texte: `☠${combat.poisonHeros}`, couleur: "#7ec850", nature: "malus" });
     if (combat.feuHeros > 0) l.push({ texte: `🔥${combat.feuHeros}`, couleur: "#ff8a2c", nature: "malus" });
-    // Gel du héros (−30% vitesse) ; à 5 stacks la glace va se briser → 💥 télégraphe.
     if (combat.gelHeros > 0) l.push({ texte: combat.gelHeros >= 5 ? `❄💥${combat.gelHeros}` : `❄${combat.gelHeros}`, couleur: "#9fdfff", nature: "malus" });
     return l;
   }
