@@ -938,4 +938,35 @@ export const CARTES = {
   // Arcane Surge : décharge de zone qui rend de l'énergie (Tome of Power).
   "vague-arcanique": { id: "vague-arcanique", nom: "Arcane Surge", cout: 2, type: "attaque", portee: "range", aoe: true, nouveau: true,
     texte: "Deal 4 damage to ALL enemies. Gain 2 Forge Heat.", effets: [{ type: "degats", valeur: 4 }, { type: "chaleur", valeur: 2 }] },
+
+  // ============================================================================
+  // NOUVELLES CARTES (révision Excel juin) — effets déjà existants
+  // ============================================================================
+
+  // Pierce : frappe la cible ET l'ennemi juste derrière (perforation).
+  "transpercement": { id: "transpercement", nom: "Pierce", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal 7 damage to the target and the enemy behind it.",
+    effets: [{ type: "degats", valeur: 7 }, { type: "eclaboussure", degats: 7 }] },
+  // Smash : gros coup unique, simple et lourd.
+  "fracas": { id: "fracas", nom: "Smash", cout: 3, type: "attaque", nouveau: true,
+    texte: "Deal 20 damage.", effets: [{ type: "degats", valeur: 20 }] },
+  // Big Strike : frappe renforcée, un cran au-dessus de Slash.
+  "grande-frappe": { id: "grande-frappe", nom: "Big Strike", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 9 damage.", effets: [{ type: "degats", valeur: 9 }] },
+  // Big Smash : Smash plus efficient (même dégâts pour 1 Chaleur de moins).
+  "grand-fracas": { id: "grand-fracas", nom: "Big Smash", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal 20 damage.", effets: [{ type: "degats", valeur: 20 }] },
+  // Bright Flame : sort qui éblouit la cible (Confusion).
+  "flamme-vive": { id: "flamme-vive", nom: "Bright Flame", cout: 2, type: "attaque", portee: "range", nouveau: true,
+    texte: "Apply 2 Confusion to the target.", effets: [{ type: "confusion", valeur: 2 }] },
+  // Standard Armor : bloc de Pierre standard (un peu plus que Light Armor).
+  "armure-standard": { id: "armure-standard", nom: "Standard Armor", cout: 1, type: "defense", nouveau: true,
+    texte: "Gain 9 Stone.", effets: [{ type: "pierre", valeur: 9 }] },
+  // Acceleration : petit gain de Hâte, gratuit en tempo.
+  "acceleration": { id: "acceleration", nom: "Acceleration", cout: 1, type: "buff", nouveau: true,
+    texte: "Gain 2 Haste.", effets: [{ type: "celerite", valeur: 2 }] },
+  // Glory Strike : frappe sacrée qui dissipe un bonus ennemi ; si réussi, +4 Regen.
+  "frappe-de-gloire": { id: "frappe-de-gloire", nom: "Glory Strike", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal 12 damage. Remove a random buff from the target; if one was removed, gain 4 Regen.",
+    effets: [{ type: "degats", valeur: 12 }, { type: "supprimer-bonus", regen: 4 }] },
 };
