@@ -486,8 +486,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const pierreAvant = combat.pierre;
     const hateAvant = combat.hate;
     const pvHerosAvant = combat.pvHeros;
-    // Réinitialiser les compteurs d'overkill/over-heal avant la résolution.
-    combat.ennemis.forEach(e => { e.dernierDegats = 0; });
+    // Réinitialiser les compteurs d'overkill/over-heal/chaîne avant la résolution.
+    combat.ennemis.forEach(e => { e.dernierDegats = 0; e.hitLog = []; });
     combat.dernierSoinCarte = 0;
     combat.dernierGainAleatoire = null;
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
@@ -499,19 +499,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // `sonJoue` : on ne joue qu'un son par carte (priorité : dégâts > pierre > buff).
     let quelquUnTouche = false;
     let sonJoue = false;
+
+    // --- Effets non-dégâts (synchrones) : statuts, feu/poison/sang --------
     for (let idx = 0; idx < ennemisUI.length; idx++) {
       const u = ennemisUI[idx];
       const e = combat.ennemis[idx];
       if (!u || !e) continue;
-      // Affiche les VRAIS dégâts infligés (overkill inclus), pas juste la perte de PV.
-      const dmgAffiche = Math.max(pvAvants[idx] - e.pv, e.dernierDegats || 0);
-      if (dmgAffiche > 0) {
-        if (!quelquUnTouche) { animAttaque = 0.25; quelquUnTouche = true; jouerSonCoup(); sonJoue = true; }
-        u.secousse = 0.3;
-        if (e.pv <= 0) exploser(u);
-        else jouerAnim(u, "touche");
-        ajouterFlottant(`-${dmgAffiche}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
-      }
       if (e.stun > stunAvants[idx]) {
         u.secousse = Math.max(u.secousse, 0.3);
         ajouterFlottant(`💫 ${e.stun}`, u.ecran.cx, u.ecran.sommet - 16, "#ffd966");
@@ -529,6 +522,52 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       }
       if (!sonJoue && (e.feu > feuAvants[idx] || e.poison > poisonAvants[idx] || e.sang > sangAvants[idx])) {
         jouerSonSortilege(); sonJoue = true;
+      }
+    }
+
+    // --- Dégâts : staggerés si plusieurs coups (non-AOE), sinon immédiats --
+    // Cartes comme Double Strike, Rusty Cleave, Frost Cascade → délai de 120 ms
+    // entre chaque coup pour lire ce qui se passe.
+    const totalHits = combat.ennemis.reduce((s, e) => s + (e.hitLog?.length || 0), 0);
+    const useStagger = !carte.aoe && totalHits > 1;
+    if (useStagger) {
+      let delay = 0;
+      let firstHit = true;
+      for (let idx = 0; idx < ennemisUI.length; idx++) {
+        const u = ennemisUI[idx];
+        const e = combat.ennemis[idx];
+        if (!u || !e || !e.hitLog?.length) continue;
+        for (let h = 0; h < e.hitLog.length; h++) {
+          const hitVal = e.hitLog[h];
+          const isLastHitForEnemy = h === e.hitLog.length - 1;
+          const isFirstHit = firstHit; firstHit = false;
+          const d = delay;
+          setTimeout(() => {
+            if (isFirstHit) animAttaque = 0.25;
+            jouerSonCoup();
+            u.secousse = 0.3;
+            ajouterFlottant(`-${hitVal}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
+            if (isLastHitForEnemy) { if (e.pv <= 0) exploser(u); else jouerAnim(u, "touche"); }
+            else jouerAnim(u, "touche");
+          }, d);
+          delay += 120;
+        }
+      }
+      if (totalHits > 0) { quelquUnTouche = true; sonJoue = true; } // pour la logique pierre/hâte
+    } else {
+      for (let idx = 0; idx < ennemisUI.length; idx++) {
+        const u = ennemisUI[idx];
+        const e = combat.ennemis[idx];
+        if (!u || !e) continue;
+        // Affiche les VRAIS dégâts infligés (overkill inclus), pas juste la perte de PV.
+        const dmgAffiche = Math.max(pvAvants[idx] - e.pv, e.dernierDegats || 0);
+        if (dmgAffiche > 0) {
+          if (!quelquUnTouche) { animAttaque = 0.25; quelquUnTouche = true; jouerSonCoup(); sonJoue = true; }
+          u.secousse = 0.3;
+          if (e.pv <= 0) exploser(u);
+          else jouerAnim(u, "touche");
+          ajouterFlottant(`-${dmgAffiche}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
+        }
       }
     }
     if (combat.pierre > pierreAvant) {

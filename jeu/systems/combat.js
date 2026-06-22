@@ -135,6 +135,7 @@ function creerEnnemiCombat(def) {
     confusion: 0,                  // « Confusion » (éblouissement) : nb de SES tours où il frappe une cible AU HASARD
     dernierPoison: 0, dernierFeu: 0, dernierSang: 0, // dégâts subis au dernier tour (UI)
     dernierDegats: 0, // dégâts bruts infligés lors de la dernière carte (avant cap à 0, pour l'overkill UI)
+    hitLog: [], // coups individuels reçus lors de la dernière carte (pour animation de chaîne UI)
     intention: null,              // ce qu'il prépare (télégraphié)
     vitesse: def.vitesse ?? VITESSE_HEROS_BASE, // vitesse d'initiative (agilité)
     gel: 0,                       // « Gel » : nb de SES tours encore ralentis (−30% vitesse)
@@ -417,6 +418,7 @@ function declencherPaliersPierre(combat, paliers) {
 function blesser(e, n) {
   if (n <= 0) return;
   e.dernierDegats += n;
+  e.hitLog.push(n); // pour l'animation de chaîne (ordre préservé)
   e.pv = Math.max(0, e.pv - n);
 }
 
