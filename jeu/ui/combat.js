@@ -74,20 +74,24 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const itemsEquipes = Object.values(inventaire.slots ?? {}).filter(Boolean).map(itemDef).filter(Boolean);
   // Armure de départ : somme des armureDepart de tous les items équipés.
   const armureDepart = itemsEquipes.reduce((s, d) => s + (d.armureDepart ?? 0), 0);
-  // Célérité passive (% d'initiative de combat) des bottes. Le « move speed » des
+  // Célérité passive (% d'initiative de combat) des items. Le « move speed » des
   // bottes, lui, agit en EXPLORATION (cf. appliquerEquipement), pas en combat.
   const celeritePct = itemsEquipes.reduce((s, d) => s + (d.celeritePct ?? 0), 0);
   // Force permanente : bonus de dégâts fixe pour TOUT le combat (déclaré par items).
   const forcePerm = itemsEquipes.reduce((s, d) => s + (d.forcePerm ?? 0), 0);
+  // Agilité (vitesse d'attaque ATB) donnée par les items (surtout les bottes) :
+  // s'ajoute à l'agilité des talents (base 10).
+  const agiliteItems = itemsEquipes.reduce((s, d) => s + (d.agilite ?? 0), 0);
   // Passifs individuels (ex. Tower Shield : +2 Pierre par frappe).
   const passifsItems = itemsEquipes.flatMap((d) => d.passifPropre ? [d.passifPropre] : []);
 
+  const bt = bonusTalents(heros);
   const combat = creerCombat(ennemis, {
     pv: heros.pv, pvMax: heros.pvMax,
     cartes: cartesEquipees(inventaire),
     cartesSupp: maitrise?.choisies ?? [],
     mains: mainsOccupees(inventaire), // cartes de base seulement pour les mains libres
-    stats: { ...bonusTalents(heros), armureDepart, celeritePct, forcePerm },
+    stats: { ...bt, agilite: (bt.agilite ?? 0) + agiliteItems, armureDepart, celeritePct, forcePerm },
     passifs: [...setsActifs(inventaire.slots).map((s) => s.bonus), ...passifsItems],
   });
 

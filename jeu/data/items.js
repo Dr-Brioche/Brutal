@@ -179,16 +179,16 @@ export const ITEMS = {
   "bottes-vives": {
     id: "bottes-vives", nom: "Swift Boots", categorie: "botte", rarete: "uncommon",
     taille: { l: 2, h: 1 }, icone: "#3a7a5a",
-    celeritePct: 15, vitesseBonus: 3,
+    agilite: 7, vitesseDeplPct: 20,
     cartes: ["celerite-vive", "celerite-vive", "celerite-vive", "second-souffle"],
   },
   // Bottes d'onyx : pièce du set Onyx. 1× Burning Run + 1× Flaming Kick +
   // 2× Fire Boost (feu héros → énergie) + 2× Boost (relance d'énergie). Build feu.
-  // Bonus passif : +30% célérité, +8 move speed.
+  // Bonus passif : +18 Agility, +50% move speed.
   "bottes-onyx": {
     id: "bottes-onyx", nom: "Onyx Boots", categorie: "botte", rarete: "epique",
     taille: { l: 2, h: 1 }, icone: "#2b2433",
-    celeritePct: 30, vitesseBonus: 8,
+    agilite: 18, vitesseDeplPct: 50,
     cartes: ["course-ardente", "coup-de-pied-ardent", "boost-feu", "boost-feu", "boost", "boost"],
   },
   // Anneau de givre : injecte « Frostbite » (ralentit un ennemi).
@@ -245,7 +245,7 @@ export const ITEMS = {
   "bottes-de-maille": {
     id: "bottes-de-maille", nom: "Mail Boots", categorie: "botte", rarete: "rare",
     taille: { l: 2, h: 1 }, icone: "#8a8f98",
-    celeritePct: 20, vitesseBonus: 5,
+    agilite: 10, vitesseDeplPct: 15,
     cartes: ["celerite-vive", "celerite-vive", "avantage-maille", "boost", "boost"],
   },
 
@@ -270,7 +270,7 @@ export const ITEMS = {
   "bottes-croise": {
     id: "bottes-croise", nom: "Crusader Greaves", categorie: "botte", rarete: "rare",
     taille: { l: 2, h: 1 }, icone: "#e8d9a0",
-    celeritePct: 20, vitesseBonus: 5,
+    agilite: 12, vitesseDeplPct: 25,
     cartes: ["celerite-vive", "coup-de-lumiere", "coup-de-lumiere", "boost", "boost"],
   },
 
@@ -295,7 +295,7 @@ export const ITEMS = {
   "bottes-sang": {
     id: "bottes-sang", nom: "Blood Greaves", categorie: "botte", rarete: "rare",
     taille: { l: 2, h: 1 }, icone: "#7a1320",
-    celeritePct: 20, vitesseBonus: 5,
+    agilite: 12, vitesseDeplPct: 25,
     cartes: ["glissade-sur-sang", "ruee-de-sang", "ruee-de-sang", "celerite-vive", "boost"],
   },
 
@@ -378,19 +378,19 @@ export const ITEMS = {
 
   // ---- Bottes : COMMONS (4) + UNCOMMONS (3) ----------------------------------
   "bottes-usees": { id: "bottes-usees", nom: "Worn Boots", categorie: "botte", rarete: "commun", nouveau: true,
-    taille: { l: 2, h: 1 }, icone: "#7a6a52", celeritePct: 10, vitesseBonus: 5, cartes: ["acceleration"] },
+    taille: { l: 2, h: 1 }, icone: "#7a6a52", agilite: 1, vitesseDeplPct: 5, cartes: ["acceleration"] },
   "bottes-cuir": { id: "bottes-cuir", nom: "Leather Boots", categorie: "botte", rarete: "commun", nouveau: true,
-    taille: { l: 2, h: 1 }, icone: "#8a6a4a", celeritePct: 12, vitesseBonus: 8, cartes: ["acceleration", "acceleration"] },
+    taille: { l: 2, h: 1 }, icone: "#8a6a4a", agilite: 3, vitesseDeplPct: 10, cartes: ["acceleration", "acceleration"] },
   "bottes-voyage": { id: "bottes-voyage", nom: "Traveler Boots", categorie: "botte", rarete: "commun", nouveau: true,
-    taille: { l: 2, h: 1 }, icone: "#9a8a6a", celeritePct: 8, vitesseBonus: 15, cartes: ["acceleration", "longue-course"] },
+    taille: { l: 2, h: 1 }, icone: "#9a8a6a", agilite: 3, vitesseDeplPct: 15, cartes: ["acceleration", "longue-course"] },
   "sandales": { id: "sandales", nom: "Sandals", categorie: "botte", rarete: "commun", nouveau: true,
-    taille: { l: 2, h: 1 }, icone: "#b0a888", celeritePct: 15, vitesseBonus: 3, cartes: ["acceleration", "vent-frais"] },
+    taille: { l: 2, h: 1 }, icone: "#b0a888", agilite: 2, vitesseDeplPct: 8, cartes: ["acceleration", "vent-frais"] },
   "bottes-rapides": { id: "bottes-rapides", nom: "Swift Striders", categorie: "botte", rarete: "uncommon", nouveau: true,
-    taille: { l: 2, h: 1 }, icone: "#4a9d72", celeritePct: 25, vitesseBonus: 10, cartes: ["ruee", "celerite-vive"] },
+    taille: { l: 2, h: 1 }, icone: "#4a9d72", agilite: 8, vitesseDeplPct: 30, cartes: ["ruee", "celerite-vive"] },
   "bottes-pierre": { id: "bottes-pierre", nom: "Stonetread Boots", categorie: "botte", rarete: "uncommon", nouveau: true,
-    taille: { l: 2, h: 1 }, icone: "#82827a", celeritePct: 10, vitesseBonus: 5, cartes: ["choc-de-pierre", "garde"] },
+    taille: { l: 2, h: 1 }, icone: "#82827a", agilite: 4, vitesseDeplPct: 8, cartes: ["choc-de-pierre", "garde"] },
   "bottes-braise": { id: "bottes-braise", nom: "Ember Striders", categorie: "botte", rarete: "uncommon", nouveau: true,
-    taille: { l: 2, h: 1 }, icone: "#d9681e", celeritePct: 20, vitesseBonus: 8, cartes: ["braise", "celerite-vive"] },
+    taille: { l: 2, h: 1 }, icone: "#d9681e", agilite: 6, vitesseDeplPct: 15, cartes: ["braise", "celerite-vive"] },
 
   // ---- Gants : COMMONS (4) + UNCOMMONS (3) -----------------------------------
   "gants-tissu": { id: "gants-tissu", nom: "Cloth Gloves", categorie: "gant", rarete: "commun", nouveau: true,
@@ -502,7 +502,7 @@ export const ITEMS = {
     taille: { l: 2, h: 1 }, icone: "#82827a",
     cartes: ["caillou", "caillou", "caillou", "tas-de-pierres", "vente-de-cailloux"] },
   "bottes-stone-age": { id: "bottes-stone-age", nom: "Stone Boots", categorie: "botte", rarete: "uncommon", nouveau: true,
-    taille: { l: 2, h: 1 }, icone: "#82827a", celeritePct: 6, vitesseBonus: 4,
+    taille: { l: 2, h: 1 }, icone: "#82827a", agilite: 3, vitesseDeplPct: 6,
     cartes: ["caillou", "caillou", "caillou", "tas-de-pierres", "fonte-de-pierres"] },
 
   // Lucky glove : gants « hasard » (énergie aléatoire + pioche filtrée).

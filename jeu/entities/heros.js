@@ -40,8 +40,8 @@ export function mettreAJourHeros(heros, clavier, dt, carte) {
   if (heros.enMarche) {
     // En diagonale on normalise, sinon le héros irait plus vite (Pythagore !)
     const longueur = Math.hypot(dx, dy);
-    // Vitesse de marche = base/talents (heros.vitesse) + bonus d'équipement (bottes).
-    const v = heros.vitesse + (heros.vitesseEquip || 0);
+    // Vitesse de marche = base/talents (heros.vitesse) × bonus % d'équipement (bottes).
+    const v = heros.vitesse * (1 + (heros.vitesseEquipPct || 0) / 100);
     const pasX = (dx / longueur) * v * dt;
     const pasY = (dy / longueur) * v * dt;
 

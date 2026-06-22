@@ -249,10 +249,12 @@ export function appliquerEquipement(heros, inv, planches) {
   const arme = armeEquipee(inv);
   heros.plancheArmure = planches.get(armureEquipee(inv).planche);
   heros.plancheArme = arme ? planches.get(arme.planche) : null;
-  // Move speed (exploration) = somme des vitesseBonus des items équipés (bottes…).
-  heros.vitesseEquip = Object.values(inv.slots || {})
-    .filter(Boolean)
-    .reduce((s, id) => s + (itemDef(id)?.vitesseBonus || 0), 0);
+  // Move speed (exploration) : les bottes donnent un bonus en POURCENTAGE de la
+  // vitesse de déplacement de base (somme des vitesseDeplPct des items équipés).
+  const ids = Object.values(inv.slots || {}).filter(Boolean);
+  heros.vitesseEquipPct = ids.reduce((s, id) => s + (itemDef(id)?.vitesseDeplPct || 0), 0);
+  // Agilité (vitesse d'attaque en combat) donnée par les items (bottes surtout).
+  heros.agiliteEquip = ids.reduce((s, id) => s + (itemDef(id)?.agilite || 0), 0);
 }
 
 // ---- Sauvegarde ----------------------------------------------------------
