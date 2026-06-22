@@ -695,6 +695,8 @@ export function statsLisibles(id) {
   if (d.mains === 2) lignes.push("Two-handed");
   if (d.rangsBonus) lignes.push(`+${d.rangsBonus} bag rows`);
   if (d.armureDepart) lignes.push(`+${d.armureDepart} Stone at combat start`);
+  if (d.agilite) lignes.push(`+${d.agilite} Agility`);
+  if (d.vitesseDeplPct) lignes.push(`+${d.vitesseDeplPct}% Move Speed`);
   if (d.passifPropre) lignes.push(d.passifPropre.texte);
   return lignes;
 }
