@@ -481,7 +481,9 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     if (id) {
       const ic = iconeItem(id);
       const essayerDesequiper = (sl) => {
-        if (desequiper(inventaire, sl)) { surChangement(); rendre(); }
+        const res = desequiper(inventaire, sl);
+        if (res === true) { surChangement(); rendre(); }
+        else if (res === "overflow") montrerToast("🎒 Empty the extra bag rows before removing this bag.");
         else montrerToast("🎒 Bag is full — make some room before unequipping.");
       };
       ic.onclick = () => { if (!tenu) essayerDesequiper(slot); };

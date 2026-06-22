@@ -200,9 +200,20 @@ export function mainsOccupees(inv) {
 }
 
 // Déséquipe un slot : l'item retourne au sac (refusé si le sac est plein).
+// Pour les sacs : refusé si des items occupent des rangées qui disparaîtraient
+// (le joueur doit vider ces rangées avant de pouvoir enlever le sac).
 export function desequiper(inv, slot) {
   const id = inv.slots[slot];
   if (!id) return false;
+  const d = itemDef(id);
+  if (d?.rangsBonus) {
+    const rangsFuturs = rangsInventaire(inv) - d.rangsBonus;
+    const overflow = inv.objets.some((o) => {
+      const h = itemDef(o.id)?.taille?.h ?? 1;
+      return (o.y + h) > rangsFuturs;
+    });
+    if (overflow) return "overflow";
+  }
   if (!ajouterObjet(inv, id)) return false;
   inv.slots[slot] = null;
   return true;
