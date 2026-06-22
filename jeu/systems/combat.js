@@ -17,6 +17,7 @@ import { CARTES } from "../data/cartes.js";
 
 // ----- Réglages (équilibrage, valeurs provisoires) -------------------------
 const TAILLE_MAIN = 3;        // cartes piochées par tour (de base ; monte avec les talents)
+const MAIN_MAX = 8;          // plafond de cartes en main : toute carte piochée au-delà est défaussée d'office
 // Cartes de BASE : un filet de sécurité (toujours quelque chose à jouer) tant
 // qu'une MAIN est VIDE. « Tap » (offensive) couvre la main principale, « Brace »
 // (défense) la main secondaire. Dès qu'on équipe la main correspondante, sa
@@ -229,10 +230,17 @@ function piocherUne(combat) {
   return combat.pioche.pop() ?? null;
 }
 
+// Ajoute une carte piochée à la main, sans dépasser MAIN_MAX. Si la main est déjà
+// pleine, la carte est PIOCHÉE mais part directement à la défausse (surplus perdu).
+function ajouterCarteMain(combat, carte) {
+  if (!carte) return;
+  if (combat.main.length >= MAIN_MAX) combat.defausse.push(carte);
+  else combat.main.push(carte);
+}
+
 function piocherMain(combat) {
   for (let i = 0; i < combat.tailleMain; i++) {
-    const carte = piocherUne(combat);
-    if (carte) combat.main.push(carte);
+    ajouterCarteMain(combat, piocherUne(combat));
   }
 }
 
@@ -487,10 +495,7 @@ function appliquerEffet(combat, effet, ennemi) {
   } else if (effet.type === "piocher") {
     // Pioche `valeur` cartes dans la main (recompose la pioche depuis la défausse
     // si besoin, comme en début de tour).
-    for (let i = 0; i < effet.valeur; i++) {
-      const c = piocherUne(combat);
-      if (c) combat.main.push(c);
-    }
+    for (let i = 0; i < effet.valeur; i++) ajouterCarteMain(combat, piocherUne(combat));
   } else if (effet.type === "doublerPierre") {
     combat.pierre *= 2;
   } else if (effet.type === "pierre-par-ennemi") {
@@ -500,13 +505,13 @@ function appliquerEffet(combat, effet, ennemi) {
   } else if (effet.type === "piocher-par-ennemi") {
     // Pioche autant de cartes qu'il reste d'ennemis vivants en face.
     const nbVivants = combat.ennemis.filter(ennemiVivant).length;
-    for (let i = 0; i < nbVivants; i++) { const c = piocherUne(combat); if (c) combat.main.push(c); }
+    for (let i = 0; i < nbVivants; i++) ajouterCarteMain(combat, piocherUne(combat));
   } else if (effet.type === "refaire-main") {
     // Défausse TOUTE la main restante et repioche autant de cartes (relance propre).
     const n = combat.main.length;
     combat.defausse.push(...combat.main);
     combat.main = [];
-    for (let i = 0; i < n; i++) { const c = piocherUne(combat); if (c) combat.main.push(c); }
+    for (let i = 0; i < n; i++) ajouterCarteMain(combat, piocherUne(combat));
   } else if (effet.type === "celerite-vers-energie") {
     // Échange `cout` tours de Hâte contre `gain` Chaleur. Rien si pas assez de Hâte.
     if (combat.hate >= effet.cout) {

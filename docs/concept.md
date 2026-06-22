@@ -329,6 +329,10 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
   mais agissent sur le **deck en cours** — p. ex. *Master's Hand* (gants de mineur)
   **pioche 2 cartes** (tempo / fluidité). La pioche se recompose depuis la défausse
   si elle se vide, comme en début de tour.
+- **Main plafonnée à 8 cartes** : on ne peut pas tenir plus de **8 cartes** en main.
+  Toute carte piochée au-delà est bien **tirée** de la pioche, mais part **directement
+  à la défausse** (surplus perdu) → les cartes de grosse pioche (*Master's Hand*,
+  *Outnumbered*…) ne s'accumulent pas indéfiniment.
 
 → Optimiser son équipement = optimiser son deck. Le sertissage de gemmes nourrit
 directement la **collecte** et le **marché**.
