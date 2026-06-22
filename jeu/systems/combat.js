@@ -524,6 +524,32 @@ function appliquerEffet(combat, effet, ennemi) {
       combat.feuHeros -= effet.cout;
       combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + effet.gain);
     }
+  } else if (effet.type === "drain-sang") {
+    // Drain : consomme TOUT le Saignement de la cible et soigne le héros d'autant
+    // de PV. Gagne aussi `energie` Chaleur (toujours, même sans saignement à boire).
+    if (ennemi) {
+      const draine = ennemi.sang;
+      ennemi.sang = 0;
+      combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + draine);
+      combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + (effet.energie ?? 1));
+    }
+  } else if (effet.type === "supprimer-bonus") {
+    // Lay on Hands / Glory strike : retire un bonus (statut POSITIF) de la cible.
+    // Le seul bonus qu'un ennemi peut porter aujourd'hui est la Hâte alliée. Si un
+    // bonus a bien été retiré, le héros gagne `regen` Régénération.
+    if (ennemi && ennemi.haste > 0) {
+      ennemi.haste = 0;
+      combat.regen += effet.regen ?? 0;
+    }
+  } else if (effet.type === "piocher-pierre") {
+    // Nimble Hands : pioche `valeur` carte(s) ; pour chaque carte piochée, gagne
+    // `mult`× son coût (Chaleur) sous forme de Pierre (récompense les cartes chères).
+    for (let i = 0; i < effet.valeur; i++) {
+      const c = piocherUne(combat);
+      if (!c) break;
+      combat.pierre += (c.cout ?? 0) * (effet.mult ?? 2);
+      ajouterCarteMain(combat, c);
+    }
   }
 }
 

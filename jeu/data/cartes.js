@@ -690,14 +690,14 @@ export const CARTES = {
     texte: "Apply 1 more Confusion to each already-confused enemy.",
     effets: [{ type: "confusion-si-confus", valeur: 1 }],
   },
-  // Lay on Hands : retire complètement 1 malus du héros au hasard.
+  // Lay on Hands : retire un bonus de l'ennemi ciblé ; si réussi, +4 Regen au héros.
   "imposition-des-mains": {
     id: "imposition-des-mains",
     nom: "Lay on Hands",
     cout: 1,
     type: "buff",
-    texte: "Remove one random negative status from the hero.",
-    effets: [{ type: "purifier-hero" }],
+    texte: "Remove a random buff from the target. If one was removed, gain 4 Regen.",
+    effets: [{ type: "supprimer-bonus", regen: 4 }],
   },
 
   // Crusader Greaves (bottes) --------------------------------------------------
@@ -839,7 +839,7 @@ export const CARTES = {
     texte: "Gain 1 Forge Heat (energy).", effets: [{ type: "chaleur", valeur: 1 }] },
   // Nimble Hands : pioche 1 carte (tempo de base, gratuite).
   "mains-vives": { id: "mains-vives", nom: "Nimble Hands", cout: 0, type: "buff", nouveau: true,
-    texte: "Draw 1 card.", effets: [{ type: "piocher", valeur: 1 }] },
+    texte: "Draw 1 card. Gain Stone equal to twice its cost.", effets: [{ type: "piocher-pierre", valeur: 1, mult: 2 }] },
   // Flex : gagne 2 Force (NOUVELLE méta : la Force ajoute +N à chaque coup, tout le combat).
   "flexion": { id: "flexion", nom: "Flex", cout: 1, type: "buff", nouveau: true,
     texte: "Gain 2 Strength (+2 damage to every attack this combat).", effets: [{ type: "force", valeur: 2 }] },
@@ -923,7 +923,7 @@ export const CARTES = {
     texte: "Draw 1 card. Gain 2 Forge Heat.", effets: [{ type: "piocher", valeur: 1 }, { type: "chaleur", valeur: 2 }] },
   // Drain : vol de vie (Vampiric Pendant).
   "drain": { id: "drain", nom: "Drain", cout: 1, type: "attaque", nouveau: true,
-    texte: "Deal 6 damage and heal 4 HP.", effets: [{ type: "degats", valeur: 6 }, { type: "soin-heros", valeur: 4 }] },
+    texte: "Consume the target's Bleed: heal that many HP. Gain 1 Forge Heat.", effets: [{ type: "drain-sang", energie: 1 }] },
 
   // ---- Signatures de MAIN SECONDE (off-hand : boucliers, grimoires, sceptres) -
   // Fireball : sort de zone enflammé (Grimoire of Flames).
