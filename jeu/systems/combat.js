@@ -169,7 +169,12 @@ export function creerCombat(ennemisDefs, opts = {}) {
     // Initiative (ATB)
     vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0), // + talents d'agilité
     celeritePct: stats.celeritePct || 0, // bonus PASSIF de célérité (%) des bottes (toujours actif en combat)
-    hate: 0,               // « Hâte » : nb de tours du héros encore accélérés (+30% agilité)
+    hate: 0,               // « Hâte » : nb de tours du héros encore accélérés (+5%/tick d'agilité), s'écoule
+    hatePerm: 0,           // Hâte PERMANENTE (ne s'écoule pas) : alimentée par Long run (+5%/tick aussi)
+    riposte: 0,            // « Riposte » (Rebond) : renvoie les dégâts de MÊLÉE reçus, −1 tick par renvoi
+    toursBonus: 0,         // « Joue 2 fois » (Innaretable) : tours du héros à enchaîner sans laisser agir les ennemis
+    celeriteParTour: 0,    // « Long run » : ticks de Hâte gagnés au début de CHAQUE tour du héros (cumulable)
+    cartesPierre: 0,       // Set Stone Age : compteur de cartes « pierre » jouées (Stone = 1, Many stone = 3)
     initHeros: SEUIL_INIT / 2, // petite avance : le héros OUVRE le combat (jamais frappé avant d'agir)
     premierTourHeros: true, // le 1er tour ne recharge pas la Chaleur (forge froide)
     // Ennemis (liste) + l'ennemi visé
@@ -204,7 +209,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
 
 // Vitesse EFFECTIVE (après les statuts de vitesse Hâte/Gel). Jamais < 1.
 export function vitesseHeros(combat) {
-  let v = combat.vitesseHerosBase * (1 + combat.hate * HATE_PAR_TICK); // +5% par tick de Hâte
+  let v = combat.vitesseHerosBase * (1 + (combat.hate + combat.hatePerm) * HATE_PAR_TICK); // +5% par tick de Hâte (temporaire + permanente)
   if (combat.celeritePct) v *= 1 + combat.celeritePct / 100; // bonus passif des bottes (toujours actif)
   if (combat.gelHeros > 0) v *= GEL_MULT; // Gel héros : −30% de vitesse
   return Math.max(1, v);
@@ -596,6 +601,32 @@ function appliquerEffet(combat, effet, ennemi) {
       if ((c.cout ?? 0) < effet.coutMax) ajouterCarteMain(combat, c);
       else combat.defausse.push(c);
     }
+  } else if (effet.type === "celerite-par-tour") {
+    // Long run : ajoute `valeur` au gain de Hâte appliqué au début de CHAQUE tour
+    // du héros, jusqu'à la fin du combat. Rejouer la carte empile l'effet.
+    combat.celeriteParTour += effet.valeur;
+  } else if (effet.type === "riposte") {
+    // Rebond : gagne `valeur` ticks de Riposte (renvoie les dégâts de mêlée reçus).
+    combat.riposte += effet.valeur;
+  } else if (effet.type === "tour-bonus") {
+    // Innaretable : le héros enchaînera `valeur` tour(s) supplémentaire(s).
+    combat.toursBonus += effet.valeur;
+  } else if (effet.type === "compteur-pierre") {
+    // Set Stone Age : marque `valeur` carte(s) « pierre » jouée(s) (Stone = 1,
+    // Many stone = 3). Les cartes de combo (Coagulation, vente, fonte) lisent ce total.
+    combat.cartesPierre += effet.valeur;
+  } else if (effet.type === "pierre-par-compteur") {
+    // Coagulation de pierre : gagne `valeur` Pierre par carte « pierre » déjà jouée
+    // (Stone vaut 1, Many stone vaut 3 — cf. le compteur cartesPierre).
+    combat.pierre += effet.valeur * combat.cartesPierre;
+  } else if (effet.type === "piocher-par-compteur") {
+    // Vente de cailloux : pioche (cartesPierre / `div`) cartes, borné à [min, max].
+    const n = Math.max(effet.min, Math.min(effet.max, Math.floor(combat.cartesPierre / effet.div)));
+    for (let i = 0; i < n; i++) ajouterCarteMain(combat, piocherUne(combat));
+  } else if (effet.type === "chaleur-par-compteur") {
+    // Fondre les pierres : gagne (cartesPierre / `div`) Chaleur, borné à [min, max].
+    const n = Math.max(effet.min, Math.min(effet.max, Math.floor(combat.cartesPierre / effet.div)));
+    combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + n);
   }
 }
 
@@ -935,6 +966,7 @@ export function agirEnnemi(combat, i) {
     attaqueAllie: 0, // PV retirés à un allié/soi-même par une attaque confuse
     idxAttaqueAllie: -1, // index de la victime de l'attaque confuse (pour le floater UI)
     gelExplosion: 0, // dégâts subis par la « glace brisée » (5 stacks de Gel atteints)
+    riposteRenvoi: 0, // dégâts renvoyés à l'attaquant par la Riposte (Rebond)
   };
   if (!e || e.pv <= 0) return evt;
   // Ordre des malus dans le temps : poison, puis feu, saignement en dernier.
@@ -990,6 +1022,14 @@ export function agirEnnemi(combat, i) {
       const retour = declencherFrappeMelee(combat, e);
       evt.brulureRetour = retour.brulure;
       evt.confusionRetour = retour.confusion;
+      // Riposte (Rebond) : renvoie à l'attaquant les dégâts de son attaque, mais
+      // SEULEMENT si c'est un ennemi de MÊLÉE (pas les attaquants à distance).
+      if (combat.riposte > 0 && e.def?.affix !== "range") {
+        evt.riposteRenvoi = e.intention.valeur;
+        e.pv = Math.max(0, e.pv - evt.riposteRenvoi);
+        combat.riposte -= 1;
+        if (e.pv <= 0) { evt.mortStatut = true; verifierFin(combat); }
+      }
     } else {
       // Confusion : frappe un allié (ou soi-même). Pas de Pierre côté ennemi, pas
       // de passif de mêlée (le héros n'est pas touché). Friendly fire pur.
@@ -1041,7 +1081,8 @@ export function commencerTourHeros(combat) {
     verifierFin(combat);
     if (combat.fini) return;
   }
-  if (combat.hate   > 0) combat.hate   -= 1; // la Hâte s'écoule (1 tour du héros)
+  if (combat.hate   > 0) combat.hate   -= 1; // la Hâte temporaire s'écoule (1 tour du héros)
+  if (combat.celeriteParTour > 0) combat.hatePerm += combat.celeriteParTour; // Long run : +N Hâte PERMANENTE par tour (s'accumule, ne s'écoule pas)
   if (combat.force  > 0) combat.force  -= 1; // la Force temporaire s'écoule (1 tour du héros)
   // Glace brisée (héros) : à GEL_EXPLOSION stacks, il saute son tour, perd
   // GEL_EXPLOSION stacks et subit DEGATS_GEL_EXPLOSION dégâts directs. (Aucun
@@ -1073,6 +1114,13 @@ export function finirTourHeros(combat) {
   propagerFeu(combat); // le Feu posé par une carte ce tour se répand une fois aux voisins
   combat.defausse.push(...combat.main);
   combat.main = [];
+  // Innaretable : tour(s) bonus → on remplit la jauge d'initiative du héros pour
+  // qu'il rejoue IMMÉDIATEMENT (les ennemis ne gagnent rien entre-temps : leurs
+  // jauges n'avancent pas tant que le héros est déjà au seuil).
+  if (combat.toursBonus > 0) {
+    combat.toursBonus -= 1;
+    combat.initHeros = SEUIL_INIT;
+  }
 }
 
 // ----- Initiative (ATB) : qui agit, et la file des prochains -------------------

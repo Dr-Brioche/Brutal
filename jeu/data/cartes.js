@@ -992,4 +992,18 @@ export const CARTES = {
   "donne-moi-ca": { id: "donne-moi-ca", nom: "Gimme That", cout: 2, type: "buff", nouveau: true,
     texte: "Steal a random buff from the target enemy and apply it to yourself.",
     effets: [{ type: "voler-bonus" }] },
+
+  // ---- Nouvelles cartes (3/3) : nouveaux statuts du héros ----
+  // Long Run : Hâte qui se régénère à chaque tour (cumulable en rejouant la carte).
+  "longue-course": { id: "longue-course", nom: "Long Run", cout: 3, type: "buff", nouveau: true,
+    texte: "Each of your turns, gain 1 permanent Haste (it builds up all combat). Stacks when replayed.",
+    effets: [{ type: "celerite-par-tour", valeur: 1 }] },
+  // Rebound : Riposte — renvoie à l'attaquant les dégâts de mêlée qu'il inflige.
+  "rebond": { id: "rebond", nom: "Rebound", cout: 2, type: "defense", nouveau: true,
+    texte: "Gain 4 Riposte: reflect melee damage you take back to the attacker. Lose 1 per trigger.",
+    effets: [{ type: "riposte", valeur: 4 }] },
+  // Unstoppable (Innaretable) : prend un tour supplémentaire juste après celui-ci.
+  "inarretable": { id: "inarretable", nom: "Unstoppable", cout: 3, type: "buff", nouveau: true,
+    texte: "Take an extra turn right after this one.",
+    effets: [{ type: "tour-bonus", valeur: 1 }] },
 };
