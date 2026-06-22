@@ -1026,4 +1026,78 @@ export const CARTES = {
   "fonte-de-pierres": { id: "fonte-de-pierres", nom: "Melt Stones", cout: 0, type: "buff", nouveau: true,
     texte: "Gain 1 Forge Heat per 8 Stone cards played this combat (min 1, max 6).",
     effets: [{ type: "chaleur-par-compteur", div: 8, min: 1, max: 6 }] },
+
+  // ============================================================================
+  // ARMES À DEUX MAINS (nouvelles) — pas d'off-hand, donc plus de cartes et des
+  // valeurs ~1.5× les armes à une main. Chaque arme a son COMBO. `revueArmes2H`
+  // marque ces ajouts pour relecture (surlignés dans l'Excel).
+  // ============================================================================
+
+  // ---- Claymore (Uncommon) : Force qui monte + multi-coups ----
+  // Combo : empiler la Force (Momentum) → Steel Flurry frappe 3× (Force par coup)
+  // → Decisive Strike DOUBLE si la Force est haute.
+  "taillade-large": { id: "taillade-large", nom: "Wide Slash", cout: 1, type: "attaque", revueArmes2H: true,
+    texte: "Deal 12 damage to the target and 6 to each adjacent enemy.",
+    effets: [{ type: "degats", valeur: 12 }, { type: "cleave-adjacent", valeur: 6 }] },
+  "volee-d-acier": { id: "volee-d-acier", nom: "Steel Flurry", cout: 1, type: "attaque", revueArmes2H: true,
+    texte: "Deal 5 damage three times.",
+    effets: [{ type: "degats", valeur: 5 }, { type: "degats", valeur: 5 }, { type: "degats", valeur: 5 }] },
+  "elan-du-guerrier": { id: "elan-du-guerrier", nom: "Warrior's Momentum", cout: 1, type: "buff", revueArmes2H: true,
+    texte: "Gain 3 Strength. Draw 1 card.",
+    effets: [{ type: "force", valeur: 3 }, { type: "piocher", valeur: 1 }] },
+  "frappe-decisive": { id: "frappe-decisive", nom: "Decisive Strike", cout: 2, type: "attaque", revueArmes2H: true,
+    texte: "Deal 15 damage. Doubled if you have 6+ Strength.",
+    effets: [{ type: "degats-si-force", valeur: 15, seuil: 6 }] },
+
+  // ---- Halberd (Uncommon) : allonge (transperce) + contrôle (gel) ----
+  // Combo : Hooking Strike gèle → Pike Thrust transperce la cible ET celui derrière
+  // → Wide Sweep nettoie la rangée. Tank léger avec Bracing Stance.
+  "estoc": { id: "estoc", nom: "Pike Thrust", cout: 1, type: "attaque", revueArmes2H: true,
+    texte: "Deal 10 damage to the target and the enemy behind it.",
+    effets: [{ type: "degats", valeur: 10 }, { type: "eclaboussure", degats: 10 }] },
+  "balayage-large": { id: "balayage-large", nom: "Wide Sweep", cout: 2, type: "attaque", aoe: true, revueArmes2H: true,
+    texte: "Deal 9 damage to ALL enemies.",
+    effets: [{ type: "degats", valeur: 9 }] },
+  "coup-de-croc": { id: "coup-de-croc", nom: "Hooking Strike", cout: 1, type: "attaque", revueArmes2H: true,
+    texte: "Deal 8 damage. Chill: -30% speed for 2 turns.",
+    effets: [{ type: "degats", valeur: 8 }, { type: "lenteur", valeur: 2 }] },
+  "position-de-garde": { id: "position-de-garde", nom: "Bracing Stance", cout: 1, type: "defense", revueArmes2H: true,
+    texte: "Gain 12 Stone.",
+    effets: [{ type: "pierre", valeur: 12 }] },
+
+  // ---- Siege Maul (Rare) : tank Pierre → la Pierre devient dégâts et contrôle ----
+  // Combo : empiler la Pierre (Bulwark, Stonestrike) → Stonestrike frappe = ta Pierre
+  // → Tremor étourdit TOUTE la rangée si ta Pierre ≥ 20.
+  "rempart": { id: "rempart", nom: "Bulwark", cout: 1, type: "defense", revueArmes2H: true,
+    texte: "Gain 15 Stone.",
+    effets: [{ type: "pierre", valeur: 15 }] },
+  "frappe-sismique": { id: "frappe-sismique", nom: "Seismic Slam", cout: 2, type: "attaque", revueArmes2H: true,
+    texte: "Deal 14 damage. Stun the target for 1 turn.",
+    effets: [{ type: "degats", valeur: 14 }, { type: "stun", valeur: 1 }] },
+  "frappe-de-roche": { id: "frappe-de-roche", nom: "Stonestrike", cout: 2, type: "attaque", revueArmes2H: true,
+    texte: "Deal damage equal to your Stone, then gain 8 Stone.",
+    effets: [{ type: "pierre-vers-degats", valeur: 1 }, { type: "pierre", valeur: 8 }] },
+  "tremblement": { id: "tremblement", nom: "Tremor", cout: 3, type: "attaque", aoe: true, revueArmes2H: true,
+    texte: "Deal 10 damage to ALL enemies. If you have 20+ Stone, stun them all for 1 turn.",
+    effets: [{ type: "degats", valeur: 10 }, { type: "stun-si-pierre", valeur: 1, seuil: 20 }] },
+
+  // ---- Great Scythe (Epic) : saignement de masse + exécution + récolte d'âmes ----
+  // Combo : poser du saignement partout (Reaping Arc, Grim Scythe) → Harvest soigne
+  // par ennemi qui saigne → Death Sentence/Soul Reap achèvent → Soul Reap récolte
+  // les morts (+Force +soin).
+  "faux-sinistre": { id: "faux-sinistre", nom: "Grim Scythe", cout: 1, type: "attaque", revueArmes2H: true,
+    texte: "Deal 10 damage. Apply 2 Bleed.",
+    effets: [{ type: "degats", valeur: 10 }, { type: "sang", valeur: 2 }] },
+  "arc-de-faux": { id: "arc-de-faux", nom: "Reaping Arc", cout: 2, type: "attaque", aoe: true, revueArmes2H: true,
+    texte: "Deal 9 damage and apply 3 Bleed to ALL enemies.",
+    effets: [{ type: "degats", valeur: 9 }, { type: "sang", valeur: 3 }] },
+  "sentence-de-mort": { id: "sentence-de-mort", nom: "Death Sentence", cout: 2, type: "attaque", revueArmes2H: true,
+    texte: "Deal 16 damage. Doubled if the target is below 50% HP.",
+    effets: [{ type: "degats-si-faible", valeur: 16, seuil: 0.5 }] },
+  "moisson": { id: "moisson", nom: "Harvest", cout: 2, type: "buff", revueArmes2H: true,
+    texte: "Heal 4 HP per enemy that has Bleed.",
+    effets: [{ type: "soin-par-ennemi-saignant", valeur: 4 }] },
+  "fauche-d-ames": { id: "fauche-d-ames", nom: "Soul Reap", cout: 3, type: "attaque", revueArmes2H: true,
+    texte: "Deal 12 damage. If the target dies, gain 2 Strength and heal 10 HP.",
+    effets: [{ type: "degats", valeur: 12 }, { type: "recompense-mort", force: 2, soin: 10 }] },
 };

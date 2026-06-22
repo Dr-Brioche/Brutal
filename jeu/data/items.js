@@ -98,6 +98,32 @@ export const ITEMS = {
     cartes: ["onyx-radiance", "onyx-radiance", "onyx-slash", "onyx-slash", "onyx-slash", "rejet-chaleur", "onyx-overheat"],
   },
 
+  // ---- Nouvelles armes à DEUX MAINS (sans off-hand → plus de cartes, valeurs ~1.5×) ----
+  // Claymore (Uncommon) : build Force qui monte + multi-coups (7 cartes).
+  "epee-large": {
+    id: "epee-large", nom: "Claymore", categorie: "arme", rarete: "uncommon", revueArmes2H: true,
+    taille: { l: 1, h: 3 }, icone: "#aeb4bc", degats: 7, mains: 2,
+    cartes: ["taillade-large", "taillade-large", "volee-d-acier", "volee-d-acier", "elan-du-guerrier", "elan-du-guerrier", "frappe-decisive"],
+  },
+  // Halberd (Uncommon) : allonge (transperce + AOE) + contrôle (gel) (7 cartes).
+  "hallebarde": {
+    id: "hallebarde", nom: "Halberd", categorie: "arme", rarete: "uncommon", revueArmes2H: true,
+    taille: { l: 1, h: 3 }, icone: "#9a8f7a", degats: 6, mains: 2,
+    cartes: ["estoc", "estoc", "balayage-large", "balayage-large", "coup-de-croc", "coup-de-croc", "position-de-garde"],
+  },
+  // Siege Maul (Rare) : tank Pierre → la Pierre devient dégâts et contrôle (7 cartes).
+  "marteau-de-siege": {
+    id: "marteau-de-siege", nom: "Siege Maul", categorie: "arme", rarete: "rare", revueArmes2H: true,
+    taille: { l: 1, h: 3 }, icone: "#787870", degats: 9, mains: 2,
+    cartes: ["rempart", "rempart", "frappe-sismique", "frappe-sismique", "frappe-de-roche", "frappe-de-roche", "tremblement"],
+  },
+  // Great Scythe (Epic) : saignement de masse + exécution + récolte d'âmes (8 cartes).
+  "grande-faux": {
+    id: "grande-faux", nom: "Great Scythe", categorie: "arme", rarete: "epique", revueArmes2H: true,
+    taille: { l: 1, h: 3 }, icone: "#5a6a5a", degats: 8, mains: 2,
+    cartes: ["faux-sinistre", "faux-sinistre", "faux-sinistre", "arc-de-faux", "arc-de-faux", "sentence-de-mort", "moisson", "fauche-d-ames"],
+  },
+
   // ---- Boucliers (slot off-hand) ----
   // Bouclier-tour : 3× Shield Wall + 2× Shield Bash (stun 3 tours) + 1× Stacking
   // Shield (double la Pierre). Passif : +2 Pierre à chaque frappe de mêlée reçue.

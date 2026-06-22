@@ -332,7 +332,8 @@ function effetViseEnnemi(e) {
   return e.type === "degats" || e.type === "poison" || e.type === "feu" ||
          e.type === "sang"   || e.type === "stun"   || e.type === "lenteur" ||
          e.type === "confusion" || e.type === "embrasement" ||
-         e.type === "confusion-si-confus" || e.type === "stun-si-sang";
+         e.type === "confusion-si-confus" || e.type === "stun-si-sang" ||
+         e.type === "degats-si-force" || e.type === "stun-si-pierre";
 }
 
 // Un ennemi porte-t-il au moins un MALUS (statut négatif) ? Sert aux cartes
@@ -648,6 +649,22 @@ function appliquerEffet(combat, effet, ennemi) {
     // Fondre les pierres : gagne (cartesPierre / `div`) Chaleur, borné à [min, max].
     const n = Math.max(effet.min, Math.min(effet.max, Math.floor(combat.cartesPierre / effet.div)));
     combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + n);
+  } else if (effet.type === "degats-si-force") {
+    // Decisive Strike (Claymore) : dégâts (Force incluse) DOUBLÉS si la Force totale
+    // du héros atteint `seuil` — récompense d'avoir empilé de la Force avant de frapper.
+    if (ennemi) {
+      const base = effet.valeur + forceApp;
+      ennemi.pv = Math.max(0, ennemi.pv - (forceTotal(combat) >= effet.seuil ? base * 2 : base));
+    }
+  } else if (effet.type === "stun-si-pierre") {
+    // Tremor (Siege Maul) : n'étourdit la cible QUE si la Pierre du héros atteint
+    // `seuil` — paie le build tank (on encaisse, puis on fige tout le monde).
+    if (ennemi && combat.pierre >= effet.seuil) ennemi.stun += effet.valeur;
+  } else if (effet.type === "soin-par-ennemi-saignant") {
+    // Harvest (Great Scythe) : soigne `valeur` PV par ennemi vivant qui SAIGNE
+    // (récompense d'avoir posé du saignement partout — vampirisme de zone).
+    const n = combat.ennemis.filter((e) => ennemiVivant(e) && e.sang > 0).length;
+    combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.valeur * n);
   }
 }
 
@@ -793,6 +810,7 @@ function resoudreAOE(combat, carte) {
 const EFFETS_POSITIONNELS = new Set([
   "rebond", "eclaboussure", "transfert-feu",
   "cleave-adjacent", "brulure-adjacent", "coup-de-grace", "contagion",
+  "recompense-mort",
 ]);
 
 // Résout une carte ciblée (un ennemi). Effets normaux sur la cible, puis les
@@ -888,6 +906,13 @@ function resoudreCiblee(combat, carte, cible) {
       // cible (ils prennent EXACTEMENT sa valeur — montée comme descente).
       const sangCible = ennemi ? ennemi.sang : 0;
       for (const v of adjacents) v.sang = sangCible;
+    } else if (effet.type === "recompense-mort") {
+      // Soul Reap (Great Scythe) : si la cible est MORTE après le coup, le héros
+      // récolte son âme — gagne `force` Force et se soigne de `soin` PV.
+      if (ennemi && ennemi.pv <= 0) {
+        combat.force += effet.force ?? 0;
+        if (effet.soin) combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.soin);
+      }
     }
   }
 }
