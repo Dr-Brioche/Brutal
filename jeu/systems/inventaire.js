@@ -23,11 +23,17 @@ export function creerInventaire() {
   return { cols: COLS, rangs: RANGS_BASE, objets: [], slots, or: 0 };
 }
 
-// Hauteur réelle de la grille (les deux sacs équipés ajoutent leurs rangées).
+// Hauteur réelle de la grille (le sac principal ajoute ses rangées).
+// Le sac2 ajoute des COLONNES (à droite), pas des rangées — cf. colsInventaire.
 export function rangsInventaire(inv) {
-  const sac  = inv.slots.sac  ? itemDef(inv.slots.sac)  : null;
+  const sac = inv.slots.sac ? itemDef(inv.slots.sac) : null;
+  return inv.rangs + (sac?.rangsBonus ?? 0);
+}
+
+// Largeur réelle de la grille (le sac2 ajoute ses « rangsBonus » en colonnes).
+export function colsInventaire(inv) {
   const sac2 = inv.slots.sac2 ? itemDef(inv.slots.sac2) : null;
-  return inv.rangs + (sac?.rangsBonus ?? 0) + (sac2?.rangsBonus ?? 0);
+  return inv.cols + (sac2?.rangsBonus ?? 0);
 }
 
 function casesOccupees(inv, sauf = null) {
@@ -43,7 +49,7 @@ function casesOccupees(inv, sauf = null) {
 }
 
 function tient(inv, x, y, l, h, occ) {
-  if (x < 0 || y < 0 || x + l > inv.cols || y + h > rangsInventaire(inv)) return false;
+  if (x < 0 || y < 0 || x + l > colsInventaire(inv) || y + h > rangsInventaire(inv)) return false;
   for (let dy = 0; dy < h; dy++)
     for (let dx = 0; dx < l; dx++)
       if (occ.has((x + dx) + "," + (y + dy))) return false;
@@ -56,8 +62,9 @@ export function ajouterObjet(inv, id) {
   if (!d) return false;
   const occ = casesOccupees(inv);
   const rangs = rangsInventaire(inv);
+  const cols  = colsInventaire(inv);
   for (let y = 0; y <= rangs - d.taille.h; y++)
-    for (let x = 0; x <= inv.cols - d.taille.l; x++)
+    for (let x = 0; x <= cols - d.taille.l; x++)
       if (tient(inv, x, y, d.taille.l, d.taille.h, occ)) {
         inv.objets.push({ id, x, y });
         return true;
@@ -71,8 +78,9 @@ function peutAjouter(inv, id) {
   if (!d) return false;
   const occ = casesOccupees(inv);
   const rangs = rangsInventaire(inv);
+  const cols  = colsInventaire(inv);
   for (let y = 0; y <= rangs - d.taille.h; y++)
-    for (let x = 0; x <= inv.cols - d.taille.l; x++)
+    for (let x = 0; x <= cols - d.taille.l; x++)
       if (tient(inv, x, y, d.taille.l, d.taille.h, occ)) return true;
   return false;
 }
@@ -207,12 +215,19 @@ export function desequiper(inv, slot) {
   if (!id) return false;
   const d = itemDef(id);
   if (d?.rangsBonus) {
-    const rangsFuturs = rangsInventaire(inv) - d.rangsBonus;
-    const overflow = inv.objets.some((o) => {
-      const h = itemDef(o.id)?.taille?.h ?? 1;
-      return (o.y + h) > rangsFuturs;
-    });
-    if (overflow) return "overflow";
+    if (slot === "sac2") {
+      // sac2 ajoute des colonnes : overflow si un item est dans les colonnes bonus.
+      const overflow = inv.objets.some((o) => o.x >= inv.cols);
+      if (overflow) return "overflow";
+    } else {
+      // sac principal ajoute des rangées : overflow si un item dépasse les rangées futures.
+      const rangsFuturs = rangsInventaire(inv) - d.rangsBonus;
+      const overflow = inv.objets.some((o) => {
+        const h = itemDef(o.id)?.taille?.h ?? 1;
+        return (o.y + h) > rangsFuturs;
+      });
+      if (overflow) return "overflow";
+    }
   }
   if (!ajouterObjet(inv, id)) return false;
   inv.slots[slot] = null;

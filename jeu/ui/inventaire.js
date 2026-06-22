@@ -16,7 +16,7 @@
 import { itemDef, couleurRarete } from "../data/items.js";
 import { xpPourNiveau } from "../systems/progression.js";
 import {
-  rangsInventaire, equiper, desequiper, arme2Bloquee,
+  rangsInventaire, colsInventaire, equiper, desequiper, arme2Bloquee,
   objetSousCase, peutPlacerA, deplacerObjet,
 } from "../systems/inventaire.js";
 import { dialogueActif } from "./dialogue.js";
@@ -96,8 +96,9 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function calculerCible(ancreX, ancreY) {
     const d = itemDef(tenu.objet.id);
     const rangs = rangsInventaire(inventaire);
+    const cols = colsInventaire(inventaire);
     return {
-      x: Math.max(0, Math.min(inventaire.cols - d.taille.l, ancreX - tenu.offX)),
+      x: Math.max(0, Math.min(cols - d.taille.l, ancreX - tenu.offX)),
       y: Math.max(0, Math.min(rangs - d.taille.h, ancreY - tenu.offY)),
     };
   }
@@ -386,7 +387,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       e.preventDefault();
       if (enBoutique) e.stopImmediatePropagation();
       const rangs = rangsInventaire(inventaire);
-      cursorX = Math.max(0, Math.min(inventaire.cols - 1, cursorX + (ddx[e.code] || 0)));
+      cursorX = Math.max(0, Math.min(colsInventaire(inventaire) - 1, cursorX + (ddx[e.code] || 0)));
       cursorY = Math.max(0, Math.min(rangs - 1, cursorY + (ddy[e.code] || 0)));
       cursorVisible = true;
       if (tenu) { const c = calculerCible(cursorX, cursorY); cibleX = c.x; cibleY = c.y; }
@@ -547,8 +548,16 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function rendreGrille() {
     elGrille.replaceChildren();
     const rangs = rangsInventaire(inventaire);
-    elGrille.style.width = inventaire.cols * CASE + "px";
+    const cols  = colsInventaire(inventaire);
+    elGrille.style.width  = cols  * CASE + "px";
     elGrille.style.height = rangs * CASE + "px";
+
+    // Séparateur vertical entre sac principal et sac2 (quand ce dernier est équipé).
+    if (inventaire.slots.sac2 && cols > inventaire.cols) {
+      const sep = document.createElement("div");
+      sep.style.cssText = `position:absolute;left:${inventaire.cols * CASE}px;top:0;width:2px;height:100%;background:rgba(255,255,255,0.15);pointer-events:none;`;
+      elGrille.append(sep);
+    }
 
     // Item sous le curseur clavier (null si case vide ou pas de curseur).
     const objetSousCurseur = (cursorVisible && !tenu)
@@ -606,7 +615,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   function clamperCurseur() {
     const rangs = rangsInventaire(inventaire);
-    cursorX = Math.max(0, Math.min(inventaire.cols - 1, cursorX));
+    cursorX = Math.max(0, Math.min(colsInventaire(inventaire) - 1, cursorX));
     cursorY = Math.max(0, Math.min(rangs - 1, cursorY));
   }
 
