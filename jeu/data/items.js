@@ -485,6 +485,30 @@ export const ITEMS = {
     passifPropre: { declencheur: "frappeMelee", texte: "When hit by a melee attack, the attacker takes 2 damage.", effets: [{ type: "degats", valeur: 2 }] } },
   "grimoire-puissance": { id: "grimoire-puissance", nom: "Tome of Power", categorie: "bouclier", rarete: "uncommon", nouveau: true,
     taille: { l: 1, h: 2 }, icone: "#7a3ad9", cartes: ["vague-arcanique", "etincelle", "mains-vives"] },
+
+  // ---- NOUVEAUX ITEMS (révision Excel juin) ----------------------------------
+  // Holy sword : arme de soutien (soin + dissipation). 1× Regenerate + 1× Healing
+  // Cleave + 1× Glory Strike + 2× Slash.
+  "epee-sacree": { id: "epee-sacree", nom: "Holy Sword", categorie: "arme", rarete: "uncommon", nouveau: true,
+    taille: { l: 1, h: 3 }, icone: "#e6d98a", degats: 6, mains: 1,
+    cartes: ["regeneration", "fauchage-soin", "frappe-de-gloire", "taillade", "taillade"] },
+
+  // ---- Set STONE AGE : torse + gants + bottes ; build « empiler des cartes pierre » -
+  // Bonus de set : tous les 10 cartes pierre jouées, stun de TOUS les ennemis 1 tour.
+  "armure-stone-age": { id: "armure-stone-age", nom: "Stone Armor", categorie: "armure", rarete: "uncommon", nouveau: true,
+    taille: { l: 2, h: 2 }, icone: "#82827a", planche: "images/heros/nain.png", armureDepart: 12,
+    cartes: ["caillou", "caillou", "caillou", "caillou", "caillou", "caillou", "tas-de-pierres", "tas-de-pierres", "tas-de-pierres", "coagulation-pierre"] },
+  "gants-stone-age": { id: "gants-stone-age", nom: "Stone Glove", categorie: "gant", rarete: "uncommon", nouveau: true,
+    taille: { l: 2, h: 1 }, icone: "#82827a",
+    cartes: ["caillou", "caillou", "caillou", "tas-de-pierres", "vente-de-cailloux"] },
+  "bottes-stone-age": { id: "bottes-stone-age", nom: "Stone Boots", categorie: "botte", rarete: "uncommon", nouveau: true,
+    taille: { l: 2, h: 1 }, icone: "#82827a", celeritePct: 6, vitesseBonus: 4,
+    cartes: ["caillou", "caillou", "caillou", "tas-de-pierres", "fonte-de-pierres"] },
+
+  // Lucky glove : gants « hasard » (énergie aléatoire + pioche filtrée).
+  "gants-chance": { id: "gants-chance", nom: "Lucky Glove", categorie: "gant", rarete: "uncommon", nouveau: true,
+    taille: { l: 2, h: 1 }, icone: "#5ad98a",
+    cartes: ["des-1", "des-2", "pioche-chanceuse"] },
 };
 
 export function itemDef(id) {
@@ -573,6 +597,18 @@ export const SETS = {
       declencheur: "saignementCombo",
       texte: "When a Bleed combo deals bonus damage, heal the hero for that amount.",
       effets: [{ type: "soin", ratio: 1 }],
+    },
+  },
+  // Set Stone Age : build « pierre ». Le bonus récompense d'empiler les cartes
+  // pierre — à chaque palier de 10 cartes pierre jouées, tout le monde est figé.
+  stoneAge: {
+    id: "stoneAge",
+    nom: "Stone Age Set",
+    pieces: ["armure-stone-age", "gants-stone-age", "bottes-stone-age"], // torse + gants + bottes
+    bonus: {
+      declencheur: "paliersPierre",
+      texte: "Every 10 Stone cards played in a combat, stun ALL enemies for 1 turn.",
+      effets: [{ type: "stun", valeur: 1 }],
     },
   },
 };

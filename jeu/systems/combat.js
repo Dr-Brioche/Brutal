@@ -381,6 +381,23 @@ function soinSaignementCombo(combat, bonus) {
   return soin;
 }
 
+// Set Stone Age : déclenché à chaque PALIER de 10 cartes « pierre » jouées dans le
+// combat (`paliers` = nombre de paliers franchis d'un coup, ex. un Many stone qui
+// fait passer le compteur de 9 à 12 franchit 1 palier). Applique le bonus de set
+// (passif `paliersPierre`) autant de fois — ex. stun de TOUS les ennemis 1 tour.
+function declencherPaliersPierre(combat, paliers) {
+  for (const p of combat.passifs ?? []) {
+    if (p.declencheur !== "paliersPierre") continue;
+    for (let k = 0; k < paliers; k++) {
+      for (const ef of p.effets) {
+        if (ef.type === "stun") {
+          for (const e of combat.ennemis) if (ennemiVivant(e)) e.stun += ef.valeur;
+        }
+      }
+    }
+  }
+}
+
 // Applique un effet de carte : les effets offensifs touchent `ennemi` (la cible),
 // les défensifs touchent le héros.
 function appliquerEffet(combat, effet, ennemi) {
@@ -614,7 +631,11 @@ function appliquerEffet(combat, effet, ennemi) {
   } else if (effet.type === "compteur-pierre") {
     // Set Stone Age : marque `valeur` carte(s) « pierre » jouée(s) (Stone = 1,
     // Many stone = 3). Les cartes de combo (Coagulation, vente, fonte) lisent ce total.
+    const avant = combat.cartesPierre;
     combat.cartesPierre += effet.valeur;
+    // Bonus de set : à chaque PALIER de 10 cartes pierre franchi, déclenche le set.
+    const paliers = Math.floor(combat.cartesPierre / 10) - Math.floor(avant / 10);
+    if (paliers > 0) declencherPaliersPierre(combat, paliers);
   } else if (effet.type === "pierre-par-compteur") {
     // Coagulation de pierre : gagne `valeur` Pierre par carte « pierre » déjà jouée
     // (Stone vaut 1, Many stone vaut 3 — cf. le compteur cartesPierre).
