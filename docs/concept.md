@@ -577,6 +577,17 @@ Principe (validé 19/06/2026) :
 - **Soin par cible** (`degats-soin-cible`) — *Healing Cleave* : dégâts AOE + soin par ennemi touché.
 - **Anti-feu héros** (`retirer-feu-hero`) — *Fresh Wind* : retire des ticks de brûlure au héros.
 
+**Armes à DEUX MAINS (nouvelles)** — pas d'off-hand → plus de cartes (7-8) et
+valeurs **~1.5×** les armes à une main, chacune avec son **combo** :
+- **Claymore** (Uncommon) — Force qui monte + multi-coups. *Decisive Strike*
+  (`degats-si-force`) : dégâts **doublés si Force ≥ 6**.
+- **Halberd** (Uncommon) — allonge (transperce cible + ennemi derrière) + contrôle (gel).
+- **Siege Maul** (Rare) — tank Pierre. *Tremor* (`stun-si-pierre`) : étourdit toute la
+  rangée **si la Pierre ≥ 20** ; *Stonestrike* convertit la Pierre en dégâts.
+- **Great Scythe** (Epic) — saignement + exécution + récolte. *Harvest*
+  (`soin-par-ennemi-saignant`) : soigne **par ennemi qui saigne** ; *Soul Reap*
+  (`recompense-mort`) : si la cible meurt, **+Force et soin** (récolte d'âme).
+
 > **Revue dans l'Excel** : tout nouvel item/carte porte un champ `nouveau: true`
 > dans le code ; le générateur du catalogue **surligne ces lignes en jaune** pour
 > que Brioche les relise facilement. (À retirer une fois validés.)
