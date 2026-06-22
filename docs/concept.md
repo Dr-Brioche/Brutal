@@ -125,10 +125,11 @@ proportionnellement (≠ tout-ou-rien). « Agir » = un **tour** pour le héros 
 joue, End Turn) ou **une attaque** pour un ennemi.
 - **Agilité** = la vitesse. Le héros a une base (10), montée en permanence par des
   **talents** (*Fleet Strikes*). Les cartes, elles, posent des **statuts de vitesse
-  TEMPORAIRES** qui tickent par tour (comme le poison) : **Hâte** (carte *Quicken*,
-  **+30 %** d'agilité) sur le héros, **Gel** (carte *Frostbite*, **−30 %** de vitesse)
-  sur l'ennemi visé. La carte donne la **durée en tours** (pas un montant de vitesse) ;
-  jouer la carte deux fois **cumule la durée**. Des monstres **véloces** (ex. *Goblin
+  TEMPORAIRES** qui tickent par tour (comme le poison) : **Hâte** sur le héros,
+  **Gel** (carte *Frostbite*, **−30 %** fixe) sur l'ennemi visé. La **Hâte** fonctionne
+  en **stacks** : chaque tick actif = **+5 %** de vitesse (3 stacks = +15 %,
+  10 stacks = +50 %). On perd 1 stack par tour ; rejouer la carte cumule les stacks.
+  Le **Gel** reste à −30 % fixe. Des monstres **véloces** (ex. *Goblin
   Skirmisher*, vitesse 18, **teinté plus froid** pour le repérer d'un coup d'œil)
   peuvent jouer 2× contre un héros lent.
 - **Annulation feu ↔ gel** : appliquer du **feu sur un ennemi gelé** supprime

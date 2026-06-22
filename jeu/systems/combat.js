@@ -52,9 +52,9 @@ const CHALEUR_MAX = 8;        // plafond absolu
 const VITESSE_HEROS_BASE = 10; // vitesse de base du héros (modifiée par talents/célérité)
 const SEUIL_INIT = 100;        // jauge d'initiative à remplir pour agir
 // Statuts de VITESSE (temporaires : ils tickent par tour comme le poison).
-// La VALEUR d'une carte = le NOMBRE DE TOURS d'effet (la durée), pas un montant
-// de vitesse. L'intensité, elle, est FIXE : +30% (hâte) ou −30% (gel).
-const HATE_MULT = 1.30; // « Hâte » (célérité) : agilité du héros ×1.30 pendant N tours
+// La VALEUR d'une carte = le NOMBRE DE TICKS ajoutés. Chaque tick de Hâte donne
+// +5% de vitesse ; chaque tour un tick s'écoule → plus de stacks = plus rapide.
+const HATE_PAR_TICK = 0.05; // « Hâte » : +5% de vitesse par tick actif (N ticks = +N×5%)
 const GEL_MULT  = 0.70; // « Gel » (lenteur)   : vitesse de l'ennemi ×0.70 pendant N tours
 // « Glace brisée » : au début de son tour, un combattant (héros OU ennemi) à
 // GEL_EXPLOSION stacks de Gel ou plus se brise — il SAUTE ce tour, perd
@@ -203,15 +203,14 @@ export function creerCombat(ennemisDefs, opts = {}) {
 
 // Vitesse EFFECTIVE (après les statuts de vitesse Hâte/Gel). Jamais < 1.
 export function vitesseHeros(combat) {
-  let v = combat.hate > 0 ? combat.vitesseHerosBase * HATE_MULT : combat.vitesseHerosBase;
+  let v = combat.vitesseHerosBase * (1 + combat.hate * HATE_PAR_TICK); // +5% par tick de Hâte
   if (combat.celeritePct) v *= 1 + combat.celeritePct / 100; // bonus passif des bottes (toujours actif)
   if (combat.gelHeros > 0) v *= GEL_MULT; // Gel héros : −30% de vitesse
   return Math.max(1, v);
 }
 export function vitesseEnnemi(e) {
-  let v = e.vitesse;
-  if (e.haste > 0) v *= HATE_MULT; // Hâte alliée : +30% de vitesse
-  if (e.gel > 0)   v *= GEL_MULT;  // Gel : −30% de vitesse (cumulable avec hâte)
+  let v = e.vitesse * (1 + e.haste * HATE_PAR_TICK); // +5% par tick de Hâte alliée
+  if (e.gel > 0) v *= GEL_MULT; // Gel : −30% de vitesse
   return Math.max(1, v);
 }
 

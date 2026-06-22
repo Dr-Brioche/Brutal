@@ -42,7 +42,8 @@
 //                         par point), puis la forge refroidit (chaleur → 0)
 //            - "stun"   : étourdit l'ennemi `valeur` tours (il saute ses tours).
 //                         Cumulable : rejouer en ajoute (les ticks s'additionnent)
-//            - "celerite": HÂTE le héros (+30% d'agilité) pendant `valeur` de SES tours
+//            - "celerite": ajoute `valeur` ticks de HÂTE au héros. Chaque tick = +5%
+//                         de vitesse ; les ticks s'écoulent de 1 par tour du héros.
 //            - "lenteur" : GÈLE l'ennemi visé (−30% de vitesse) pendant `valeur` de ses tours
 
 export const CARTES = {
@@ -224,7 +225,7 @@ export const CARTES = {
     nom: "Quicken",
     cout: 1,
     type: "buff", // ni dégât ni bouclier : accélère le héros
-    texte: "Haste: +30% attack speed for 3 turns.",
+    texte: "Gain 3 Haste. Each stack: +5% speed. Lose 1 per turn.",
     effets: [{ type: "celerite", valeur: 3 }],
   },
   // Anneau de givre : GÈLE l'ennemi visé (−30% de vitesse) pendant quelques tours.
