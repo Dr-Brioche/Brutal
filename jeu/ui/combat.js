@@ -417,7 +417,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const sangAvants   = combat.ennemis.map((e) => e.sang);
     const pierreAvant = combat.pierre;
     const hateAvant = combat.hate;
-    const pvHerosAvant = combat.pvHeros; // pour le soin vampirique (set Sang)
+    const pvHerosAvant = combat.pvHeros;
+    // Réinitialiser les compteurs d'overkill/over-heal avant la résolution.
+    combat.ennemis.forEach(e => { e.dernierDegats = 0; });
+    combat.dernierSoinCarte = 0;
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
     if (maitrise) incrementerMaitrise(maitrise, heros, carte.id);
 
@@ -431,29 +434,30 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const u = ennemisUI[idx];
       const e = combat.ennemis[idx];
       if (!u || !e) continue;
-      if (e.pv < pvAvants[idx]) {
+      // Affiche les VRAIS dégâts infligés (overkill inclus), pas juste la perte de PV.
+      const dmgAffiche = Math.max(pvAvants[idx] - e.pv, e.dernierDegats || 0);
+      if (dmgAffiche > 0) {
         if (!quelquUnTouche) { animAttaque = 0.25; quelquUnTouche = true; jouerSonCoup(); sonJoue = true; }
         u.secousse = 0.3;
         if (e.pv <= 0) exploser(u);
         else jouerAnim(u, "touche");
-        ajouterFlottant(`-${pvAvants[idx] - e.pv}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
+        ajouterFlottant(`-${dmgAffiche}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
       }
       if (e.stun > stunAvants[idx]) {
         u.secousse = Math.max(u.secousse, 0.3);
         ajouterFlottant(`💫 ${e.stun}`, u.ecran.cx, u.ecran.sommet - 16, "#ffd966");
         if (!sonJoue) { jouerSonSortilege(); sonJoue = true; }
       }
-      if (e.gel > gelAvants[idx]) { // Gel posé (−30% vitesse) → flocon au-dessus de l'ennemi
+      if (e.gel > gelAvants[idx]) {
         u.secousse = Math.max(u.secousse, 0.3);
         ajouterFlottant(`❄ ${e.gel}`, u.ecran.cx, u.ecran.sommet - 32, "#9fdfff");
         if (!sonJoue) { jouerSonSortilege(); sonJoue = true; }
       }
-      if (e.confusion > confusAvants[idx]) { // Confusion posée (éblouissement) → étoiles
+      if (e.confusion > confusAvants[idx]) {
         u.secousse = Math.max(u.secousse, 0.3);
         ajouterFlottant(`✨ ${e.confusion}`, u.ecran.cx, u.ecran.sommet - 48, "#ffe9a8");
         if (!sonJoue) { jouerSonSortilege(); sonJoue = true; }
       }
-      // Statuts de durée (feu, poison, sang) : son de sortilège au moment de l'application.
       if (!sonJoue && (e.feu > feuAvants[idx] || e.poison > poisonAvants[idx] || e.sang > sangAvants[idx])) {
         jouerSonSortilege(); sonJoue = true;
       }
@@ -462,11 +466,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       ajouterFlottant(`+${combat.pierre - pierreAvant}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
       if (!sonJoue) { jouerSonPierre(); sonJoue = true; }
     }
-    if (combat.hate > hateAvant) { // Hâte posée (+30% agilité) → éclair au-dessus du héros
+    if (combat.hate > hateAvant) {
       ajouterFlottant(`⚡ ${combat.hate}`, heroEcran.cx, heroEcran.sommet, "#dff4ff");
       if (!sonJoue) jouerSonSortilege();
     }
-    if (combat.pvHeros > pvHerosAvant) { // Soin vampirique (set Sang) → cœur vert sur le héros
+    // Soin : afficher le soin brut (over-heal inclus) s'il vient d'une carte.
+    if (combat.dernierSoinCarte > 0) {
+      ajouterFlottant(`💚+${combat.dernierSoinCarte}`, heroEcran.cx, heroEcran.sommet - 16, "#7edf82");
+    } else if (combat.pvHeros > pvHerosAvant) { // soin induit (ex. set Sang vampirique via regen)
       ajouterFlottant(`💚+${combat.pvHeros - pvHerosAvant}`, heroEcran.cx, heroEcran.sommet - 16, "#7edf82");
     }
     phaseCiblage = false;

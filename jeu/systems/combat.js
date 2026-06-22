@@ -134,6 +134,7 @@ function creerEnnemiCombat(def) {
     stun: 0,                       // étourdissement : nb de SES tours encore sautés
     confusion: 0,                  // « Confusion » (éblouissement) : nb de SES tours où il frappe une cible AU HASARD
     dernierPoison: 0, dernierFeu: 0, dernierSang: 0, // dégâts subis au dernier tour (UI)
+    dernierDegats: 0, // dégâts bruts infligés lors de la dernière carte (avant cap à 0, pour l'overkill UI)
     intention: null,              // ce qu'il prépare (télégraphié)
     vitesse: def.vitesse ?? VITESSE_HEROS_BASE, // vitesse d'initiative (agilité)
     gel: 0,                       // « Gel » : nb de SES tours encore ralentis (−30% vitesse)
@@ -176,6 +177,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     derniereBrulure: 0,
     dernierPoisonHeros: 0,
     dernierFeuHeros: 0,
+    dernierSoinCarte: 0, // soin brut rendu par la dernière carte (avant cap au max, pour l'over-heal UI)
     // Initiative (ATB)
     vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0), // + talents d'agilité
     celeritePct: stats.celeritePct || 0, // bonus PASSIF de célérité (%) des bottes (toujours actif en combat)
@@ -388,7 +390,7 @@ function soinSaignementCombo(combat, bonus) {
       if (ef.type === "soin") soin += Math.round(bonus * (ef.ratio ?? 1));
     }
   }
-  if (soin > 0) combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + soin);
+  if (soin > 0) soinnerHeros(combat, soin);
   return soin;
 }
 
@@ -409,6 +411,22 @@ function declencherPaliersPierre(combat, paliers) {
   }
 }
 
+// Inflige `n` dégâts bruts à un ennemi : accumule `dernierDegats` (non capé)
+// pour que l'UI puisse afficher l'overkill réel, puis réduit les PV (≥ 0).
+function blesser(e, n) {
+  if (n <= 0) return;
+  e.dernierDegats += n;
+  e.pv = Math.max(0, e.pv - n);
+}
+
+// Soigne le héros de `n` PV : accumule `dernierSoinCarte` (non capé) pour
+// afficher l'over-heal réel en UI, puis augmente les PV (≤ pvMax).
+function soinnerHeros(combat, n) {
+  if (n <= 0) return;
+  combat.dernierSoinCarte += n;
+  combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + n);
+}
+
 // Applique un effet de carte : les effets offensifs touchent `ennemi` (la cible),
 // les défensifs touchent le héros.
 function appliquerEffet(combat, effet, ennemi) {
@@ -416,30 +434,26 @@ function appliquerEffet(combat, effet, ennemi) {
   const portee = combat._porteeCarteCourante ?? "melee";
   const forceApp = portee === "melee" ? forceTotal(combat) : 0;
   if (effet.type === "degats") {
-    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (effet.valeur + forceApp));
+    if (ennemi) blesser(ennemi, effet.valeur + forceApp);
   } else if (effet.type === "degats-execution") {
     // Dégâts (Force incluse) DOUBLÉS si la cible porte au moins un malus.
     if (ennemi) {
       const base = effet.valeur + forceApp;
-      ennemi.pv = Math.max(0, ennemi.pv - (aMalus(ennemi) ? base * 2 : base));
+      blesser(ennemi, aMalus(ennemi) ? base * 2 : base);
     }
   } else if (effet.type === "degats-si-gel") {
     // Shatter : dégâts de base + bonus si la cible est GELÉE (récompense le frost).
-    if (ennemi) {
-      const deg = effet.valeur + forceApp + (ennemi.gel > 0 ? effet.bonus : 0);
-      ennemi.pv = Math.max(0, ennemi.pv - deg);
-    }
+    if (ennemi) blesser(ennemi, effet.valeur + forceApp + (ennemi.gel > 0 ? effet.bonus : 0));
   } else if (effet.type === "degats-si-faible") {
     // Execute : dégâts DOUBLÉS si la cible est sous `seuil` % de PV (achève les blessés).
     if (ennemi) {
       const base = effet.valeur + forceApp;
-      const faible = ennemi.pv <= ennemi.pvMax * (effet.seuil ?? 0.5);
-      ennemi.pv = Math.max(0, ennemi.pv - (faible ? base * 2 : base));
+      blesser(ennemi, ennemi.pv <= ennemi.pvMax * (effet.seuil ?? 0.5) ? base * 2 : base);
     }
   } else if (effet.type === "pierre-vers-degats") {
     // Stone Fist : inflige des dégâts égaux à la Pierre actuelle (× valeur), SANS
     // la consommer. Paie le build « bloc » (Mail, armures) en attaque.
-    if (ennemi) ennemi.pv = Math.max(0, ennemi.pv - (combat.pierre * effet.valeur + forceApp));
+    if (ennemi) blesser(ennemi, combat.pierre * effet.valeur + forceApp);
   } else if (effet.type === "force") {
     combat.force += effet.valeur; // gagne de la Force (persiste tout le combat)
   } else if (effet.type === "regen") {
@@ -459,8 +473,9 @@ function appliquerEffet(combat, effet, ennemi) {
     // Embrasement : consomme TOUTE la brûlure (feu) de l'ennemi et la transforme
     // en dégâts INSTANTANÉS (× valeur). Ex. 5 feu × 2 = 10 dégâts d'un coup, feu → 0.
     if (ennemi) {
-      ennemi.pv = Math.max(0, ennemi.pv - ennemi.feu * effet.valeur);
+      const feuConsomme = ennemi.feu;
       ennemi.feu = 0;
+      blesser(ennemi, feuConsomme * effet.valeur);
     }
   } else if (effet.type === "sang") {
     if (ennemi) {
@@ -469,7 +484,7 @@ function appliquerEffet(combat, effet, ennemi) {
       // hauts, plus chaque attaque de saignement suivante fait mal.
       if (ennemi.sang > 0) {
         const bonus = ennemi.sang;
-        ennemi.pv = Math.max(0, ennemi.pv - bonus);
+        blesser(ennemi, bonus);
         // Set Sang (vampirique) : ce combo soigne le héros d'autant — cf. soinSaignementCombo.
         soinSaignementCombo(combat, bonus);
       }
@@ -484,20 +499,18 @@ function appliquerEffet(combat, effet, ennemi) {
     const gain = Math.floor(sangTotal(combat) / effet.par);
     combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + gain);
   } else if (effet.type === "soin-par-sang") {
-    // Sanguine Guard : soigne le héros selon le saignement TOTAL sur le champ.
-    combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.valeur * sangTotal(combat));
+    soinnerHeros(combat, effet.valeur * sangTotal(combat));
   } else if (effet.type === "absorption-sang") {
     // Blood Absorption : soigne `valeur` PV par saignement TOTAL, puis efface TOUT
     // le saignement des ennemis (on « boit » les plaies — ne touche que les ennemis).
-    combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.valeur * sangTotal(combat));
+    soinnerHeros(combat, effet.valeur * sangTotal(combat));
     for (const e of combat.ennemis) e.sang = 0;
   } else if (effet.type === "auto-degats") {
     // Coût en sang : PV DIRECTS du héros (la Pierre ne protège PAS — c'est un
     // sacrifice). Peut faire tomber le héros ; le bilan vie est vérifié en fin de carte.
     combat.pvHeros = Math.max(0, combat.pvHeros - effet.valeur);
   } else if (effet.type === "soin-heros") {
-    // Holy light : soigne le héros de `valeur` PV (plafonné à la vie max).
-    combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.valeur);
+    soinnerHeros(combat, effet.valeur);
   } else if (effet.type === "purifier-hero") {
     // Lay on Hands : retire COMPLÈTEMENT un malus du héros tiré au hasard (poison/feu/gel).
     const malus = [];
@@ -584,7 +597,7 @@ function appliquerEffet(combat, effet, ennemi) {
     if (ennemi) {
       const draine = ennemi.sang;
       ennemi.sang = 0;
-      combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + draine);
+      soinnerHeros(combat, draine);
       combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + (effet.energie ?? 1));
     }
   } else if (effet.type === "supprimer-bonus") {
@@ -665,17 +678,16 @@ function appliquerEffet(combat, effet, ennemi) {
     // du héros atteint `seuil` — récompense d'avoir empilé de la Force avant de frapper.
     if (ennemi) {
       const base = effet.valeur + forceApp;
-      ennemi.pv = Math.max(0, ennemi.pv - (forceTotal(combat) >= effet.seuil ? base * 2 : base));
+      blesser(ennemi, forceTotal(combat) >= effet.seuil ? base * 2 : base);
     }
   } else if (effet.type === "stun-si-pierre") {
     // Tremor (Siege Maul) : n'étourdit la cible QUE si la Pierre du héros atteint
     // `seuil` — paie le build tank (on encaisse, puis on fige tout le monde).
     if (ennemi && combat.pierre >= effet.seuil) ennemi.stun += effet.valeur;
   } else if (effet.type === "soin-par-ennemi-saignant") {
-    // Harvest (Great Scythe) : soigne `valeur` PV par ennemi vivant qui SAIGNE
-    // (récompense d'avoir posé du saignement partout — vampirisme de zone).
+    // Harvest (Great Scythe) : soigne `valeur` PV par ennemi vivant qui SAIGNE.
     const n = combat.ennemis.filter((e) => ennemiVivant(e) && e.sang > 0).length;
-    combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.valeur * n);
+    soinnerHeros(combat, effet.valeur * n);
   }
 }
 
@@ -762,7 +774,7 @@ function resoudreAOE(combat, carte) {
       for (let h = 0; h < effet.hits; h++) {
         for (const e of vivants) {
           if (!ennemiVivant(e)) continue;
-          e.pv = Math.max(0, e.pv - effet.degats);
+          blesser(e, effet.degats);
           e.poison += dejaPoison.get(e) ? 2 : 1;
         }
       }
@@ -799,16 +811,16 @@ function resoudreAOE(combat, carte) {
       let morts = 0;
       for (const e of vivants) {
         const avant = e.pv;
-        e.pv = Math.max(0, e.pv - effet.degats);
+        blesser(e, effet.degats);
         e.sang += effet.sang;
         if (avant > 0 && e.pv <= 0) morts++;
       }
-      if (morts > 0) combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.soinMort * morts);
+      if (morts > 0) soinnerHeros(combat, effet.soinMort * morts);
     } else if (effet.type === "degats-soin-cible") {
       // Healing Cleave : `degats` à chaque ennemi vivant (Force incluse si mêlée),
       // puis soigne le héros de `soin` PV par ennemi touché.
       for (const e of vivants) appliquerEffet(combat, { type: "degats", valeur: effet.degats }, e);
-      combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.soin * vivants.length);
+      soinnerHeros(combat, effet.soin * vivants.length);
     } else if (effetViseEnnemi(effet)) {
       for (const e of vivants) appliquerEffet(combat, effet, e);
     } else {
@@ -858,7 +870,7 @@ function resoudreCiblee(combat, carte, cible) {
       const cible = combat.ennemis[i];
       if (!ennemiVivant(cible)) continue;
       const dejaGele = cible.gel > 0;
-      cible.pv = Math.max(0, cible.pv - casc.degats);
+      blesser(cible, casc.degats);
       if (cible.feu > 0) { cible.feu = 0; cible.feuDeCarte = false; } // gel éteint le feu
       cible.gel += casc.gel;
       verifierGelEnnemi(cible); // stun immédiat si ≥ 5 stacks
@@ -923,7 +935,7 @@ function resoudreCiblee(combat, carte, cible) {
       // récolte son âme — gagne `force` Force et se soigne de `soin` PV.
       if (ennemi && ennemi.pv <= 0) {
         combat.force += effet.force ?? 0;
-        if (effet.soin) combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + effet.soin);
+        if (effet.soin) soinnerHeros(combat, effet.soin);
       }
     }
   }
