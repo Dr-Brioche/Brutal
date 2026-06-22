@@ -45,8 +45,8 @@ function labelArme2(heros) {
 // Stats de base de la Chaleur de Forge (cf. systems/combat.js)
 const FORGE_SEUIL = 3, FORGE_MAX = 8, BASE_PIOCHE = 3; // bases (matchent systems/combat.js)
 
-function essayerEquiper(inventaire, heros, objet, surChangement, rendre) {
-  const res = equiper(inventaire, objet, heros);
+function essayerEquiper(inventaire, heros, objet, surChangement, rendre, slotForce = null) {
+  const res = equiper(inventaire, objet, heros, slotForce);
   if (res === true) { surChangement(); rendre(); return; }
   if (res === "plein") {
     montrerToast("🎒 Bag is full — make some room before swapping gear.");
@@ -169,11 +169,11 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     // Place occupée : on garde l'objet en main (le joueur retente ailleurs).
   }
 
-  function equiperTenu() {
+  function equiperTenu(slotForce = null) {
     if (!tenu) return;
     const o = tenu.objet;
     lacher();
-    essayerEquiper(inventaire, heros, o, surChangement, rendre);
+    essayerEquiper(inventaire, heros, o, surChangement, rendre, slotForce);
     rendre();
   }
 
@@ -464,8 +464,8 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function slotEl(slot) {
     const cell = document.createElement("div");
     cell.className = "inv-slot";
-    // Poser un objet tenu sur un slot = l'équiper (le système route vers le bon slot).
-    cell.addEventListener("click", () => { if (tenu) equiperTenu(); });
+    // Poser un objet tenu sur un slot = l'équiper en ciblant CE slot précis.
+    cell.addEventListener("click", () => { if (tenu) equiperTenu(slot); });
 
     if (slot === "arme2" && arme2Bloquee(inventaire)) {
       cell.classList.add("bloque");

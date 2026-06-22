@@ -107,39 +107,41 @@ function retirerObjet(inv, objet) {
   if (i !== -1) inv.objets.splice(i, 1);
 }
 
-// Le slot visé par un item (une bague va sur la 1re bague libre).
-// `heros` est optionnel : s'il a le talent ambidextrie et qu'arme1 est libre
-// d'une 1M + arme2 est vide, la 2e arme va directement en arme2.
-function slotCible(inv, id, heros) {
+// Le slot visé par un item. `slotForce` permet de cibler un slot précis (ex.
+// remplacer exactement la bague3 en déposant une bague dessus). Si le slot forcé
+// est compatible (même type de base), il est utilisé ; sinon on revient à l'auto.
+function slotCible(inv, id, heros, slotForce = null) {
   const d = itemDef(id);
   const base = SLOT_PAR_CATEGORIE[d.categorie];
+  // Slot forcé : valider que la catégorie correspond (évite de mettre une épée sur bague3).
+  if (slotForce) {
+    const slotBase = slotForce.replace(/\d+$/, ""); // "bague3" → "bague", "arme1" → "arme"
+    if (slotBase === base || slotForce === base) return slotForce;
+  }
   if (base === "bague") {
     for (let i = 1; i <= 5; i++) if (!inv.slots["bague" + i]) return "bague" + i;
-    return "bague1";
+    return "bague1"; // toutes prises → remplace la 1re par défaut (comportement inchangé)
   }
   // Sac secondaire : si sac est pris, le talent débloqué et sac2 libre → rediriger vers sac2.
   if (base === "sac" && inv.slots.sac && (heros?.talents?.sacBonus ?? 0) > 0 && !inv.slots.sac2) {
     return "sac2";
   }
-  // Ambidextrie : si arme1 porte une arme 1M et arme2 est libre → rediriger vers arme2.
+  // Ambidextrie : si arme1 porte une arme 1M → toujours rediriger vers arme2 (même si
+  // elle contient un bouclier — le bouclier est alors déplacé vers le sac).
   if (base === "arme1" && d.mains !== 2 && (heros?.talents?.ambidextrie ?? 0) > 0) {
     const arme1Def = itemDef(inv.slots.arme1 ?? "");
-    if (arme1Def && arme1Def.mains !== 2 && !inv.slots.arme2) return "arme2";
+    if (arme1Def && arme1Def.mains !== 2) return "arme2";
   }
   return base ?? null;
 }
 
-// Équipe un objet de la grille : il quitte le sac pour son slot ; l'ancien
-// occupant du slot retourne dans le sac.
-// `heros` est optionnel (nécessaire pour Ambidextrie).
-// Retourne true si succès, false si impossible (slot invalide / bloqué),
-// ou "plein" si le sac n'a pas la place pour accueillir les items déplacés.
-export function equiper(inv, objet, heros) {
+// Équipe un objet de la grille. `slotForce` permet de cibler un slot précis
+// (ex. déposer une bague sur bague3 pour remplacer celle-là plutôt que la 1re libre).
+// Retourne true si succès, false si impossible, "plein" / "deux-mains" sinon.
+export function equiper(inv, objet, heros, slotForce = null) {
   const d = itemDef(objet.id);
-  // Arme à deux mains : trop lourde sans le talent Giant's Grip (on peut la
-  // garder/revendre dans le sac, mais pas l'équiper). Cf. data/talents.js.
   if (d?.mains === 2 && !((heros?.talents?.deuxMains ?? 0) > 0)) return "deux-mains";
-  const slot = slotCible(inv, objet.id, heros);
+  const slot = slotCible(inv, objet.id, heros, slotForce);
   if (!slot) return false;
   // Bloquer arme2 si arme1 est une arme à deux mains (la seconde main est occupée).
   if (slot === "arme2" && itemDef(inv.slots.arme1 ?? "")?.mains === 2) return false;
