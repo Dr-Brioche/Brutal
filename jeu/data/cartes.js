@@ -1006,4 +1006,24 @@ export const CARTES = {
   "inarretable": { id: "inarretable", nom: "Unstoppable", cout: 3, type: "buff", nouveau: true,
     texte: "Take an extra turn right after this one.",
     effets: [{ type: "tour-bonus", valeur: 1 }] },
+
+  // ---- Set STONE AGE : empiler des cartes « pierre », puis encaisser le combo ----
+  // Stone et Many Stone donnent de la Pierre ET comptent (1 et 3) dans cartesPierre.
+  // Coagulation / Pebble Sale / Melt Stones lisent ce compteur pour récompenser
+  // d'avoir joué beaucoup de cartes pierre dans le combat.
+  "caillou": { id: "caillou", nom: "Stone", cout: 1, type: "defense", nouveau: true,
+    texte: "Gain 7 Stone.",
+    effets: [{ type: "pierre", valeur: 7 }, { type: "compteur-pierre", valeur: 1 }] },
+  "tas-de-pierres": { id: "tas-de-pierres", nom: "Many Stone", cout: 3, type: "defense", nouveau: true,
+    texte: "Gain 23 Stone. Counts as three Stone cards for Stone Age combos.",
+    effets: [{ type: "pierre", valeur: 23 }, { type: "compteur-pierre", valeur: 3 }] },
+  "coagulation-pierre": { id: "coagulation-pierre", nom: "Stone Coagulation", cout: 2, type: "defense", nouveau: true,
+    texte: "Gain 1 Stone for each Stone card played this combat (Many Stone counts as 3).",
+    effets: [{ type: "pierre-par-compteur", valeur: 1 }] },
+  "vente-de-cailloux": { id: "vente-de-cailloux", nom: "Pebble Sale", cout: 2, type: "buff", nouveau: true,
+    texte: "Draw 1 card per 6 Stone cards played this combat (min 1, max 6).",
+    effets: [{ type: "piocher-par-compteur", div: 6, min: 1, max: 6 }] },
+  "fonte-de-pierres": { id: "fonte-de-pierres", nom: "Melt Stones", cout: 0, type: "buff", nouveau: true,
+    texte: "Gain 1 Forge Heat per 8 Stone cards played this combat (min 1, max 6).",
+    effets: [{ type: "chaleur-par-compteur", div: 8, min: 1, max: 6 }] },
 };
