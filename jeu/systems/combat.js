@@ -57,12 +57,22 @@ const SEUIL_INIT = 100;        // jauge d'initiative à remplir pour agir
 // +5% de vitesse ; chaque tour un tick s'écoule → plus de stacks = plus rapide.
 const HATE_PAR_TICK = 0.05; // « Hâte » : +5% de vitesse par tick actif (N ticks = +N×5%)
 const GEL_MULT  = 0.70; // « Gel » (lenteur)   : vitesse de l'ennemi ×0.70 pendant N tours
-// « Glace brisée » : au début de son tour, un combattant (héros OU ennemi) à
-// GEL_EXPLOSION stacks de Gel ou plus se brise — il SAUTE ce tour, perd
-// GEL_EXPLOSION stacks et subit DEGATS_GEL_EXPLOSION dégâts directs (ignore la Pierre).
-const GEL_EXPLOSION = 5;        // seuil de stacks qui déclenche l'explosion
-const DEGATS_GEL_EXPLOSION = 5; // dégâts directs subis quand la glace se brise
+// À GEL_EXPLOSION stacks de Gel, l'ennemi est immédiatement étourdi (1 tour) et
+// perd GEL_EXPLOSION stacks ; le surplus est conservé. Héros : identique mais déclenché
+// au début de son tour (aucun ennemi ne le gèle pour l'instant).
+const GEL_EXPLOSION = 5;        // seuil de stacks qui déclenche l'étourdissement
+const DEGATS_GEL_EXPLOSION = 5; // dégâts directs héros quand la glace se brise (conservé)
 // ---------------------------------------------------------------------------
+
+// Vérifie si un ennemi vient d'atteindre ou de dépasser GEL_EXPLOSION stacks de Gel.
+// Si oui : stun immédiat (+1 tour), retrait de GEL_EXPLOSION stacks, surplus conservé.
+// Peut boucler si on accumule ≥ 10 stacks d'un coup (ex. buff ×2).
+function verifierGelEnnemi(e) {
+  while (e.gel >= GEL_EXPLOSION) {
+    e.gel -= GEL_EXPLOSION;
+    e.stun += 1;
+  }
+}
 
 // Mélange une copie du tableau (Fisher-Yates : chaque ordre est équiprobable).
 function melanger(tableau) {
@@ -533,7 +543,8 @@ function appliquerEffet(combat, effet, ennemi) {
     if (ennemi) {
       // Gel sur ennemi brûlant : la glace éteint le feu (brûlure annulée), gel appliqué normalement.
       if (ennemi.feu > 0) { ennemi.feu = 0; ennemi.feuDeCarte = false; }
-      ennemi.gel += effet.valeur; // Gel : −30% de vitesse pendant `valeur` tours (la durée se cumule)
+      ennemi.gel += effet.valeur;
+      verifierGelEnnemi(ennemi); // stun immédiat si ≥ 5 stacks
     }
   } else if (effet.type === "piocher") {
     // Pioche `valeur` cartes dans la main (recompose la pioche depuis la défausse
@@ -850,6 +861,7 @@ function resoudreCiblee(combat, carte, cible) {
       cible.pv = Math.max(0, cible.pv - casc.degats);
       if (cible.feu > 0) { cible.feu = 0; cible.feuDeCarte = false; } // gel éteint le feu
       cible.gel += casc.gel;
+      verifierGelEnnemi(cible); // stun immédiat si ≥ 5 stacks
       if (!dejaGele) break; // la chaîne s'arrête sur le premier ennemi pas déjà gelé
     }
     return;
