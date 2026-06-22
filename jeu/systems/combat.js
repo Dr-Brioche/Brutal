@@ -455,7 +455,7 @@ function appliquerEffet(combat, effet, ennemi) {
     // la consommer. Paie le build « bloc » (Mail, armures) en attaque.
     if (ennemi) blesser(ennemi, combat.pierre * effet.valeur + forceApp);
   } else if (effet.type === "force") {
-    combat.force += effet.valeur; // gagne de la Force (persiste tout le combat)
+    combat.force += effet.valeur; // Force temporaire : décroît de 1 par tour du héros
   } else if (effet.type === "regen") {
     combat.regen += effet.valeur; // régénération : PV/tour du héros
   } else if (effet.type === "pierre") {

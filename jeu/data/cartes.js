@@ -840,9 +840,9 @@ export const CARTES = {
   // Nimble Hands : pioche 1 carte (tempo de base, gratuite).
   "mains-vives": { id: "mains-vives", nom: "Nimble Hands", cout: 0, type: "buff", nouveau: true,
     texte: "Draw 1 card. Gain Stone equal to twice its cost.", effets: [{ type: "piocher-pierre", valeur: 1, mult: 2 }] },
-  // Flex : gagne 2 Force (NOUVELLE méta : la Force ajoute +N à chaque coup, tout le combat).
+  // Flex : gagne 2 Force temporaire (+N aux dégâts de chaque coup, décroît de 1 par tour du héros).
   "flexion": { id: "flexion", nom: "Flex", cout: 1, type: "buff", nouveau: true,
-    texte: "Gain 2 Strength (+2 damage to every attack this combat).", effets: [{ type: "force", valeur: 2 }] },
+    texte: "Gain 2 Strength (+2 damage to all attacks; fades by 1 each turn).", effets: [{ type: "force", valeur: 2 }] },
   // Stone Fist : inflige des dégâts égaux à ta Pierre actuelle (sans la consommer).
   "choc-de-pierre": { id: "choc-de-pierre", nom: "Stone Fist", cout: 3, type: "attaque", nouveau: true,
     texte: "Deal damage equal to your current Stone.", effets: [{ type: "pierre-vers-degats", valeur: 1 }] },
