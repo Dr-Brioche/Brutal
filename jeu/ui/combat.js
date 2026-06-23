@@ -500,7 +500,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // Anime le résultat d'un lancer de dés (effet chaleur-aleatoire).
   // Les chiffres défilent rapidement, puis ralentissent et s'arrêtent sur le résultat.
-  function animerDes({ min, max, gain }) {
+  // `mauvais` : le gain est inférieur au coût de la carte → son négatif joué APRÈS
+  // que le résultat final s'affiche (pas au lancement, sinon on l'entend trop tôt).
+  function animerDes({ min, max, gain, mauvais = false }) {
     enAnimPioche = true;
     const zone = overlay.querySelector(".combat-zone");
     const div = document.createElement("div");
@@ -522,6 +524,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       } else {
         num.textContent = gain;
         num.classList.add("combat-des-num--final");
+        if (mauvais) jouerSonNegatif(); // résultat affiché : on peut sonner l'échec
         setTimeout(() => {
           div.remove();
           enAnimPioche = false;
@@ -674,10 +677,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     verifierFin();
     if (!combat.fini) {
       // Lancer de dés (chaleur-aleatoire) : animation qui roule avant de s'arrêter sur le résultat.
+      // Le son négatif éventuel est joué PAR animerDes, à la révélation du résultat.
       if (combat.dernierGainAleatoire) {
-        const dAnim = combat.dernierGainAleatoire;
-        animerDes(dAnim);
-        if (dAnim.mauvais) jouerSonNegatif(); // gain inférieur au coût de la carte → échec
+        animerDes(combat.dernierGainAleatoire);
       } else if (combat.dernieresPiochesFiltre) {
         // Lucky Draw : on retire temporairement les cartes retenues pour les révéler une à une.
         const resultats = combat.dernieresPiochesFiltre;
