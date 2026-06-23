@@ -768,15 +768,28 @@
 
     .combat-perm-buff--infinity { color: #e6cf85; border-color: #b08a30; }
 
-    /* L'élément sélectionné au clavier (carte ou bouton) */
-    .combat-carte.sel, .combat-fin.sel {
+    /* Bouton « Fin du tour » sélectionné : liseré jaune classique. */
+    .combat-fin.sel {
       outline: 3px solid #ffcf57;
       outline-offset: 2px;
       box-shadow: 0 0 18px rgba(255, 180, 60, 0.55);
     }
+    /* Carte sélectionnée : PAS de liseré (il jure avec le cadre dessiné), mais un
+       HALO jaune dégradé posé SOUS la carte, en fondu vers l'extérieur. */
     .combat-carte.sel {
       transform: translateY(calc(var(--dy, 0px) - var(--carte-l, 150px) * 0.08)) rotate(0deg) scale(1.07);
       z-index: 10;
+    }
+    .combat-carte.sel::before {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center,
+        rgba(255, 214, 95, 0.92) 20%,
+        rgba(255, 188, 66, 0.55) 42%,
+        rgba(255, 188, 66, 0) 70%);
     }
 
     /* Le panneau Victory / Defeat */
