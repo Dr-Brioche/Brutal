@@ -560,10 +560,17 @@
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; text-align: center; line-height: 1.15;
     }
+    /* Texte d'effet : blanc à contour noir (lisible sur le parchemin comme sur une
+       illustration), un cran plus grand. Taille réduite par paliers selon la
+       longueur (cf. carte.js) pour ne pas déborder du parchemin. */
     .combat-carte--cadre .carte-texte {
-      color: #3a2a1a;
-      font-size: calc(var(--carte-l, 150px) * 0.052);
+      color: #fff;
+      -webkit-text-stroke: 0.07em #000;
+      paint-order: stroke fill;
+      font-size: calc(var(--carte-l, 150px) * 0.058);
     }
+    .combat-carte--cadre .carte-texte--moyen { font-size: calc(var(--carte-l, 150px) * 0.05); }
+    .combat-carte--cadre .carte-texte--petit { font-size: calc(var(--carte-l, 150px) * 0.043); }
     /* 5. Coût : chiffre clair centré dans le médaillon en haut à gauche. */
     .combat-carte--cadre .combat-carte-cout {
       position: absolute; left: 5.5%; top: 1.7%;

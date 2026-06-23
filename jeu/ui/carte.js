@@ -69,6 +69,10 @@ export function garnirCarte(el, carte) {
   const texte = document.createElement("span");
   texte.className = "carte-texte";
   texte.textContent = carte.texte;
+  // Réduit la police pour les textes longs, qui sinon déborderaient du parchemin.
+  const n = (carte.texte || "").length;
+  if (n > 90) texte.classList.add("carte-texte--petit");
+  else if (n > 55) texte.classList.add("carte-texte--moyen");
   parchemin.append(texte);
   el.append(parchemin);
 
