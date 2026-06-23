@@ -8,6 +8,9 @@
 //             exécutée, puis `surFin` est appelé (ex. pour reprendre le jeu).
 //             Un choix peut porter `itemId` : au survol, on montre la bulle de
 //             l'objet (effets + visuel des cartes) — utilisé par le marchand.
+//   - surEchap : (optionnel) appelé sur Échap AVANT la fermeture. Sert aux
+//                sous-menus (marchand) à préparer un RETOUR au menu parent plutôt
+//                que de tout fermer. Sans lui, Échap ferme le dialogue (défaut).
 
 import { montrerInfobulle, suivreInfobulle, cacherInfobulle, montrerInfobulleEl } from "./infobulle.js";
 import { itemDef, couleurRarete } from "../data/items.js";
@@ -94,7 +97,8 @@ export function ouvrirDialogue(dialogue, surFin) {
       el.addEventListener("click", () => choisir(i));
       elChoix.append(el);
     });
-    elAide.textContent = choix.length ? "[Z/S] choose · [Space] confirm" : "[Space] close";
+    const aide = choix.length ? "[Z/S] choose · [Space] confirm" : "[Space] close";
+    elAide.textContent = dialogue.surEchap ? `${aide} · [Esc] back` : aide;
     majApercu(); // bulle du choix sélectionné (navigation clavier)
   }
 
@@ -160,7 +164,14 @@ export function ouvrirDialogue(dialogue, surFin) {
     if (!TOUCHES.has(e.code)) return; // on laisse passer le reste
     e.preventDefault();
     e.stopPropagation();              // bloque menu pause / déplacement pendant le dialogue
-    if (e.code === "Escape") { fermerUI(); if (surFin) surFin(); } // Échap : on sort
+    if (e.code === "Escape") {
+      // Échap : si le dialogue propose un RETOUR (sous-menu marchand), on le
+      // prépare AVANT la fermeture → surFin rouvre le menu parent au lieu de tout
+      // fermer. Sans surEchap, on sort normalement (comportement par défaut).
+      if (dialogue.surEchap) dialogue.surEchap();
+      fermerUI();
+      if (surFin) surFin();
+    }
     else if (e.code === "Space" || e.code === "Enter") avancer();
     else if (enChoix && (e.code === "KeyW" || e.code === "ArrowUp")) { deplacer(-1); rendre(); }
     else if (enChoix && (e.code === "KeyS" || e.code === "ArrowDown")) { deplacer(1); rendre(); }

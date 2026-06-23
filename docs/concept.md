@@ -707,6 +707,11 @@ valeurs **~1.5×** les armes à une main, chacune avec son **combo** :
   est « Non ». Pour les objets **rare et au-dessus**, chaque vente demande une
   **confirmation** (évite de vendre un bon objet par mégarde) — désactivable dans
   l'onglet **Interface** du menu pause.
+- **Navigation des menus marchand** : **Échap** dans un **sous-menu** (une
+  catégorie d'achat, la liste de vente, une confirmation) **revient au menu
+  parent** au lieu de quitter la boutique ; il ne **ferme la boutique** qu'au
+  **menu racine** (comme « Leave »). Convention générique du système de dialogue
+  (`surEchap`) : un sous-menu déclare son menu de retour.
 - **Glisser-déposer dans le sac** : on soulève un objet d'un clic, on le repose sur
   une case (réorganisation) ou un slot (équiper). Le lâcher **dans le vide** (hors
   de toute fenêtre) le **jette** (confirmation pour les objets rares) ; **Échap**

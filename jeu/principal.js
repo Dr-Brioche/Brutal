@@ -248,10 +248,14 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Quand l'inventaire change (équiper/déséquiper) pendant un menu marchand, on
   // rafraîchit la liste à chaud (utile dans « Sell items »). null = pas de refresh.
   let surChangementMenu = null;
-  function ouvrirMenuMarchand(nom, choix, selInitial = 0) {
+  // `retour` (optionnel) : le menu parent à rouvrir sur Échap. Si fourni, Échap
+  // revient à ce menu au lieu de quitter la boutique (cf. dialogue → surEchap).
+  // Les menus RACINE (menuBoutique) ne le passent pas → Échap quitte la boutique.
+  function ouvrirMenuMarchand(nom, choix, selInitial = 0, retour = null) {
     prochainMenu = null;
     surChangementMenu = null; // chaque menu repose son propre refresh (cf. menuVendre)
-    ouvrirDialogue({ nom, choix, selInitial }, () => {
+    const surEchap = retour ? () => { prochainMenu = retour; } : null;
+    ouvrirDialogue({ nom, choix, selInitial, surEchap }, () => {
       const suite = prochainMenu;
       prochainMenu = null;
       if (suite) suite();
@@ -301,7 +305,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // jour à chaud si on (dés)équipe dans l'inventaire ouvert à côté.
   function menuVendre() {
     if (!inventaire.objets.length) afficherMessage("Your bag is empty — nothing to sell.");
-    ouvrirMenuMarchand("Test Merchant — Sell", choixVente());
+    ouvrirMenuMarchand("Test Merchant — Sell", choixVente(), 0, menuBoutique);
     surChangementMenu = () => rafraichirChoix(choixVente());
   }
 
@@ -320,7 +324,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           afficherMessage(`💰 Sold ${aVendre.length} items for ${somme} 🪙.`);
           inventaireUI.rendre();
         } },
-    ]);
+    ], 0, menuVendre);
   }
 
   // Confirmation de vente pour un objet rare+ (sous-menu marchand).
@@ -335,7 +339,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           afficherMessage(`💰 Sold ${d.nom} for ${prix} 🪙.`);
           inventaireUI.rendre();
         } },
-    ]);
+    ], 0, menuVendre);
   }
 
   // Menu d'une catégorie : ses items (gratuits) + retour aux catégories.
@@ -365,7 +369,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       }
     }
     choix.push({ texte: "←  Back", action: () => { prochainMenu = menuBoutique; } });
-    ouvrirMenuMarchand(`Test Merchant — ${c.nom}`, choix, selInitial);
+    ouvrirMenuMarchand(`Test Merchant — ${c.nom}`, choix, selInitial, menuBoutique);
   }
 
   function fermerBoutique() {
