@@ -113,6 +113,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     g.style.height = d.taille.h * CASE - 4 + "px";
     const t = document.createElement("span");
     t.textContent = d.nom;
+    t.style.color = couleurRarete(objet.id);
     g.append(t);
     document.body.append(g);
     return g;
@@ -452,6 +453,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     el.style.borderColor = couleurRarete(id);
     const t = document.createElement("span");
     t.textContent = d.nom;
+    t.style.color = couleurRarete(id);
     el.append(t);
     // Bulle d'info au survol — sauf quand on tient un objet (geste en cours).
     el.addEventListener("mouseenter", (e) => { if (!tenu) montrerInfobulle(id, e); });

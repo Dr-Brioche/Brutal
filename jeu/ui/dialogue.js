@@ -87,6 +87,7 @@ export function ouvrirDialogue(dialogue, surFin) {
         else { ic.style.background = d.icone; ic.style.borderColor = couleurRarete(c.itemId); }
         const txt = document.createElement("span");
         txt.textContent = c.texte;
+        txt.style.color = couleurRarete(c.itemId);
         el.append(marque, ic, txt);
         el.addEventListener("mouseenter", (e) => montrerInfobulle(c.itemId, e));
         el.addEventListener("mousemove", suivreInfobulle);
