@@ -256,7 +256,7 @@ export const CARTES = {
     nom: "Quicken",
     cout: 1,
     type: "buff", // ni dégât ni bouclier : accélère le héros
-    texte: "Gain 4 Haste. Each stack: +5% speed. Lose 1 per turn.",
+    texte: "Gain 4 Haste.",
     effets: [{ type: "celerite", valeur: 4 }],
   },
   // Anneau de givre : GÈLE l'ennemi visé (−30% de vitesse) pendant quelques tours.
@@ -266,7 +266,7 @@ export const CARTES = {
     cout: 1,
     type: "attaque",
     portee: "range",
-    texte: "Deal 5 damage. Chill: -30% speed for 3 turns.",
+    texte: "Deal 5 damage. Apply 3 Chill.",
     effets: [{ type: "degats", valeur: 5 }, { type: "lenteur", valeur: 3 }],
   },
 
@@ -277,7 +277,7 @@ export const CARTES = {
     nom: "Sapphire Surge",
     cout: 0,
     type: "buff", // ni dégât ni bouclier : régénère juste de l'énergie
-    texte: "Gain 2 Forge Heat (energy).",
+    texte: "Gain 2 Forge Heat.",
     effets: [{ type: "chaleur", valeur: 2 }],
   },
   // Saphir parfait : version supérieure de Surge (+3 Chaleur au lieu de +2),
@@ -287,7 +287,7 @@ export const CARTES = {
     nom: "Perfect Sapphire Surge",
     cout: 0,
     type: "buff",
-    texte: "Gain 3 Forge Heat (energy).",
+    texte: "Gain 3 Forge Heat.",
     effets: [{ type: "chaleur", valeur: 3 }],
   },
 
@@ -462,7 +462,7 @@ export const CARTES = {
     nom: "Onyx Overheat",
     cout: 0,
     type: "buff", // ni dégât ni bouclier : régénère de l'énergie
-    texte: "Gain 5 Forge Heat (energy).",
+    texte: "Gain 5 Forge Heat.",
     effets: [{ type: "chaleur", valeur: 5 }],
   },
 
@@ -546,7 +546,7 @@ export const CARTES = {
     nom: "Free Movement",
     cout: 2,
     type: "buff",
-    texte: "Haste for 4 of your turns.",
+    texte: "Gain 4 Haste.",
     effets: [{ type: "celerite", valeur: 4 }],
   },
 
@@ -610,7 +610,7 @@ export const CARTES = {
     nom: "Mail Advantage",
     cout: 1,
     type: "buff",
-    texte: "Gain 8 Stone and Haste for 2 turns.",
+    texte: "Gain 8 Stone and 2 Haste.",
     effets: [{ type: "pierre", valeur: 8 }, { type: "celerite", valeur: 2 }],
   },
 
@@ -657,7 +657,7 @@ export const CARTES = {
     nom: "Boost",
     cout: 0,
     type: "buff",
-    texte: "Gain 3 Forge Heat (energy).",
+    texte: "Gain 3 Forge Heat.",
     effets: [{ type: "chaleur", valeur: 3 }],
   },
 
@@ -857,7 +857,7 @@ export const CARTES = {
     texte: "Deal 3 damage. Apply 4 Poison.", effets: [{ type: "degats", valeur: 3 }, { type: "poison", valeur: 4 }] },
   // Ice Shard : éclat de glace de base (ralentit — alimente le build gel).
   "eclat-de-glace": { id: "eclat-de-glace", nom: "Ice Shard", cout: 1, type: "attaque", nouveau: true,
-    texte: "Deal 5 damage. Chill: -30% speed for 2 turns.", effets: [{ type: "degats", valeur: 5 }, { type: "lenteur", valeur: 2 }] },
+    texte: "Deal 5 damage. Apply 2 Chill.", effets: [{ type: "degats", valeur: 5 }, { type: "lenteur", valeur: 2 }] },
   // Ember : braise de base (pose un peu de feu — alimente le build feu/Onyx).
   "braise": { id: "braise", nom: "Ember", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 4 damage. Apply 2 Burning.", effets: [{ type: "degats", valeur: 4 }, { type: "feu", valeur: 2 }] },
@@ -866,19 +866,19 @@ export const CARTES = {
     texte: "Gain 8 Stone.", effets: [{ type: "pierre", valeur: 8 }] },
   // Spark : petite relance d'énergie de base.
   "etincelle": { id: "etincelle", nom: "Spark", cout: 0, type: "buff", nouveau: true,
-    texte: "Gain 1 Forge Heat (energy).", effets: [{ type: "chaleur", valeur: 1 }] },
+    texte: "Gain 1 Forge Heat.", effets: [{ type: "chaleur", valeur: 1 }] },
   // Nimble Hands : pioche 1 carte (tempo de base, gratuite).
   "mains-vives": { id: "mains-vives", nom: "Nimble Hands", cout: 0, type: "buff", nouveau: true,
     texte: "Draw 1 card. Gain Stone equal to twice its cost.", effets: [{ type: "piocher-pierre", valeur: 1, mult: 2 }] },
   // Flex : gagne 2 Force temporaire (+N aux dégâts de chaque coup, décroît de 1 par tour du héros).
   "flexion": { id: "flexion", nom: "Flex", cout: 1, type: "buff", nouveau: true,
-    texte: "Gain 2 Strength (+2 damage to all attacks; fades by 1 each turn).", effets: [{ type: "force", valeur: 2 }] },
+    texte: "Gain 2 Strength.", effets: [{ type: "force", valeur: 2 }] },
   // Stone Fist : inflige des dégâts égaux à ta Pierre actuelle (sans la consommer).
   "choc-de-pierre": { id: "choc-de-pierre", nom: "Stone Fist", cout: 3, type: "attaque", nouveau: true,
     texte: "Deal damage equal to your current Stone.", effets: [{ type: "pierre-vers-degats", valeur: 1 }] },
   // Regenerate : gagne 3 Régénération (soigne 3 PV au début de chacun de tes tours).
   "regeneration": { id: "regeneration", nom: "Regenerate", cout: 1, type: "buff", nouveau: true,
-    texte: "Gain 3 Regen. Each turn: heal that many HP, then lose 1 Regen.", effets: [{ type: "regen", valeur: 3 }] },
+    texte: "Gain 3 Regen.", effets: [{ type: "regen", valeur: 3 }] },
 
   // ---- Signatures d'ARMES uncommon -------------------------------------------
   // Venom Spit : grosse dose de poison (Venomfang Dagger).
@@ -924,7 +924,7 @@ export const CARTES = {
     texte: "Gain 4 Strength.", effets: [{ type: "force", valeur: 4 }] },
   // Dash : hâte + pioche (Swift Striders).
   "ruee": { id: "ruee", nom: "Dash", cout: 1, type: "buff", nouveau: true,
-    texte: "Haste for 3 turns. Draw 1 card.", effets: [{ type: "celerite", valeur: 3 }, { type: "piocher", valeur: 1 }] },
+    texte: "Gain 3 Haste. Draw 1 card.", effets: [{ type: "celerite", valeur: 3 }, { type: "piocher", valeur: 1 }] },
   // Sleight : grosse pioche + un peu d'énergie (Thief's Gloves) — moteur « cycle ».
   "tour-de-main": { id: "tour-de-main", nom: "Sleight", cout: 1, type: "buff", nouveau: true,
     texte: "Draw 2 cards. Gain 1 Forge Heat.", effets: [{ type: "piocher", valeur: 2 }, { type: "chaleur", valeur: 1 }] },
@@ -941,13 +941,13 @@ export const CARTES = {
     texte: "Gain 3 Strength.", effets: [{ type: "force", valeur: 3 }] },
   // Frost Nova : gel de masse (Frost Signet).
   "nova-de-givre": { id: "nova-de-givre", nom: "Frost Nova", cout: 2, type: "attaque", portee: "range", aoe: true, nouveau: true,
-    texte: "Chill ALL enemies (-30% speed for 3 turns).", effets: [{ type: "lenteur", valeur: 3 }] },
+    texte: "Apply 3 Chill to ALL enemies.", effets: [{ type: "lenteur", valeur: 3 }] },
   // Bloodthirst : saignement qui soigne le héros (Bloodthirst Ring).
   "soif-de-sang": { id: "soif-de-sang", nom: "Bloodthirst", cout: 1, type: "attaque", portee: "range", nouveau: true,
     texte: "Deal 5 damage, apply 3 Bleed, and heal 3 HP.", effets: [{ type: "degats", valeur: 5 }, { type: "sang", valeur: 3 }, { type: "soin-heros", valeur: 3 }] },
   // Overclock : grosse relance d'énergie (Forge Ring).
   "surcharge": { id: "surcharge", nom: "Overclock", cout: 1, type: "buff", nouveau: true,
-    texte: "Gain 4 Forge Heat (energy).", effets: [{ type: "chaleur", valeur: 4 }] },
+    texte: "Gain 4 Forge Heat.", effets: [{ type: "chaleur", valeur: 4 }] },
   // Focus : pioche + énergie (Amulet of Focus).
   "concentration": { id: "concentration", nom: "Focus", cout: 1, type: "buff", nouveau: true,
     texte: "Draw 1 card. Gain 2 Forge Heat.", effets: [{ type: "piocher", valeur: 1 }, { type: "chaleur", valeur: 2 }] },
@@ -1026,11 +1026,11 @@ export const CARTES = {
   // ---- Nouvelles cartes (3/3) : nouveaux statuts du héros ----
   // Long Run : Hâte qui se régénère à chaque tour (cumulable en rejouant la carte).
   "longue-course": { id: "longue-course", nom: "Long Run", cout: 3, type: "buff", nouveau: true,
-    texte: "Each of your turns, gain 1 permanent Haste (it builds up all combat). Stacks when replayed.",
+    texte: "Each of your turns: gain 1 Haste.",
     effets: [{ type: "celerite-par-tour", valeur: 1 }] },
   // Rebound : Riposte — renvoie à l'attaquant les dégâts de mêlée qu'il inflige.
   "rebond": { id: "rebond", nom: "Rebound", cout: 2, type: "defense", nouveau: true,
-    texte: "Gain 4 Riposte: reflect melee damage you take back to the attacker. Lose 1 per trigger.",
+    texte: "Gain 4 Riposte.",
     effets: [{ type: "riposte", valeur: 4 }] },
   // Unstoppable (Innaretable) : prend un tour supplémentaire juste après celui-ci.
   "inarretable": { id: "inarretable", nom: "Unstoppable", cout: 3, type: "buff", nouveau: true,
@@ -1089,7 +1089,7 @@ export const CARTES = {
     texte: "Deal 9 damage to ALL enemies.",
     effets: [{ type: "degats", valeur: 9 }] },
   "coup-de-croc": { id: "coup-de-croc", nom: "Hooking Strike", cout: 1, type: "attaque", revueArmes2H: true,
-    texte: "Deal 8 damage. Chill: -30% speed for 2 turns.",
+    texte: "Deal 8 damage. Apply 2 Chill.",
     effets: [{ type: "degats", valeur: 8 }, { type: "lenteur", valeur: 2 }] },
   "position-de-garde": { id: "position-de-garde", nom: "Bracing Stance", cout: 1, type: "defense", revueArmes2H: true,
     texte: "Gain 12 Stone.",
