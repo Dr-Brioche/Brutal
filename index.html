@@ -967,6 +967,37 @@
       letter-spacing: 0.06em;
     }
 
+    /* Colonne des 5 bagues : trait connecteur + rectangle « Infinity Gauntlet ».
+       gap:0 pour que les segments contrôlent eux-mêmes l'espacement vertical. */
+    .inv-colonne--bagues { gap: 0; align-items: center; }
+    /* Segment de trait entre deux bagues (gris = vide, doré = relié). */
+    .inv-ig-seg {
+      width: 3px; height: 8px; background: #3a3744; border-radius: 2px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .inv-ig-seg--on { background: #e6cf85; box-shadow: 0 0 6px rgba(230, 207, 133, 0.6); }
+    /* Rectangle du bonus, sous la dernière bague (gris tant qu'inactif). */
+    .inv-ig-bonus {
+      width: 46px; box-sizing: border-box; margin-top: 1px; padding: 4px 3px;
+      border: 1px dashed #3a3744; border-radius: 8px;
+      font-size: 0.5rem; line-height: 1.15; text-align: center; color: #6b7280;
+      cursor: help; position: relative; transition: all 0.2s;
+    }
+    .inv-ig-bonus--actif {
+      border-style: solid; border-color: #b08a30; color: #e6cf85;
+      box-shadow: 0 0 10px rgba(230, 207, 133, 0.35);
+    }
+    /* Tooltip au survol (à GAUCHE du rectangle : il est collé au bord droit). */
+    .inv-ig-bonus[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute; right: calc(100% + 8px); top: 50%;
+      transform: translateY(-50%);
+      background: #14121a; border: 1px solid #3b2030; border-radius: 6px;
+      padding: 6px 9px; font-size: 0.66rem; line-height: 1.35; color: #f3f4f6;
+      width: max-content; max-width: 190px; white-space: pre-line; text-align: left;
+      pointer-events: none; z-index: 10;
+    }
+
     /* Les stats, sous le héros */
     .inv-stats {
       width: 100%; min-width: 178px; margin-top: 4px;

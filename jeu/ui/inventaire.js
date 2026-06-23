@@ -509,6 +509,37 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     conteneur.replaceChildren(...slots.map(slotEl));
   }
 
+  // Colonne des 5 bagues : les slots reliés par un trait qui se DORE au fur et à
+  // mesure qu'on équipe (jauge de progression), puis un rectangle « Infinity
+  // Gauntlet » sous la dernière bague, doré quand les 5 sont remplies (bonus actif).
+  function segIG(actif) {
+    const s = document.createElement("div");
+    s.className = "inv-ig-seg" + (actif ? " inv-ig-seg--on" : "");
+    return s;
+  }
+  function rendreBagues() {
+    const pleins = COL_DROITE.map((s) => Boolean(inventaire.slots[s]));
+    const n = pleins.filter(Boolean).length;
+    const complet = n >= COL_DROITE.length;
+    const enfants = [];
+    COL_DROITE.forEach((slot, i) => {
+      enfants.push(slotEl(slot));
+      // Segment entre deux bagues : doré si les DEUX bagues reliées sont posées.
+      if (i < COL_DROITE.length - 1) enfants.push(segIG(pleins[i] && pleins[i + 1]));
+    });
+    // Trait descendant + rectangle du bonus (dorés une fois les 5 bagues posées).
+    enfants.push(segIG(complet));
+    const bonus = document.createElement("div");
+    bonus.className = "inv-ig-bonus" + (complet ? " inv-ig-bonus--actif" : "");
+    bonus.textContent = "♾ Infinity Gauntlet";
+    bonus.dataset.tooltip = complet
+      ? "Infinity Gauntlet — ACTIVE\nAll 5 ring slots filled.\n+1 card / turn · +4 Force · +5 Agility"
+      : `Infinity Gauntlet — ${n}/5 rings\nFill all 5 ring slots to gain:\n+1 card / turn · +4 Force · +5 Agility`;
+    enfants.push(bonus);
+    elDroite.className = "inv-colonne inv-colonne--bagues";
+    elDroite.replaceChildren(...enfants);
+  }
+
   function rendreHero() {
     const c = canvasHero.getContext("2d");
     c.imageSmoothingEnabled = false;
@@ -525,8 +556,6 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const max = FORGE_MAX + (t.chaleurMax || 0);
     const agility = 10 + (t.agilite || 0) + (heros.agiliteEquip || 0); // ATB base (10) + talents + bottes
     const moveSpeed = Math.round(100 * (1 + (heros.vitesseEquipPct || 0) / 100));
-    const infinityActif = ["bague1","bague2","bague3","bague4","bague5"]
-      .every(s => Boolean(inventaire.slots?.[s]));
     const lignes = [
       ["Level",       `${heros.niveau}  (${heros.pointsTalent} pts)`],
       ["Max HP",      heros.pvMax],
@@ -535,19 +564,12 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       ["Forge Heat",  `${seuil} / ${max}`],
       ["Cards/turn",  BASE_PIOCHE + (t.pioche || 0)],
     ];
-    const els = lignes.map(([nom, val]) => {
+    elStats.replaceChildren(...lignes.map(([nom, val]) => {
       const l = document.createElement("div");
       l.className = "inv-stat";
       l.innerHTML = `<span>${nom}</span><b>${val}</b>`;
       return l;
-    });
-    if (infinityActif) {
-      const ig = document.createElement("div");
-      ig.className = "inv-stat inv-stat--infinity";
-      ig.innerHTML = `<span>♾ Infinity Gauntlet</span><b title="+1 card/turn · +4 Force · +5 Agility">active</b>`;
-      els.push(ig);
-    }
-    elStats.replaceChildren(...els);
+    }));
 
     const seuilXp = xpPourNiveau(heros.niveau);
     const pct = seuilXp > 0 ? Math.max(0, Math.min(100, heros.xp / seuilXp * 100)) : 0;
@@ -615,7 +637,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     elOr.textContent = inventaire.or;
     elPv.textContent = `${heros.pv}/${heros.pvMax}`;
     rendreColonne(elGauche, COL_GAUCHE);
-    rendreColonne(elDroite, COL_DROITE);
+    rendreBagues();
     rendreColonne(elArmes, SLOTS_ARME);
     rendreHero();
     rendreStats();
