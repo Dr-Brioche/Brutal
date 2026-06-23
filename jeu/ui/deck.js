@@ -48,12 +48,11 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
     const el = document.createElement("div");
     el.className = "combat-carte";
     garnirCarte(el, carte);
-    if (nombre > 1) {
-      const badge = document.createElement("span");
-      badge.className = "deck-nombre";
-      badge.textContent = `×${nombre}`;
-      el.append(badge);
-    }
+    // Étiquette de quantité TOUJOURS affichée (×1, ×2…), au premier plan.
+    const badge = document.createElement("span");
+    badge.className = "deck-nombre";
+    badge.textContent = `×${nombre}`;
+    el.append(badge);
     return el;
   }
 

@@ -1203,7 +1203,7 @@
     .inv-tip-cartes .combat-carte:hover { transform: none; box-shadow: none; }
     /* Badge « ×N » : nombre d'exemplaires de la carte apportés par l'objet (haut-droite) */
     .inv-tip-nombre {
-      position: absolute; top: -7px; right: -7px;
+      position: absolute; top: -7px; right: -7px; z-index: 5;
       min-width: 20px; height: 20px; padding: 0 5px;
       display: flex; align-items: center; justify-content: center;
       font-weight: 800; font-size: 0.72rem;
@@ -1438,7 +1438,7 @@
     .deck-liste .combat-carte:hover { transform: none; box-shadow: none; }
     /* Le badge « ×N » : nombre d'exemplaires de cette carte dans le deck. */
     .deck-nombre {
-      position: absolute; top: -9px; left: -9px;
+      position: absolute; top: -9px; right: -9px; z-index: 5;
       min-width: 24px; height: 24px; padding: 0 6px;
       display: flex; align-items: center; justify-content: center;
       font-weight: 800; font-size: 0.8rem;
