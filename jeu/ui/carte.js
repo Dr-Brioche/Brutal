@@ -4,8 +4,9 @@
 //   1. l'ILLUSTRATION (dans la fenêtre du cadre) — optionnelle ;
 //   2. le CADRE (images/cartes/cadre-*.png), choisi selon le TYPE de la carte
 //      (attaque = rouge, defense = bleu, buff = vert) ;
-//   3. le NOM + le TEXTE d'effet, posés sur le parchemin du bas ;
-//   4. le COÛT (un chiffre), dans le médaillon en haut à gauche.
+//   3. le NOM, dans le bandeau supérieur (au-dessus de l'illustration) ;
+//   4. le TEXTE d'effet, sur le parchemin du bas ;
+//   5. le COÛT (un chiffre), dans le médaillon en haut à gauche.
 //
 // L'illustration est cherchée automatiquement dans images/cartes/illustrations/
 // d'après le NOM de la carte (normalisé : minuscules, tirets). Si le fichier
@@ -56,19 +57,22 @@ export function garnirCarte(el, carte) {
   cadre.alt = "";
   el.append(cadre);
 
-  // Couche 3 : nom + texte d'effet sur le parchemin.
-  const parchemin = document.createElement("div");
-  parchemin.className = "carte-parchemin";
+  // Couche 3 : le NOM, dans le bandeau supérieur (au-dessus de l'illustration).
   const nom = document.createElement("span");
   nom.className = "carte-nom";
   nom.textContent = carte.nom;
+  el.append(nom);
+
+  // Couche 4 : le TEXTE d'effet, sur le parchemin du bas.
+  const parchemin = document.createElement("div");
+  parchemin.className = "carte-parchemin";
   const texte = document.createElement("span");
   texte.className = "carte-texte";
   texte.textContent = carte.texte;
-  parchemin.append(nom, texte);
+  parchemin.append(texte);
   el.append(parchemin);
 
-  // Couche 4 : le coût, dans le médaillon en haut à gauche.
+  // Couche 5 : le coût, dans le médaillon en haut à gauche.
   const cout = document.createElement("span");
   cout.className = "combat-carte-cout";
   cout.textContent = carte.cout;
