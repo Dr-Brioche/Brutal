@@ -377,8 +377,8 @@ qui récompense n'importe quelle combinaison de cinq bagues.
 
 Effets actuels :
 - **+1 carte piochée par tour**
-- **+2 Force permanente** (bonus de dégâts fixe tout le combat)
-- **+3 Agilité** (vitesse ATB)
+- **+4 Force permanente** (bonus de dégâts fixe tout le combat)
+- **+5 Agilité** (vitesse ATB)
 
 Affiché en jeu par un badge doré « ♾ Infinity Gauntlet » en haut à gauche du
 combat (avec tooltip).

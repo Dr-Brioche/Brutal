@@ -99,10 +99,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     slots: slotsOccupes(inventaire), // cartes de suppléance pour les slots vides (mains + armure)
     stats: {
       ...bt,
-      agilite:  (bt.agilite  ?? 0) + agiliteItems + (toutesBagues ? 3 : 0),
+      agilite:  (bt.agilite  ?? 0) + agiliteItems + (toutesBagues ? 5 : 0),
       armureDepart,
       celeritePct,
-      forcePerm: forcePerm + (toutesBagues ? 2 : 0),
+      forcePerm: forcePerm + (toutesBagues ? 4 : 0),
       pioche:   (bt.pioche   ?? 0) + (toutesBagues ? 1 : 0),
       infinityGauntlet: toutesBagues,
     },
@@ -315,7 +315,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const el = document.createElement("div");
       el.className = "combat-perm-buff combat-perm-buff--infinity";
       el.textContent = "♾ Infinity Gauntlet";
-      el.dataset.tooltip = "All 5 ring slots filled: +1 card/turn · +2 Force · +3 Agility";
+      el.dataset.tooltip = "All 5 ring slots filled: +1 card/turn · +4 Force · +5 Agility";
       elPermBuff.append(el);
     }
     elPermBuff.hidden = elPermBuff.childElementCount === 0;
