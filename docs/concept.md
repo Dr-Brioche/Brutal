@@ -369,6 +369,20 @@ build. *(À enrichir plus tard : des **synergies cross-slots** arme + armure +
 bague, pour récompenser le joueur qui combine au mieux — option « C » gardée en
 réserve.)*
 
+### Infinity Gauntlet
+
+Bonus de combat déclenché quand les **cinq slots de bague** sont tous équipés.
+N'est **pas** un set d'armure (pas de pièces nommées) : c'est un bonus transversal
+qui récompense n'importe quelle combinaison de cinq bagues.
+
+Effets actuels :
+- **+1 carte piochée par tour**
+- **+2 Force permanente** (bonus de dégâts fixe tout le combat)
+- **+3 Agilité** (vitesse ATB)
+
+Affiché en jeu par un badge doré « ♾ Infinity Gauntlet » en haut à gauche du
+combat (avec tooltip).
+
 ### Twist nain (l'identité du combat)
 
 - **Moteur principal : « Chaleur de Forge » avec SURCHAUFFE — implémenté.**

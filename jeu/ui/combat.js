@@ -89,12 +89,23 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const passifsItems = itemsEquipes.flatMap((d) => d.passifPropre ? [d.passifPropre] : []);
 
   const bt = bonusTalents(heros);
+  // Infinity Gauntlet : tous les cinq slots de bague remplis → bonus de combat.
+  const toutesBagues = ["bague1","bague2","bague3","bague4","bague5"]
+    .every(s => Boolean(inventaire.slots?.[s]));
   const combat = creerCombat(ennemis, {
     pv: heros.pv, pvMax: heros.pvMax,
     cartes: cartesEquipees(inventaire),
     cartesSupp: maitrise?.choisies ?? [],
     slots: slotsOccupes(inventaire), // cartes de suppléance pour les slots vides (mains + armure)
-    stats: { ...bt, agilite: (bt.agilite ?? 0) + agiliteItems, armureDepart, celeritePct, forcePerm },
+    stats: {
+      ...bt,
+      agilite:  (bt.agilite  ?? 0) + agiliteItems + (toutesBagues ? 3 : 0),
+      armureDepart,
+      celeritePct,
+      forcePerm: forcePerm + (toutesBagues ? 2 : 0),
+      pioche:   (bt.pioche   ?? 0) + (toutesBagues ? 1 : 0),
+      infinityGauntlet: toutesBagues,
+    },
     passifs: [...setsActifs(inventaire.slots).map((s) => s.bonus), ...passifsItems],
   });
 
@@ -298,6 +309,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       el.className = "combat-perm-buff";
       el.textContent = `💪 +${combat.forcePerm}`;
       el.dataset.tooltip = `Permanent Force: every hit deals +${combat.forcePerm} bonus damage for the whole combat.`;
+      elPermBuff.append(el);
+    }
+    if (combat.infinityGauntlet) {
+      const el = document.createElement("div");
+      el.className = "combat-perm-buff combat-perm-buff--infinity";
+      el.textContent = "♾ Infinity Gauntlet";
+      el.dataset.tooltip = "All 5 ring slots filled: +1 card/turn · +2 Force · +3 Agility";
       elPermBuff.append(el);
     }
     elPermBuff.hidden = elPermBuff.childElementCount === 0;

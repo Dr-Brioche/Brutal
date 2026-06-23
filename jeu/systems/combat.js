@@ -220,6 +220,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     main: [],
     defausse: [],
     tailleMain: TAILLE_MAIN + (stats.pioche || 0), // cartes piochées/tour (+ talents)
+    infinityGauntlet: stats.infinityGauntlet ?? false, // bonus 5 bagues remplies
     // Déroulé
     tourJoueur: false,     // devient true au 1er tour du héros (commencerTourHeros)
     fini: false,
