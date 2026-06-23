@@ -786,17 +786,11 @@
     .combat-carte.sel {
       transform: translateY(calc(var(--dy, 0px) - var(--carte-l, 150px) * 0.08)) rotate(0deg) scale(1.07);
       z-index: 10;
-    }
-    .combat-carte.sel::before {
-      content: "";
-      position: absolute;
-      inset: -30%;
-      z-index: -1;
-      pointer-events: none;
-      background: radial-gradient(ellipse at center,
-        rgba(255, 214, 95, 0.92) 20%,
-        rgba(255, 188, 66, 0.55) 42%,
-        rgba(255, 188, 66, 0) 70%);
+      /* Halo doré qui épouse la SILHOUETTE du cadre (drop-shadow suit la forme, pas
+         une ellipse), à distance égale de tous les bords, proche et léger. */
+      filter:
+        drop-shadow(0 0 calc(var(--carte-l, 150px) * 0.018) rgba(255, 216, 100, 0.95))
+        drop-shadow(0 0 calc(var(--carte-l, 150px) * 0.045) rgba(255, 190, 70, 0.5));
     }
 
     /* Le panneau Victory / Defeat */
