@@ -386,9 +386,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   let _tsDerniereCarteJouee = 0; // anti-double-clic : 200 ms entre deux cartes
   let enAnimPioche = false;      // bloque jouer/finDeTour pendant l'animation de pioche
 
-  // Affiche chaque carte piochée en grand au centre pendant 500 ms.
-  // Cliquer l'overlay passe immédiatement à la suivante.
-  function animerPioche(cartes, callback) {
+  // Affiche chaque carte piochée en grand au centre pendant 1 s.
+  // `ajouterAMain` (optionnel) est appelé juste avant chaque affichage pour révéler
+  // les cartes une par une dans la main. Cliquer l'overlay passe immédiatement à la fin.
+  function animerPioche(cartes, callback, ajouterAMain = null) {
     if (!cartes || cartes.length === 0) { callback?.(); return; }
     enAnimPioche = true;
     let idx = 0, timer = 0;
@@ -402,6 +403,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         return;
       }
       const carte = cartes[idx++];
+      if (ajouterAMain) { ajouterAMain(carte); rafraichir(); }
       overlayPioche.innerHTML = "";
       const el = document.createElement("div");
       el.className = "combat-carte";
@@ -409,9 +411,18 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       overlayPioche.appendChild(el);
       overlayPioche.hidden = false;
       jouerSonPioche();
-      timer = setTimeout(suivante, 500);
+      timer = setTimeout(suivante, 1000);
     }
-    overlayPioche.onclick = () => { clearTimeout(timer); idx = cartes.length; suivante(); };
+    overlayPioche.onclick = () => {
+      clearTimeout(timer);
+      if (ajouterAMain) { while (idx < cartes.length) ajouterAMain(cartes[idx++]); rafraichir(); }
+      else idx = cartes.length;
+      overlayPioche.onclick = null;
+      overlayPioche.hidden = true;
+      overlayPioche.innerHTML = "";
+      enAnimPioche = false;
+      callback?.();
+    };
     suivante();
   }
 
@@ -716,10 +727,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       }
       animerDebutTourHeros();
       recalerCible();
-      rafraichir();               // nouvelle main, input réactivé
+      // Extraire les nouvelles cartes pour les révéler une à une dans la main pendant
+      // l'animation (avant rafraichir, la main ne les contient pas encore).
+      const cartesAReveler = combat.main.splice(nbAvantTour);
+      rafraichir();               // main partielle/vide, input réactivé
       if (combat.fini) { verifierFin(); return; } // mort de surchauffe/poison au début du tour
-      // Montre les cartes nouvellement piochées en grand au centre (0,5 s chacune).
-      animerPioche(combat.main.slice(nbAvantTour), null);
+      // Montre les cartes piochées en grand au centre (1 s chacune) et les ajoute
+      // une à une dans la main au fur et à mesure de l'animation.
+      animerPioche(cartesAReveler, null, (c) => combat.main.push(c));
     } else {
       const pierreAvantTour = combat.pierre;
       animerEnnemi(acteur.i, agirEnnemi(combat, acteur.i), pierreAvantTour);
