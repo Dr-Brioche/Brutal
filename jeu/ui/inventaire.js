@@ -360,16 +360,9 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const enBoutique = dialogueActif();
     const enButin = !enBoutique && document.body.classList.contains("en-butin");
 
-    // Tab en mode butin : masque le carré rouge puis laisse le Tab natif basculer
-    // le focus sur le panneau butin. Le curseur reparaît à la prochaine flèche.
-    if (e.code === "Tab" && enButin) {
-      cursorVisible = false;
-      rendre();
-      return; // pas de preventDefault : le Tab natif reprend la main
-    }
-
-    // Tab : bascule le focus clavier entre dialogue et grille (boutique seulement).
-    if (e.code === "Tab" && enBoutique) {
+    // Tab en mode butin OU boutique : bascule le focus clavier entre le panneau
+    // actif (butin/marchand) et la grille d'inventaire.
+    if (e.code === "Tab" && (enButin || enBoutique)) {
       e.preventDefault(); e.stopImmediatePropagation();
       kbFocus = !kbFocus;
       cursorVisible = kbFocus;
@@ -629,11 +622,13 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   return {
     ouvrir() {
-      // Mode souris par défaut : le curseur clavier (carré rouge) ne s'affiche
-      // que si le joueur appuie sur une touche directionnelle.
-      kbFocus = !dialogueActif();
+      // Focus clavier : inventaire actif seulement en mode solo. En boutique ou
+      // en butin, le focus démarre dans le panneau externe (dialogue / butin) ;
+      // Tab bascule vers l'inventaire (et retour).
+      const enButinNow = document.body.classList.contains("en-butin");
+      kbFocus = !dialogueActif() && !enButinNow;
       cursorX = 0; cursorY = 0; cursorVisible = false;
-      overlay.querySelector(".inv-panneau").classList.toggle("inv-panneau--focus", kbFocus && dialogueActif());
+      overlay.querySelector(".inv-panneau").classList.toggle("inv-panneau--focus", kbFocus);
       rendre();
       overlay.hidden = false;
       window.addEventListener("keydown", surClavier, true); // capture : avant le dialogue
