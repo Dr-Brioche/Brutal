@@ -711,7 +711,11 @@ valeurs **~1.5×** les armes à une main, chacune avec son **combo** :
   catégorie d'achat, la liste de vente, une confirmation) **revient au menu
   parent** au lieu de quitter la boutique ; il ne **ferme la boutique** qu'au
   **menu racine** (comme « Leave »). Convention générique du système de dialogue
-  (`surEchap`) : un sous-menu déclare son menu de retour.
+  (`surEchap`) : un sous-menu déclare son menu de retour. Le **curseur retrouve sa
+  place** : revenir d'une confirmation (ou y revenir après un achat/une vente)
+  **resélectionne l'objet** où on était, et remonter d'un cran resélectionne la
+  catégorie / l'entrée d'où l'on venait (l'index de la ligne est mémorisé et
+  rejoué au `selInitial` du dialogue).
 - **Glisser-déposer dans le sac** : on soulève un objet d'un clic, on le repose sur
   une case (réorganisation) ou un slot (équiper). Le lâcher **dans le vide** (hors
   de toute fenêtre) le **jette** (confirmation pour les objets rares) ; **Échap**

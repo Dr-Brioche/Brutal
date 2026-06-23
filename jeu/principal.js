@@ -263,29 +263,34 @@ export async function demarrerJeu(donneesInitiales = null) {
     });
   }
 
-  // Menu racine : choisir une catégorie (acheter) ou vendre.
-  function menuBoutique() {
-    const choix = CATEGORIES_BOUTIQUE.map((c) => ({
+  // Menu racine : choisir une catégorie (acheter) ou vendre. `selInitial` = ligne
+  // présélectionnée, pour revenir sur la MÊME entrée au retour d'un sous-menu.
+  function menuBoutique(selInitial = 0) {
+    const choix = CATEGORIES_BOUTIQUE.map((c, i) => ({
       texte: `${c.icone}  ${c.nom}`,
-      action: () => { prochainMenu = () => menuCategorie(c); },
+      action: () => { prochainMenu = () => menuCategorie(c, 0, i); }, // i = position racine à retrouver
     }));
-    choix.push({ texte: "💰  Sell items", action: () => { prochainMenu = menuVendre; } });
+    const idxVente = choix.length; // position de « Sell items » (pour y revenir)
+    choix.push({ texte: "💰  Sell items", action: () => { prochainMenu = () => menuVendre(0, idxVente); } });
     choix.push({ texte: "Leave", action: () => { prochainMenu = null; } });
-    ouvrirMenuMarchand("Test Merchant", choix);
+    ouvrirMenuMarchand("Test Merchant", choix, selInitial);
   }
 
   // Les choix du menu de vente : un par objet du SAC + retour. Recalculé à chaque
   // changement d'inventaire pour rester à jour (déséquiper ajoute un objet).
-  function choixVente() {
-    const choix = inventaire.objets.map((o) => ({
+  // `selRoot` = position de « Sell items » dans le menu racine, threadée pour que
+  // le « Back » y revienne précisément. Chaque objet retient sa propre ligne `i`
+  // → après une vente/confirmation, le curseur reste sur le même emplacement.
+  function choixVente(selRoot = 0) {
+    const choix = inventaire.objets.map((o, i) => ({
       texte: `Sell ${ITEMS[o.id].nom}  ·  +${prixVente(o.id)} 🪙`,
       itemId: o.id, // survol → bulle (on voit ce qu'on vend)
       action: () => {
         const d = ITEMS[o.id];
         if (getPreference("confirmVente") && rareteAuMoins(o.id, "rare")) {
-          prochainMenu = () => menuConfirmerVente(o);
+          prochainMenu = () => menuConfirmerVente(o, i, selRoot);
         } else {
-          prochainMenu = menuVendre;
+          prochainMenu = () => menuVendre(i, selRoot);
           const prix = vendreObjet(inventaire, o);
           afficherMessage(`💰 Sold ${d.nom} for ${prix} 🪙.`);
           inventaireUI.rendre();
@@ -295,55 +300,63 @@ export async function demarrerJeu(donneesInitiales = null) {
     // « Tout vendre » : proposé dès 2 objets et JAMAIS en 1re position (le défaut
     // du dialogue) — en plus, il passe par un sous-menu de confirmation.
     if (inventaire.objets.length > 1) {
-      choix.push({ texte: "💰  Sell all…", action: () => { prochainMenu = menuVendreTout; } });
+      const idxToutVendre = choix.length;
+      choix.push({ texte: "💰  Sell all…", action: () => { prochainMenu = () => menuVendreTout(idxToutVendre, selRoot); } });
     }
-    choix.push({ texte: "←  Back", action: () => { prochainMenu = menuBoutique; } });
+    choix.push({ texte: "←  Back", action: () => { prochainMenu = () => menuBoutique(selRoot); } });
     return choix;
   }
 
   // Menu de vente : les objets du SAC, chacun revendable contre de l'or. Se met à
-  // jour à chaud si on (dés)équipe dans l'inventaire ouvert à côté.
-  function menuVendre() {
+  // jour à chaud si on (dés)équipe dans l'inventaire ouvert à côté. `selInitial` =
+  // ligne présélectionnée (l'objet où on était) ; `selRoot` = retour au menu racine.
+  function menuVendre(selInitial = 0, selRoot = 0) {
     if (!inventaire.objets.length) afficherMessage("Your bag is empty — nothing to sell.");
-    ouvrirMenuMarchand("Test Merchant — Sell", choixVente(), 0, menuBoutique);
-    surChangementMenu = () => rafraichirChoix(choixVente());
+    ouvrirMenuMarchand("Test Merchant — Sell", choixVente(selRoot), selInitial, () => menuBoutique(selRoot));
+    surChangementMenu = () => rafraichirChoix(choixVente(selRoot));
   }
 
   // Confirmation « tout vendre » : le choix par DÉFAUT est « Non » (le choix
-  // dangereux est en 2e position) → aucune vente massive par mégarde.
-  function menuVendreTout() {
+  // dangereux est en 2e position) → aucune vente massive par mégarde. `selVente` =
+  // ligne à retrouver dans le menu de vente au retour ; `selRoot` = retour racine.
+  function menuVendreTout(selVente = 0, selRoot = 0) {
     const objets = [...inventaire.objets];
     const total = objets.reduce((s, o) => s + prixVente(o.id), 0);
+    const retourVente = () => menuVendre(selVente, selRoot);
     ouvrirMenuMarchand("Sell EVERYTHING in your bag?", [
-      { texte: "←  No, keep my items", action: () => { prochainMenu = menuVendre; } },
+      { texte: "←  No, keep my items", action: () => { prochainMenu = retourVente; } },
       { texte: `⚠  Yes, sell all ${objets.length} · +${total} 🪙`, action: () => {
-          prochainMenu = menuVendre; // on revient au menu de vente après coup
+          prochainMenu = retourVente; // on revient au menu de vente après coup
           const aVendre = [...inventaire.objets];
           let somme = 0;
           for (const o of aVendre) somme += vendreObjet(inventaire, o);
           afficherMessage(`💰 Sold ${aVendre.length} items for ${somme} 🪙.`);
           inventaireUI.rendre();
         } },
-    ], 0, menuVendre);
+    ], 0, retourVente);
   }
 
-  // Confirmation de vente pour un objet rare+ (sous-menu marchand).
-  function menuConfirmerVente(o) {
+  // Confirmation de vente pour un objet rare+ (sous-menu marchand). `selVente` =
+  // ligne de l'objet à retrouver dans le menu de vente au retour.
+  function menuConfirmerVente(o, selVente = 0, selRoot = 0) {
     const d = ITEMS[o.id];
     const prix = prixVente(o.id);
+    const retourVente = () => menuVendre(selVente, selRoot);
     ouvrirMenuMarchand(`Sell ${d.nom}?`, [
-      { texte: "←  No, keep it", action: () => { prochainMenu = menuVendre; } },
+      { texte: "←  No, keep it", action: () => { prochainMenu = retourVente; } },
       { texte: `⚠  Yes, sell · +${prix} 🪙`, action: () => {
-          prochainMenu = menuVendre;
+          prochainMenu = retourVente;
           vendreObjet(inventaire, o);
           afficherMessage(`💰 Sold ${d.nom} for ${prix} 🪙.`);
           inventaireUI.rendre();
         } },
-    ], 0, menuVendre);
+    ], 0, retourVente);
   }
 
   // Menu d'une catégorie : ses items (gratuits) + retour aux catégories.
-  function menuCategorie(c, selInitial = 0) {
+  // `selInitial` = item présélectionné ; `selRoot` = position de la catégorie dans
+  // le menu racine, pour y revenir au « Back » / Échap.
+  function menuCategorie(c, selInitial = 0, selRoot = 0) {
     const tousItems = Object.values(ITEMS)
       .filter((it) => c.cats.includes(it.categorie))
       .sort((a, b) => (RARETES[a.rarete]?.rang ?? 0) - (RARETES[b.rarete]?.rang ?? 0));
@@ -360,7 +373,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           texte: `${it.nom}  ·  free`,
           itemId: it.id,
           action: () => {
-            prochainMenu = () => menuCategorie(c, fullIdx);
+            prochainMenu = () => menuCategorie(c, fullIdx, selRoot);
             if (ajouterObjet(inventaire, it.id)) afficherMessage(`🛒 ${it.nom} added to your bag.`);
             else afficherMessage("Your bag is full — equip or drop something first.");
             inventaireUI.rendre();
@@ -368,8 +381,8 @@ export async function demarrerJeu(donneesInitiales = null) {
         });
       }
     }
-    choix.push({ texte: "←  Back", action: () => { prochainMenu = menuBoutique; } });
-    ouvrirMenuMarchand(`Test Merchant — ${c.nom}`, choix, selInitial, menuBoutique);
+    choix.push({ texte: "←  Back", action: () => { prochainMenu = () => menuBoutique(selRoot); } });
+    ouvrirMenuMarchand(`Test Merchant — ${c.nom}`, choix, selInitial, () => menuBoutique(selRoot));
   }
 
   function fermerBoutique() {
