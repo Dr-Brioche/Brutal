@@ -25,6 +25,7 @@ import { garnirCarte } from "./carte.js";
 import { alerteVie } from "./effets.js";
 import {
   jouerSonCoup, jouerSonCoupArmure, jouerSonSortilege, jouerSonPierre, jouerSonPioche,
+  jouerSonNegatif,
 } from "../core/sons.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
@@ -426,6 +427,59 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     suivante();
   }
 
+  // Anime Lucky Draw (pioche-filtre) : chaque carte apparaît au centre.
+  // Retenues (garde=true) → glow vert + son de pioche + ajout à la main.
+  // Rejetées (garde=false) → animation de brûlure + son négatif.
+  // `surGardee` = (carte) => void, appelé pour chaque carte retenue (ajoute à main + rafraichir).
+  function animerPiocheFiltre(resultats, callback, surGardee) {
+    if (!resultats || resultats.length === 0) { callback?.(); return; }
+    enAnimPioche = true;
+    let idx = 0, timer = 0;
+    function suivante() {
+      if (idx >= resultats.length) {
+        overlayPioche.onclick = null;
+        overlayPioche.hidden = true;
+        overlayPioche.innerHTML = "";
+        enAnimPioche = false;
+        callback?.();
+        return;
+      }
+      const { carte, garde } = resultats[idx++];
+      overlayPioche.innerHTML = "";
+      const el = document.createElement("div");
+      el.className = "combat-carte";
+      garnirCarte(el, carte);
+      overlayPioche.appendChild(el);
+      overlayPioche.hidden = false;
+      if (garde) {
+        el.classList.add("combat-carte--filtre-ok");
+        jouerSonPioche();
+        surGardee?.(carte);
+        timer = setTimeout(suivante, 1000);
+      } else {
+        // Court délai puis la carte brûle
+        timer = setTimeout(() => {
+          el.classList.add("combat-carte--brule");
+          jouerSonNegatif();
+          timer = setTimeout(suivante, 600);
+        }, 350);
+      }
+    }
+    overlayPioche.onclick = () => {
+      clearTimeout(timer);
+      while (idx < resultats.length) {
+        const { carte: c, garde: g } = resultats[idx++];
+        if (g) surGardee?.(c);
+      }
+      overlayPioche.onclick = null;
+      overlayPioche.hidden = true;
+      overlayPioche.innerHTML = "";
+      enAnimPioche = false;
+      callback?.();
+    };
+    suivante();
+  }
+
   // Anime le résultat d'un lancer de dés (effet chaleur-aleatoire).
   // Les chiffres défilent rapidement, puis ralentissent et s'arrêtent sur le résultat.
   function animerDes({ min, max, gain }) {
@@ -603,7 +657,21 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (!combat.fini) {
       // Lancer de dés (chaleur-aleatoire) : animation qui roule avant de s'arrêter sur le résultat.
       if (combat.dernierGainAleatoire) {
-        animerDes(combat.dernierGainAleatoire);
+        const dAnim = combat.dernierGainAleatoire;
+        animerDes(dAnim);
+        if (dAnim.mauvais) jouerSonNegatif(); // gain inférieur au coût de la carte → échec
+      } else if (combat.dernieresPiochesFiltre) {
+        // Lucky Draw : on retire temporairement les cartes retenues pour les révéler une à une.
+        const resultats = combat.dernieresPiochesFiltre;
+        combat.dernieresPiochesFiltre = null;
+        for (const { carte, garde } of resultats) {
+          if (garde) {
+            const i = combat.main.indexOf(carte);
+            if (i >= 0) combat.main.splice(i, 1);
+          }
+        }
+        rafraichir(); // main sans les cartes Lucky Draw (elles arrivent une à une)
+        animerPiocheFiltre(resultats, null, (c) => { combat.main.push(c); rafraichir(); });
       } else {
         // Cartes piochées EN COURS DE TOUR (effet « piocher »/« piocher-par-ennemi »…).
         // drawn = nb cartes ajoutées : (taille après) - (taille avant - 1 carte jouée).

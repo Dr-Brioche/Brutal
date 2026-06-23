@@ -665,18 +665,25 @@ function appliquerEffet(combat, effet, ennemi) {
     combat.feuHeros = Math.max(0, combat.feuHeros - effet.valeur);
   } else if (effet.type === "chaleur-aleatoire") {
     // Roll dice : gagne une quantité ALÉATOIRE de Chaleur entre `min` et `max` (inclus).
+    // `mauvais` = le résultat est inférieur au coût de la carte jouée (pour le son négatif).
     const gain = effet.min + Math.floor(Math.random() * (effet.max - effet.min + 1));
     combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + gain);
-    combat.dernierGainAleatoire = { min: effet.min, max: effet.max, gain };
+    const mauvais = gain < (combat._coutCarteCourante ?? 0);
+    combat.dernierGainAleatoire = { min: effet.min, max: effet.max, gain, mauvais };
   } else if (effet.type === "pioche-filtre") {
     // Lucky Draw : pioche `valeur` cartes, GARDE celles dont le coût est strictement
-    // inférieur à `coutMax`, défausse les autres (les cartes chères).
+    // inférieur à `coutMax`, défausse les autres. Résultats dans `dernieresPiochesFiltre`
+    // pour que l'UI les anime (carte retenue = verte, carte rejetée = brûle).
+    const resultats = [];
     for (let i = 0; i < effet.valeur; i++) {
       const c = piocherUne(combat);
       if (!c) break;
-      if ((c.cout ?? 0) < effet.coutMax) ajouterCarteMain(combat, c);
+      const garde = (c.cout ?? 0) < effet.coutMax;
+      if (garde) ajouterCarteMain(combat, c);
       else combat.defausse.push(c);
+      resultats.push({ carte: c, garde });
     }
+    combat.dernieresPiochesFiltre = resultats;
   } else if (effet.type === "celerite-par-tour") {
     // Long run : ajoute `valeur` au gain de Hâte appliqué au début de CHAQUE tour
     // du héros, jusqu'à la fin du combat. Rejouer la carte empile l'effet.
@@ -765,9 +772,11 @@ export function jouerCarte(combat, index, cible = combat.cible) {
   combat.defausse.push(carte);
 
   combat._porteeCarteCourante = carte.portee ?? "melee";
+  combat._coutCarteCourante = carte.cout ?? 0;
   if (carteAOE(carte)) resoudreAOE(combat, carte);
   else                 resoudreCiblee(combat, carte, cible);
   delete combat._porteeCarteCourante;
+  delete combat._coutCarteCourante;
 
   verifierFin(combat);
   return true;

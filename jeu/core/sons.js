@@ -504,6 +504,40 @@ export function jouerSonPioche() {
   } catch (_) {}
 }
 
+// Son « échec » (carte Lucky Draw rejetée, dé trop bas) : descente rapide + choc sourd.
+export function jouerSonNegatif() {
+  try {
+    const ctx = obtenirContexte();
+    const t = ctx.currentTime;
+
+    // Balayage descendant (scie) : ton grave et dissonant
+    const osc = ctx.createOscillator();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(380, t);
+    osc.frequency.exponentialRampToValueAtTime(75, t + 0.28);
+    const gOsc = ctx.createGain();
+    gOsc.gain.setValueAtTime(0.35, t);
+    gOsc.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+
+    // Choc grave court (impact sourd)
+    const choc = ctx.createOscillator();
+    choc.type = "sine";
+    choc.frequency.setValueAtTime(110, t + 0.08);
+    choc.frequency.exponentialRampToValueAtTime(45, t + 0.25);
+    const gChoc = ctx.createGain();
+    gChoc.gain.setValueAtTime(0.28, t + 0.08);
+    gChoc.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+
+    const master = ctx.createGain();
+    master.gain.value = volBruitages * 0.65;
+
+    osc.connect(gOsc).connect(master).connect(ctx.destination);
+    choc.connect(gChoc).connect(master);
+    osc.start(t); osc.stop(t + 0.32);
+    choc.start(t + 0.08); choc.stop(t + 0.28);
+  } catch (_) {}
+}
+
 export function jouerSonPierre() {
   try {
     const ctx = obtenirContexte();
