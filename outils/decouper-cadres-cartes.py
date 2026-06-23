@@ -13,8 +13,8 @@ LARGEUR = 500
 MARK = (255, 0, 255)
 TH_NOIR = 42            # extérieur noir (somme des diffs au noir)
 TH_BLANC = 150          # fenêtre blanche (somme des diffs au blanc)
-EROSION = 5             # MinFilter (5 = ronge 2 px d'opacité) : efface le liseré clair
-FLOU = 0.7             # léger flou de l'alpha : bord net mais pas crénelé
+SEUIL_ALPHA = 220       # en-dessous → liseré d'AA → transparent
+FLOU = 0.5              # léger flou après seuillage : bord propre sans créneau
 
 src = Image.open(SRC).convert("RGB")
 W, H = src.size
@@ -56,10 +56,11 @@ for i, (x0, x1) in enumerate(blocs):
         for xx in range(w):
             r, g, b, _ = px[xx, yy]
             if (r, g, b) == MARK: px[xx, yy] = (0, 0, 0, 0)
-    # Nettoyage des bords : éroder l'opacité (mange le liseré clair résiduel),
-    # puis léger flou pour un bord doux. Travail à pleine résolution avant resize.
+    # Nettoyage des bords : seuillage (seuls les pixels nettement opaques survivent)
+    # au lieu de MinFilter qui rongeait les éléments fins du cadre.
+    # Un micro-flou ensuite pour adoucir le contour sans créneau.
     alpha = rgba.getchannel("A")
-    alpha = alpha.filter(ImageFilter.MinFilter(EROSION))
+    alpha = alpha.point(lambda a: 255 if a >= SEUIL_ALPHA else 0)
     alpha = alpha.filter(ImageFilter.GaussianBlur(FLOU))
     rgba.putalpha(alpha)
     rgba = rgba.resize((LARGEUR, round(h * LARGEUR / w)), Image.LANCZOS)
