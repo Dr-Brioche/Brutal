@@ -27,16 +27,28 @@ const MAIN_MAX = 8;          // plafond de cartes en main : toute carte piochée
 // qu'on équipe le slot, ses cartes de suppléance quittent le deck ; si on le
 // libère (déséquipement, perte d'arme en combat), elles REVIENNENT — y compris
 // en plein combat (majCartesDeBase).
+// `cle`  = clé d'occupation renvoyée par inventaire.js → slotsOccupes (logique :
+//          la main secondaire peut être prise par un 2-mains en arme1).
+// `slot` = nom du SLOT d'inventaire correspondant — sert à MONTRER ces cartes au
+//          survol d'un emplacement vide (cf. infobulle.js → montrerNoteSlotVide).
 const CARTES_BASE_SLOTS = [
-  { cle: "principale", id: "coup-faible",  nb: 5 }, // « Tap »        — main principale libre
-  { cle: "secondaire", id: "garde-faible", nb: 3 }, // « Brace »      — main secondaire libre
-  { cle: "armure",     id: "expose",       nb: 4 }, // « Exposed »    — torse nu
-  { cle: "gant",       id: "mains-nues",   nb: 2 }, // « Bare Hands » — gants nus
-  { cle: "botte",      id: "pieds-nus",    nb: 2 }, // « Bare Foot »  — bottes nues
+  { cle: "principale", slot: "arme1",  id: "coup-faible",  nb: 5 }, // « Tap »        — main principale libre
+  { cle: "secondaire", slot: "arme2",  id: "garde-faible", nb: 3 }, // « Brace »      — main secondaire libre
+  { cle: "armure",     slot: "armure", id: "expose",       nb: 4 }, // « Exposed »    — torse nu
+  { cle: "gant",       slot: "gant",   id: "mains-nues",   nb: 2 }, // « Bare Hands » — gants nus
+  { cle: "botte",      slot: "botte",  id: "pieds-nus",    nb: 2 }, // « Bare Foot »  — bottes nues
 ];
 
 // Les ids des cartes de suppléance : jamais maîtrisables (cf. systems/maitrise.js).
 export const CARTES_BASE = new Set(CARTES_BASE_SLOTS.map((s) => s.id));
+
+// Les cartes de suppléance liées à un SLOT d'inventaire (arme1, armure, gant…),
+// pour les afficher au survol d'un emplacement VIDE. Renvoie { id, nb } ou null
+// si ce slot n'injecte aucune carte (collier, bagues, sac : pas de pénalité à vide).
+export function cartesSuppleanceSlot(slot) {
+  const e = CARTES_BASE_SLOTS.find((s) => s.slot === slot);
+  return e ? { id: e.id, nb: e.nb } : null;
+}
 
 // Les cartes de suppléance ACTIVES selon l'état des slots. `slots` = objet
 // { principale, secondaire, armure, gant, botte } : true = slot occupé → pas de

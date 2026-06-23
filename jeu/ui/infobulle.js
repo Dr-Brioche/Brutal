@@ -9,6 +9,7 @@
 
 import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES, setDeItem, comboArmeActif } from "../data/items.js";
 import { CARTES } from "../data/cartes.js";
+import { cartesSuppleanceSlot } from "../systems/combat.js";
 import { garnirCarte } from "./carte.js";
 
 let tip = null;
@@ -177,6 +178,48 @@ export function montrerInfobulleEl(id, el) {
   if (y + tr.height + 8 > innerHeight) y = innerHeight - tr.height - 8;
   t.style.left = Math.max(8, x) + "px";
   t.style.top = Math.max(8, y) + "px";
+}
+
+// Note affichée au survol d'un SLOT VIDE qui injecte des cartes de SUPPLÉANCE
+// (main/off/torse/gants/bottes nus) : montre, comme la bulle d'un objet, le
+// visuel de la/les carte(s) que ce slot vide ajoute au deck — pour comprendre
+// d'où viennent ces cartes faibles et pourquoi il vaut mieux équiper le slot.
+// Ne montre RIEN (et masque la bulle) pour un slot sans suppléance (collier,
+// bagues, sac). `label` = intitulé affiché du slot (« Hands », « Body »…).
+export function montrerNoteSlotVide(slot, label, e) {
+  const supp = cartesSuppleanceSlot(slot);
+  const c = supp && CARTES[supp.id];
+  if (!c) { cacherInfobulle(); return false; }
+  const t = bulle();
+
+  const nom = document.createElement("div");
+  nom.className = "inv-tip-nom";
+  nom.textContent = `${label} — empty`;
+  nom.style.color = "#9aa0a6"; // gris : emplacement vide
+
+  const expl = document.createElement("div");
+  expl.className = "inv-tip-ligne";
+  expl.textContent = "While empty, your deck holds:";
+
+  const cont = document.createElement("div");
+  cont.className = "inv-tip-cartes";
+  const carte = document.createElement("div");
+  carte.className = "combat-carte";
+  garnirCarte(carte, c);
+  const badge = document.createElement("span");
+  badge.className = "inv-tip-nombre";
+  badge.textContent = `×${supp.nb}`;
+  carte.append(badge);
+  cont.append(carte);
+
+  const astuce = document.createElement("div");
+  astuce.className = "inv-tip-ligne";
+  astuce.textContent = "Equip this slot to replace these.";
+
+  t.replaceChildren(nom, expl, cont, astuce);
+  t.hidden = false;
+  suivreInfobulle(e);
+  return true;
 }
 
 export function cacherInfobulle() {

@@ -695,7 +695,10 @@ valeurs **~1.5×** les armes à une main, chacune avec son **combo** :
     les cartes pierre (set Stone Armor + Stone Glove + Stone Boots).
 - **Bulle d'info** : au survol d'un objet (sac OU marchand), on voit le **visuel
   des cartes** qu'il ajoute au deck (mini-cartes, même rendu que le deck) → on sait
-  ce qu'on récupère / achète.
+  ce qu'on récupère / achète. **Au survol d'un SLOT d'équipement VIDE** (main, off,
+  torse, gants, bottes), la même bulle montre les **cartes de suppléance** que ce
+  slot nu injecte dans le deck (Tap, Brace, Exposed, Bare Hands, Bare Foot) → on
+  comprend d'où viennent ces cartes faibles et qu'équiper le slot les remplace.
 - **Vente au marchand** : on peut revendre les objets du sac contre de l'**or**
   (prix selon la rareté : commun 2, uncommon 4, rare 6, épique 15, légendaire 40). Trois façons
   de vendre : via la liste **« Sell items »** ; ou en **glissant un objet du sac

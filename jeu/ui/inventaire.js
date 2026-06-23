@@ -21,7 +21,7 @@ import {
 } from "../systems/inventaire.js";
 import { dialogueActif } from "./dialogue.js";
 import { bonusTalents } from "../systems/talents.js";
-import { montrerInfobulle, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
+import { montrerInfobulle, montrerNoteSlotVide, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
 import { confirmationActive } from "./confirmation.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 import { afficherMessage, montrerToast } from "./effets.js";
@@ -499,7 +499,13 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       cell.append(ic);
     } else {
       cell.classList.add("vide");
-      cell.textContent = slot === "arme2" ? labelArme2(heros) : (LABELS[slot] ?? "");
+      const label = slot === "arme2" ? labelArme2(heros) : (LABELS[slot] ?? "");
+      cell.textContent = label;
+      // Survol d'un slot VIDE → note montrant les cartes de suppléance qu'il ajoute
+      // au deck (rien si le slot n'en a pas). Pas quand on tient un objet (geste en cours).
+      cell.addEventListener("mouseenter", (e) => { if (!tenu) montrerNoteSlotVide(slot, label, e); });
+      cell.addEventListener("mousemove", (e) => { if (!tenu) suivreInfobulle(e); });
+      cell.addEventListener("mouseleave", cacherInfobulle);
     }
     return cell;
   }
