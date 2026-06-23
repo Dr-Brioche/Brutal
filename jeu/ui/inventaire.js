@@ -525,6 +525,8 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const max = FORGE_MAX + (t.chaleurMax || 0);
     const agility = 10 + (t.agilite || 0) + (heros.agiliteEquip || 0); // ATB base (10) + talents + bottes
     const moveSpeed = Math.round(100 * (1 + (heros.vitesseEquipPct || 0) / 100));
+    const infinityActif = ["bague1","bague2","bague3","bague4","bague5"]
+      .every(s => Boolean(inventaire.slots?.[s]));
     const lignes = [
       ["Level",       `${heros.niveau}  (${heros.pointsTalent} pts)`],
       ["Max HP",      heros.pvMax],
@@ -533,12 +535,19 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       ["Forge Heat",  `${seuil} / ${max}`],
       ["Cards/turn",  BASE_PIOCHE + (t.pioche || 0)],
     ];
-    elStats.replaceChildren(...lignes.map(([nom, val]) => {
+    const els = lignes.map(([nom, val]) => {
       const l = document.createElement("div");
       l.className = "inv-stat";
       l.innerHTML = `<span>${nom}</span><b>${val}</b>`;
       return l;
-    }));
+    });
+    if (infinityActif) {
+      const ig = document.createElement("div");
+      ig.className = "inv-stat inv-stat--infinity";
+      ig.innerHTML = `<span>♾ Infinity Gauntlet</span><b title="+1 card/turn · +4 Force · +5 Agility">active</b>`;
+      els.push(ig);
+    }
+    elStats.replaceChildren(...els);
 
     const seuilXp = xpPourNiveau(heros.niveau);
     const pct = seuilXp > 0 ? Math.max(0, Math.min(100, heros.xp / seuilXp * 100)) : 0;
