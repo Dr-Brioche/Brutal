@@ -67,6 +67,36 @@ export const CARTES = {
     effets: [{ type: "pierre", valeur: 3 }],
   },
 
+  // ---- Cartes de SUPPLÉANCE d'armure : un slot d'armure VIDE pollue le deck -
+  // Même logique que Tap/Brace pour les mains : tant qu'on ne porte rien sur le
+  // torse / les gants / les bottes, ces cartes FAIBLES s'ajoutent au deck. Elles
+  // poussent à remplir CHAQUE emplacement (et donc à combiner l'équipement) au
+  // lieu de jouer un deck minuscule autour d'une seule arme.
+  "expose": {
+    id: "expose",
+    nom: "Exposed",
+    cout: 0,
+    type: "defense",
+    texte: "Gain 2 Stone.",
+    effets: [{ type: "pierre", valeur: 2 }],
+  },
+  "mains-nues": {
+    id: "mains-nues",
+    nom: "Bare Hands",
+    cout: 0,
+    type: "buff",
+    texte: "Discard 1 card, then draw 1.",
+    effets: [{ type: "defausser-piocher", valeur: 1 }],
+  },
+  "pieds-nus": {
+    id: "pieds-nus",
+    nom: "Bare Foot",
+    cout: 1,
+    type: "buff",
+    texte: "Gain 2 Haste.",
+    effets: [{ type: "celerite", valeur: 2 }],
+  },
+
   // ---- Cartes plus fortes : elles COÛTENT de la Chaleur --------------------
   // « Strike » et « Guard » sont prêtes à être données par l'équipement plus
   // tard (armure, runes, gemmes…) — le deck est le miroir de l'équipement.

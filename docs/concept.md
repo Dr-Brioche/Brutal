@@ -305,17 +305,27 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 
 **Le deck est le miroir de l'équipement.**
 
-- Un **deck de base** : des cartes **à 0 Chaleur mais faibles**, présentes
-  **seulement quand une MAIN est VIDE** (filet de sécurité : toujours quelque
-  chose à jouer). → **on démarre sans arme**, donc avec le deck de base complet.
+- Un **deck de suppléance** : des cartes **faibles** (souvent 0 Chaleur),
+  présentes **tant qu'un SLOT d'équipement est VIDE** (filet de sécurité :
+  toujours quelque chose à jouer). Couvre **les deux mains** ET **les trois
+  pièces d'armure** (torse, gants, bottes) : un emplacement nu = des cartes
+  « bouche-trou » qui polluent le deck → **incitation à équiper CHAQUE slot**
+  (cf. *« Pourquoi remplir tous les slots »* plus bas). → **on démarre sans
+  arme, sans gants et sans bottes** (seul le torse a des habits de base) : le
+  deck de suppléance est presque complet au lancement.
   - ***Tap*** (5×, 3 dégâts) : tant que la **main principale** (arme1) est libre.
     Équiper une arme principale → **Tap disparaît**.
   - ***Brace*** (3×, 3 Pierre) : tant que la **main secondaire** est libre.
     Équiper l'off-hand (bouclier, livre, 2e arme) **ou** une **arme à deux mains**
     (elle occupe les deux mains) → **Brace disparaît**.
-  - **Retour automatique, MÊME EN COMBAT** : si on déséquipe / perd une arme
-    (future mécanique), la carte de base de la main libérée **revient aussitôt**
-    dans le deck en cours (`majCartesDeBase`).
+  - ***Exposed*** (4×, 2 Pierre, 0 Chaleur) : tant que le **torse** est nu.
+  - ***Bare Hands*** (2×, 0 Chaleur) : **défausse 1 carte au hasard, repioche 1**
+    — tant que les **gants** sont vides (échange sec, aucune pioche gratuite si la
+    main est vide).
+  - ***Bare Foot*** (2×, 1 Chaleur) : **+2 Hâte** — tant que les **bottes** sont vides.
+  - **Retour automatique, MÊME EN COMBAT** : si on déséquipe / perd une pièce
+    (future mécanique), les cartes de suppléance du slot libéré **reviennent
+    aussitôt** dans le deck en cours (`majCartesDeBase`).
   - Les cartes **fortes coûtent de la Chaleur** et viennent du **stuff**.
     → sans équipement on « bricole », bien équipé on frappe fort.
 - Chaque **arme / armure / rune / gemme équipée injecte ses propres cartes**,
@@ -336,6 +346,28 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 
 → Optimiser son équipement = optimiser son deck. Le sertissage de gemmes nourrit
 directement la **collecte** et le **marché**.
+
+#### Pourquoi remplir TOUS les slots (cartes de suppléance, décidé juin 2026)
+
+**Problème** : dans un deck-builder, un **petit deck** est souvent meilleur (on
+revoit plus souvent ses meilleures cartes). Risque pour BRUTAL : le joueur équipe
+**une seule arme** et laisse les autres slots vides pour garder un deck minuscule
+et ultra-cohérent.
+
+**Réponse (option retenue)** : on **étend la logique Tap/Brace aux pièces
+d'armure**. Un slot **torse / gants / bottes** laissé vide injecte des cartes
+**faibles** (Exposed / Bare Hands / Bare Foot) qui **diluent** le deck — exactement
+ce qu'un petit-deck cherche à éviter. Résultat : **chaque emplacement rempli
+améliore le deck** (on remplace une carte nulle par une carte d'item), sans jamais
+imposer un build précis. C'est cohérent avec « deck = miroir de l'équipement » : un
+nain torse/mains/pieds nus se bat mal, point.
+
+Ces cartes restent **volontairement plus faibles** que n'importe quelle pièce
+d'armure, même commune → on a toujours intérêt à équiper quelque chose. Elles sont
+**exclues de la Maîtrise** (comme Tap/Brace) pour qu'on ne puisse pas en faire un
+build. *(À enrichir plus tard : des **synergies cross-slots** arme + armure +
+bague, pour récompenser le joueur qui combine au mieux — option « C » gardée en
+réserve.)*
 
 ### Twist nain (l'identité du combat)
 

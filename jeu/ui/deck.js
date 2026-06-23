@@ -6,7 +6,7 @@
 //    Modifier la sélection n'est possible qu'en ville.
 
 import { composerDeck } from "../systems/combat.js";
-import { cartesEquipees, mainsOccupees } from "../systems/inventaire.js";
+import { cartesEquipees, slotsOccupes } from "../systems/inventaire.js";
 import { CARTES } from "../data/cartes.js";
 import { garnirCarte } from "./carte.js";
 import {
@@ -59,7 +59,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
 
   function rendreDeck() {
     const cartes = composerDeck(
-      cartesEquipees(inventaire), maitrise?.choisies ?? [], mainsOccupees(inventaire));
+      cartesEquipees(inventaire), maitrise?.choisies ?? [], slotsOccupes(inventaire));
     const groupes = new Map();
     for (const c of cartes) {
       const g = groupes.get(c.id);

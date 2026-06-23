@@ -18,26 +18,34 @@ import { CARTES } from "../data/cartes.js";
 // ----- Réglages (équilibrage, valeurs provisoires) -------------------------
 const TAILLE_MAIN = 3;        // cartes piochées par tour (de base ; monte avec les talents)
 const MAIN_MAX = 8;          // plafond de cartes en main : toute carte piochée au-delà est défaussée d'office
-// Cartes de BASE : un filet de sécurité (toujours quelque chose à jouer) tant
-// qu'une MAIN est VIDE. « Tap » (offensive) couvre la main principale, « Brace »
-// (défense) la main secondaire. Dès qu'on équipe la main correspondante, sa
-// carte de base quitte le deck ; si on libère la main (déséquipement, perte
-// d'arme en combat), la carte REVIENT — y compris en plein combat (majCartesDeBase).
-const CARTE_BASE_PRINCIPALE = "coup-faible";  // « Tap »  — présente si main principale libre
-const CARTE_BASE_SECONDAIRE = "garde-faible"; // « Brace » — présente si main secondaire libre
-const NB_BASE_PRINCIPALE = 5;
-const NB_BASE_SECONDAIRE = 3;
+// Cartes de SUPPLÉANCE : un filet de sécurité (toujours quelque chose à jouer)
+// tant qu'un SLOT d'équipement est VIDE. Chaque entrée lie l'état d'occupation
+// d'un slot (cf. inventaire.js → slotsOccupes) à une carte FAIBLE et son nombre
+// d'exemplaires. Les mains (« Tap » / « Brace ») ET l'armure (torse / gants /
+// bottes) sont couvertes → on est poussé à remplir CHAQUE emplacement avec du
+// vrai stuff plutôt que de jouer un deck minuscule autour d'une seule arme. Dès
+// qu'on équipe le slot, ses cartes de suppléance quittent le deck ; si on le
+// libère (déséquipement, perte d'arme en combat), elles REVIENNENT — y compris
+// en plein combat (majCartesDeBase).
+const CARTES_BASE_SLOTS = [
+  { cle: "principale", id: "coup-faible",  nb: 5 }, // « Tap »        — main principale libre
+  { cle: "secondaire", id: "garde-faible", nb: 3 }, // « Brace »      — main secondaire libre
+  { cle: "armure",     id: "expose",       nb: 4 }, // « Exposed »    — torse nu
+  { cle: "gant",       id: "mains-nues",   nb: 2 }, // « Bare Hands » — gants nus
+  { cle: "botte",      id: "pieds-nus",    nb: 2 }, // « Bare Foot »  — bottes nues
+];
 
-// Les ids des cartes de base : jamais maîtrisables (cf. systems/maitrise.js).
-export const CARTES_BASE = new Set([CARTE_BASE_PRINCIPALE, CARTE_BASE_SECONDAIRE]);
+// Les ids des cartes de suppléance : jamais maîtrisables (cf. systems/maitrise.js).
+export const CARTES_BASE = new Set(CARTES_BASE_SLOTS.map((s) => s.id));
 
-// Les cartes de base ACTIVES selon l'état des mains. `mains` = { principale,
-// secondaire } : true = main occupée (arme/bouclier/2-mains) → pas de carte de
-// base pour cette main ; false/absent = main libre → on ajoute sa carte de base.
-export function cartesDeBase(mains = {}) {
+// Les cartes de suppléance ACTIVES selon l'état des slots. `slots` = objet
+// { principale, secondaire, armure, gant, botte } : true = slot occupé → pas de
+// carte de suppléance ; false/absent = slot libre → on ajoute ses cartes faibles.
+export function cartesDeBase(slots = {}) {
   const ids = [];
-  if (!mains.principale) for (let i = 0; i < NB_BASE_PRINCIPALE; i++) ids.push(CARTE_BASE_PRINCIPALE);
-  if (!mains.secondaire) for (let i = 0; i < NB_BASE_SECONDAIRE; i++) ids.push(CARTE_BASE_SECONDAIRE);
+  for (const { cle, id, nb } of CARTES_BASE_SLOTS) {
+    if (!slots[cle]) for (let i = 0; i < nb; i++) ids.push(id);
+  }
   return ids;
 }
 
@@ -84,23 +92,24 @@ function melanger(tableau) {
   return t;
 }
 
-// Construit le deck de départ : cartes de base (selon les mains libres) + cartes
-// de l'équipement + cartes de maîtrise choisies (facultatif). Exporté pour que
-// l'écran Deck soit fidèle. `mains` = état d'occupation des mains (cf. cartesDeBase).
-export function composerDeck(cartesEquip, cartesSupp = [], mains = {}) {
-  const ids = [...cartesDeBase(mains)];
+// Construit le deck de départ : cartes de suppléance (selon les slots libres) +
+// cartes de l'équipement + cartes de maîtrise choisies (facultatif). Exporté pour
+// que l'écran Deck soit fidèle. `slots` = état d'occupation (cf. cartesDeBase).
+export function composerDeck(cartesEquip, cartesSupp = [], slots = {}) {
+  const ids = [...cartesDeBase(slots)];
   for (const idCarte of cartesEquip ?? []) ids.push(idCarte);
   for (const idCarte of cartesSupp ?? []) ids.push(idCarte);
   return ids.map((id) => CARTES[id]).filter(Boolean);
 }
 
-// Resynchronise les cartes de BASE du deck EN COURS avec l'état des mains. À
-// appeler quand l'équipement change PENDANT un combat (déséquipement, future
-// perte d'arme) : une main libérée fait REVENIR sa carte de base, une main
-// occupée la retire. Agit sur tout le deck vivant (pioche + main + défausse).
-export function majCartesDeBase(combat, mains = {}) {
-  ajusterCarteBase(combat, CARTE_BASE_PRINCIPALE, mains.principale ? 0 : NB_BASE_PRINCIPALE);
-  ajusterCarteBase(combat, CARTE_BASE_SECONDAIRE, mains.secondaire ? 0 : NB_BASE_SECONDAIRE);
+// Resynchronise les cartes de suppléance du deck EN COURS avec l'état des slots.
+// À appeler quand l'équipement change PENDANT un combat (déséquipement, future
+// perte d'arme) : un slot libéré fait REVENIR ses cartes faibles, un slot occupé
+// les retire. Agit sur tout le deck vivant (pioche + main + défausse).
+export function majCartesDeBase(combat, slots = {}) {
+  for (const { cle, id, nb } of CARTES_BASE_SLOTS) {
+    ajusterCarteBase(combat, id, slots[cle] ? 0 : nb);
+  }
 }
 
 // Porte le nombre d'exemplaires d'une carte de base à `cible` dans le deck vivant.
@@ -149,7 +158,7 @@ export function ennemiVivant(e) { return e && e.pv > 0; }
 // `opts` : { pv, pvMax, cartes, stats } — vie (persiste) + cartes de l'équipement
 // + réglages chiffrés (`stats`) venant de l'arbre de talents.
 export function creerCombat(ennemisDefs, opts = {}) {
-  const { pv = 40, pvMax = 40, cartes = [], cartesSupp = [], mains = {}, stats = {}, passifs = [] } = opts;
+  const { pv = 40, pvMax = 40, cartes = [], cartesSupp = [], slots = {}, stats = {}, passifs = [] } = opts;
   const armureDepart = stats.armureDepart || 0;
   // Les TALENTS modifient les réglages de la Chaleur de Forge (seuil, plafond,
   // recharge, énergie de départ) — cf. bonusTalents() de l'arbre de talents.
@@ -195,7 +204,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     ennemis: ennemisDefs.map(creerEnnemiCombat),
     cible: 0,
     // Deck
-    pioche: melanger(composerDeck(cartes, cartesSupp, mains)),
+    pioche: melanger(composerDeck(cartes, cartesSupp, slots)),
     main: [],
     defausse: [],
     tailleMain: TAILLE_MAIN + (stats.pioche || 0), // cartes piochées/tour (+ talents)
@@ -582,6 +591,15 @@ function appliquerEffet(combat, effet, ennemi) {
     combat.defausse.push(...combat.main);
     combat.main = [];
     for (let i = 0; i < n; i++) ajouterCarteMain(combat, piocherUne(combat));
+  } else if (effet.type === "defausser-piocher") {
+    // Bare Hands : DÉFAUSSE `valeur` carte(s) au HASARD de la main, puis repioche
+    // autant (échange sec). Si la main est vide, rien ne se passe — pas de pioche
+    // gratuite : ça reste une carte « bouche-trou » de slot de gants nu.
+    for (let i = 0; i < effet.valeur && combat.main.length > 0; i++) {
+      const j = Math.floor(Math.random() * combat.main.length);
+      combat.defausse.push(combat.main.splice(j, 1)[0]);
+      ajouterCarteMain(combat, piocherUne(combat));
+    }
   } else if (effet.type === "celerite-vers-energie") {
     // Échange `cout` tours de Hâte contre `gain` Chaleur. Rien si pas assez de Hâte.
     if (combat.hate >= effet.cout) {
