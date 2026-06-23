@@ -522,7 +522,10 @@
        (parchemin) → coût (médaillon). Les positions en % suivent le gabarit du
        cadre (mesuré sur images/cartes/cadre-*.png). */
     .combat-carte--cadre {
-      background: none; border: none; padding: 0;
+      /* Calque du FOND : un noir derrière tous les calques, qui remplit le détourage
+         du cadre (sinon on voit la scène à travers) et borde proprement la carte. */
+      background: #08080b; border: none; padding: 0;
+      border-radius: calc(var(--carte-l, 150px) * 0.045);
       overflow: visible; color: #2a2018;
     }
     /* 1. Fenêtre d'illustration : aplat sombre, recouvert par l'image si fournie. */
