@@ -15,6 +15,7 @@ import {
   creerCombat, jouerCarte, degatsSurchauffe, necessiteCiblage,
   ennemiVivant, agirEnnemi, commencerTourHeros, finirTourHeros, avancerInitiative,
   simulerFile, ratioInitiativeHeros, ratioInitiativeEnnemi, cibleSoinVerrou,
+  appliquerResultatAleatoire,
 } from "../systems/combat.js";
 import { cartesEquipees, slotsOccupes } from "../systems/inventaire.js";
 import { setsActifs, itemDef, comboArmeActif } from "../data/items.js";
@@ -531,7 +532,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       } else {
         num.textContent = gain;
         num.classList.add("combat-des-num--final");
-        if (mauvais) jouerSonNegatif(); // résultat affiché : on peut sonner l'échec
+        // Le dé s'arrête : MAINTENANT seulement on applique le gain (la jauge monte
+        // ici, pas pendant le roulement) et on sonne l'échec éventuel.
+        appliquerResultatAleatoire(combat);
+        majJauge();
+        if (mauvais) jouerSonNegatif();
         setTimeout(() => {
           div.remove();
           enAnimPioche = false;

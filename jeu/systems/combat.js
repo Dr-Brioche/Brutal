@@ -666,11 +666,16 @@ function appliquerEffet(combat, effet, ennemi) {
     combat.feuHeros = Math.max(0, combat.feuHeros - effet.valeur);
   } else if (effet.type === "chaleur-aleatoire") {
     // Roll dice : gagne une quantité ALÉATOIRE de Chaleur entre `min` et `max` (inclus).
-    // `mauvais` = le résultat est inférieur au coût de la carte jouée (pour le son négatif).
+    // On TIRE le résultat ici (pour pouvoir l'animer), mais on ne l'APPLIQUE pas tout
+    // de suite : `appliquer` est rappelé par l'UI APRÈS l'animation du dé (cf.
+    // appliquerResultatAleatoire) → la jauge ne bouge qu'à la révélation, le suspense
+    // est préservé. `mauvais` = résultat inférieur au coût de la carte (son négatif).
     const gain = effet.min + Math.floor(Math.random() * (effet.max - effet.min + 1));
-    combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + gain);
     const mauvais = gain < (combat._coutCarteCourante ?? 0);
-    combat.dernierGainAleatoire = { min: effet.min, max: effet.max, gain, mauvais };
+    combat.dernierGainAleatoire = {
+      min: effet.min, max: effet.max, gain, mauvais, applique: false,
+      appliquer: () => { combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + gain); },
+    };
   } else if (effet.type === "pioche-filtre") {
     // Lucky Draw : pioche `valeur` cartes, GARDE celles dont le coût est strictement
     // inférieur à `coutMax`, défausse les autres. Résultats dans `dernieresPiochesFiltre`
@@ -781,6 +786,18 @@ export function jouerCarte(combat, index, cible = combat.cible) {
 
   verifierFin(combat);
   return true;
+}
+
+// Matérialise le résultat d'un effet ALÉATOIRE (Roll Dice, et tout futur effet du
+// même genre) UNE SEULE FOIS, une fois son animation terminée. Le moteur a déjà
+// TIRÉ le résultat au moment de jouer la carte (pour qu'on puisse l'animer) ; cette
+// fonction l'APPLIQUE réellement (la jauge / le statut bouge à ce moment précis).
+// L'UI l'appelle à la fin de l'animation pour garder le suspense. Idempotente.
+export function appliquerResultatAleatoire(combat) {
+  const r = combat.dernierGainAleatoire;
+  if (!r || r.applique) return;
+  r.applique = true;
+  r.appliquer?.();
 }
 
 // L'ennemi situé DERRIÈRE `ennemi` dans la file (vers la droite = index suivant),
