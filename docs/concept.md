@@ -301,6 +301,24 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 - **État actuel** : 1 musique provisoire pour les Eastern Under-tunnels
   (`sons/combat/eastern-under-tunnels/1.mp3`) ; on en ajoutera d'autres.
 
+#### Rendu visuel des cartes : cadre + calques (décidé 23/06/2026)
+
+- Chaque carte est rendue par **empilement de calques** (cf. `jeu/ui/carte.js`),
+  de l'arrière vers l'avant :
+  1. l'**illustration** (dans la fenêtre du cadre) — optionnelle ;
+  2. le **cadre** (`images/cartes/cadre-*.png`), choisi selon le **type** :
+     attaque = **rouge**, defense = **bleu**, buff = **vert** ;
+  3. le **nom** + le **texte** d'effet, sur le parchemin du bas ;
+  4. le **coût** (un chiffre), dans le médaillon en haut à gauche.
+- Les cadres sont des **gabarits** découpés d'une planche source
+  (`images/sources/cadres-cartes-source.png`, script `outils/decouper-cadres-cartes.py`).
+  Leur extérieur et leur fenêtre sont **transparents** → l'illustration se voit
+  dans la fenêtre, le reste est encadré. Ratio de carte aligné sur le cadre : **500×725**.
+- **Illustrations** : un PNG par carte dans `images/cartes/illustrations/`, nommé
+  d'après le **titre** de la carte normalisé (minuscules, tirets) — ex. *Lucky Draw*
+  → `lucky-draw.png`. Absente → la fenêtre reste un **aplat sombre** (aucune erreur).
+  Le sujet doit être cadré pour la **fenêtre** (haut de la carte), pas toute la carte.
+
 ### Modèle de deck — VERROUILLÉ (décision d'architecture majeure)
 
 **Le deck est le miroir de l'équipement.**

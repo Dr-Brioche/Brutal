@@ -491,7 +491,7 @@
       display: flex;
       flex-direction: column;
       width: var(--carte-l, 150px);
-      height: calc(var(--carte-l, 150px) * 1.3);
+      height: calc(var(--carte-l, 150px) * 1.45); /* ratio du cadre (500×725) */
       margin: 0 calc(var(--carte-l, 150px) * -0.09); /* chevauchement façon main */
       padding: calc(var(--carte-l, 150px) * 0.085);
       text-align: left;
@@ -516,6 +516,56 @@
     .combat-carte--attaque { border-color: #7a3b32; background: #2a211f; }
     .combat-carte--defense { border-color: #2f5066; background: #1d2630; }
     .combat-carte--buff    { border-color: #3f7a4d; background: #1b2a20; } /* vert (provisoire) : ni dégât ni bouclier */
+
+    /* ===== Cartes à CADRE (calques empilés) : le rendu de TOUTES les cartes =====
+       De l'arrière vers l'avant : fenêtre+illustration → cadre PNG → nom+texte
+       (parchemin) → coût (médaillon). Les positions en % suivent le gabarit du
+       cadre (mesuré sur images/cartes/cadre-*.png). */
+    .combat-carte--cadre {
+      background: none; border: none; padding: 0;
+      overflow: visible; color: #2a2018;
+    }
+    /* 1. Fenêtre d'illustration : aplat sombre, recouvert par l'image si fournie. */
+    .combat-carte--cadre .carte-fenetre {
+      position: absolute;
+      left: 12%; top: 13.8%; width: 77.5%; height: 44.8%;
+      background: #15110e; overflow: hidden; z-index: 0;
+    }
+    .combat-carte--cadre .carte-fenetre img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    /* 2. Le cadre PNG, par-dessus l'illustration. */
+    .combat-carte--cadre .carte-cadre {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      z-index: 1; pointer-events: none; user-select: none;
+    }
+    /* 3. Nom + texte d'effet, posés sur le parchemin. */
+    .combat-carte--cadre .carte-parchemin {
+      position: absolute;
+      left: 14%; top: 62.5%; width: 72%; height: 26%;
+      z-index: 2; overflow: hidden;
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; line-height: 1.1;
+    }
+    .combat-carte--cadre .carte-nom {
+      font-weight: 800; color: #2b1d10;
+      font-size: calc(var(--carte-l, 150px) * 0.075);
+    }
+    .combat-carte--cadre .carte-texte {
+      margin-top: calc(var(--carte-l, 150px) * 0.018); color: #3a2a1a;
+      font-size: calc(var(--carte-l, 150px) * 0.052);
+    }
+    /* 4. Coût : chiffre clair centré dans le médaillon en haut à gauche. */
+    .combat-carte--cadre .combat-carte-cout {
+      position: absolute; left: 3.5%; top: 2.2%;
+      width: 15%; height: 15%; margin: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: none; box-shadow: none; border-radius: 0;
+      color: #ffe8b0; font-weight: 900;
+      font-size: calc(var(--carte-l, 150px) * 0.125);
+      text-shadow: 0 0 3px #000, 0 1px 2px #000, 0 0 6px #000;
+    }
+    .combat-carte--cadre.combat-carte--injouable .combat-carte-cout { color: #ff6a58; }
 
     /* Overlay d'animation de dés : résultat Roll Dice qui tourne avant de s'arrêter. */
     .combat-des-overlay {
