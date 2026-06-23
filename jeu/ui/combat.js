@@ -274,6 +274,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // -- Main + sélection clavier ---------------------------------------------
   let selection = 0; // index dans [cartes…, bouton Fin du tour], ou -1 = rien
+  let enAnimPioche = false; // bloque jouer/finDeTour + masque la surbrillance pendant l'animation de pioche
 
   function elementsNavigables() {
     return [...conteneurMain.children, boutonFin];
@@ -281,7 +282,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   function majSelection() {
     const els = elementsNavigables();
     if (selection >= els.length) selection = els.length - 1;
-    els.forEach((el, i) => el.classList.toggle("sel", i === selection));
+    // Pendant une animation de pioche : aucune carte surlignée, pour garder le
+    // regard sur la pioche au centre (le deck est de toute façon verrouillé).
+    els.forEach((el, i) => el.classList.toggle("sel", i === selection && !enAnimPioche));
   }
   function rafraichir() {
     conteneurMain.replaceChildren();
@@ -403,9 +406,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // -- Actions du joueur ----------------------------------------------------
 
   let _tsDerniereCarteJouee = 0; // anti-double-clic : 200 ms entre deux cartes
-  let enAnimPioche = false;      // bloque jouer/finDeTour pendant l'animation de pioche
 
-  // Affiche chaque carte piochée en grand au centre pendant 1 s.
+  // Affiche chaque carte piochée en grand au centre pendant 800 ms.
   // `ajouterAMain` (optionnel) est appelé juste avant chaque affichage pour révéler
   // les cartes une par une dans la main. Cliquer l'overlay passe immédiatement à la fin.
   function animerPioche(cartes, callback, ajouterAMain = null) {
@@ -418,6 +420,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         overlayPioche.hidden = true;
         overlayPioche.innerHTML = "";
         enAnimPioche = false;
+        majSelection(); // pioche finie : la surbrillance clavier réapparaît
         callback?.();
         return;
       }
@@ -430,7 +433,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       overlayPioche.appendChild(el);
       overlayPioche.hidden = false;
       jouerSonPioche();
-      timer = setTimeout(suivante, 1000);
+      timer = setTimeout(suivante, 800);
     }
     overlayPioche.onclick = () => {
       clearTimeout(timer);
@@ -440,6 +443,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       overlayPioche.hidden = true;
       overlayPioche.innerHTML = "";
       enAnimPioche = false;
+      majSelection();
       callback?.();
     };
     suivante();
@@ -459,6 +463,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         overlayPioche.hidden = true;
         overlayPioche.innerHTML = "";
         enAnimPioche = false;
+        majSelection(); // pioche finie : la surbrillance clavier réapparaît
         callback?.();
         return;
       }
@@ -473,7 +478,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         el.classList.add("combat-carte--filtre-ok");
         jouerSonPioche();
         surGardee?.(carte);
-        timer = setTimeout(suivante, 1000);
+        timer = setTimeout(suivante, 800);
       } else {
         // Court délai puis la carte brûle
         timer = setTimeout(() => {
@@ -493,6 +498,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       overlayPioche.hidden = true;
       overlayPioche.innerHTML = "";
       enAnimPioche = false;
+      majSelection();
       callback?.();
     };
     suivante();
