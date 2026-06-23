@@ -275,6 +275,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // -- Main + sélection clavier ---------------------------------------------
   let selection = 0; // index dans [cartes…, bouton Fin du tour], ou -1 = rien
   let enAnimPioche = false; // bloque jouer/finDeTour + masque la surbrillance pendant l'animation de pioche
+  let premiereMainCombat = true; // 1re main du combat : petite pause avant la pioche (ouverture moins abrupte)
 
   function elementsNavigables() {
     return [...conteneurMain.children, boutonFin];
@@ -826,9 +827,18 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const cartesAReveler = combat.main.splice(nbAvantTour);
       rafraichir();               // main partielle/vide, input réactivé
       if (combat.fini) { verifierFin(); return; } // mort de surchauffe/poison au début du tour
-      // Montre les cartes piochées en grand au centre (1 s chacune) et les ajoute
+      // Montre les cartes piochées en grand au centre (800 ms chacune) et les ajoute
       // une à une dans la main au fur et à mesure de l'animation.
-      animerPioche(cartesAReveler, null, (c) => combat.main.push(c));
+      const lancerPioche = () => animerPioche(cartesAReveler, null, (c) => combat.main.push(c));
+      if (premiereMainCombat) {
+        // Tout 1er tour : on patiente 1 s (scène figée, main vide) avant de lancer la
+        // pioche — l'ouverture du combat est moins brutale qu'un jaillissement instantané.
+        premiereMainCombat = false;
+        enAnimPioche = true; // verrouille la main pendant l'attente
+        setTimeout(lancerPioche, 1000);
+      } else {
+        lancerPioche();
+      }
     } else {
       const pierreAvantTour = combat.pierre;
       animerEnnemi(acteur.i, agirEnnemi(combat, acteur.i), pierreAvantTour);
