@@ -523,9 +523,14 @@
        cadre (mesuré sur images/cartes/cadre-*.png). */
     .combat-carte--cadre {
       /* Calque du FOND : un noir derrière tous les calques, qui remplit le détourage
-         du cadre (sinon on voit la scène à travers) et borde proprement la carte. */
+         du cadre (sinon on voit la scène à travers) et borde proprement la carte.
+         Coins ASYMÉTRIQUES : le cadre est beaucoup plus arrondi en haut à gauche
+         (le médaillon rond du coût) qu'ailleurs, donc le fond noir — et le halo de
+         sélection qui suit sa silhouette — épousent cette forme.
+         Ordre : haut-gauche / haut-droite / bas-droite / bas-gauche. */
       background: #08080b; border: none; padding: 0;
-      border-radius: calc(var(--carte-l, 150px) * 0.045);
+      border-radius: calc(var(--carte-l, 150px) * 0.18) calc(var(--carte-l, 150px) * 0.09)
+                     calc(var(--carte-l, 150px) * 0.05) calc(var(--carte-l, 150px) * 0.05);
       overflow: visible; color: #2a2018;
     }
     /* 1. Fenêtre d'illustration : aplat sombre, recouvert par l'image si fournie. */
