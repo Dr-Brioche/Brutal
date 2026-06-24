@@ -523,14 +523,14 @@
        cadre (mesuré sur images/cartes/cadre-*.png). */
     .combat-carte--cadre {
       /* Calque du FOND : un noir derrière tous les calques, qui remplit le détourage
-         du cadre (sinon on voit la scène à travers) et borde proprement la carte.
-         Coins ASYMÉTRIQUES : le cadre est beaucoup plus arrondi en haut à gauche
-         (le médaillon rond du coût) qu'ailleurs, donc le fond noir — et le halo de
-         sélection qui suit sa silhouette — épousent cette forme.
-         Ordre : haut-gauche / haut-droite / bas-droite / bas-gauche. */
+         du cadre (sinon on voit la scène à travers). Le RAYON des coins est partagé
+         (--cadre-radius) avec le cadre PNG pour qu'ils se découpent pareil. Coins
+         ASYMÉTRIQUES : un peu plus arrondi en haut à gauche (le médaillon rond du
+         coût). Ordre : haut-gauche / haut-droite / bas-droite / bas-gauche. */
+      --cadre-radius: calc(var(--carte-l, 150px) * 0.10) calc(var(--carte-l, 150px) * 0.06)
+                      calc(var(--carte-l, 150px) * 0.05) calc(var(--carte-l, 150px) * 0.05);
       background: #08080b; border: none; padding: 0;
-      border-radius: calc(var(--carte-l, 150px) * 0.18) calc(var(--carte-l, 150px) * 0.09)
-                     calc(var(--carte-l, 150px) * 0.05) calc(var(--carte-l, 150px) * 0.05);
+      border-radius: var(--cadre-radius);
       overflow: visible; color: #2a2018;
     }
     /* 1. Fenêtre d'illustration : aplat sombre, recouvert par l'image si fournie. */
@@ -542,10 +542,15 @@
     .combat-carte--cadre .carte-fenetre img {
       width: 100%; height: 100%; object-fit: cover; display: block;
     }
-    /* 2. Le cadre PNG, par-dessus l'illustration. */
+    /* 2. Le cadre PNG, par-dessus l'illustration. Découpé au rayon partagé pour une
+       silhouette de carte RÉGULIÈRE (les ornements qui dépassaient aux coins sont
+       rognés), et bordé d'un liseré noir d'épaisseur CONSTANTE tout autour
+       (box-shadow plein, pas de flou) — c'est lui le « bord noir » régulier. */
     .combat-carte--cadre .carte-cadre {
       position: absolute; inset: 0; width: 100%; height: 100%;
       z-index: 1; pointer-events: none; user-select: none;
+      border-radius: var(--cadre-radius);
+      box-shadow: 0 0 0 calc(var(--carte-l, 150px) * 0.02) #08080b;
     }
     /* 3. Nom dans le bandeau supérieur : la boîte COÏNCIDE avec la plaque (mesurée
        à 1.9%–14.1% de la hauteur) et le texte y est centré verticalement par flex
@@ -789,16 +794,21 @@
       outline-offset: 2px;
       box-shadow: 0 0 18px rgba(255, 180, 60, 0.55);
     }
-    /* Carte sélectionnée : PAS de liseré (il jure avec le cadre dessiné), mais un
-       HALO jaune dégradé posé SOUS la carte, en fondu vers l'extérieur. */
+    /* Carte sélectionnée : PAS de liseré (il jure avec le cadre dessiné). Le HALO
+       doré est posé sur le cadre PNG (cf. .carte-cadre ci-dessous) en box-shadow :
+       il suit le rectangle arrondi RÉGULIER de la carte, à distance égale partout,
+       au lieu d'épouser les pics du cadre comme le faisait l'ancien drop-shadow. */
     .combat-carte.sel {
       transform: translateY(calc(var(--dy, 0px) - var(--carte-l, 150px) * 0.08)) rotate(0deg) scale(1.07);
       z-index: 10;
-      /* Halo doré qui épouse la SILHOUETTE du cadre (drop-shadow suit la forme, pas
-         une ellipse), à distance égale de tous les bords, proche et léger. */
-      filter:
-        drop-shadow(0 0 calc(var(--carte-l, 150px) * 0.018) rgba(255, 216, 100, 0.95))
-        drop-shadow(0 0 calc(var(--carte-l, 150px) * 0.045) rgba(255, 190, 70, 0.5));
+    }
+    /* Halo régulier = bord noir constant + deux auréoles dorées, toutes en box-shadow
+       sur le cadre PNG (forme arrondie lisse). */
+    .combat-carte.sel .carte-cadre {
+      box-shadow:
+        0 0 0 calc(var(--carte-l, 150px) * 0.02) #08080b,
+        0 0 calc(var(--carte-l, 150px) * 0.05) calc(var(--carte-l, 150px) * 0.018) rgba(255, 216, 100, 0.95),
+        0 0 calc(var(--carte-l, 150px) * 0.10) calc(var(--carte-l, 150px) * 0.05) rgba(255, 190, 70, 0.5);
     }
 
     /* Le panneau Victory / Defeat */
