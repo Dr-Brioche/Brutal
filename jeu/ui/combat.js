@@ -938,6 +938,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       jouerSonSortilege();
     }
     // evt.stun → on n'affiche AUCUNE animation
+    // Filet de sécurité : si l'ennemi est MORT au cours de sa propre action sans que
+    // son explosion ait déjà été déclenchée (cas des dégâts de rétorsion d'un passif
+    // comme le Warding Shield / Épines, qui ne posent pas evt.mortStatut), on l'anime
+    // ici. Les dégâts qu'il a infligés au héros ont déjà été affichés au-dessus.
+    // Sans ça, l'ennemi restait figé à l'écran alors qu'il était bel et bien mort.
+    if (u.e.pv <= 0 && !u.mort.actif && !u.partis) exploser(u);
   }
 
   function terminer() {
