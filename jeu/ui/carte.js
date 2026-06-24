@@ -34,6 +34,28 @@ function cheminIllustration(carte) {
   return base ? `images/cartes/illustrations/${base}.png` : null;
 }
 
+// Réduit la police du texte d'effet jusqu'à ce qu'il tienne dans le parchemin
+// (largeur ET hauteur). Mesuré APRÈS le rendu (requestAnimationFrame) pour que la
+// taille réelle de la carte — qui dépend de --carte-l en cqh — soit calculée. Le
+// parchemin a `overflow:hidden`, donc scrollWidth/Height révèlent ce qui déborde.
+function ajusterTextePourTenir(parchemin, texte) {
+  if (typeof requestAnimationFrame !== "function") return;
+  requestAnimationFrame(() => {
+    // Carte pas (encore) affichée : pas de dimensions, on laisse la taille CSS.
+    if (!parchemin.isConnected || parchemin.clientHeight === 0) return;
+    let taille = parseFloat(getComputedStyle(texte).fontSize) || 0;
+    let garde = 0;
+    while (
+      (parchemin.scrollWidth > parchemin.clientWidth + 1 ||
+        parchemin.scrollHeight > parchemin.clientHeight + 1) &&
+      taille > 5 && garde++ < 30
+    ) {
+      taille *= 0.94;
+      texte.style.fontSize = `${taille}px`;
+    }
+  });
+}
+
 export function garnirCarte(el, carte) {
   el.classList.add(`combat-carte--${carte.type}`, "combat-carte--cadre");
 
@@ -69,12 +91,19 @@ export function garnirCarte(el, carte) {
   const texte = document.createElement("span");
   texte.className = "carte-texte";
   texte.textContent = carte.texte;
-  // Réduit la police pour les textes longs, qui sinon déborderaient du parchemin.
+  // Taille de DÉPART par paliers de longueur (cf. CSS). C'est une approximation :
+  // l'auto-ajustement ci-dessous garantit ensuite que le texte tient vraiment.
   const n = (carte.texte || "").length;
   if (n > 90) texte.classList.add("carte-texte--petit");
   else if (n > 55) texte.classList.add("carte-texte--moyen");
   parchemin.append(texte);
   el.append(parchemin);
+  // Filet anti-débordement : une fois la carte dans le DOM (taille réelle connue),
+  // si le texte dépasse encore le parchemin — cas limite mal capté par les paliers,
+  // ou texte pile à la limite qui ne passe pas à la ligne à certaines tailles —, on
+  // réduit la police par petits pas jusqu'à ce qu'il tienne. Vaut à toute échelle
+  // (main, pioche en grand, deck…) puisque c'est mesuré, pas deviné.
+  ajusterTextePourTenir(parchemin, texte);
 
   // Couche 5 : le coût, dans le médaillon en haut à gauche.
   const cout = document.createElement("span");
