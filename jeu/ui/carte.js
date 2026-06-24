@@ -67,7 +67,17 @@ export function garnirCarte(el, carte) {
     const illu = document.createElement("img");
     illu.src = src;
     illu.alt = "";
-    illu.onerror = () => illu.remove(); // pas d'illustration → on garde l'aplat sombre
+    // Windows capitalise automatiquement la première lettre des noms de fichiers.
+    // Si le chemin minuscule échoue, on retente avec la première lettre en majuscule.
+    illu.onerror = () => {
+      const srcMaj = src.replace(/\/([a-z])([^/]*)$/, (_, c, rest) => `/${c.toUpperCase()}${rest}`);
+      if (srcMaj !== src) {
+        illu.onerror = () => illu.remove();
+        illu.src = srcMaj;
+      } else {
+        illu.remove();
+      }
+    };
     fenetre.append(illu);
   }
   el.append(fenetre);
