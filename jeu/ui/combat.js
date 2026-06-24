@@ -410,13 +410,21 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   let _tsDerniereCarteJouee = 0; // anti-double-clic : 200 ms entre deux cartes
 
   // Affiche chaque carte piochée en grand au centre pendant 800 ms.
-  // `ajouterAMain` (optionnel) est appelé juste avant chaque affichage pour révéler
-  // les cartes une par une dans la main. Cliquer l'overlay passe immédiatement à la fin.
+  // `ajouterAMain` (optionnel) révèle les cartes une par une dans la main : chaque
+  // carte ne rejoint la main qu'APRÈS son passage au centre (au moment où la
+  // suivante s'affiche), pour un effet « la carte tombe dans la main ».
+  // Cliquer l'overlay passe immédiatement à la fin.
   function animerPioche(cartes, callback, ajouterAMain = null) {
     if (!cartes || cartes.length === 0) { callback?.(); return; }
     enAnimPioche = true;
-    let idx = 0, timer = 0;
+    let idx = 0, timer = 0, carteAuCentre = null;
+    // La carte actuellement au centre rejoint la main (puis on l'oublie).
+    function deposerAuCentre() {
+      if (carteAuCentre && ajouterAMain) { ajouterAMain(carteAuCentre); rafraichir(); }
+      carteAuCentre = null;
+    }
     function suivante() {
+      deposerAuCentre(); // la précédente tombe dans la main avant d'afficher la suivante
       if (idx >= cartes.length) {
         overlayPioche.onclick = null;
         overlayPioche.hidden = true;
@@ -427,7 +435,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         return;
       }
       const carte = cartes[idx++];
-      if (ajouterAMain) { ajouterAMain(carte); rafraichir(); }
+      carteAuCentre = carte;
       overlayPioche.innerHTML = "";
       const el = document.createElement("div");
       el.className = "combat-carte";
@@ -439,6 +447,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     }
     overlayPioche.onclick = () => {
       clearTimeout(timer);
+      deposerAuCentre(); // dépose la carte au centre, puis verse le reste d'un coup
       if (ajouterAMain) { while (idx < cartes.length) ajouterAMain(cartes[idx++]); rafraichir(); }
       else idx = cartes.length;
       overlayPioche.onclick = null;
@@ -452,14 +461,21 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   }
 
   // Anime Lucky Draw (pioche-filtre) : chaque carte apparaît au centre.
-  // Retenues (garde=true) → glow vert + son de pioche + ajout à la main.
-  // Rejetées (garde=false) → animation de brûlure + son négatif.
+  // Retenues (garde=true) → glow vert + son de pioche, puis ajout à la main APRÈS
+  //   le passage au centre (comme la pioche normale : la carte tombe dans la main).
+  // Rejetées (garde=false) → animation de brûlure + son négatif (jamais dans la main).
   // `surGardee` = (carte) => void, appelé pour chaque carte retenue (ajoute à main + rafraichir).
   function animerPiocheFiltre(resultats, callback, surGardee) {
     if (!resultats || resultats.length === 0) { callback?.(); return; }
     enAnimPioche = true;
-    let idx = 0, timer = 0;
+    let idx = 0, timer = 0, gardeeAuCentre = null;
+    // La carte retenue affichée au centre rejoint la main (au passage à la suivante).
+    function deposerGardee() {
+      if (gardeeAuCentre && surGardee) surGardee(gardeeAuCentre);
+      gardeeAuCentre = null;
+    }
     function suivante() {
+      deposerGardee(); // la retenue précédente tombe dans la main avant la suivante
       if (idx >= resultats.length) {
         overlayPioche.onclick = null;
         overlayPioche.hidden = true;
@@ -479,7 +495,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (garde) {
         el.classList.add("combat-carte--filtre-ok");
         jouerSonPioche();
-        surGardee?.(carte);
+        gardeeAuCentre = carte; // rejoindra la main au passage à la suivante
         timer = setTimeout(suivante, 800);
       } else {
         // Court délai puis la carte brûle
@@ -492,6 +508,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     }
     overlayPioche.onclick = () => {
       clearTimeout(timer);
+      deposerGardee(); // dépose la retenue au centre, puis verse le reste d'un coup
       while (idx < resultats.length) {
         const { carte: c, garde: g } = resultats[idx++];
         if (g) surGardee?.(c);
