@@ -611,10 +611,15 @@ function appliquerEffet(combat, effet, ennemi) {
     // Bare Hands : DÉFAUSSE `valeur` carte(s) au HASARD de la main, puis repioche
     // autant (échange sec). Si la main est vide, rien ne se passe — pas de pioche
     // gratuite : ça reste une carte « bouche-trou » de slot de gants nu.
+    // On MÉMORISE chaque échange (carte jetée + carte piochée) pour que l'UI
+    // l'ANIME : sinon le remplacement 1-pour-1 est instantané et illisible.
     for (let i = 0; i < effet.valeur && combat.main.length > 0; i++) {
       const j = Math.floor(Math.random() * combat.main.length);
-      combat.defausse.push(combat.main.splice(j, 1)[0]);
-      ajouterCarteMain(combat, piocherUne(combat));
+      const defaussee = combat.main.splice(j, 1)[0];
+      combat.defausse.push(defaussee);
+      const piochee = piocherUne(combat);
+      ajouterCarteMain(combat, piochee);
+      if (piochee) (combat.dernierEchangeMain ??= []).push({ defaussee, piochee });
     }
   } else if (effet.type === "celerite-vers-energie") {
     // Échange `cout` tours de Hâte contre `gain` Chaleur. Rien si pas assez de Hâte.

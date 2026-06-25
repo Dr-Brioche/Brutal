@@ -659,6 +659,16 @@
       100% { opacity: 0; transform: scale(0.82);  filter: brightness(2) sepia(1) saturate(6) blur(3px); }
     }
     .combat-carte--brule { animation: bruler-carte 0.55s ease-in forwards; }
+    /* Bare Hands — carte DÉFAUSSÉE : elle s'affiche, tient un instant, puis glisse
+       vers le bas en se ternissant (départ vers la pile de défausse). Distincte du
+       jeu d'une carte (qui grandit et monte), pour qu'on lise « je jette ». */
+    @keyframes defausse-sortie {
+      0%   { opacity: 0; transform: translateY(-6%) scale(0.9);  filter: none; }
+      18%  { opacity: 1; transform: none;                        filter: none; }
+      66%  { opacity: 1; transform: none;                        filter: none; }
+      100% { opacity: 0; transform: translateY(40%) scale(0.7) rotate(-7deg); filter: grayscale(0.7) brightness(0.6); }
+    }
+    #combat-pioche-anim .combat-carte--defaussee { animation: defausse-sortie 0.62s ease-in forwards; }
 
     /* Le coût en Chaleur : pastille en HAUT À GAUCHE, en léger débordement. Les
        cartes se chevauchent par la droite, donc le coin gauche reste toujours

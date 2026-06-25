@@ -471,6 +471,47 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     suivante();
   }
 
+  // Anime la DÉFAUSSE de cartes (Bare Hands) : chaque carte jetée s'affiche au centre,
+  // puis glisse vers le bas en se ternissant (elle part à la pile de défausse). Rend
+  // LISIBLE le « je jette une carte » avant la pioche qui suit. Même structure que
+  // animerPioche : overlay central, clic pour accélérer, verrou `enAnimPioche`.
+  function animerDefausse(cartes, callback) {
+    if (!cartes || cartes.length === 0) { callback?.(); return; }
+    enAnimPioche = true;
+    let idx = 0, timer = 0;
+    function suivante() {
+      if (idx >= cartes.length) {
+        overlayPioche.onclick = null;
+        overlayPioche.hidden = true;
+        overlayPioche.innerHTML = "";
+        enAnimPioche = false;
+        majSelection();
+        callback?.();
+        return;
+      }
+      const carte = cartes[idx++];
+      overlayPioche.innerHTML = "";
+      const el = document.createElement("div");
+      el.className = "combat-carte combat-carte--defaussee";
+      garnirCarte(el, carte);
+      overlayPioche.appendChild(el);
+      overlayPioche.hidden = false;
+      jouerSonPioche();
+      timer = setTimeout(suivante, 620);
+    }
+    overlayPioche.onclick = () => {
+      clearTimeout(timer);
+      idx = cartes.length;
+      overlayPioche.onclick = null;
+      overlayPioche.hidden = true;
+      overlayPioche.innerHTML = "";
+      enAnimPioche = false;
+      majSelection();
+      callback?.();
+    };
+    suivante();
+  }
+
   // Anime Lucky Draw (pioche-filtre) : chaque carte apparaît au centre.
   // Retenues (garde=true) → glow vert + son de pioche, puis ajout à la main APRÈS
   //   le passage au centre (comme la pioche normale : la carte tombe dans la main).
@@ -616,6 +657,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     combat.ennemis.forEach(e => { e.dernierDegats = 0; e.hitLog = []; });
     combat.dernierSoinCarte = 0;
     combat.dernierGainAleatoire = null;
+    combat.dernierEchangeMain = null; // Bare Hands : échanges main à animer
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
     if (maitrise) incrementerMaitrise(maitrise, heros, carte.id);
 
@@ -732,6 +774,21 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         }
         rafraichir(); // main sans les cartes Lucky Draw (elles arrivent une à une)
         animerPiocheFiltre(resultats, null, (c) => { combat.main.push(c); rafraichir(); });
+      } else if (combat.dernierEchangeMain) {
+        // Bare Hands : échange(s) 1-pour-1. On retire les cartes piochées de la main
+        // (animerPioche les y remettra), on montre d'abord la/les carte(s) JETÉE(s)
+        // partir, PUIS la/les nouvelle(s) arriver — pour que l'échange soit lisible.
+        const echanges = combat.dernierEchangeMain;
+        combat.dernierEchangeMain = null;
+        const piochees = echanges.map((e) => e.piochee);
+        for (const c of piochees) {
+          const k = combat.main.indexOf(c);
+          if (k >= 0) combat.main.splice(k, 1);
+        }
+        rafraichir(); // la main n'affiche pas encore les cartes piochées
+        animerDefausse(echanges.map((e) => e.defaussee), () =>
+          animerPioche(piochees, null, (c) => combat.main.push(c))
+        );
       } else {
         // Cartes piochées EN COURS DE TOUR (effet « piocher »/« piocher-par-ennemi »…).
         // drawn = nb cartes ajoutées : (taille après) - (taille avant - 1 carte jouée).
