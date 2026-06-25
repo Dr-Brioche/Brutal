@@ -64,14 +64,15 @@ export const ITEMS = {
     planche: "images/armes/pioche.png", degats: 3, mains: 1,
     cartes: ["coup-de-pioche", "coup-de-pioche", "frappe", "frappe", "frappe"],
   },
-  // Croc de basilic : arme à poison. 3× Venom Stab + 1× Poison Dance (AOE) + 2× Wound Opening.
+  // Croc de basilic : arme à poison (moteur de stacks). 6× Venom Stab + 2× Poison
+  // Dance (AOE) + 1× Weakness Exploitation + 1× Explosion Of Poison (détonateur répétable).
   "croc-de-basilic": {
     id: "croc-de-basilic", nom: "Basilisk Fang", categorie: "arme", rarete: "rare",
     taille: { l: 1, h: 2 }, icone: "#4f7a3a",
     degats: 4, mains: 1, sousType: "dague",
     // Combo : si UNE AUTRE dague est équipée en off-hand → +5 Force permanente au combat.
     comboArme: { type: "dagueOffhand", forcePerm: 5, texte: "Twin fang: +5 permanent Strength if another dagger is in your off-hand." },
-    cartes: ["coup-venimeux", "coup-venimeux", "coup-venimeux", "danse-empoisonnee", "ouverture-des-plaies", "ouverture-des-plaies"],
+    cartes: ["coup-venimeux", "coup-venimeux", "coup-venimeux", "coup-venimeux", "coup-venimeux", "coup-venimeux", "danse-empoisonnee", "danse-empoisonnee", "exploitation-faiblesses", "explosion-poison"],
   },
   // Marteau de lave : arme de feu. 3× Lava Hammer + 1× Armor Forging + 1× Dragon's Blaze + 2× Fire Strike.
   "marteau-de-lave": {

@@ -504,11 +504,18 @@ combat (avec tooltip).
 
 Plusieurs cartes ont un effet RENFORCÉ selon l'état de la cible ou du héros :
 
-- **Wound Opening** (Basilisk Fang) : 18 dégâts, **DOUBLÉS** si la cible porte au
-  moins un malus (poison, feu, saignement, étourdissement, gel). `degats-execution`.
+- **Weakness Exploitation** (Basilisk Fang) : 16 dégâts, **DOUBLÉS** si la cible
+  porte au moins un malus (poison, feu, saignement, étourdissement, gel). Remplace
+  l'ancienne carte *Wound Opening*. `degats-execution`.
 - **Poison Dance** (Basilisk Fang, AOE) : **3 frappes** de 3 dégâts sur tous,
   + poison à chaque frappe — **1** normalement, **2** si l'ennemi était **déjà
   empoisonné** au début de la carte. `danse-poison`.
+- **Explosion Of Poison** (Basilisk Fang) — **détonateur de poison répétable** :
+  inflige des dégâts **égaux aux doses de poison de la cible**, à la **cible ET ses
+  voisins directs**, puis **+2 poison** à chacun. Le poison **n'est PAS consommé** →
+  on peut **rejouer la carte** chaque tour (≠ l'Embrasement du feu, qui vide tout).
+  Combo Croc de basilic : empiler le poison (6× *Venom Stab*) puis le faire exploser
+  en boucle. `explosion-poison`.
 - **Armor Forging** (Magma Hammer, AOE) : **10 brûlure** à tous ; un ennemi **déjà
   en feu** en reçoit le **double**, puis **toute sa brûlure est consommée et forgée
   en Pierre** pour le héros (1 brûlure = 1 Pierre). `forgeage`.

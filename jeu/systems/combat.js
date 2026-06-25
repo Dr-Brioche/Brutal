@@ -350,6 +350,7 @@ export function carteVise(carte) {
            e.type === "confusion" || e.type === "gel-cascade" ||
            e.type === "contagion" ||    // vise l'ennemi de référence (ses voisins s'alignent)
            e.type === "transfert-feu" || // vise l'ennemi SOURCE dont on déplace la brûlure
+           e.type === "explosion-poison" || // vise la cible dont le poison détone (elle + voisins)
            e.type === "tout-en-feu"     // AOE offensif sur tous les ennemis
   );
 }
@@ -896,7 +897,7 @@ function resoudreAOE(combat, carte) {
 const EFFETS_POSITIONNELS = new Set([
   "rebond", "eclaboussure", "transfert-feu",
   "cleave-adjacent", "brulure-adjacent", "coup-de-grace", "contagion",
-  "recompense-mort",
+  "recompense-mort", "explosion-poison",
 ]);
 
 // Résout une carte ciblée (un ennemi). Effets normaux sur la cible, puis les
@@ -999,6 +1000,15 @@ function resoudreCiblee(combat, carte, cible) {
       if (ennemi && ennemi.pv <= 0) {
         combat.force += effet.force ?? 0;
         if (effet.soin) soinnerHeros(combat, effet.soin);
+      }
+    } else if (effet.type === "explosion-poison") {
+      // Explosion Of Poison (Croc de basilic) : détonateur de poison qui NE le consomme
+      // PAS. Dégâts = doses de poison de la CIBLE, infligés à la cible ET à ses voisins
+      // directs ; puis +`poison` poison à chacun. Répétable (le poison reste en place).
+      const doses = ennemi ? ennemi.poison : 0;
+      for (const c of [ennemi, ...adjacents].filter(ennemiVivant)) {
+        if (doses > 0) appliquerEffet(combat, { type: "degats", valeur: doses }, c);
+        appliquerEffet(combat, { type: "poison", valeur: effet.poison ?? 2 }, c);
       }
     }
   }

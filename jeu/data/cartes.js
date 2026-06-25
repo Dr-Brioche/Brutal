@@ -186,15 +186,29 @@ export const CARTES = {
     effets: [{ type: "danse-poison", hits: 3, degats: 3 }],
   },
 
-  // Croc de basilic — Ouverture des plaies : gros coup unique, DOUBLÉ si la cible
-  // porte déjà un malus (poison, feu, saignement, étourdissement, gel).
-  "ouverture-des-plaies": {
-    id: "ouverture-des-plaies",
-    nom: "Wound Opening",
+  // Croc de basilic — Explosion Of Poison : DÉTONE le poison de la cible SANS le
+  // consommer. Dégâts = doses de poison sur la cible, infligés à la cible ET à ses
+  // voisins directs, puis +2 poison à tous. Carte répétable (le poison reste).
+  "explosion-poison": {
+    id: "explosion-poison",
+    nom: "Explosion Of Poison",
     cout: 2,
     type: "attaque",
-    texte: "Deal 18 damage. Doubled if the target has a negative status.",
-    effets: [{ type: "degats-execution", valeur: 18 }],
+    portee: "range",
+    texte: "Deal damage equal to the target's Poison to it and each adjacent enemy, then apply 2 Poison to them all (Poison is not consumed).",
+    effets: [{ type: "explosion-poison", poison: 2 }],
+  },
+
+  // Croc de basilic — Weakness Exploitation : gros coup unique, DOUBLÉ si la cible
+  // porte déjà un malus (poison, feu, saignement, étourdissement, gel).
+  // (Remplace l'ancienne carte « Wound Opening » : même mécanique, 16 dégâts.)
+  "exploitation-faiblesses": {
+    id: "exploitation-faiblesses",
+    nom: "Weakness Exploitation",
+    cout: 2,
+    type: "attaque",
+    texte: "Deal 16 damage. Doubled if the target has a negative status.",
+    effets: [{ type: "degats-execution", valeur: 16 }],
   },
 
   // Marteau de lave : un coup TRÈS lourd + de l'Enflammé (feu dans le temps qui
