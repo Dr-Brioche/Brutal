@@ -169,8 +169,8 @@ export const CARTES = {
     nom: "Venom Stab",
     cout: 1,
     type: "attaque",
-    texte: "Deal 4 damage. Apply 4 Poison.",
-    effets: [{ type: "degats", valeur: 4 }, { type: "poison", valeur: 4 }],
+    texte: "Deal 6 damage. Apply 4 Poison.",
+    effets: [{ type: "degats", valeur: 6 }, { type: "poison", valeur: 4 }],
   },
 
   // Croc de basilic — Danse empoisonnée : 3 frappes (3 dégâts) sur TOUS les ennemis,
@@ -246,8 +246,8 @@ export const CARTES = {
     nom: "Shield Bash",
     cout: 2,
     type: "attaque",
-    texte: "Deal 10 damage. Stun the enemy for 3 turns.",
-    effets: [{ type: "degats", valeur: 10 }, { type: "stun", valeur: 3 }],
+    texte: "Deal 8 damage. Stun the enemy for 3 turns.",
+    effets: [{ type: "degats", valeur: 8 }, { type: "stun", valeur: 3 }],
   },
 
   // Bottes vives : HÂTE le héros (+30% d'agilité) pendant quelques tours.
@@ -321,8 +321,8 @@ export const CARTES = {
     nom: "Pommel Strike",
     cout: 1,
     type: "attaque",
-    texte: "Deal 16 damage. Stun the target for 2 turns.",
-    effets: [{ type: "degats", valeur: 16 }, { type: "stun", valeur: 2 }],
+    texte: "Deal 12 damage. Stun the target for 1 turn.",
+    effets: [{ type: "degats", valeur: 12 }, { type: "stun", valeur: 1 }],
   },
 
   // Giant Swing : grand arc → frappe TOUS les ennemis (AOE) + saignement de masse.
@@ -340,10 +340,10 @@ export const CARTES = {
   "couper-en-deux": {
     id: "couper-en-deux",
     nom: "Cleave",
-    cout: 2,
+    cout: 3,
     type: "attaque",
-    texte: "Deal 20 damage. If the target dies, deal 15 damage to the next enemy.",
-    effets: [{ type: "degats", valeur: 20 }, { type: "rebond", valeur: 15 }],
+    texte: "Deal 30 damage. If the target dies, deal 15 damage to the next enemy.",
+    effets: [{ type: "degats", valeur: 30 }, { type: "rebond", valeur: 15 }],
   },
 
   // ---- Forgemaster's Mail (armure) : 1re armure qui DONNE des cartes ----------
@@ -737,8 +737,8 @@ export const CARTES = {
     nom: "Kick of light",
     cout: 1,
     type: "attaque",
-    texte: "Deal 6 damage. Apply 1 Confusion.",
-    effets: [{ type: "degats", valeur: 6 }, { type: "confusion", valeur: 1 }],
+    texte: "Deal 10 damage. Apply 1 Confusion.",
+    effets: [{ type: "degats", valeur: 10 }, { type: "confusion", valeur: 1 }],
   },
 
   // ---- Set de Sang : SACRIFICE → SAIGNEMENT → vampirisme ---------------------
@@ -1067,8 +1067,8 @@ export const CARTES = {
   // Combo : empiler la Force (Momentum) → Steel Flurry frappe 3× (Force par coup)
   // → Decisive Strike DOUBLE si la Force est haute.
   "taillade-large": { id: "taillade-large", nom: "Wide Slash", cout: 1, type: "attaque", revueArmes2H: true,
-    texte: "Deal 12 damage to the target and 6 to each adjacent enemy.",
-    effets: [{ type: "degats", valeur: 12 }, { type: "cleave-adjacent", valeur: 6 }] },
+    texte: "Deal 14 damage to the target and 6 to each adjacent enemy.",
+    effets: [{ type: "degats", valeur: 14 }, { type: "cleave-adjacent", valeur: 6 }] },
   "volee-d-acier": { id: "volee-d-acier", nom: "Steel Flurry", cout: 1, type: "attaque", revueArmes2H: true,
     texte: "Deal 5 damage three times.",
     effets: [{ type: "degats", valeur: 5 }, { type: "degats", valeur: 5 }, { type: "degats", valeur: 5 }] },
@@ -1076,21 +1076,21 @@ export const CARTES = {
     texte: "Gain 3 Strength. Draw 1 card.",
     effets: [{ type: "force", valeur: 3 }, { type: "piocher", valeur: 1 }] },
   "frappe-decisive": { id: "frappe-decisive", nom: "Decisive Strike", cout: 2, type: "attaque", revueArmes2H: true,
-    texte: "Deal 15 damage. Doubled if you have 6+ Strength.",
-    effets: [{ type: "degats-si-force", valeur: 15, seuil: 6 }] },
+    texte: "Deal 18 damage. Doubled if you have 6+ Strength.",
+    effets: [{ type: "degats-si-force", valeur: 18, seuil: 6 }] },
 
   // ---- Halberd (Uncommon) : allonge (transperce) + contrôle (gel) ----
   // Combo : Hooking Strike gèle → Pike Thrust transperce la cible ET celui derrière
   // → Wide Sweep nettoie la rangée. Tank léger avec Bracing Stance.
   "estoc": { id: "estoc", nom: "Pike Thrust", cout: 1, type: "attaque", revueArmes2H: true,
-    texte: "Deal 10 damage to the target and the enemy behind it.",
-    effets: [{ type: "degats", valeur: 10 }, { type: "eclaboussure", degats: 10 }] },
+    texte: "Deal 12 damage to the target and the enemy behind it.",
+    effets: [{ type: "degats", valeur: 12 }, { type: "eclaboussure", degats: 12 }] },
   "balayage-large": { id: "balayage-large", nom: "Wide Sweep", cout: 2, type: "attaque", aoe: true, revueArmes2H: true,
-    texte: "Deal 9 damage to ALL enemies.",
-    effets: [{ type: "degats", valeur: 9 }] },
+    texte: "Deal 8 damage to ALL enemies. Apply 2 Bleed to ALL enemies.",
+    effets: [{ type: "degats", valeur: 8 }, { type: "sang", valeur: 2 }] },
   "coup-de-croc": { id: "coup-de-croc", nom: "Hooking Strike", cout: 1, type: "attaque", revueArmes2H: true,
-    texte: "Deal 8 damage. Apply 2 Chill.",
-    effets: [{ type: "degats", valeur: 8 }, { type: "lenteur", valeur: 2 }] },
+    texte: "Deal 10 damage. Apply 2 Chill.",
+    effets: [{ type: "degats", valeur: 10 }, { type: "lenteur", valeur: 2 }] },
   "position-de-garde": { id: "position-de-garde", nom: "Bracing Stance", cout: 1, type: "defense", revueArmes2H: true,
     texte: "Gain 12 Stone.",
     effets: [{ type: "pierre", valeur: 12 }] },
@@ -1099,14 +1099,14 @@ export const CARTES = {
   // Combo : empiler la Pierre (Bulwark, Stonestrike) → Stonestrike frappe = ta Pierre
   // → Tremor étourdit TOUTE la rangée si ta Pierre ≥ 20.
   "rempart": { id: "rempart", nom: "Bulwark", cout: 1, type: "defense", revueArmes2H: true,
-    texte: "Gain 15 Stone.",
-    effets: [{ type: "pierre", valeur: 15 }] },
-  "frappe-sismique": { id: "frappe-sismique", nom: "Seismic Slam", cout: 2, type: "attaque", revueArmes2H: true,
-    texte: "Deal 14 damage. Stun the target for 1 turn.",
-    effets: [{ type: "degats", valeur: 14 }, { type: "stun", valeur: 1 }] },
-  "frappe-de-roche": { id: "frappe-de-roche", nom: "Stonestrike", cout: 2, type: "attaque", revueArmes2H: true,
-    texte: "Deal damage equal to your Stone, then gain 8 Stone.",
-    effets: [{ type: "pierre-vers-degats", valeur: 1 }, { type: "pierre", valeur: 8 }] },
+    texte: "Gain 12 Stone.",
+    effets: [{ type: "pierre", valeur: 12 }] },
+  "frappe-sismique": { id: "frappe-sismique", nom: "Seismic Slam", cout: 4, type: "attaque", revueArmes2H: true,
+    texte: "Deal 40 damage. Stun the target for 2 turns.",
+    effets: [{ type: "degats", valeur: 40 }, { type: "stun", valeur: 2 }] },
+  "frappe-de-roche": { id: "frappe-de-roche", nom: "Stonestrike", cout: 3, type: "attaque", revueArmes2H: true,
+    texte: "Deal damage equal to your Stone, then gain 10 Stone.",
+    effets: [{ type: "pierre-vers-degats", valeur: 1 }, { type: "pierre", valeur: 10 }] },
   "tremblement": { id: "tremblement", nom: "Tremor", cout: 3, type: "attaque", aoe: true, revueArmes2H: true,
     texte: "Deal 10 damage to ALL enemies. If you have 20+ Stone, stun them all for 1 turn.",
     effets: [{ type: "degats", valeur: 10 }, { type: "stun-si-pierre", valeur: 1, seuil: 20 }] },
@@ -1116,18 +1116,18 @@ export const CARTES = {
   // par ennemi qui saigne → Death Sentence/Soul Reap achèvent → Soul Reap récolte
   // les morts (+Force +soin).
   "faux-sinistre": { id: "faux-sinistre", nom: "Grim Scythe", cout: 1, type: "attaque", revueArmes2H: true,
-    texte: "Deal 10 damage. Apply 2 Bleed.",
-    effets: [{ type: "degats", valeur: 10 }, { type: "sang", valeur: 2 }] },
-  "arc-de-faux": { id: "arc-de-faux", nom: "Reaping Arc", cout: 2, type: "attaque", aoe: true, revueArmes2H: true,
-    texte: "Deal 9 damage and apply 3 Bleed to ALL enemies.",
-    effets: [{ type: "degats", valeur: 9 }, { type: "sang", valeur: 3 }] },
+    texte: "Deal 14 damage. Apply 3 Bleed.",
+    effets: [{ type: "degats", valeur: 14 }, { type: "sang", valeur: 3 }] },
+  "arc-de-faux": { id: "arc-de-faux", nom: "Reaping Arc", cout: 3, type: "attaque", aoe: true, revueArmes2H: true,
+    texte: "Deal 20 damage and apply 3 Bleed to ALL enemies.",
+    effets: [{ type: "degats", valeur: 20 }, { type: "sang", valeur: 3 }] },
   "sentence-de-mort": { id: "sentence-de-mort", nom: "Death Sentence", cout: 2, type: "attaque", revueArmes2H: true,
-    texte: "Deal 16 damage. Doubled if the target is below 50% HP.",
-    effets: [{ type: "degats-si-faible", valeur: 16, seuil: 0.5 }] },
+    texte: "Deal 30 damage. Doubled if the target is below 50% HP.",
+    effets: [{ type: "degats-si-faible", valeur: 30, seuil: 0.5 }] },
   "moisson": { id: "moisson", nom: "Harvest", cout: 2, type: "buff", revueArmes2H: true,
-    texte: "Heal 4 HP per enemy that has Bleed.",
-    effets: [{ type: "soin-par-ennemi-saignant", valeur: 4 }] },
+    texte: "Heal 10 HP per enemy that has Bleed.",
+    effets: [{ type: "soin-par-ennemi-saignant", valeur: 10 }] },
   "fauche-d-ames": { id: "fauche-d-ames", nom: "Soul Reap", cout: 3, type: "attaque", revueArmes2H: true,
-    texte: "Deal 12 damage. If the target dies, gain 2 Strength and heal 10 HP.",
-    effets: [{ type: "degats", valeur: 12 }, { type: "recompense-mort", force: 2, soin: 10 }] },
+    texte: "Deal 15 damage. If the target dies, gain 4 Strength and heal 20 HP.",
+    effets: [{ type: "degats", valeur: 15 }, { type: "recompense-mort", force: 4, soin: 20 }] },
 };
