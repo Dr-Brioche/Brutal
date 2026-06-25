@@ -500,6 +500,27 @@ combat (avec tooltip).
   à la fois**, avec une petite pause, pilotée par l'**initiative** (voir la section
   *Initiative / vitesse* plus haut) — on comprend ce qui arrive.
 
+### Courbe rareté ↔ énergie : des cartes de plus en plus chères et fortes (principe, 25/06/2026)
+
+Principe de balance qui guide **tout le contenu à venir** : **plus la rareté d'un
+équipement monte, plus ses cartes coûtent cher ET frappent fort**. Ça va de pair
+avec la montée de la **Chaleur** (l'énergie par tour) au fil de la partie : un
+joueur qui progresse a **plus d'énergie à dépenser**, il lui faut donc des cartes
+à la hauteur — sinon il « gaspille » son énergie en petits coups.
+
+- **Barème indicatif** : on vise ≈ **12 dégâts par point de Chaleur** pour une carte
+  de **dégâts purs**. Une carte à **4 Chaleur** « vaut » donc ≈ **48 dégâts**.
+- **Les statuts paient une partie de la note** : une carte peut rendre **moins de
+  dégâts bruts** si elle ajoute du **contrôle** (étourdissement, gel, poison…).
+  Ex. **Seismic Slam** (arme 2 mains rare, *Siege Maul*) : **4 Chaleur → 40 dégâts
+  + 2 étourdissement**. Les 8 dégâts « manquants » (48 → 40) sont payés par les
+  **2 tours de stun**, et une arme **à deux mains** a le droit de taper plus fort
+  (elle occupe les **deux** emplacements de main).
+- **Conséquence pour le design** : on **réserve les grosses cartes chères aux
+  raretés élevées**, et on garde les cartes **bon marché / faibles** pour le début
+  et le **deck de suppléance**. La montée en difficulté n'est pas « plus de petits
+  coups » mais « **des coups plus gros à placer au bon moment** ».
+
 ### Cartes « combo » (récompensent une mise en place)
 
 Plusieurs cartes ont un effet RENFORCÉ selon l'état de la cible ou du héros :
