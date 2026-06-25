@@ -185,6 +185,8 @@ export function creerCombat(ennemisDefs, opts = {}) {
     pierre: armureDepart, // Pierre de départ des armures équipées
     force: 0,       // « Force » temporaire : +N à CHAQUE coup, diminue de 1 par tour du héros
     forcePerm: stats.forcePerm ?? 0, // Force permanente (déclarée par les items) : +N tout le combat
+    pierreParTour: stats.pierreParTour ?? 0, // Pierre permanente (déclarée par les items) : +N Pierre au début de CHAQUE tour du héros
+    dernierGainPierrePerm: 0, // pour l'UI : combien de Pierre le passif vient d'ajouter ce tour
     regen: 0,       // « Régénération » : PV rendus au héros au début de chacun de ses tours
     poisonHeros: 0,
     feuHeros: 0,
@@ -1214,6 +1216,11 @@ export function commencerTourHeros(combat) {
   }
   if (combat.hate   > 0) combat.hate   -= 1; // la Hâte temporaire s'écoule (1 tour du héros)
   if (combat.celeriteParTour > 0) combat.hatePerm += combat.celeriteParTour; // Long run : +N Hâte PERMANENTE par tour (s'accumule, ne s'écoule pas)
+  // Pierre permanente par tour (armures lourdes, Siege Maul) : passif qui ajoute
+  // de la Pierre au début de chaque tour, tant que l'item est équipé. Ne s'écoule
+  // pas tout seul (la Pierre reste jusqu'à être consommée par des dégâts).
+  combat.dernierGainPierrePerm = combat.pierreParTour > 0 ? combat.pierreParTour : 0;
+  if (combat.pierreParTour > 0) combat.pierre += combat.pierreParTour;
   if (combat.force  > 0) combat.force  -= 1; // la Force temporaire s'écoule (1 tour du héros)
   // Glace brisée (héros) : à GEL_EXPLOSION stacks, il saute son tour, perd
   // GEL_EXPLOSION stacks et subit DEGATS_GEL_EXPLOSION dégâts directs. (Aucun

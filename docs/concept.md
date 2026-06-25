@@ -425,6 +425,16 @@ combat (avec tooltip).
 - **Défense « Pierre » — CONFIRMÉ et implémenté** : la Pierre **persiste entre
   les tours** (≠ Blocage qui disparaît chaque tour). Les nains sont coriaces →
   le jeu défensif/tank devient une vraie stratégie.
+- **Pierre permanente par tour — passif d'armure lourde (implémenté)** : certaines
+  pièces très défensives **régénèrent de la Pierre au début de chaque tour**, tant
+  qu'elles sont équipées. Ce n'est **pas** une carte à jouer : c'est un **passif
+  gratuit et permanent**, exactement comme la **Force permanente** (`💪`). Affiché
+  par une **icône d'armure DORÉE `🛡 +N`** en haut à gauche de l'écran (à côté du
+  `💪`), plus un **flottant doré** sur le héros au début de chaque tour. Items
+  concernés : **Siege Maul** (+2), **Blood Plate** (+4), **Forgemaster's Mail**
+  (+5), **Crusader Plate** (+6), **Onyx Guard Plate** (+10). Renforce le jeu
+  **tank** : l'armure se reconstitue d'elle-même. Technique : champ `pierreParTour`
+  sur l'item (data/items.js), appliqué au début du tour du héros (systems/combat.js).
 - **Trempe (« Quench ») — passerelle Chaleur → Pierre** :
   carte **gratuite** qui **vide toute la Chaleur** et la **fige en Pierre (×10 par
   point)**, puis la forge **refroidit (chaleur → 0)**. Récompense de jouer en

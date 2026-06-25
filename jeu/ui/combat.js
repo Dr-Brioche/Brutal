@@ -83,6 +83,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // + le combo d'arme actif (ex. Twin Daggers en double, Basilisk Fang + dague off-hand).
   const forcePerm = itemsEquipes.reduce((s, d) => s + (d.forcePerm ?? 0), 0)
     + (comboArmeActif(inventaire.slots)?.forcePerm ?? 0);
+  // Pierre permanente par tour : passif des armures lourdes (Blood/Crusader/Mail/Onyx)
+  // et du Siege Maul. +N Pierre au début de CHAQUE tour, tant que l'item est équipé.
+  const pierreParTour = itemsEquipes.reduce((s, d) => s + (d.pierreParTour ?? 0), 0);
   // Agilité (vitesse d'attaque ATB) donnée par les items (surtout les bottes) :
   // s'ajoute à l'agilité des talents (base 10).
   const agiliteItems = itemsEquipes.reduce((s, d) => s + (d.agilite ?? 0), 0);
@@ -104,6 +107,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       armureDepart,
       celeritePct,
       forcePerm: forcePerm + (toutesBagues ? 4 : 0),
+      pierreParTour,
       pioche:   (bt.pioche   ?? 0) + (toutesBagues ? 1 : 0),
       infinityGauntlet: toutesBagues,
     },
@@ -314,6 +318,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       el.className = "combat-perm-buff";
       el.textContent = `💪 +${combat.forcePerm}`;
       el.dataset.tooltip = `Permanent Force: every hit deals +${combat.forcePerm} bonus damage for the whole combat.`;
+      elPermBuff.append(el);
+    }
+    if (combat.pierreParTour > 0) {
+      const el = document.createElement("div");
+      el.className = "combat-perm-buff combat-perm-buff--armure";
+      el.textContent = `🛡 +${combat.pierreParTour}`;
+      el.dataset.tooltip = `Permanent armor: gain ${combat.pierreParTour} Stone at the start of every turn for the whole combat.`;
       elPermBuff.append(el);
     }
     if (combat.infinityGauntlet) {
@@ -875,6 +886,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (combat.dernierPoisonHeros > 0) { secousseHeros = 0.3; ajouterFlottant(`☠${combat.dernierPoisonHeros}`, heroEcran.cx, heroEcran.sommet - 32, "#7ec850"); }
     if (combat.dernierFeuHeros > 0) { secousseHeros = 0.3; ajouterFlottant(`🔥${combat.dernierFeuHeros}`, heroEcran.cx, heroEcran.sommet - 48, "#ff8a2c"); }
     if (combat.dernierSoin > 0) ajouterFlottant(`❤+${combat.dernierSoin}`, heroEcran.cx, heroEcran.sommet - 16, "#7edf82"); // régénération
+    if (combat.dernierGainPierrePerm > 0) ajouterFlottant(`🛡+${combat.dernierGainPierrePerm}`, heroEcran.cx, heroEcran.sommet - 64, "#ffd24a"); // pierre permanente par tour (armures lourdes)
   }
 
   // Glace brisée sur le HÉROS : il a atteint 5 stacks de Gel → dégâts + tour sauté.

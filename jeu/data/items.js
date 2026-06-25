@@ -115,6 +115,7 @@ export const ITEMS = {
   "marteau-de-siege": {
     id: "marteau-de-siege", nom: "Siege Maul", categorie: "arme", rarete: "rare", revueArmes2H: true,
     taille: { l: 1, h: 3 }, icone: "#787870", degats: 9, mains: 2,
+    pierreParTour: 2, // passif : +2 Pierre au début de chaque tour tant qu'elle est équipée
     cartes: ["rempart", "rempart", "frappe-sismique", "frappe-sismique", "frappe-de-roche", "frappe-de-roche", "tremblement"],
   },
   // Great Scythe (Epic) : saignement de masse + exécution + récolte d'âmes (8 cartes).
@@ -155,6 +156,7 @@ export const ITEMS = {
     taille: { l: 2, h: 2 }, icone: "#3b4250",
     planche: "images/heros/nain-onyx.png",
     armureDepart: 36,
+    pierreParTour: 10, // passif : +10 Pierre au début de chaque tour
     cartes: ["onyx-armor", "onyx-armor", "onyx-armor", "embrasement-dragon", "souffle-onyx", "souffle-onyx", "tout-en-feu"],
   },
   // Maille de forge : armure tank. 3× Mail Armor (Pierre/ennemi) + 1× Quench
@@ -164,6 +166,7 @@ export const ITEMS = {
     taille: { l: 2, h: 2 }, icone: "#7a4a2a",
     planche: "images/heros/nain-forge.png",
     armureDepart: 22,
+    pierreParTour: 5, // passif : +5 Pierre au début de chaque tour
     cartes: ["mail-armor", "mail-armor", "mail-armor", "trempe", "armure-lourde", "armure-lourde"],
   },
 
@@ -285,6 +288,7 @@ export const ITEMS = {
     taille: { l: 2, h: 2 }, icone: "#e8d9a0",
     planche: "images/heros/nain.png",
     armureDepart: 30,
+    pierreParTour: 6, // passif : +6 Pierre au début de chaque tour
     cartes: ["armure-lourde", "armure-de-lumiere", "armure-de-lumiere", "armure-de-lumiere", "eclair-aveuglant", "lumiere-sacree"],
   },
   // Crusader Gauntlets (gants) : 2× Master's Hand + 1× Halo Burst + 2× Lay on Hands.
@@ -310,6 +314,7 @@ export const ITEMS = {
     taille: { l: 2, h: 2 }, icone: "#7a1320",
     planche: "images/heros/nain.png",
     armureDepart: 20,
+    pierreParTour: 4, // passif : +4 Pierre au début de chaque tour
     cartes: ["armure-lourde", "armure-lourde", "garde-sanguine", "garde-sanguine", "bain-de-sang", "boire-le-sang"],
   },
   // Blood Gauntlets (gants) : 2× Open Veins + 2× Contagion + 1× Blood Absorption.
