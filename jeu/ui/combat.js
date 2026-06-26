@@ -376,6 +376,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // Menu pause ouvert : le combat laisse FILER le clavier (sans preventDefault ni
     // stopPropagation) → les touches vont au menu (sliders, Échap pour fermer).
     if (enPause) return;
+    // Modale de confirmation ouverte (ex. « Fuir ? ») : on laisse FILER le clavier
+    // vers elle — sinon la navigation gauche/droite déplacerait les cartes derrière.
+    if (confirmationActive()) return;
     if (!["KeyA", "KeyD", "ArrowLeft", "ArrowRight", "Space", "Enter", "Escape", "KeyE", "KeyF"].includes(e.code)) return;
     e.preventDefault();
     e.stopPropagation();
@@ -910,7 +913,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     demanderConfirmation(
       {
         titre: "Flee the battle?",
-        message: "You'll leave with NO rewards. And there's a 1-in-5 chance the escape fails — you'd just lose your turn.",
+        message: "You'll leave with NO rewards. There's a chance you'll just lose your turn.",
         texteOui: "Flee",
         texteNon: "Stay",
         danger: true,

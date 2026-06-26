@@ -675,6 +675,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           if (ambiance) jouerMusique(ambiance); else arreterMusique();
           rencontres = creerRencontres();
           afficherMessage("🏃 You fled the battle.");
+          enPause = false; // IMPORTANT : le monde était figé (ligne ~655) → on le relance
         } else {
           // Fin de la baston : on quitte la musique de combat pour revenir à
           // l'ambiance d'exploration de la zone (silence si elle n'en a pas).
