@@ -602,24 +602,39 @@ function appliquerEffet(combat, effet, ennemi) {
     const nbVivants = combat.ennemis.filter(ennemiVivant).length;
     for (let i = 0; i < nbVivants; i++) ajouterCarteMain(combat, piocherUne(combat));
   } else if (effet.type === "refaire-main") {
-    // Défausse TOUTE la main restante et repioche autant de cartes (relance propre).
+    // Forge from Ashes : défausse TOUTE la main restante et repioche autant de cartes.
+    // On MÉMORISE l'échange (cartes jetées + cartes piochées) pour que l'UI anime la
+    // DÉFAUSSE puis la PIOCHE, dans cet ordre — sinon les deux arrivent en même temps.
+    const aDefausser = combat.main.slice();
     const n = combat.main.length;
     combat.defausse.push(...combat.main);
     combat.main = [];
-    for (let i = 0; i < n; i++) ajouterCarteMain(combat, piocherUne(combat));
+    const piochees = [];
+    for (let i = 0; i < n; i++) {
+      const c = piocherUne(combat);
+      ajouterCarteMain(combat, c);
+      if (c) piochees.push(c);
+    }
+    if (aDefausser.length || piochees.length) {
+      combat.dernierEchangeMain = { defaussees: aDefausser, piochees };
+    }
   } else if (effet.type === "defausser-piocher") {
     // Bare Hands : DÉFAUSSE `valeur` carte(s) au HASARD de la main, puis repioche
     // autant (échange sec). Si la main est vide, rien ne se passe — pas de pioche
     // gratuite : ça reste une carte « bouche-trou » de slot de gants nu.
-    // On MÉMORISE chaque échange (carte jetée + carte piochée) pour que l'UI
-    // l'ANIME : sinon le remplacement 1-pour-1 est instantané et illisible.
+    // On MÉMORISE l'échange pour que l'UI l'ANIME (défausse PUIS pioche) : sinon le
+    // remplacement 1-pour-1 est instantané et illisible.
     for (let i = 0; i < effet.valeur && combat.main.length > 0; i++) {
       const j = Math.floor(Math.random() * combat.main.length);
       const defaussee = combat.main.splice(j, 1)[0];
       combat.defausse.push(defaussee);
       const piochee = piocherUne(combat);
       ajouterCarteMain(combat, piochee);
-      if (piochee) (combat.dernierEchangeMain ??= []).push({ defaussee, piochee });
+      if (piochee) {
+        const ech = (combat.dernierEchangeMain ??= { defaussees: [], piochees: [] });
+        ech.defaussees.push(defaussee);
+        ech.piochees.push(piochee);
+      }
     }
   } else if (effet.type === "celerite-vers-energie") {
     // Échange `cout` tours de Hâte contre `gain` Chaleur. Rien si pas assez de Hâte.

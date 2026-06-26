@@ -784,18 +784,17 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         rafraichir(); // main sans les cartes Lucky Draw (elles arrivent une à une)
         animerPiocheFiltre(resultats, null, (c) => { combat.main.push(c); rafraichir(); });
       } else if (combat.dernierEchangeMain) {
-        // Bare Hands : échange(s) 1-pour-1. On retire les cartes piochées de la main
-        // (animerPioche les y remettra), on montre d'abord la/les carte(s) JETÉE(s)
-        // partir, PUIS la/les nouvelle(s) arriver — pour que l'échange soit lisible.
-        const echanges = combat.dernierEchangeMain;
+        // Défausse + pioche d'une même carte (Bare Hands, Forge from Ashes…). On
+        // retire les cartes piochées de la main, on montre d'abord la/les carte(s)
+        // JETÉE(s) partir, PUIS la/les nouvelle(s) arriver — défausse AVANT pioche.
+        const { defaussees, piochees } = combat.dernierEchangeMain;
         combat.dernierEchangeMain = null;
-        const piochees = echanges.map((e) => e.piochee);
         for (const c of piochees) {
           const k = combat.main.indexOf(c);
           if (k >= 0) combat.main.splice(k, 1);
         }
         rafraichir(); // la main n'affiche pas encore les cartes piochées
-        animerDefausse(echanges.map((e) => e.defaussee), () =>
+        animerDefausse(defaussees, () =>
           animerPioche(piochees, null, (c) => combat.main.push(c))
         );
       } else {
