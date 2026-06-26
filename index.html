@@ -720,8 +720,8 @@
 
     .combat-fin {
       position: absolute;
-      right: 4cqw; bottom: 16.5cqh;
-      width: 35cqh; padding: 1.4cqh 0;
+      right: calc(4cqw + 12cqh); bottom: 16.5cqh;
+      width: 23cqh; padding: 1.4cqh 0;
       font-weight: 700;
       letter-spacing: 0.06em;
       font-size: 1.8cqh;
@@ -733,6 +733,28 @@
       pointer-events: auto;
     }
     .combat-fin:disabled { opacity: 0.4; cursor: default; }
+    /* Petit bouton FUITE : occupe le tiers droit de l'ancien End Turn. Gris (action
+       neutre / repli), distinct de l'orange « jouer ». Accessible souris ET clavier. */
+    .combat-fuite {
+      position: absolute;
+      right: 4cqw; bottom: 16.5cqh;
+      width: 11cqh; padding: 1.4cqh 0;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      font-size: 1.5cqh;
+      color: #fff;
+      background: linear-gradient(135deg, #6b7280, #374151);
+      border: none;
+      border-radius: 1cqh;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .combat-fuite:disabled { opacity: 0.4; cursor: default; }
+    .combat-fuite.sel {
+      outline: 3px solid #ffcf57;
+      outline-offset: 2px;
+      box-shadow: 0 0 18px rgba(255, 180, 60, 0.55);
+    }
     /* Cadres pioche / défausse : rectangle sombre, même style que la jauge.
        Le visuel (dos de carte) sera ajouté plus tard ; le chiffre est par-dessus. */
     .combat-pile {
@@ -1667,6 +1689,7 @@
       <!-- Overlay d'animation de pioche : carte(s) centrées 0,5 s chacune -->
       <div id="combat-pioche-anim" hidden></div>
       <button class="combat-fin" id="combat-fin">End Turn</button>
+      <button class="combat-fuite" id="combat-fuite" title="Flee the battle (no rewards)">Flee</button>
     </div>
 
     <div class="combat-resultat" id="combat-resultat" hidden>

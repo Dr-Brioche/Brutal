@@ -15,7 +15,7 @@ import {
   creerCombat, jouerCarte, degatsSurchauffe, necessiteCiblage,
   ennemiVivant, agirEnnemi, commencerTourHeros, finirTourHeros, avancerInitiative,
   simulerFile, ratioInitiativeHeros, ratioInitiativeEnnemi, cibleSoinVerrou,
-  appliquerResultatAleatoire,
+  appliquerResultatAleatoire, fuirCombat,
 } from "../systems/combat.js";
 import { cartesEquipees, slotsOccupes } from "../systems/inventaire.js";
 import { setsActifs, itemDef, comboArmeActif } from "../data/items.js";
@@ -24,6 +24,7 @@ import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 import { garnirCarte } from "./carte.js";
 import { alerteVie } from "./effets.js";
+import { demanderConfirmation, confirmationActive } from "./confirmation.js";
 import {
   jouerSonCoup, jouerSonCoupArmure, jouerSonSortilege, jouerSonPierre, jouerSonPioche,
   jouerSonNegatif,
@@ -155,6 +156,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const conteneurMain = document.getElementById("combat-main");
   const overlayPioche = document.getElementById("combat-pioche-anim");
   const boutonFin = document.getElementById("combat-fin");
+  const boutonFuite = document.getElementById("combat-fuite");
   const panneauResultat = document.getElementById("combat-resultat");
   const texteResultat = document.getElementById("combat-resultat-texte");
   const elPermBuff = document.getElementById("combat-permanents");
@@ -283,7 +285,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   let premiereMainCombat = true; // 1re main du combat : petite pause avant la pioche (ouverture moins abrupte)
 
   function elementsNavigables() {
-    return [...conteneurMain.children, boutonFin];
+    return [...conteneurMain.children, boutonFin, boutonFuite];
   }
   function majSelection() {
     const els = elementsNavigables();
@@ -303,6 +305,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     });
     disposerEventail();
     boutonFin.disabled = combat.fini || !combat.tourJoueur;
+    boutonFuite.disabled = combat.fini || !combat.tourJoueur;
     elPiocheNb.textContent = combat.pioche.length;
     elDefausseNb.textContent = combat.defausse.length;
     majSelection();
@@ -373,7 +376,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // Menu pause ouvert : le combat laisse FILER le clavier (sans preventDefault ni
     // stopPropagation) → les touches vont au menu (sliders, Échap pour fermer).
     if (enPause) return;
-    if (!["KeyA", "KeyD", "ArrowLeft", "ArrowRight", "Space", "Enter", "Escape", "KeyE"].includes(e.code)) return;
+    if (!["KeyA", "KeyD", "ArrowLeft", "ArrowRight", "Space", "Enter", "Escape", "KeyE", "KeyF"].includes(e.code)) return;
     e.preventDefault();
     e.stopPropagation();
     if (!panneauResultat.hidden) {                 // écran de fin : Espace = Continue
@@ -410,9 +413,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     } else if (e.code === "Space" || e.code === "Enter") {
       if (selection < 0) return;
       if (selection < combat.main.length) tenterJouer(selection);
-      else finDeTour();
+      else if (selection === combat.main.length) finDeTour();
+      else tenterFuite();
     } else if (e.code === "KeyE") {
       finDeTour(); // raccourci direct : fin de tour sans naviguer jusqu'au bouton
+    } else if (e.code === "KeyF") {
+      tenterFuite(); // raccourci direct : tenter de fuir
     }
   }
 
@@ -895,6 +901,38 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     rafraichir();           // main vide, boutons grisés
   }
 
+  // Tenter de FUIR. Confirmation d'abord (action sans retour : aucune récompense).
+  // À la validation : 1 chance sur 5 d'ÉCHOUER → message « raté » + on passe juste
+  // le tour (comme End Turn). Sinon la fuite réussit → fin du combat sans butin.
+  function tenterFuite() {
+    if (phaseCiblage || combat.fini || !combat.tourJoueur || enAnimPioche) return;
+    if (confirmationActive()) return;
+    demanderConfirmation(
+      {
+        titre: "Flee the battle?",
+        message: "You'll leave with NO rewards. And there's a 1-in-5 chance the escape fails — you'd just lose your turn.",
+        texteOui: "Flee",
+        texteNon: "Stay",
+        danger: true,
+      },
+      () => {
+        if (combat.fini || !combat.tourJoueur) return; // l'état a pu changer entre-temps
+        if (Math.random() < 0.2) {
+          // Échec (20 %) : on signale et on passe le tour comme un End Turn normal.
+          ajouterFlottant("✗ Escape failed!", heroEcran.cx, heroEcran.sommet - 24, "#ff6a58");
+          jouerSonNegatif();
+          finDeTour();
+        } else {
+          // Réussite (80 %) : fin du combat sans vainqueur. Côté principal.js,
+          // surFin("fuite") restaure l'exploration SANS butin et rafraîchit la grâce.
+          fuirCombat(combat);
+          jouerSonPioche();
+          verifierFin(); // amorce le délai → la boucle ferme le combat (comme une victoire)
+        }
+      },
+    );
+  }
+
   // Un pas de la timeline : désigne le prochain acteur et le fait agir.
   function traiterProchain() {
     if (combat.fini) { verifierFin(); return; }
@@ -1025,6 +1063,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     overlay.hidden = true;
     panneauResultat.hidden = true;
     boutonFin.removeEventListener("click", finDeTour);
+    boutonFuite.removeEventListener("click", tenterFuite);
     boutonContinuer.removeEventListener("click", fermer);
     window.removeEventListener("keydown", surTouche, true);
     window.removeEventListener("pointermove", surDragMove); // au cas où un drag traîne
@@ -1035,7 +1074,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   boutonFin.addEventListener("click", finDeTour);
   boutonFin.addEventListener("pointerenter", () => {
-    if (!drag) { selection = elementsNavigables().length - 1; majSelection(); }
+    if (!drag) { selection = elementsNavigables().length - 2; majSelection(); } // avant-dernier = End Turn
+  });
+  boutonFuite.addEventListener("click", tenterFuite);
+  boutonFuite.addEventListener("pointerenter", () => {
+    if (!drag) { selection = elementsNavigables().length - 1; majSelection(); } // dernier = Flee
   });
   boutonContinuer.addEventListener("click", fermer);
   window.addEventListener("keydown", surTouche, true);
@@ -1099,7 +1142,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         termine = true;
         // Victoire : on enchaîne direct sur la fenêtre de butin (côté principal,
         // via surFin). Défaite : on montre l'écran « Defeat ».
-        if (combat.resultat === "victoire") fermer();
+        if (combat.resultat === "victoire" || combat.resultat === "fuite") fermer();
         else terminer();
       }
     }

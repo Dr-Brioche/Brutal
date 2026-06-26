@@ -763,6 +763,13 @@ function verifierFin(combat) {
   }
 }
 
+// Fuite réussie : on quitte le combat sans vainqueur — donc SANS récompense
+// (côté exploration, le résultat "fuite" ne distribue aucun butin ni XP).
+export function fuirCombat(combat) {
+  combat.fini = true;
+  combat.resultat = "fuite";
+}
+
 // Dégâts de surchauffe pour la chaleur actuelle : (chaleur - seuil)² au-delà.
 export function degatsSurchauffe(combat) {
   const surplus = combat.chaleur - combat.chaleurSeuil;

@@ -667,6 +667,14 @@ export async function demarrerJeu(donneesInitiales = null) {
           heros.pv = 1;
           afficherMessage("💀 You collapse... and wake up back in Brütàl.");
           allerVersZone("city", CITY.depart); // retour sûr (gère le fondu + la musique)
+        } else if (resultat === "fuite") {
+          // Fuite réussie : retour à l'exploration, AUCUNE récompense (ni or, ni XP,
+          // ni butin). On restaure l'ambiance de la zone et on rafraîchit la période
+          // de grâce des rencontres pour ne pas être re-happé dans un combat aussitôt.
+          const ambiance = ZONES[zoneActuelle]?.musique ?? null;
+          if (ambiance) jouerMusique(ambiance); else arreterMusique();
+          rencontres = creerRencontres();
+          afficherMessage("🏃 You fled the battle.");
         } else {
           // Fin de la baston : on quitte la musique de combat pour revenir à
           // l'ambiance d'exploration de la zone (silence si elle n'en a pas).

@@ -521,6 +521,20 @@ joueur qui progresse a **plus d'énergie à dépenser**, il lui faut donc des ca
   et le **deck de suppléance**. La montée en difficulté n'est pas « plus de petits
   coups » mais « **des coups plus gros à placer au bon moment** ».
 
+### Fuir un combat (option de repli, 26/06/2026)
+
+Sous le bouton **End Turn**, un petit bouton **Flee** (son tiers droit) permet de
+**quitter un combat**. Clic (ou touche **F**) → **confirmation** (action sans
+retour). Si on valide :
+- **1 chance sur 5** que la fuite **échoue** : un message le signale et on **passe
+  simplement son tour** (les ennemis jouent).
+- sinon la fuite **réussit** : on **sort du combat SANS récompense** (ni or, ni XP,
+  ni butin). Une **période de grâce** évite de retomber aussitôt dans un combat
+  (comme en passant une porte).
+
+Intérêt : une **soupape** face à un groupe trop dur, au prix du butin — un choix
+**risqué** (l'échec coûte un tour) plutôt qu'une sortie garantie.
+
 ### Cartes « combo » (récompensent une mise en place)
 
 Plusieurs cartes ont un effet RENFORCÉ selon l'état de la cible ou du héros :
