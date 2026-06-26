@@ -633,7 +633,7 @@
       cursor: pointer;
     }
     #combat-pioche-anim .combat-carte {
-      --carte-l: 27cqh;
+      --carte-l: 40.5cqh; /* cartes présentées (pioche/défausse) : 1,5× la taille de base (27cqh) */
       transform: none;
       margin: 0;
       cursor: default;
@@ -835,6 +835,13 @@
     .combat-carte.sel {
       transform: translateY(calc(var(--dy, 0px) - var(--carte-l, 150px) * 0.08)) rotate(0deg) scale(1.07);
       z-index: 10;
+    }
+    /* En MAIN de combat : la carte FOCALISÉE (survol souris OU sélection clavier)
+       grandit à 1,2× — au lieu de 1,07× — pour mieux la lire avant de la jouer.
+       Scopé à .combat-main pour ne pas toucher aux autres écrans (deck, maîtrise…). */
+    .combat-main .combat-carte:hover:not(:disabled),
+    .combat-main .combat-carte.sel {
+      transform: translateY(calc(var(--dy, 0px) - var(--carte-l, 150px) * 0.08)) rotate(0deg) scale(1.2);
     }
     /* Halo régulier = bord noir constant + deux auréoles dorées, toutes en box-shadow
        sur le cadre PNG (forme arrondie lisse). */
