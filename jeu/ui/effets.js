@@ -29,12 +29,16 @@ export function flashCombat() {
     ctxPetit.drawImage(snap, 0, 0, SW, SH);
     const pixelsOriginaux = ctxPetit.getImageData(0, 0, SW, SH).data;
 
-    // Canvas overlay plein écran (mêmes pixels internes que le jeu → CSS l'agrandit)
+    // Canvas overlay calé EXACTEMENT sur le canvas du jeu (cadre 16:9 letterboxé et
+    // centré), pas sur la fenêtre entière : sinon le tourbillon déborderait sur les
+    // bandes noires et se déformerait sur un écran qui n'est pas pile 16:9.
     const ov = document.createElement("canvas");
-    ov.width = W; ov.height = H;
+    ov.width = W; ov.height = H;            // mêmes pixels internes que le jeu (16:9)
+    const r = jeu.getBoundingClientRect();  // position/taille à l'écran du cadre 16:9
     Object.assign(ov.style, {
-      position: "fixed", inset: "0",
-      width: "100%", height: "100%",
+      position: "fixed",
+      left: r.left + "px", top: r.top + "px",
+      width: r.width + "px", height: r.height + "px",
       zIndex: "18", pointerEvents: "none",
       imageRendering: "pixelated",
     });
