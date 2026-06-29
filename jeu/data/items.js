@@ -39,6 +39,7 @@ export const SLOT_PAR_CATEGORIE = {
   collier: "collier",
   bague: "bague",   // ira sur la 1re bague libre (bague1..bague5)
   sac: "sac",
+  outil: "outil",   // pioche & co (slot dédié, sert au minage en mine)
 };
 
 export const ITEMS = {
@@ -63,6 +64,13 @@ export const ITEMS = {
     taille: { l: 1, h: 2 }, icone: "#7d7a72",
     planche: "images/armes/pioche.png", degats: 3, mains: 1,
     cartes: ["coup-de-pioche", "coup-de-pioche", "frappe", "frappe", "frappe"],
+  },
+  // ---- Outils (slot "outil") : pas de cartes, ils servent HORS combat ----
+  // Pioche de base : permet de MINER les veines des mines (cf. docs/mines.md).
+  "pioche-basique": {
+    id: "pioche-basique", nom: "Basic Pickaxe", categorie: "outil", rarete: "commun",
+    taille: { l: 1, h: 2 }, icone: "#9aa0a6",
+    minage: 1, // rendement de minage (1 minerai/coup ; de meilleurs outils plus tard)
   },
   // Croc de basilic : arme à poison (moteur de stacks). 6× Venom Stab + 2× Poison
   // Dance (AOE) + 1× Weakness Exploitation + 1× Explosion Of Poison (détonateur répétable).

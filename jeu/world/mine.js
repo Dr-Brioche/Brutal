@@ -12,6 +12,8 @@
 //
 // Tuiles : `#` roche (mur), `,` sol de galerie (active les rencontres), `P` sortie.
 
+import { MATERIAUX_BASE } from "../data/materiaux.js";
+
 // Profil par défaut d'une mine. L'appelant complète notamment `retour` (où ramène
 // la sortie) et plus tard la rareté / les tables de la zone de profondeur.
 const PROFIL_DEFAUT = {
@@ -21,6 +23,8 @@ const PROFIL_DEFAUT = {
   nbSalles: 8,
   tailleSalleMin: 4,
   tailleSalleMax: 9,
+  materiaux: MATERIAUX_BASE, // minerais possibles des veines (tirés au hasard)
+  nbVeines: [3, 6],          // nombre de veines posées dans les salles d'exploration
   monstres: ["gobelin", "gobelin-vif", "gobelin-chaman"],
   // Taux de rencontre PROPRE à la mine (×, relatif au taux normal). Bas pour
   // laisser explorer/miner ; montera avec la profondeur. Réglable par profil.
@@ -134,6 +138,25 @@ function finaliser(g, salles, cfg) {
   // Départ : une case sol adjacente à la porte, dans la salle d'entrée.
   let dCol = px, dLig = py + 1;
   if (g[dLig]?.[dCol] !== ",") { dCol = px + 1; dLig = py; }
+
+  // Veines : sur des cases sol des salles d'EXPLORATION (pas la salle d'entrée),
+  // pour donner un but à l'exploration. Chacune : type au hasard + 2..5 coups.
+  const candidates = [];
+  for (let i = 1; i < salles.length; i++) {
+    const s = salles[i];
+    for (let y = s.y; y < s.y + s.h; y++)
+      for (let x = s.x; x < s.x + s.w; x++)
+        if (g[y][x] === ",") candidates.push([x, y]);
+  }
+  melanger(candidates);
+  const nb = entier(cfg.nbVeines[0], cfg.nbVeines[1]);
+  const mats = cfg.materiaux;
+  const veines = [];
+  for (let i = 0; i < nb && i < candidates.length; i++) {
+    const [x, y] = candidates[i];
+    veines.push({ col: x, lig: y, type: mats[entier(0, mats.length - 1)], coups: entier(2, 5) });
+  }
+
   return {
     nom: cfg.nom,
     estMine: true, // marqueur : on est dans une mine (sauvegarde interdite, etc.)
@@ -144,5 +167,14 @@ function finaliser(g, salles, cfg) {
     depart: { colonne: dCol, ligne: dLig },
     portails: [{ colonne: px, ligne: py, vers: cfg.retour.vers, entree: cfg.retour.entree }],
     monstres: cfg.monstres,
+    veines,
   };
+}
+
+// Mélange un tableau en place (Fisher-Yates).
+function melanger(t) {
+  for (let i = t.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [t[i], t[j]] = [t[j], t[i]];
+  }
 }

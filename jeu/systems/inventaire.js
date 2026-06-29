@@ -14,13 +14,22 @@ const RANGS_BASE = 4;    // hauteur de base (petite : s'agrandit avec un sac)
 // Tous les slots d'équipement, dans l'ordre d'affichage.
 export const SLOTS = [
   "arme1", "arme2", "armure", "gant", "botte", "collier",
-  "bague1", "bague2", "bague3", "bague4", "bague5", "sac", "sac2",
+  "bague1", "bague2", "bague3", "bague4", "bague5", "sac", "sac2", "outil",
 ];
 
 export function creerInventaire() {
   const slots = {};
   for (const s of SLOTS) slots[s] = null;
-  return { cols: COLS, rangs: RANGS_BASE, objets: [], slots, or: 0 };
+  // `materiaux` : sac à ressources (minerais) — { id: quantité }. Cf. data/materiaux.js.
+  return { cols: COLS, rangs: RANGS_BASE, objets: [], slots, or: 0, materiaux: {} };
+}
+
+// Ajoute `n` unités d'un matériau au sac à ressources. (Phase 2 : accumulation
+// libre pour tester ; la capacité / les piles de `pileMax` viendront ensuite.)
+export function ajouterMateriau(inv, id, n = 1) {
+  if (!inv.materiaux) inv.materiaux = {};
+  inv.materiaux[id] = (inv.materiaux[id] ?? 0) + n;
+  return inv.materiaux[id];
 }
 
 // Hauteur réelle de la grille (le sac principal ajoute ses rangées).

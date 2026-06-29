@@ -113,9 +113,23 @@ en phase décor.
   entrer dans `M` (souterrains est) → mine générée → ressortir par `P` → re-entrer
   = nouvelle mine. Prochaine étape : **Phase 2** (outils + pioche, sac à ressources
   stack 10, veines minables avec animation + 2–5 coups).
-- [ ] **Phase 2** — outils, matériaux, veines minables
-- [ ] **Phase 3** — rareté & profondeur
-- [ ] **Phase 4** — décor & variété
+- [x] **Phase 2** — outils, matériaux, veines minables ✅ (cœur)
+  - [x] Sac à ressources (`inv.materiaux`) + `ajouterMateriau` ; 3 minerais de base
+        (`data/materiaux.js` : Iron / Copper / Coal)
+  - [x] Slot **« outil »** dans l'inventaire + **pioche de base** (équipée au départ)
+  - [x] Veines posées par le générateur (3–6/mine, type au hasard, 2–5 coups)
+  - [x] **Minage** : approcher une veine (liseré doré) + **Espace** → coup de pioche
+        (≈0,55 s, héros FIGÉ) → +1 minerai ; le filon s'épuise après 2–5 coups et disparaît
+  - [ ] *Reste à finir (2bis)* : capacité / piles de 10 du sac, et **affichage** du
+        sac à ressources dans l'écran d'inventaire (pour l'instant accumulation libre
+        + message « ⛏ +1 Iron (×N) »)
+- [ ] **Phase 3** — rareté & profondeur (table de rareté par zone, descendre plus bas)
+- [ ] **Phase 4** — décor & variété (rendu galerie, profils de salles, décor)
+
+  **Reprise (Phase 2)** : codée + boot/runtime vérifiés en lançant une partie.
+  À TESTER EN JEU : entrer en mine → s'approcher d'une veine (liseré doré) → Espace
+  pour miner → « ⛏ +1 Iron (×N) », épuisement après 2–5 coups. Le slot **Tool**
+  apparaît dans l'inventaire (touche B) avec la pioche.
 
 ## 6. Risques connus (à surveiller)
 

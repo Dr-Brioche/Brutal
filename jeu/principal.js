@@ -12,7 +12,7 @@ import { tuileDef, estPorte } from "./data/tuiles.js";
 import { ITEMS, prixVente, RARETES, rareteAuMoins } from "./data/items.js";
 import {
   creerInventaire, appliquerEquipement, armeEquipee, armureEquipee,
-  ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
+  ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire, ajouterMateriau,
 } from "./systems/inventaire.js";
 import {
   creerMaitrise, etatMaitrise, chargerMaitrise,
@@ -33,9 +33,10 @@ import { demarrerCombat } from "./ui/combat.js";
 import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
 import { fondCombat, prechargerFonds } from "./data/fonds.js";
 import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
+import { materiauDef } from "./data/materiaux.js";
 import { FANATIQUE, MARCHAND } from "./data/pnj.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
-import { jouerMusique, jouerMusiqueFichier, arreterMusique } from "./core/sons.js";
+import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
 import { getPreference } from "./systems/preferences.js";
 
 const canvas = document.getElementById("jeu");
@@ -84,6 +85,9 @@ export async function demarrerJeu(donneesInitiales = null) {
   // changent à chaque passage de porte, d'où le `let`.
   let zoneActuelle = "city";   // id de zone pour les ASSETS (fonds + musique de combat)
   let zoneCourante = CITY;     // l'OBJET zone courant : statique (ZONES) OU mine générée
+  let veines = [];             // veines minables de la mine courante (vide hors mine)
+  let veineProche = null;      // veine à portée de minage (surbrillée en doré)
+  let minage = null;           // minage en cours { veine, t, duree } : fige le héros
   let carte = creerCarte(CITY);
   let rencontres = creerRencontres();
   prechargerFonds(zoneActuelle);                // fonds de combat prêts en cache
@@ -97,6 +101,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // La bulle d'info lit l'équipement courant pour colorer les pièces d'un set.
   definirSourceEquipement(() => inventaire.slots);
   inventaire.slots.armure = "tenue-de-voyageur"; // habits de base (corps)
+  inventaire.slots.outil = "pioche-basique";     // pioche de base : permet de miner
   // On démarre VRAIMENT sans arme (sac vide) : il faut looter/forger sa 1re arme.
   // En attendant, le deck de base (Tap + Brace) sert de filet (cf. cartesDeBase).
   appliquerEquipement(heros, inventaire, planches);
@@ -471,6 +476,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   });
 
   appliquerEtat(donneesInitiales); // reprise choisie au démarrage (sinon null = neuf)
+  if (!inventaire.slots.outil) inventaire.slots.outil = "pioche-basique"; // garantit une pioche (test)
 
   // L'inventaire (touche B) : équiper/déséquiper réapplique le skin + le HUD.
   const inventaireUI = installerInventaire({
@@ -608,6 +614,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Espace : parler au PNJ tout proche
   window.addEventListener("keydown", (e) => {
     if (e.code !== "Space" || e.repeat || enPause || combatEnCours || dialogueActif()) return;
+    // Miner une veine à portée (en mine, avec une pioche équipée).
+    if (veineProche && !minage && aPioche()) { e.preventDefault(); commencerMinage(veineProche); return; }
     if (zoneActuelle !== "city") return;
     if (fanatique.proche) { e.preventDefault(); parlerAuFanatique(); }
     else if (marchand.proche) { e.preventDefault(); parlerAuMarchand(); }
@@ -654,6 +662,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     prechargerMusiquesCombat(assetZone); // idem pour les musiques de combat
     poserHeros(heros, entree.colonne, entree.ligne);
     rencontres = creerRencontres();  // période de grâce fraîche dans la zone
+    veines = zone.veines ?? [];      // veines minables (mine) ; vide ailleurs
+    minage = null; veineProche = null;
     surPorte = true;                 // on arrive : ne pas re-déclencher une porte…
     surEntreeMine = true;            // … ni une entrée de mine si on atterrit dessus
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
@@ -683,6 +693,52 @@ export async function demarrerJeu(donneesInitiales = null) {
       retour: { vers: zoneActuelle, entree: { colonne: tuile.colonne, ligne: tuile.ligne } },
     });
     allerVersZone(mine, mine.depart);
+  }
+
+  // --- Minage des veines (en mine) -----------------------------------------
+  function aPioche() { return Boolean(inventaire.slots.outil); }
+  function veineLaPlusProche() {
+    const hx = heros.x + 32, hy = heros.y + 54;
+    let best = null, bestD = 42; // portée ≈ 1,3 tuile
+    for (const v of veines) {
+      const vx = v.col * TUILE + TUILE / 2, vy = v.lig * TUILE + TUILE / 2;
+      const d = Math.hypot(hx - vx, hy - vy);
+      if (d < bestD) { bestD = d; best = v; }
+    }
+    return best;
+  }
+  function commencerMinage(v) {
+    minage = { veine: v, t: 0, duree: 0.55 }; // ≈ 0,55 s figé par coup de pioche
+    jouerSonPierre();
+  }
+  function avancerMinage(dt) {
+    minage.t += dt;
+    if (minage.t < minage.duree) return; // encore en train de frapper
+    const v = minage.veine;
+    const total = ajouterMateriau(inventaire, v.type, 1);
+    const nom = materiauDef(v.type)?.nom ?? v.type;
+    v.coups--;
+    if (v.coups <= 0) {                      // filon épuisé → il disparaît
+      veines = veines.filter((x) => x !== v);
+      afficherMessage(`⛏ +1 ${nom} (×${total}) — vein depleted`);
+    } else {
+      afficherMessage(`⛏ +1 ${nom} (×${total})`);
+    }
+    minage = null;
+  }
+  function dessinerVeine(ctx, v) {
+    const x = v.col * TUILE, y = v.lig * TUILE;
+    const col = materiauDef(v.type)?.couleur ?? "#aaa";
+    ctx.fillStyle = "#241f1a"; // gangue (roche sombre)
+    ctx.fillRect(x + 5, y + 7, TUILE - 10, TUILE - 11);
+    ctx.fillStyle = col;       // pépites de minerai
+    ctx.fillRect(x + 9, y + 11, 5, 5);
+    ctx.fillRect(x + 18, y + 13, 6, 6);
+    ctx.fillRect(x + 13, y + 19, 4, 4);
+    if (v === veineProche) {   // à portée de minage → liseré doré
+      ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 2;
+      ctx.strokeRect(x + 4, y + 6, TUILE - 8, TUILE - 10);
+    }
   }
 
   // Les rencontres : sur les tuiles de souterrain, un monstre invisible surgit.
@@ -779,12 +835,14 @@ export async function demarrerJeu(donneesInitiales = null) {
       // Pendant un combat, c'est lui qui pilote tout (le monde est figé)
       if (combatEnCours) { combatEnCours.mettreAJour(dt); return; }
       if (enPause) return;          // figé : menu ouvert ou transition en cours
-      mettreAJourHeros(heros, clavier, dt, carte);
+      // Minage en cours : le héros est FIGÉ le temps du coup de pioche.
+      if (minage) avancerMinage(dt);
+      else mettreAJourHeros(heros, clavier, dt, carte);
       const tuile = tuileSousLesPieds(carte, heros);
       verifierPointsInteret(tuile);
       verifierPorte(tuile);
       verifierEntreeMine(tuile); // marcher sur `M` descend dans une mine générée
-      if (avancerRencontres(rencontres, tuile, heros.evasionRencontre || 0, zoneCourante.tauxRencontre ?? 1)) {
+      if (!minage && avancerRencontres(rencontres, tuile, heros.evasionRencontre || 0, zoneCourante.tauxRencontre ?? 1)) {
         // Musique lancée immédiatement — au tout premier instant où le jeu sait
         // qu'une rencontre a lieu, avant même le flash ou la composition du groupe.
         const mc = musiqueCombat(zoneActuelle);
@@ -799,6 +857,8 @@ export async function demarrerJeu(donneesInitiales = null) {
           Math.abs((heros.x + 32) - fontaine.cx) < 46 &&
           Math.abs((heros.y + 54) - fontaine.solY) < 46;
       }
+      // Veine minable la plus proche (en mine) → surbrillée en doré (dessinerVeine).
+      veineProche = (zoneCourante.estMine && !minage) ? veineLaPlusProche() : null;
       // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la fontaine
       invite.hidden = !(zoneActuelle === "city" &&
         (fanatique.proche || marchand.proche || fontaine.proche));
@@ -820,6 +880,14 @@ export async function demarrerJeu(donneesInitiales = null) {
           { pieds: fontaine.solY, dessiner: () => dessinerFontaine(ctx, fontaine) },
           { pieds: piedsPnj(fanatique), dessiner: () => dessinerPnj(ctx, fanatique) },
           { pieds: piedsPnj(marchand), dessiner: () => dessinerPnj(ctx, marchand) },
+          { pieds: heros.y + 54, dessiner: () => dessinerHeros(ctx, heros) },
+        ];
+        acteurs.sort((a, b) => a.pieds - b.pieds);
+        for (const a of acteurs) a.dessiner();
+      } else if (veines.length) {
+        // En mine : veines + héros, triés par profondeur (pieds) pour le chevauchement.
+        const acteurs = [
+          ...veines.map((v) => ({ pieds: v.lig * TUILE + TUILE, dessiner: () => dessinerVeine(ctx, v) })),
           { pieds: heros.y + 54, dessiner: () => dessinerHeros(ctx, heros) },
         ];
         acteurs.sort((a, b) => a.pieds - b.pieds);

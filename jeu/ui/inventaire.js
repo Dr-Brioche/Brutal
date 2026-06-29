@@ -29,12 +29,12 @@ import { afficherMessage, montrerToast } from "./effets.js";
 const CASE = 34;            // taille d'une case du sac (doit matcher le fond CSS)
 const ECHELLE_HERO = 2;     // 64×64 → 128 dans la fiche
 
-const COL_GAUCHE = ["armure", "collier", "gant", "botte", "sac", "sac2"];
+const COL_GAUCHE = ["armure", "collier", "gant", "botte", "outil", "sac", "sac2"];
 const COL_DROITE = ["bague1", "bague2", "bague3", "bague4", "bague5"];
 const SLOTS_ARME = ["arme1", "arme2"];
 const LABELS = {
   arme1: "Main", arme2: "Off", armure: "Body", gant: "Hands", botte: "Feet",
-  collier: "Neck", sac: "Bag", sac2: "Bag 2", bague1: "Ring", bague2: "Ring", bague3: "Ring",
+  collier: "Neck", sac: "Bag", sac2: "Bag 2", outil: "Tool", bague1: "Ring", bague2: "Ring", bague3: "Ring",
   bague4: "Ring", bague5: "Ring",
 };
 // Label dynamique pour arme2 selon le talent Ambidextrie
