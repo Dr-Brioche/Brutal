@@ -140,9 +140,11 @@ en phase décor.
         pas une garantie de présence. Caché en ville / en combat.
   - [x] **Niveau de mobs par zone/étage** : fourchette `niveauMobs` (Eastern = 1-3 ;
         en mine : 1→1-3, 2→2-5, 3→4-6, 4→6-7, 5→7-8, puis +1/étage). Gobelins = niv 1.
-  - [ ] *Plus tard* : **SCALING des stats** des mobs selon leur niveau (un gobelin niv 5
-        réellement plus dur) — pour l'instant le niveau est affiché mais ne change pas
-        encore les stats. + mobs rares / élites.
+  - [x] **Niveau lié au SKIN** (décidé) : chaque type de monstre a son niveau fixe
+        (gobelins = niveau 1) ; **PAS de scaling** des stats pour l'instant. La
+        fourchette affichée au HUD est l'indicateur de la zone/étage ; les vrais mobs
+        de niveau supérieur viendront avec de nouveaux skins.
+  - [ ] *Plus tard* : nouveaux skins de monstres (niveaux 2+), mobs rares / élites.
 
   **Reprise (Phase 3)** : codée + testée (distribution des minerais par profondeur,
   taux de passage par étage, boot/runtime). À TESTER EN JEU : descendre via `>`

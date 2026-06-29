@@ -18,6 +18,7 @@ export const ENNEMIS = [
   {
     id: "gobelin",
     nom: "Cave Goblin",
+    niveau: 1,        // niveau LIÉ AU SKIN (pas de scaling : stats fixes par type)
     pv: 24,
     attaque: 4,
     xp: 6,            // XP donnée au héros à sa mort
@@ -49,6 +50,7 @@ export const ENNEMIS = [
   // lent. Réutilise le sprite/portrait du gobelin.
   {
     id: "gobelin-vif",
+    niveau: 1,
     nom: "Goblin Skirmisher",
     pv: 16,
     attaque: 3,
@@ -82,6 +84,7 @@ export const ENNEMIS = [
   // Actions pondérées : soigner un allié blessé (prioritaire), célérité de groupe, ou attaque.
   {
     id: "gobelin-chaman",
+    niveau: 1,
     nom: "Goblin Shaman",
     pv: 14,
     attaque: 2,
