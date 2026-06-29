@@ -40,17 +40,21 @@ import { getPreference } from "./systems/preferences.js";
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
 
-// Le canvas remplit TOUTE la fenêtre (plus de marges noires). Sa résolution
-// interne = fenêtre / ZOOM : ZOOM = taille d'un pixel-jeu à l'écran. Plus ZOOM
-// est petit, plus on voit loin (mais plus les sprites sont petits). Bornée pour
-// garder une vue raisonnable sur très grand écran.
-const ZOOM = 2;
-const VUE_MAX = { l: 1344, h: 800 };
+// Résolution LOGIQUE fixe, en 16:9 (= ce qu'on voit déjà à 1080p aujourd'hui).
+// Tout le jeu se dessine dans ce rectangle, puis on l'AGRANDIT uniformément à
+// l'écran et on le CENTRE : sur un écran qui n'est pas pile 16:9, des bandes
+// noires apparaissent sur les côtés (le body est en flex + fond sombre). Avantage :
+// JAMAIS de déformation, et le décor / les ennemis (canvas) restent toujours
+// alignés sur le fond et le HUD, qui sont déjà calés sur ce même 16:9.
+const VUE = { l: 960, h: 540 };
 function ajusterEchelle() {
-  canvas.width = Math.min(VUE_MAX.l, Math.ceil(innerWidth / ZOOM));
-  canvas.height = Math.min(VUE_MAX.h, Math.ceil(innerHeight / ZOOM));
-  canvas.style.width = innerWidth + "px";
-  canvas.style.height = innerHeight + "px";
+  canvas.width = VUE.l;
+  canvas.height = VUE.h;
+  // Plus grand rectangle 16:9 qui tient dans la fenêtre (limité par la largeur OU
+  // la hauteur selon la forme de l'écran) ; le flex du body le centre tout seul.
+  const zoneL = Math.min(innerWidth, innerHeight * 16 / 9);
+  canvas.style.width = Math.round(zoneL) + "px";
+  canvas.style.height = Math.round(zoneL * 9 / 16) + "px";
   ctx.imageSmoothingEnabled = false; // redimensionner le canvas réinitialise le contexte
 }
 window.addEventListener("resize", ajusterEchelle);

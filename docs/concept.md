@@ -287,6 +287,15 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
   Brütàl, repaire des 3 gobelins). Sa bibliothèque démarre avec 1 fond provisoire ;
   on en ajoutera 2 autres pour la variété.
 
+> **Affichage 16:9 « letterbox » (décidé 29/06/2026)** : TOUT le jeu (exploration ET
+> combat) se dessine dans une scène **16:9 à résolution logique fixe (960×540)**, puis
+> agrandie **uniformément** et **centrée** à l'écran. Sur un écran qui n'est pas 16:9
+> (ultrawide 21:9, 16:10 façon Steam Deck…), des **bandes noires** apparaissent sur les
+> côtés (ou en haut/bas) — **jamais de déformation**, et le décor / les ennemis restent
+> toujours **alignés sur le fond et le HUD** (eux aussi 16:9). C'est le standard des
+> jeux pixel et ça couvre **tous** les écrans automatiquement → pas besoin de
+> « préréglages de résolution ». Réglé dans `ajusterEchelle` (`principal.js`).
+
 #### Musiques de combat : une bibliothèque par zone (décidé 17/06/2026)
 
 - **Même logique que les fonds**, côté son : chaque zone a une **bibliothèque de
