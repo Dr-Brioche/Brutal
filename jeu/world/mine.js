@@ -46,6 +46,13 @@ function entier(min, max) { return min + Math.floor(Math.random() * (max - min +
 const CHANCE_DESCENTE = [70, 50, 40, 30, 20, 10, 5, 3, 2, 1];
 export function chanceDescente(niveau) { return CHANCE_DESCENTE[niveau - 1] ?? 1; }
 
+// Fourchette de NIVEAU des monstres selon l'étage : 1→1-3, 2→2-5, 3→4-6, 4→6-7,
+// 5→7-8 ; au-delà de l'étage 5, +1 sur min ET max par étage. Réglable.
+const NIVEAU_MOBS = { 1: [1, 3], 2: [2, 5], 3: [4, 6], 4: [6, 7], 5: [7, 8] };
+export function niveauMobsEtage(niveau) {
+  return NIVEAU_MOBS[niveau] ?? [niveau + 2, niveau + 3];
+}
+
 // Génère une mine VALIDE (connexe). Plusieurs tentatives au cas où un tirage
 // échoue (trop peu de salles / non connexe) ; en dernier recours on force.
 export function genererMine(profil = {}) {
@@ -176,6 +183,7 @@ function finaliser(g, salles, cfg) {
     nom: cfg.nom,
     estMine: true,            // marqueur : on est dans une mine (sauvegarde interdite…)
     niveau: cfg.niveau,       // PROFONDEUR (étage) courante
+    niveauMobs: niveauMobsEtage(cfg.niveau), // fourchette de niveau des monstres
     retour: cfg.retour,       // {vers, entree} du MONDE — propagé en descendant
     materiaux: cfg.materiaux, // table de drop de la grotte — propagée en descendant
     tauxRencontre: cfg.tauxRencontre,

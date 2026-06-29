@@ -9,7 +9,7 @@ import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, TUILE } from
 import { genererMine } from "./world/mine.js";
 import { CITY, ZONES } from "./data/zones.js";
 import { tuileDef, estPorte } from "./data/tuiles.js";
-import { ITEMS, itemDef, prixVente, RARETES, rareteAuMoins } from "./data/items.js";
+import { ITEMS, itemDef, prixVente, RARETES, rareteAuMoins, distributionMinerais } from "./data/items.js";
 import {
   creerInventaire, appliquerEquipement, armeEquipee, armureEquipee,
   ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
@@ -171,6 +171,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   }
 
   const invite = document.getElementById("invite");
+  const hudInfo = document.getElementById("hud-info");
 
   // Parler au fanatique : un petit laïus, puis un choix (se faire soigner ou partir).
   function parlerAuFanatique() {
@@ -476,6 +477,7 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   appliquerEtat(donneesInitiales); // reprise choisie au démarrage (sinon null = neuf)
   if (!inventaire.slots.outil) inventaire.slots.outil = "pioche-basique"; // garantit une pioche (test)
+  majHudInfo(); // état initial du HUD (caché en ville)
 
   // L'inventaire (touche B) : équiper/déséquiper réapplique le skin + le HUD.
   const inventaireUI = installerInventaire({
@@ -630,6 +632,28 @@ export async function demarrerJeu(donneesInitiales = null) {
     surInteret = Boolean(message);
   }
 
+  // HUD info (haut-gauche) : niveau des monstres de la zone + (en mine) les minerais
+  // trouvables à l'étage avec leur % de pop. Caché là où il n'y a pas de monstres.
+  function majHudInfo() {
+    const z = zoneCourante;
+    if (!Array.isArray(z.niveauMobs)) { hudInfo.hidden = true; return; }
+    hudInfo.hidden = false;
+    let html = `<div class="hud-ligne" data-tooltip="Monster level on this floor">`
+      + `<span class="hud-logo">⚔</span> Lv ${z.niveauMobs[0]}–${z.niveauMobs[1]}</div>`;
+    if (z.estMine) {
+      const dist = distributionMinerais(z.niveau ?? 1, z.materiaux);
+      const chip = (e) => `<span class="hud-chip" data-tooltip="${itemDef(e.id).nom} — ${e.pct}%">`
+        + `<i style="background:${itemDef(e.id).icone}"></i>${e.pct}%</span>`;
+      const ligne = (familles, label) => {
+        const l = dist.filter((e) => familles.includes(itemDef(e.id)?.famille));
+        return l.length ? `<div class="hud-min" data-tooltip="${label}">${l.map(chip).join("")}</div>` : "";
+      };
+      html += ligne(["pierre", "metal"], "Metals & stone");
+      html += ligne(["gemme"], "Gems");
+    }
+    hudInfo.innerHTML = html;
+  }
+
   // Les portes : marcher sur une tuile-porte fait passer dans la zone reliée.
   let surPorte = false;
   let surEntreeMine = false; // idem pour l'entrée de mine `M` (évite la re-entrée immédiate)
@@ -677,6 +701,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     surDescente = true;              // … ni un passage de descente
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
     afficherMessage(carte.nom);
+    majHudInfo();                    // HUD : niveau des mobs + minerais de l'étage
     const musique = zone.musique ?? null;
     if (musique) jouerMusique(musique); else arreterMusique();
     await fondu(0);                  // on rouvre l'écran
@@ -883,6 +908,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       // La barre de menu n'est visible qu'en exploration libre (pas en combat,
       // pas quand un écran/menu est ouvert).
       barreMenu.hidden = Boolean(combatEnCours) || enPause;
+      hudInfo.hidden = Boolean(combatEnCours) || enPause || !Array.isArray(zoneCourante.niveauMobs);
       // Pendant un combat, c'est lui qui pilote tout (le monde est figé)
       if (combatEnCours) { combatEnCours.mettreAJour(dt); return; }
       if (enPause) return;          // figé : menu ouvert ou transition en cours

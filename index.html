@@ -61,6 +61,35 @@
       z-index: 1;
     }
 
+    /* HUD d'exploration : calé sur le COIN HAUT-GAUCHE du cadre 16:9 (même repère
+       que #fond-combat), pas sur la fenêtre. Niveau des mobs + minerais de l'étage. */
+    #hud-info {
+      --zl: min(100vw, calc(100vh * 16 / 9));
+      --zh: calc(var(--zl) * 9 / 16);
+      position: fixed; z-index: 6;
+      left: calc(50vw - var(--zl) / 2 + 12px);
+      top:  calc(50vh - var(--zh) / 2 + 52px); /* sous le bouton debug "Remarque" (retiré au build final) */
+      display: flex; flex-direction: column; gap: 4px;
+      font: 600 clamp(11px, calc(var(--zl) * 0.0085), 18px) system-ui, sans-serif;
+      color: #f3efe7; user-select: none;
+    }
+    #hud-info .hud-ligne, #hud-info .hud-min {
+      display: flex; align-items: center; gap: 5px; width: max-content;
+      background: rgba(10, 8, 6, 0.66); border: 1px solid #3a2f26;
+      border-radius: 6px; padding: 3px 8px;
+    }
+    #hud-info .hud-logo { font-size: 1.1em; }
+    #hud-info .hud-chip { display: inline-flex; align-items: center; gap: 2px; }
+    #hud-info .hud-chip i {
+      width: 0.95em; height: 0.95em; border-radius: 2px; border: 1px solid rgba(0, 0, 0, 0.5);
+    }
+    #hud-info [data-tooltip] { position: relative; }
+    #hud-info [data-tooltip]:hover::after {
+      content: attr(data-tooltip); position: absolute; left: 0; top: 112%;
+      background: #1a1510; color: #ffe28c; border: 1px solid #5a4a26; border-radius: 5px;
+      padding: 3px 7px; font-size: 0.85em; white-space: nowrap; z-index: 50; pointer-events: none;
+    }
+
     /* ---- Fond de combat : calé sur la SCÈNE, pas sur la fenêtre ---- */
     /* Masqué hors combat. Le PNG de la zone (posé par JS dans --fond-url) occupe
        la scène 16:9 du HAUT jusqu'à la LIGNE D'INTERFACE (le séparateur brun) :
@@ -1664,6 +1693,8 @@
 
   <!-- L'écran du jeu : 640x360 pixels internes, agrandi sans flou -->
   <canvas id="jeu" width="640" height="360" hidden></canvas>
+  <!-- HUD d'exploration (haut-gauche) : niveau des mobs + minerais de l'étage -->
+  <div id="hud-info" hidden></div>
 
   <!-- Le fondu au noir (transitions entre zones) -->
   <div class="fondu" id="fondu"></div>

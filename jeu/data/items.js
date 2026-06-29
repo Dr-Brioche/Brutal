@@ -71,6 +71,21 @@ export function tirerMinerai(profondeur, ids = MINERAIS) {
   return dispo[dispo.length - 1].id;
 }
 
+// Distribution des minerais à une profondeur : [{ id, pct }] trié du plus probable
+// au moins probable (pour l'indicateur HUD « minerais trouvables à l'étage »).
+// `pct` = chance qu'une veine donnée soit ce minerai (pas une garantie de présence).
+export function distributionMinerais(profondeur, ids = MINERAIS) {
+  const dispo = ids.map(itemDef).filter((m) => m && (m.profMin ?? 1) <= profondeur);
+  if (!dispo.length) return [];
+  const cible = 1 + (profondeur - 1) * 0.9;
+  const poids = dispo.map((m) => 1 / (1 + Math.abs((m.rang ?? 1) - cible)) ** 1.6);
+  const total = poids.reduce((s, w) => s + w, 0) || 1;
+  return dispo
+    .map((m, i) => ({ id: m.id, pct: Math.round((poids[i] / total) * 100) }))
+    .filter((e) => e.pct >= 1)            // on n'affiche pas le bruit < 1 %
+    .sort((a, b) => b.pct - a.pct);
+}
+
 export const ITEMS = {
   // ---- Armes ----
   // Hache rouillée : arme de départ. 2× Rusty Cleave (balayage) + 3× Strike.

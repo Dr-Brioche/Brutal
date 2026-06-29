@@ -134,8 +134,15 @@ en phase décor.
         avec confirmation (⚠ on ne remonte pas).
   - [x] **Sortie** de mine avec **confirmation** ; ramène toujours à l'entrée du monde
         (les étages quittés ne sont pas conservés).
-  - [ ] *Plus tard* : **mobs rares / élites** (la difficulté de combat par profondeur ;
-        pour l'instant la profondeur fait surtout monter la rareté des minerais).
+  - [x] **HUD info** (haut-gauche) : niveau des mobs de la zone (`⚔ Lv X-Y`) + en mine
+        les minerais trouvables à l'étage (pastille couleur d'inventaire + **% de pop**,
+        groupés Métaux/Pierre vs Gemmes, tooltips au survol). Le % = chance de pop,
+        pas une garantie de présence. Caché en ville / en combat.
+  - [x] **Niveau de mobs par zone/étage** : fourchette `niveauMobs` (Eastern = 1-3 ;
+        en mine : 1→1-3, 2→2-5, 3→4-6, 4→6-7, 5→7-8, puis +1/étage). Gobelins = niv 1.
+  - [ ] *Plus tard* : **SCALING des stats** des mobs selon leur niveau (un gobelin niv 5
+        réellement plus dur) — pour l'instant le niveau est affiché mais ne change pas
+        encore les stats. + mobs rares / élites.
 
   **Reprise (Phase 3)** : codée + testée (distribution des minerais par profondeur,
   taux de passage par étage, boot/runtime). À TESTER EN JEU : descendre via `>`

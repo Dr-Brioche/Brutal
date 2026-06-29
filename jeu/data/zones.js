@@ -64,6 +64,7 @@ export const EASTERN_UNDER_TUNNELS = {
   depart: { colonne: 2, ligne: 13 },
   // Le repaire des gobelins : les 3 variantes (chaman "range" → groupes de 3+).
   monstres: ["gobelin", "gobelin-vif", "gobelin-chaman"],
+  niveauMobs: [1, 3], // fourchette de niveau des monstres de la zone (affichée au HUD)
   plan: [
     "############################################",
     "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
