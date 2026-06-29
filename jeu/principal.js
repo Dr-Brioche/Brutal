@@ -40,13 +40,16 @@ import { getPreference } from "./systems/preferences.js";
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
 
-// Résolution LOGIQUE fixe, en 16:9 (= ce qu'on voit déjà à 1080p aujourd'hui).
-// Tout le jeu se dessine dans ce rectangle, puis on l'AGRANDIT uniformément à
-// l'écran et on le CENTRE : sur un écran qui n'est pas pile 16:9, des bandes
-// noires apparaissent sur les côtés (le body est en flex + fond sombre). Avantage :
-// JAMAIS de déformation, et le décor / les ennemis (canvas) restent toujours
-// alignés sur le fond et le HUD, qui sont déjà calés sur ce même 16:9.
-const VUE = { l: 960, h: 540 };
+// Résolution LOGIQUE fixe, en 16:9. Tout le jeu se dessine dans ce rectangle, puis
+// on l'AGRANDIT uniformément à l'écran et on le CENTRE : sur un écran qui n'est pas
+// pile 16:9, des bandes noires apparaissent sur les côtés (body en flex + fond
+// sombre). Avantage : JAMAIS de déformation, et le décor / les ennemis restent
+// alignés sur le fond et le HUD (eux aussi 16:9).
+// La VALEUR règle le CHAMP DE VISION en EXPLORATION : plus elle est grande, plus on
+// voit de monde autour du héros (sprites un peu plus petits). Le COMBAT, lui, garde
+// EXACTEMENT la même taille quelle que soit cette valeur (sa scène 640×360 remplit
+// toujours le cadre) → on peut régler le zoom d'exploration sans toucher au combat.
+const VUE = { l: 1280, h: 720 };
 function ajusterEchelle() {
   canvas.width = VUE.l;
   canvas.height = VUE.h;
