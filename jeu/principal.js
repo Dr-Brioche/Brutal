@@ -49,7 +49,7 @@ const ctx = canvas.getContext("2d");
 // voit de monde autour du héros (sprites un peu plus petits). Le COMBAT, lui, garde
 // EXACTEMENT la même taille quelle que soit cette valeur (sa scène 640×360 remplit
 // toujours le cadre) → on peut régler le zoom d'exploration sans toucher au combat.
-const VUE = { l: 1280, h: 720 };
+const VUE = { l: 960, h: 540 };
 function ajusterEchelle() {
   canvas.width = VUE.l;
   canvas.height = VUE.h;

@@ -288,7 +288,7 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
   on en ajoutera 2 autres pour la variété.
 
 > **Affichage 16:9 « letterbox » (décidé 29/06/2026)** : TOUT le jeu (exploration ET
-> combat) se dessine dans une scène **16:9 à résolution logique fixe (1280×720)** —
+> combat) se dessine dans une scène **16:9 à résolution logique fixe (960×540)** —
 > ce nombre règle le champ de vision en exploration, sans changer la taille du combat —, puis
 > agrandie **uniformément** et **centrée** à l'écran. Sur un écran qui n'est pas 16:9
 > (ultrawide 21:9, 16:10 façon Steam Deck…), des **bandes noires** apparaissent sur les
