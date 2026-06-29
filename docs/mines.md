@@ -124,7 +124,23 @@ en phase décor.
         EMPILABLES** (piles de 10) de la grille d'inventaire — se rangent et se
         déplacent comme tout objet, mais **non équipables** (catégorie "ressource"
         sans slot). Badge **×N** sur les piles. (Plus de sac à ressources séparé.)
-- [ ] **Phase 3** — rareté & profondeur (table de rareté par zone, descendre plus bas)
+- [x] **Phase 3** — rareté & profondeur ✅
+  - [x] **16 minerais** (familles Pierre / Métal / Gemme), rareté croissante. Tirage
+        par profondeur (`tirerMinerai`) : communs en surface, rares en profondeur,
+        gating par `profMin` (ex. **Onyx dès l'étage 10**). Table de drop **par grotte**
+        (surchargeable ; même moteur).
+  - [x] **Étages** : passage de descente `>` posé selon la **chance par étage**
+        (70→50→40→30→20→10→5→3→2→1 %, **plancher 1 %**). Descente **IRRÉVERSIBLE**
+        avec confirmation (⚠ on ne remonte pas).
+  - [x] **Sortie** de mine avec **confirmation** ; ramène toujours à l'entrée du monde
+        (les étages quittés ne sont pas conservés).
+  - [ ] *Plus tard* : **mobs rares / élites** (la difficulté de combat par profondeur ;
+        pour l'instant la profondeur fait surtout monter la rareté des minerais).
+
+  **Reprise (Phase 3)** : codée + testée (distribution des minerais par profondeur,
+  taux de passage par étage, boot/runtime). À TESTER EN JEU : descendre via `>`
+  (confirmation), miner plus profond pour voir des minerais plus rares, ressortir
+  (confirmation). Reste la **Phase 4** (décor / rendu galerie) et les mobs rares.
 - [ ] **Phase 4** — décor & variété (rendu galerie, profils de salles, décor)
 
   **Reprise (Phase 2)** : codée + boot/runtime vérifiés en lançant une partie.

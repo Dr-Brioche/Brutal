@@ -42,6 +42,12 @@ export const TUILES = {
     // Marcher dessus descend dans une mine générée (cf. principal.js / world/mine.js).
     style: "mine", couleurs: { fond: "#0b0907", cadre: "#5a4632" },
   },
+  ">": {
+    id: "descente", nom: "Passage down", solide: false,
+    // Passage vers l'ÉTAGE SUIVANT d'une mine (plus profond). Cadre violacé pour le
+    // distinguer de l'entrée `M` (brune) et de la sortie `P`.
+    style: "mine", couleurs: { fond: "#08070d", cadre: "#3f3a58" },
+  },
 };
 
 // Hors carte (ou caractère inconnu) = mur plein : on ne sort jamais du monde.

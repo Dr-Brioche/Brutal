@@ -633,12 +633,21 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Les portes : marcher sur une tuile-porte fait passer dans la zone reliée.
   let surPorte = false;
   let surEntreeMine = false; // idem pour l'entrée de mine `M` (évite la re-entrée immédiate)
+  let surDescente = false;   // idem pour le passage de descente `>`
   function verifierPorte(tuile) {
     if (estPorte(tuile.caractere) && !surPorte && !enTransition) {
       const portail = (zoneCourante.portails || []).find(
         (p) => p.colonne === tuile.colonne && p.ligne === tuile.ligne
       );
-      if (portail) allerVersZone(portail.vers, portail.entree);
+      if (portail && zoneCourante.estMine) {
+        // Sortie d'une mine : confirmation (l'étage courant n'est pas conservé).
+        confirmerEnExploration(
+          { titre: "Leave the mine?", message: "You'll head back up to the surface — this level won't be kept.", texteOui: "Leave", texteNon: "Stay" },
+          () => allerVersZone(portail.vers, portail.entree),
+        );
+      } else if (portail) {
+        allerVersZone(portail.vers, portail.entree);
+      }
     }
     surPorte = estPorte(tuile.caractere);
   }
@@ -665,6 +674,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     minage = null; veineProche = null;
     surPorte = true;                 // on arrive : ne pas re-déclencher une porte…
     surEntreeMine = true;            // … ni une entrée de mine si on atterrit dessus
+    surDescente = true;              // … ni un passage de descente
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
     afficherMessage(carte.nom);
     const musique = zone.musique ?? null;
@@ -690,6 +700,40 @@ export async function demarrerJeu(donneesInitiales = null) {
       // Sortie : on revient SUR l'entrée `M` (le garde `surEntreeMine` posé à
       // l'arrivée évite de re-rentrer aussitôt, comme pour les portes).
       retour: { vers: zoneActuelle, entree: { colonne: tuile.colonne, ligne: tuile.ligne } },
+    });
+    allerVersZone(mine, mine.depart);
+  }
+
+  // Confirmation EN EXPLORATION : fige le monde le temps de répondre (sinon on
+  // continuerait à marcher derrière la modale).
+  function confirmerEnExploration(opts, surOui) {
+    enPause = true;
+    demanderConfirmation(opts, () => { enPause = false; surOui(); }, () => { enPause = false; });
+  }
+
+  // Passage de descente `>` : marcher dessus propose de descendre d'un étage
+  // (plus profond = minerais plus rares). Descente IRRÉVERSIBLE (on ne remonte pas).
+  function verifierDescente(tuile) {
+    if (tuile.caractere === ">" && !surDescente && !enTransition && zoneCourante.estMine) {
+      confirmerEnExploration(
+        {
+          titre: "Go deeper?",
+          message: "A passage sinks into the depths. ⚠ You won't be able to climb back to this level. Explore it?",
+          texteOui: "Descend", texteNon: "Stay", danger: true,
+        },
+        descendre,
+      );
+    }
+    surDescente = tuile.caractere === ">";
+  }
+  function descendre() {
+    const mine = genererMine({
+      niveau: (zoneCourante.niveau ?? 1) + 1,
+      monstres: zoneCourante.monstres,
+      musique: zoneCourante.musique,
+      assetZone: zoneActuelle,
+      retour: zoneCourante.retour,        // la sortie ramène toujours à l'ENTRÉE DU MONDE
+      materiaux: zoneCourante.materiaux,  // même table de drop (même grotte)
     });
     allerVersZone(mine, mine.depart);
   }
@@ -849,6 +893,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       verifierPointsInteret(tuile);
       verifierPorte(tuile);
       verifierEntreeMine(tuile); // marcher sur `M` descend dans une mine générée
+      verifierDescente(tuile);   // marcher sur `>` descend d'un étage (en mine)
       if (!minage && avancerRencontres(rencontres, tuile, heros.evasionRencontre || 0, zoneCourante.tauxRencontre ?? 1)) {
         // Musique lancée immédiatement — au tout premier instant où le jeu sait
         // qu'une rencontre a lieu, avant même le flash ou la composition du groupe.

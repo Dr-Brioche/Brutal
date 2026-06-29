@@ -41,6 +41,11 @@ const PROFIL_DEFAUT = {
 
 function entier(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
 
+// Chance (%) de trouver un passage vers l'ÉTAGE SUIVANT, selon la profondeur (1..10),
+// puis 1 % plancher au-delà (ne descend jamais à 0). Réglable.
+const CHANCE_DESCENTE = [70, 50, 40, 30, 20, 10, 5, 3, 2, 1];
+export function chanceDescente(niveau) { return CHANCE_DESCENTE[niveau - 1] ?? 1; }
+
 // Génère une mine VALIDE (connexe). Plusieurs tentatives au cas où un tirage
 // échoue (trop peu de salles / non connexe) ; en dernier recours on force.
 export function genererMine(profil = {}) {
@@ -157,16 +162,29 @@ function finaliser(g, salles, cfg) {
     veines.push({ col: x, lig: y, type: tirerMinerai(cfg.niveau, cfg.materiaux), coups: entier(2, 5) });
   }
 
+  // Passage de descente vers l'étage suivant : présent selon la chance de l'étage.
+  // Posé sur une case sol d'une salle d'exploration LIBRE (pas sur une veine), tuile `>`.
+  if (Math.random() * 100 < chanceDescente(cfg.niveau)) {
+    const libres = candidates.filter(([x, y]) => !veines.some((v) => v.col === x && v.lig === y));
+    if (libres.length) {
+      const [x, y] = libres[entier(0, libres.length - 1)];
+      g[y][x] = ">";
+    }
+  }
+
   return {
     nom: cfg.nom,
-    estMine: true, // marqueur : on est dans une mine (sauvegarde interdite, etc.)
-    tauxRencontre: cfg.tauxRencontre, // × du taux de rencontre normal
-    assetZone: cfg.assetZone, // zone réelle pour les fonds + la musique de combat
-    musique: cfg.musique ?? null, // ambiance d'exploration de la mine
+    estMine: true,            // marqueur : on est dans une mine (sauvegarde interdite…)
+    niveau: cfg.niveau,       // PROFONDEUR (étage) courante
+    retour: cfg.retour,       // {vers, entree} du MONDE — propagé en descendant
+    materiaux: cfg.materiaux, // table de drop de la grotte — propagée en descendant
+    tauxRencontre: cfg.tauxRencontre,
+    assetZone: cfg.assetZone,
+    musique: cfg.musique ?? null,
+    monstres: cfg.monstres,
     plan: g.map((row) => row.join("")),
     depart: { colonne: dCol, ligne: dLig },
     portails: [{ colonne: px, ligne: py, vers: cfg.retour.vers, entree: cfg.retour.entree }],
-    monstres: cfg.monstres,
     veines,
   };
 }
