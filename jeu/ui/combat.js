@@ -614,6 +614,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         // ici, pas pendant le roulement) et on sonne l'échec éventuel.
         appliquerResultatAleatoire(combat);
         majJauge();
+        rafraichir(); // l'énergie a changé → recolorer les coûts (rouge ↔ jouable)
         if (mauvais) jouerSonNegatif();
         setTimeout(() => {
           div.remove();
