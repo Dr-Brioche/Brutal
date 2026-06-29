@@ -22,6 +22,10 @@ const PROFIL_DEFAUT = {
   tailleSalleMin: 4,
   tailleSalleMax: 9,
   monstres: ["gobelin", "gobelin-vif", "gobelin-chaman"],
+  // Assets (fonds + musique de combat) : id d'une zone réelle ; et ambiance
+  // d'exploration de la mine. Remplis par l'appelant (la zone d'origine en Phase 1).
+  assetZone: "city",
+  musique: null,
   // Où ramène la sortie (id de zone + case d'arrivée). Rempli par l'appelant ;
   // valeur de repli neutre au cas où.
   retour: { vers: "city", entree: { colonne: 2, ligne: 2 } },
@@ -130,6 +134,8 @@ function finaliser(g, salles, cfg) {
   return {
     nom: cfg.nom,
     estMine: true, // marqueur : on est dans une mine (sauvegarde interdite, etc.)
+    assetZone: cfg.assetZone, // zone réelle pour les fonds + la musique de combat
+    musique: cfg.musique ?? null, // ambiance d'exploration de la mine
     plan: g.map((row) => row.join("")),
     depart: { colonne: dCol, ligne: dLig },
     portails: [{ colonne: px, ligne: py, vers: cfg.retour.vers, entree: cfg.retour.entree }],

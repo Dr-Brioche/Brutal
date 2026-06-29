@@ -100,12 +100,19 @@ en phase décor.
 
 ## 5. État d'avancement (mis à jour à chaque commit — point de reprise)
 
-- [ ] **Phase 1** — boucle entrer/générer/sortir/régénérer
+- [x] **Phase 1** — boucle entrer/générer/sortir/régénérer ✅
   - [x] Générateur `jeu/world/mine.js` (galeries + salles aérées, connexité TOTALE
         garantie + testée sur 300 tirages ; salle d'entrée = départ + sortie `P`)
-  - [ ] Entrée `M` → charge la mine générée
-  - [ ] Sortie (portail) → retour au monde
-  - [ ] Sauvegarde interdite en mine
+  - [x] Entrée `M` → génère + charge la mine (`verifierEntreeMine` / `entrerEnMine`
+        dans `principal.js` ; `allerVersZone` accepte désormais une zone-OBJET)
+  - [x] Sortie (porte `P` de la mine) → retour au monde via le système de portails
+  - [x] Re-entrer régénère une mine neuve (rien n'est persistant)
+  - [x] Sauvegarde interdite en mine (menu pause ouvert en mode `sansSauvegarde`)
+
+  **Reprise** : Phase 1 terminée et testée (générateur + boot). À tester EN JEU :
+  entrer dans `M` (souterrains est) → mine générée → ressortir par `P` → re-entrer
+  = nouvelle mine. Prochaine étape : **Phase 2** (outils + pioche, sac à ressources
+  stack 10, veines minables avec animation + 2–5 coups).
 - [ ] **Phase 2** — outils, matériaux, veines minables
 - [ ] **Phase 3** — rareté & profondeur
 - [ ] **Phase 4** — décor & variété

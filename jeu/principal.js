@@ -6,6 +6,7 @@ import { chargerImage } from "./core/sprites.js";
 import { creerCamera, mettreAJourCamera } from "./core/camera.js";
 import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js";
 import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, TUILE } from "./world/carte.js";
+import { genererMine } from "./world/mine.js";
 import { CITY, ZONES } from "./data/zones.js";
 import { tuileDef, estPorte } from "./data/tuiles.js";
 import { ITEMS, prixVente, RARETES, rareteAuMoins } from "./data/items.js";
@@ -81,7 +82,8 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // La zone courante (on démarre dans la ville). `carte` et `rencontres`
   // changent à chaque passage de porte, d'où le `let`.
-  let zoneActuelle = "city";
+  let zoneActuelle = "city";   // id de zone pour les ASSETS (fonds + musique de combat)
+  let zoneCourante = CITY;     // l'OBJET zone courant : statique (ZONES) OU mine générée
   let carte = creerCarte(CITY);
   let rencontres = creerRencontres();
   prechargerFonds(zoneActuelle);                // fonds de combat prêts en cache
@@ -598,7 +600,9 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (deckOuvert) { basculerDeck(); return; }
     if (talentsOuvert) { basculerTalents(); return; }
     if (enPause) return;          // état transitoire (transition de zone, flash) : on ignore
-    menu.ouvrir();
+    // En mine, la sauvegarde est INTERDITE (l'état généré n'est pas sérialisé) :
+    // on ouvre le menu sans Save/Load, comme en combat.
+    menu.ouvrir(zoneCourante.estMine ? { sansSauvegarde: true } : undefined);
   });
 
   // Espace : parler au PNJ tout proche
@@ -621,9 +625,10 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // Les portes : marcher sur une tuile-porte fait passer dans la zone reliée.
   let surPorte = false;
+  let surEntreeMine = false; // idem pour l'entrée de mine `M` (évite la re-entrée immédiate)
   function verifierPorte(tuile) {
     if (estPorte(tuile.caractere) && !surPorte && !enTransition) {
-      const portail = (ZONES[zoneActuelle].portails || []).find(
+      const portail = (zoneCourante.portails || []).find(
         (p) => p.colonne === tuile.colonne && p.ligne === tuile.ligne
       );
       if (portail) allerVersZone(portail.vers, portail.entree);
@@ -631,25 +636,53 @@ export async function demarrerJeu(donneesInitiales = null) {
     surPorte = estPorte(tuile.caractere);
   }
 
-  async function allerVersZone(zoneId, entree) {
+  // `zoneOuId` peut être un ID de zone STATIQUE (data/zones.js) OU un OBJET zone
+  // déjà construit (ex. une mine générée). `assetZone` = l'id servant aux ASSETS
+  // (fonds + musique de combat) ; pour une mine, c'est la zone d'origine.
+  async function allerVersZone(zoneOuId, entree) {
     if (enTransition) return;
     enTransition = true;
     enPause = true;
     await fondu(1);                  // écran au noir
-    carte = creerCarte(ZONES[zoneId]);
-    zoneActuelle = zoneId;
-    prechargerFonds(zoneId);         // télécharge les fonds de la zone pendant l'explo
-    prechargerMusiquesCombat(zoneId);// idem pour les musiques de combat de la zone
+    const statique = typeof zoneOuId === "string";
+    const zone = statique ? ZONES[zoneOuId] : zoneOuId;
+    const assetZone = statique ? zoneOuId : (zone.assetZone ?? "city");
+    carte = creerCarte(zone);
+    zoneActuelle = assetZone;
+    zoneCourante = zone;
+    prechargerFonds(assetZone);          // télécharge les fonds pendant l'explo
+    prechargerMusiquesCombat(assetZone); // idem pour les musiques de combat
     poserHeros(heros, entree.colonne, entree.ligne);
     rencontres = creerRencontres();  // période de grâce fraîche dans la zone
-    surPorte = true;                 // on arrive : ne pas re-déclencher
+    surPorte = true;                 // on arrive : ne pas re-déclencher une porte…
+    surEntreeMine = true;            // … ni une entrée de mine si on atterrit dessus
     mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
     afficherMessage(carte.nom);
-    const musique = ZONES[zoneId]?.musique ?? null;
+    const musique = zone.musique ?? null;
     if (musique) jouerMusique(musique); else arreterMusique();
     await fondu(0);                  // on rouvre l'écran
     enPause = false;
     enTransition = false;
+  }
+
+  // Entrée de mine : marcher sur une tuile `M` GÉNÈRE une mine et y descend.
+  // (Comme une porte, mais vers une zone FABRIQUÉE au lieu d'une zone statique.)
+  function verifierEntreeMine(tuile) {
+    if (tuile.caractere === "M" && !surEntreeMine && !enTransition && !zoneCourante.estMine) {
+      entrerEnMine(tuile);
+    }
+    surEntreeMine = tuile.caractere === "M";
+  }
+  function entrerEnMine(tuile) {
+    const mine = genererMine({
+      monstres: zoneCourante.monstres ?? ["gobelin", "gobelin-vif", "gobelin-chaman"],
+      musique: zoneCourante.musique,   // ambiance d'explo réutilisée (Phase 1)
+      assetZone: zoneActuelle,         // fonds + musique de combat de la zone d'origine
+      // Sortie : on revient SUR l'entrée `M` (le garde `surEntreeMine` posé à
+      // l'arrivée évite de re-rentrer aussitôt, comme pour les portes).
+      retour: { vers: zoneActuelle, entree: { colonne: tuile.colonne, ligne: tuile.ligne } },
+    });
+    allerVersZone(mine, mine.depart);
   }
 
   // Les rencontres : sur les tuiles de souterrain, un monstre invisible surgit.
@@ -658,7 +691,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     // Le groupe est composé à partir des monstres de la ZONE courante : taille
     // (30/30/20/15/5) et types tirés au sort, range placés à l'arrière. Si la
     // zone n'a aucun monstre déclaré, pas de combat.
-    const ennemis = composerGroupe(ZONES[zoneActuelle]?.monstres);
+    const ennemis = composerGroupe(zoneCourante?.monstres);
     if (ennemis.length === 0) return;
     enPause = true;                 // le monde se fige pendant le flash
     await flashCombat();
@@ -678,7 +711,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           // Fuite réussie : retour à l'exploration, AUCUNE récompense (ni or, ni XP,
           // ni butin). On restaure l'ambiance de la zone et on rafraîchit la période
           // de grâce des rencontres pour ne pas être re-happé dans un combat aussitôt.
-          const ambiance = ZONES[zoneActuelle]?.musique ?? null;
+          const ambiance = zoneCourante?.musique ?? null;
           if (ambiance) jouerMusique(ambiance); else arreterMusique();
           rencontres = creerRencontres();
           afficherMessage("🏃 You fled the battle.");
@@ -686,7 +719,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         } else {
           // Fin de la baston : on quitte la musique de combat pour revenir à
           // l'ambiance d'exploration de la zone (silence si elle n'en a pas).
-          const ambiance = ZONES[zoneActuelle]?.musique ?? null;
+          const ambiance = zoneCourante?.musique ?? null;
           if (ambiance) jouerMusique(ambiance); else arreterMusique();
           // Victoire : on calcule le butin (sans l'appliquer) et on l'affiche dans
           // une fenêtre centrée. Le joueur le récupère (clic / Espace). Le monde
@@ -750,6 +783,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       const tuile = tuileSousLesPieds(carte, heros);
       verifierPointsInteret(tuile);
       verifierPorte(tuile);
+      verifierEntreeMine(tuile); // marcher sur `M` descend dans une mine générée
       if (avancerRencontres(rencontres, tuile, heros.evasionRencontre || 0)) {
         // Musique lancée immédiatement — au tout premier instant où le jeu sait
         // qu'une rencontre a lieu, avant même le flash ou la composition du groupe.

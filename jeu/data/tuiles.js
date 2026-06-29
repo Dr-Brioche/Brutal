@@ -39,7 +39,7 @@ export const TUILES = {
   },
   "M": {
     id: "mine", nom: "Mine entrance", solide: false,
-    interet: "⛏ The Depths — mining zone (coming soon)",
+    // Marcher dessus descend dans une mine générée (cf. principal.js / world/mine.js).
     style: "mine", couleurs: { fond: "#0b0907", cadre: "#5a4632" },
   },
 };
