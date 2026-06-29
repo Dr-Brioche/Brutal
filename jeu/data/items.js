@@ -44,7 +44,32 @@ export const SLOT_PAR_CATEGORIE = {
 };
 
 // Les minerais « de base » (ids d'items "ressource") — tirés par défaut dans les mines.
-export const RESSOURCES_BASE = ["fer", "cuivre", "charbon"];
+// Tous les minerais, du plus commun au plus rare (cf. ITEMS plus bas).
+export const MINERAIS = [
+  "pierre-taillee", "charbon", "cuivre", "fer", "argent", "or",
+  "malachite", "lapis", "amethyste", "titane", "emeraude", "rubis",
+  "saphir", "diamant", "mithril", "onyx",
+];
+
+// Tire le minerai d'une veine selon la PROFONDEUR. Chaque minerai n'apparaît qu'à
+// partir de sa `profMin`. Plus on descend, plus la « fenêtre » de rareté favorisée
+// monte (rang visé ≈ profondeur) → les rares deviennent probables, les communs se
+// raréfient (mais restent possibles). `ids` = table de drop de la zone (surcharge
+// possible par grotte ; la logique reste la même). Valeurs réglables ici.
+export function tirerMinerai(profondeur, ids = MINERAIS) {
+  const dispo = ids.map(itemDef).filter((m) => m && (m.profMin ?? 1) <= profondeur);
+  if (!dispo.length) return ids[0];
+  const cible = 1 + (profondeur - 1) * 0.9; // rang favorisé : monte ~+0,9 / étage
+  let total = 0;
+  const poids = dispo.map((m) => {
+    const w = 1 / (1 + Math.abs((m.rang ?? 1) - cible)) ** 1.6;
+    total += w;
+    return w;
+  });
+  let r = Math.random() * total;
+  for (let i = 0; i < dispo.length; i++) { r -= poids[i]; if (r <= 0) return dispo[i].id; }
+  return dispo[dispo.length - 1].id;
+}
 
 export const ITEMS = {
   // ---- Armes ----
@@ -77,10 +102,25 @@ export const ITEMS = {
     minage: 1, // rendement de minage (1 minerai/coup ; de meilleurs outils plus tard)
   },
   // ---- Ressources (minerais) : objets de sac, EMPILABLES (pile 10), NON équipables.
-  // Se rangent et se déplacent comme tout objet ; simplement aucun slot d'équipement.
-  "fer":     { id: "fer",     nom: "Iron",   categorie: "ressource", rarete: "commun", taille: { l: 1, h: 1 }, icone: "#b9b2a6", empilable: true, pileMax: 10 },
-  "cuivre":  { id: "cuivre",  nom: "Copper", categorie: "ressource", rarete: "commun", taille: { l: 1, h: 1 }, icone: "#c0703a", empilable: true, pileMax: 10 },
-  "charbon": { id: "charbon", nom: "Coal",   categorie: "ressource", rarete: "commun", taille: { l: 1, h: 1 }, icone: "#3a3a42", empilable: true, pileMax: 10 },
+  // Se rangent/déplacent comme tout objet ; aucun slot d'équipement.
+  // `famille` (pierre/metal/gemme) · `rang` (rareté croissante 1→12) · `profMin`
+  // (profondeur de mine minimale d'apparition). Servent à la génération des veines.
+  "pierre-taillee": { id: "pierre-taillee", nom: "Cut Stone",    categorie: "ressource", famille: "pierre", rang: 1,  profMin: 1,  rarete: "commun",   taille: { l: 1, h: 1 }, icone: "#8a857c", empilable: true, pileMax: 10 },
+  "charbon":        { id: "charbon",        nom: "Coal",         categorie: "ressource", famille: "pierre", rang: 2,  profMin: 1,  rarete: "commun",   taille: { l: 1, h: 1 }, icone: "#3a3a42", empilable: true, pileMax: 10 },
+  "cuivre":         { id: "cuivre",         nom: "Copper",       categorie: "ressource", famille: "metal",  rang: 3,  profMin: 1,  rarete: "commun",   taille: { l: 1, h: 1 }, icone: "#c0703a", empilable: true, pileMax: 10 },
+  "fer":            { id: "fer",            nom: "Iron",         categorie: "ressource", famille: "metal",  rang: 4,  profMin: 1,  rarete: "commun",   taille: { l: 1, h: 1 }, icone: "#b9b2a6", empilable: true, pileMax: 10 },
+  "argent":         { id: "argent",         nom: "Silver",       categorie: "ressource", famille: "metal",  rang: 5,  profMin: 2,  rarete: "uncommon", taille: { l: 1, h: 1 }, icone: "#cdd2d6", empilable: true, pileMax: 10 },
+  "or":             { id: "or",             nom: "Gold",         categorie: "ressource", famille: "metal",  rang: 6,  profMin: 3,  rarete: "uncommon", taille: { l: 1, h: 1 }, icone: "#e8c54f", empilable: true, pileMax: 10 },
+  "malachite":      { id: "malachite",      nom: "Malachite",    categorie: "ressource", famille: "gemme",  rang: 7,  profMin: 4,  rarete: "rare",     taille: { l: 1, h: 1 }, icone: "#2fa86a", empilable: true, pileMax: 10 },
+  "lapis":          { id: "lapis",          nom: "Lapis Lazuli", categorie: "ressource", famille: "gemme",  rang: 7,  profMin: 4,  rarete: "rare",     taille: { l: 1, h: 1 }, icone: "#2a4bbf", empilable: true, pileMax: 10 },
+  "amethyste":      { id: "amethyste",      nom: "Amethyst",     categorie: "ressource", famille: "gemme",  rang: 7,  profMin: 4,  rarete: "rare",     taille: { l: 1, h: 1 }, icone: "#9a5fd0", empilable: true, pileMax: 10 },
+  "titane":         { id: "titane",         nom: "Titanium",     categorie: "ressource", famille: "metal",  rang: 8,  profMin: 5,  rarete: "rare",     taille: { l: 1, h: 1 }, icone: "#8fa0ad", empilable: true, pileMax: 10 },
+  "emeraude":       { id: "emeraude",       nom: "Emerald",      categorie: "ressource", famille: "gemme",  rang: 9,  profMin: 6,  rarete: "rare",     taille: { l: 1, h: 1 }, icone: "#18a558", empilable: true, pileMax: 10 },
+  "rubis":          { id: "rubis",          nom: "Ruby",         categorie: "ressource", famille: "gemme",  rang: 9,  profMin: 6,  rarete: "rare",     taille: { l: 1, h: 1 }, icone: "#d12f4a", empilable: true, pileMax: 10 },
+  "saphir":         { id: "saphir",         nom: "Sapphire",     categorie: "ressource", famille: "gemme",  rang: 10, profMin: 7,  rarete: "epique",   taille: { l: 1, h: 1 }, icone: "#2f6fd1", empilable: true, pileMax: 10 },
+  "diamant":        { id: "diamant",        nom: "Diamond",      categorie: "ressource", famille: "gemme",  rang: 11, profMin: 8,  rarete: "epique",   taille: { l: 1, h: 1 }, icone: "#bfe6f0", empilable: true, pileMax: 10 },
+  "mithril":        { id: "mithril",        nom: "Mithril",      categorie: "ressource", famille: "metal",  rang: 11, profMin: 8,  rarete: "epique",   taille: { l: 1, h: 1 }, icone: "#acc6d4", empilable: true, pileMax: 10 },
+  "onyx":           { id: "onyx",           nom: "Onyx",         categorie: "ressource", famille: "gemme",  rang: 12, profMin: 10, rarete: "epique",   taille: { l: 1, h: 1 }, icone: "#1a1a22", empilable: true, pileMax: 10 },
   // Croc de basilic : arme à poison (moteur de stacks). 6× Venom Stab + 2× Poison
   // Dance (AOE) + 1× Weakness Exploitation + 1× Explosion Of Poison (détonateur répétable).
   "croc-de-basilic": {

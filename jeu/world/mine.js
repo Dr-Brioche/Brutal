@@ -12,7 +12,7 @@
 //
 // Tuiles : `#` roche (mur), `,` sol de galerie (active les rencontres), `P` sortie.
 
-import { RESSOURCES_BASE } from "../data/items.js";
+import { MINERAIS, tirerMinerai } from "../data/items.js";
 
 // Profil par défaut d'une mine. L'appelant complète notamment `retour` (où ramène
 // la sortie) et plus tard la rareté / les tables de la zone de profondeur.
@@ -23,8 +23,9 @@ const PROFIL_DEFAUT = {
   nbSalles: 8,
   tailleSalleMin: 4,
   tailleSalleMax: 9,
-  materiaux: RESSOURCES_BASE, // minerais possibles des veines (ids d'items, au hasard)
-  nbVeines: [3, 6],          // nombre de veines posées dans les salles d'exploration
+  niveau: 1,                  // PROFONDEUR (étage) : pilote la rareté des minerais
+  materiaux: MINERAIS,        // table de drop de la zone (surchargeable par grotte)
+  nbVeines: [3, 6],           // nombre de veines posées dans les salles d'exploration
   monstres: ["gobelin", "gobelin-vif", "gobelin-chaman"],
   // Taux de rencontre PROPRE à la mine (×, relatif au taux normal). Bas pour
   // laisser explorer/miner ; montera avec la profondeur. Réglable par profil.
@@ -150,11 +151,10 @@ function finaliser(g, salles, cfg) {
   }
   melanger(candidates);
   const nb = entier(cfg.nbVeines[0], cfg.nbVeines[1]);
-  const mats = cfg.materiaux;
   const veines = [];
   for (let i = 0; i < nb && i < candidates.length; i++) {
     const [x, y] = candidates[i];
-    veines.push({ col: x, lig: y, type: mats[entier(0, mats.length - 1)], coups: entier(2, 5) });
+    veines.push({ col: x, lig: y, type: tirerMinerai(cfg.niveau, cfg.materiaux), coups: entier(2, 5) });
   }
 
   return {
