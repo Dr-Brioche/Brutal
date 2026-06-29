@@ -536,8 +536,8 @@ joueur qui progresse a **plus d'énergie à dépenser**, il lui faut donc des ca
 Sous le bouton **End Turn**, un petit bouton **Flee** (son tiers droit) permet de
 **quitter un combat**. Clic (ou touche **F**) → **confirmation** (action sans
 retour). Si on valide :
-- **1 chance sur 5** que la fuite **échoue** : un message le signale et on **passe
-  simplement son tour** (les ennemis jouent).
+- **2 chances sur 3** que la fuite **échoue** (elle ne réussit qu'**1 fois sur 3**) :
+  un message le signale et on **passe simplement son tour** (les ennemis jouent).
 - sinon la fuite **réussit** : on **sort du combat SANS récompense** (ni or, ni XP,
   ni butin). Une **période de grâce** évite de retomber aussitôt dans un combat
   (comme en passant une porte).

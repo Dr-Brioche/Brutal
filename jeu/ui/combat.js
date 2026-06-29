@@ -912,20 +912,20 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     demanderConfirmation(
       {
         titre: "Flee the battle?",
-        message: "You'll leave with NO rewards. There's a chance you'll just lose your turn.",
+        message: "You'll leave with NO rewards. Escape works only about 1 time in 3 — otherwise you just lose your turn.",
         texteOui: "Flee",
         texteNon: "Stay",
         danger: true,
       },
       () => {
         if (combat.fini || !combat.tourJoueur) return; // l'état a pu changer entre-temps
-        if (Math.random() < 0.2) {
-          // Échec (20 %) : on signale et on passe le tour comme un End Turn normal.
+        if (Math.random() < 2 / 3) {
+          // Échec (2 chances sur 3) : on signale et on passe le tour comme un End Turn.
           ajouterFlottant("✗ Escape failed!", heroEcran.cx, heroEcran.sommet - 24, "#ff6a58");
           jouerSonNegatif();
           finDeTour();
         } else {
-          // Réussite (80 %) : fin du combat sans vainqueur. Côté principal.js,
+          // Réussite (1 chance sur 3) : fin du combat sans vainqueur. Côté principal.js,
           // surFin("fuite") restaure l'exploration SANS butin et rafraîchit la grâce.
           fuirCombat(combat);
           jouerSonPioche();
