@@ -297,19 +297,22 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 > jeux pixel et ça couvre **tous** les écrans automatiquement → pas besoin de
 > « préréglages de résolution ». Réglé dans `ajusterEchelle` (`principal.js`).
 
-#### Musiques de combat : une bibliothèque par zone (décidé 17/06/2026)
+#### Musiques de combat : une playlist commune (révisé 29/06/2026)
 
-- **Même logique que les fonds**, côté son : chaque zone a une **bibliothèque de
-  musiques de combat** (`data/musiques.js`), rangées dans `sons/combat/<zone>/`
-  (mêmes noms de sous-dossiers que les fonds et les zones).
+- **Une seule playlist, commune à TOUS les combats** (`data/musiques.js` →
+  `MUSIQUES_COMBAT_DEFAUT`), rangée dans `sons/combat/commun/`. **Plus de lien avec
+  la zone** d'exploration : on évite d'avoir à composer une playlist par lieu. Une
+  zone précise (boss, lieu spécial) peut toutefois **surcharger** cette playlist via
+  `MUSIQUES_COMBAT_ZONE` (vide pour l'instant).
 - La musique **démarre au flash de rencontre** (juste avant l'écran de combat) :
-  on en **tire une au hasard** dans la liste de la zone. Elle tourne en boucle
-  pendant la baston, puis le jeu **revient à l'ambiance d'exploration** de la zone
-  (silence si la zone n'en a pas) à la fin du combat (victoire comme défaite).
-- Pour **éviter le délai** au premier combat (un .mp3 pèse quelques Mo), les
-  musiques de la zone sont **préchargées à l'entrée** de la zone, comme les fonds.
-- **État actuel** : 1 musique provisoire pour les Eastern Under-tunnels
-  (`sons/combat/eastern-under-tunnels/1.mp3`) ; on en ajoutera d'autres.
+  on en **tire une au hasard** dans la playlist. Elle tourne pendant la baston,
+  puis le jeu **revient à l'ambiance d'exploration** de la zone (silence si la zone
+  n'en a pas) à la fin du combat (victoire, fuite comme défaite).
+- Pour **éviter le délai** au premier combat (un .mp3 pèse quelques Mo), la playlist
+  est **préchargée à l'entrée** de zone ; chaque fichier n'est téléchargé **qu'une
+  fois** pour toute la partie.
+- **État actuel** : **7 musiques** dans la playlist commune
+  (`sons/combat/commun/1.mp3` … `7.mp3`).
 
 #### Rendu visuel des cartes : cadre + calques (décidé 23/06/2026)
 
@@ -961,8 +964,8 @@ que c'est addictif, **puis** on empile le suivant.
   n'a pas cliqué → le bouton **Play** du titre débloque l'audio pour toute la partie.
   Marchera à l'identique une fois empaqueté en `.exe`.
 - **En place** : ambiance de fond par zone (`jouerMusique` par nom logique) **et**
-  musiques de **combat tirées au hasard par zone** (`jouerMusiqueFichier` par chemin,
-  bibliothèque `data/musiques.js`, fichiers dans `sons/combat/<zone>/`). Volumes
+  musiques de **combat tirées au hasard dans une playlist commune** (`jouerMusiqueFichier`
+  par chemin, bibliothèque `data/musiques.js`, fichiers dans `sons/combat/commun/`). Volumes
   réglables dans le menu Pause (curseurs Musique / Combat / Bruitages) et persistés.
   Le **menu Pause est accessible AUSSI en plein combat** (Échap) : il fige le combat
   et permet de régler le son sans quitter la baston. En combat, les emplacements
@@ -980,8 +983,8 @@ que c'est addictif, **puis** on empile le suivant.
     d'exploration** l'utilisent : un morceau aléatoire à l'**entrée** de la zone,
     un autre à chaque **fin de morceau**, et un nouveau **à chaque retour de
     combat** (l'ambiance reprend fraîche). Les **Eastern Under-tunnels** piochent
-    parmi leurs 5 morceaux, **distincts** de leur musique de combat
-    (`sons/combat/eastern-under-tunnels/`, elle aussi tirée au hasard).
+    parmi leurs 5 morceaux, **distincts** de la musique de combat (playlist
+    commune `sons/combat/commun/`, elle aussi tirée au hasard).
 
 ## Questions ouvertes (à trancher plus tard, non bloquantes)
 
