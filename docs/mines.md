@@ -101,7 +101,8 @@ en phase décor.
 ## 5. État d'avancement (mis à jour à chaque commit — point de reprise)
 
 - [ ] **Phase 1** — boucle entrer/générer/sortir/régénérer
-  - [ ] Générateur `jeu/world/mine.js` (galeries + salles, connectivité)
+  - [x] Générateur `jeu/world/mine.js` (galeries + salles aérées, connexité TOTALE
+        garantie + testée sur 300 tirages ; salle d'entrée = départ + sortie `P`)
   - [ ] Entrée `M` → charge la mine générée
   - [ ] Sortie (portail) → retour au monde
   - [ ] Sauvegarde interdite en mine
