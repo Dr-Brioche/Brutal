@@ -57,9 +57,13 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
 - **Les souterrains autour de Brütàl** : galeries et cavernes de **roche
   (style Moria)** — l'exploration et les dangers. C'est là qu'on croise les
   monstres. *(1er jet : une zone reliée à la ville par une porte)*
-- **La « Profondeur »** : niveaux de minage plus profonds, **générés +/-
-  aléatoirement** (procédural — aléatoire encadré par des règles), atteints
-  via les **entrées de mine** (`M`). À venir.
+- **La « Profondeur » / les Mines** : mines **générées procéduralement**, atteintes
+  via les **entrées de mine** (`M`). On y explore des galeries reliées à des zones
+  aérées, on **mine des veines** (matériaux → farm/craft) et on combat ; à la sortie
+  on revient au monde, et **re-entrer régénère** une mine neuve. La rareté des
+  trouvailles monte avec la profondeur (et la difficulté aussi).
+  **→ Design complet + journal d'avancement : [`docs/mines.md`](mines.md).**
+  *(en cours d'implémentation)*
 - **Monstres invisibles sur la carte** : pas de sprite d'ennemi en exploration.
   Dans les zones d'exploration, **chance de rencontre aléatoire** →
   **flash d'écran façon FF9** → bascule sur l'écran de combat.
