@@ -19,7 +19,9 @@ export function creerRencontres() {
 }
 
 // À appeler à chaque image. Renvoie true si une rencontre se déclenche.
-export function avancerRencontres(etat, tuile, reduction = 0) {
+// `reduction` (0..1) : évasion du héros (talents). `facteur` : multiplicateur de
+// taux PROPRE À LA ZONE (1 = normal ; <1 = plus calme ; montera avec la profondeur).
+export function avancerRencontres(etat, tuile, reduction = 0, facteur = 1) {
   const cle = tuile.colonne + "," + tuile.ligne;
   if (cle === etat.derniereTuile) return false; // toujours sur la même tuile
   etat.derniereTuile = cle;
@@ -31,8 +33,9 @@ export function avancerRencontres(etat, tuile, reduction = 0) {
     return false;
   }
 
-  // Certains talents (ex. « Tunnel Sense ») réduisent la chance de rencontre.
-  if (Math.random() < CHANCE_PAR_PAS * (1 - reduction)) {
+  // Certains talents (ex. « Tunnel Sense ») réduisent la chance ; le facteur de
+  // zone la module aussi (ex. mines plus calmes pour laisser explorer).
+  if (Math.random() < CHANCE_PAR_PAS * (1 - reduction) * facteur) {
     etat.grace = PAS_DE_GRACE; // période tranquille avant le prochain danger
     return true;
   }
