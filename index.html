@@ -1181,6 +1181,13 @@
       color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.8); padding: 2px; text-align: center;
     }
     .inv-item:hover { filter: brightness(1.15); }
+    /* Badge de quantité (piles de ressources empilées) : ×N en bas à droite. */
+    .inv-item-qte {
+      position: absolute; right: 0; bottom: 0;
+      font-size: 0.5rem; font-weight: 700; line-height: 1;
+      color: #fff; background: rgba(0, 0, 0, 0.72); border-radius: 4px 0 4px 0;
+      padding: 1px 3px;
+    }
     .inv-aide { margin-top: 12px; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
     /* Curseur de navigation clavier dans la grille du sac */

@@ -20,16 +20,7 @@ export const SLOTS = [
 export function creerInventaire() {
   const slots = {};
   for (const s of SLOTS) slots[s] = null;
-  // `materiaux` : sac à ressources (minerais) — { id: quantité }. Cf. data/materiaux.js.
-  return { cols: COLS, rangs: RANGS_BASE, objets: [], slots, or: 0, materiaux: {} };
-}
-
-// Ajoute `n` unités d'un matériau au sac à ressources. (Phase 2 : accumulation
-// libre pour tester ; la capacité / les piles de `pileMax` viendront ensuite.)
-export function ajouterMateriau(inv, id, n = 1) {
-  if (!inv.materiaux) inv.materiaux = {};
-  inv.materiaux[id] = (inv.materiaux[id] ?? 0) + n;
-  return inv.materiaux[id];
+  return { cols: COLS, rangs: RANGS_BASE, objets: [], slots, or: 0 };
 }
 
 // Hauteur réelle de la grille (le sac principal ajoute ses rangées).
@@ -65,20 +56,49 @@ function tient(inv, x, y, l, h, occ) {
   return true;
 }
 
-// Pose un item à la première place libre. Renvoie true si placé, false si plein.
-export function ajouterObjet(inv, id) {
-  const d = itemDef(id);
-  if (!d) return false;
+// Première place libre pour une empreinte l×h, ou null si le sac est plein.
+function premierePlaceLibre(inv, l, h) {
   const occ = casesOccupees(inv);
   const rangs = rangsInventaire(inv);
   const cols  = colsInventaire(inv);
-  for (let y = 0; y <= rangs - d.taille.h; y++)
-    for (let x = 0; x <= cols - d.taille.l; x++)
-      if (tient(inv, x, y, d.taille.l, d.taille.h, occ)) {
-        inv.objets.push({ id, x, y });
-        return true;
+  for (let y = 0; y <= rangs - h; y++)
+    for (let x = 0; x <= cols - l; x++)
+      if (tient(inv, x, y, l, h, occ)) return { x, y };
+  return null;
+}
+
+// Pose `n` exemplaires d'un item à la première place libre. Les items EMPILABLES
+// (ressources/minerais) complètent d'abord les piles existantes (< pileMax) avant
+// d'en créer une nouvelle. Renvoie true si tout est rangé, false si le sac est plein.
+export function ajouterObjet(inv, id, n = 1) {
+  const d = itemDef(id);
+  if (!d) return false;
+  if (d.empilable) {
+    const max = d.pileMax ?? 10;
+    let reste = n;
+    for (const o of inv.objets) {                 // compléter les piles existantes
+      if (o.id !== id) continue;
+      const place = max - (o.quantite ?? 1);
+      if (place > 0) {
+        const add = Math.min(place, reste);
+        o.quantite = (o.quantite ?? 1) + add;
+        reste -= add;
+        if (reste <= 0) return true;
       }
-  return false;
+    }
+    while (reste > 0) {                            // créer de nouvelles piles
+      const pos = premierePlaceLibre(inv, d.taille.l, d.taille.h);
+      if (!pos) return false;                      // sac plein
+      const add = Math.min(max, reste);
+      inv.objets.push({ id, x: pos.x, y: pos.y, quantite: add });
+      reste -= add;
+    }
+    return true;
+  }
+  const pos = premierePlaceLibre(inv, d.taille.l, d.taille.h);
+  if (!pos) return false;
+  inv.objets.push({ id, x: pos.x, y: pos.y });
+  return true;
 }
 
 // Vérifie sans muter si `id` trouverait une place dans le sac tel qu'il est.

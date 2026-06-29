@@ -606,6 +606,12 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       ic.style.top = o.y * CASE + 1 + "px";
       ic.style.width = d.taille.l * CASE - 4 + "px";
       ic.style.height = d.taille.h * CASE - 4 + "px";
+      if (o.quantite > 1) { // pile de ressources : badge ×N en bas à droite
+        const q = document.createElement("span");
+        q.className = "inv-item-qte";
+        q.textContent = o.quantite;
+        ic.append(q);
+      }
       ic.addEventListener("contextmenu", (ev) => {
         ev.preventDefault();
         if (tenu) return;

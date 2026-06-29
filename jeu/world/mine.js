@@ -12,7 +12,7 @@
 //
 // Tuiles : `#` roche (mur), `,` sol de galerie (active les rencontres), `P` sortie.
 
-import { MATERIAUX_BASE } from "../data/materiaux.js";
+import { RESSOURCES_BASE } from "../data/items.js";
 
 // Profil par défaut d'une mine. L'appelant complète notamment `retour` (où ramène
 // la sortie) et plus tard la rareté / les tables de la zone de profondeur.
@@ -23,7 +23,7 @@ const PROFIL_DEFAUT = {
   nbSalles: 8,
   tailleSalleMin: 4,
   tailleSalleMax: 9,
-  materiaux: MATERIAUX_BASE, // minerais possibles des veines (tirés au hasard)
+  materiaux: RESSOURCES_BASE, // minerais possibles des veines (ids d'items, au hasard)
   nbVeines: [3, 6],          // nombre de veines posées dans les salles d'exploration
   monstres: ["gobelin", "gobelin-vif", "gobelin-chaman"],
   // Taux de rencontre PROPRE à la mine (×, relatif au taux normal). Bas pour

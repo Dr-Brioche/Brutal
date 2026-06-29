@@ -120,9 +120,10 @@ en phase décor.
   - [x] Veines posées par le générateur (3–6/mine, type au hasard, 2–5 coups)
   - [x] **Minage** : approcher une veine (liseré doré) + **Espace** → coup de pioche
         (≈0,55 s, héros FIGÉ) → +1 minerai ; le filon s'épuise après 2–5 coups et disparaît
-  - [ ] *Reste à finir (2bis)* : capacité / piles de 10 du sac, et **affichage** du
-        sac à ressources dans l'écran d'inventaire (pour l'instant accumulation libre
-        + message « ⛏ +1 Iron (×N) »)
+  - [x] *2bis (design revu)* : **un seul sac**. Les minerais sont des **objets
+        EMPILABLES** (piles de 10) de la grille d'inventaire — se rangent et se
+        déplacent comme tout objet, mais **non équipables** (catégorie "ressource"
+        sans slot). Badge **×N** sur les piles. (Plus de sac à ressources séparé.)
 - [ ] **Phase 3** — rareté & profondeur (table de rareté par zone, descendre plus bas)
 - [ ] **Phase 4** — décor & variété (rendu galerie, profils de salles, décor)
 

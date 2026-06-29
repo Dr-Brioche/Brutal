@@ -40,7 +40,11 @@ export const SLOT_PAR_CATEGORIE = {
   bague: "bague",   // ira sur la 1re bague libre (bague1..bague5)
   sac: "sac",
   outil: "outil",   // pioche & co (slot dédié, sert au minage en mine)
+  // (pas de "ressource" ici : les minerais ne s'équipent pas → equiper() renvoie false)
 };
+
+// Les minerais « de base » (ids d'items "ressource") — tirés par défaut dans les mines.
+export const RESSOURCES_BASE = ["fer", "cuivre", "charbon"];
 
 export const ITEMS = {
   // ---- Armes ----
@@ -72,6 +76,11 @@ export const ITEMS = {
     taille: { l: 1, h: 2 }, icone: "#9aa0a6",
     minage: 1, // rendement de minage (1 minerai/coup ; de meilleurs outils plus tard)
   },
+  // ---- Ressources (minerais) : objets de sac, EMPILABLES (pile 10), NON équipables.
+  // Se rangent et se déplacent comme tout objet ; simplement aucun slot d'équipement.
+  "fer":     { id: "fer",     nom: "Iron",   categorie: "ressource", rarete: "commun", taille: { l: 1, h: 1 }, icone: "#b9b2a6", empilable: true, pileMax: 10 },
+  "cuivre":  { id: "cuivre",  nom: "Copper", categorie: "ressource", rarete: "commun", taille: { l: 1, h: 1 }, icone: "#c0703a", empilable: true, pileMax: 10 },
+  "charbon": { id: "charbon", nom: "Coal",   categorie: "ressource", rarete: "commun", taille: { l: 1, h: 1 }, icone: "#3a3a42", empilable: true, pileMax: 10 },
   // Croc de basilic : arme à poison (moteur de stacks). 6× Venom Stab + 2× Poison
   // Dance (AOE) + 1× Weakness Exploitation + 1× Explosion Of Poison (détonateur répétable).
   "croc-de-basilic": {

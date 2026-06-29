@@ -9,10 +9,10 @@ import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, TUILE } from
 import { genererMine } from "./world/mine.js";
 import { CITY, ZONES } from "./data/zones.js";
 import { tuileDef, estPorte } from "./data/tuiles.js";
-import { ITEMS, prixVente, RARETES, rareteAuMoins } from "./data/items.js";
+import { ITEMS, itemDef, prixVente, RARETES, rareteAuMoins } from "./data/items.js";
 import {
   creerInventaire, appliquerEquipement, armeEquipee, armureEquipee,
-  ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire, ajouterMateriau,
+  ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
 } from "./systems/inventaire.js";
 import {
   creerMaitrise, etatMaitrise, chargerMaitrise,
@@ -33,7 +33,6 @@ import { demarrerCombat } from "./ui/combat.js";
 import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
 import { fondCombat, prechargerFonds } from "./data/fonds.js";
 import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
-import { materiauDef } from "./data/materiaux.js";
 import { FANATIQUE, MARCHAND } from "./data/pnj.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
@@ -715,8 +714,16 @@ export async function demarrerJeu(donneesInitiales = null) {
     minage.t += dt;
     if (minage.t < minage.duree) return; // encore en train de frapper
     const v = minage.veine;
-    const total = ajouterMateriau(inventaire, v.type, 1);
-    const nom = materiauDef(v.type)?.nom ?? v.type;
+    const nom = itemDef(v.type)?.nom ?? v.type;
+    // Le minerai va dans le SAC (objet empilable). Sac plein → le coup ne compte pas.
+    if (!ajouterObjet(inventaire, v.type, 1)) {
+      afficherMessage("Inventory full!");
+      minage = null;
+      return;
+    }
+    const total = inventaire.objets
+      .filter((o) => o.id === v.type)
+      .reduce((s, o) => s + (o.quantite ?? 1), 0);
     v.coups--;
     if (v.coups <= 0) {                      // filon épuisé → il disparaît
       veines = veines.filter((x) => x !== v);
@@ -728,7 +735,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   }
   function dessinerVeine(ctx, v) {
     const x = v.col * TUILE, y = v.lig * TUILE;
-    const col = materiauDef(v.type)?.couleur ?? "#aaa";
+    const col = itemDef(v.type)?.icone ?? "#aaa";
     ctx.fillStyle = "#241f1a"; // gangue (roche sombre)
     ctx.fillRect(x + 5, y + 7, TUILE - 10, TUILE - 11);
     ctx.fillStyle = col;       // pépites de minerai
