@@ -1310,14 +1310,15 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       }
       barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
         `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), 0, u.affInit);
-      // Bulle de niveau (oblong doré) à droite de la barre de vie
+      // Bulle de niveau (oblong doré) à droite de la barre de vie (ou à gauche si ça déborde).
       const lvlEnn = u.e.def?.niveau;
       if (lvlEnn != null) {
         const txt = `lv${lvlEnn}`;
         ctx.font = "bold 9px sans-serif";
         const tw = ctx.measureText(txt).width;
         const rx = tw / 2 + 7, ry = 6; // demi-axes de l'ellipse
-        const cx = u.ecran.cx + BAR_L / 2 + 6 + rx; // bord gauche de la bulle + rx
+        let cx = u.ecran.cx + BAR_L / 2 + 6 + rx;
+        if (cx + rx > 638) cx = u.ecran.cx - BAR_L / 2 - 6 - rx; // déborde à droite → gauche
         const cy = u.ecran.sol + VIE_SOUS + BAR_H / 2;
         ctx.fillStyle = "rgba(12, 9, 6, 0.90)";
         ctx.beginPath();
