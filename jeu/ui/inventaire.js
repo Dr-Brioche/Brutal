@@ -520,7 +520,9 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function rendreBagues() {
     const pleins = COL_DROITE.map((s) => Boolean(inventaire.slots[s]));
     const n = pleins.filter(Boolean).length;
-    const complet = n >= COL_DROITE.length;
+    const baguesItems = COL_DROITE.map(s => inventaire.slots[s]).filter(Boolean);
+    const toutesUniques = baguesItems.length === 5 && new Set(baguesItems.map(b => b.id)).size === 5;
+    const complet = toutesUniques;
     const enfants = [];
     COL_DROITE.forEach((slot, i) => {
       enfants.push(slotEl(slot));
@@ -532,9 +534,12 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const bonus = document.createElement("div");
     bonus.className = "inv-ig-bonus" + (complet ? " inv-ig-bonus--actif" : "");
     bonus.textContent = "♾ Infinity Gauntlet";
+    const doublons = n === 5 && !toutesUniques;
     bonus.dataset.tooltip = complet
-      ? "Infinity Gauntlet — ACTIVE\nAll 5 ring slots filled.\n+1 card / turn · +4 Force · +5 Agility"
-      : `Infinity Gauntlet — ${n}/5 rings\nFill all 5 ring slots to gain:\n+1 card / turn · +4 Force · +5 Agility`;
+      ? "Infinity Gauntlet — ACTIVE\nAll 5 ring slots filled with different rings.\n+1 card / turn · +4 Force · +5 Agility"
+      : doublons
+        ? "Infinity Gauntlet — INACTIVE\nAll 5 rings must be DIFFERENT (no duplicates).\n+1 card / turn · +4 Force · +5 Agility"
+        : `Infinity Gauntlet — ${n}/5 rings\nFill all 5 slots with different rings to gain:\n+1 card / turn · +4 Force · +5 Agility`;
     enfants.push(bonus);
     elDroite.className = "inv-colonne inv-colonne--bagues";
     elDroite.replaceChildren(...enfants);

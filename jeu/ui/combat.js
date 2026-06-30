@@ -94,9 +94,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const passifsItems = itemsEquipes.flatMap((d) => d.passifPropre ? [d.passifPropre] : []);
 
   const bt = bonusTalents(heros);
-  // Infinity Gauntlet : tous les cinq slots de bague remplis → bonus de combat.
-  const toutesBagues = ["bague1","bague2","bague3","bague4","bague5"]
-    .every(s => Boolean(inventaire.slots?.[s]));
+  // Infinity Gauntlet : 5 slots de bague remplis ET tous différents (pas de doublon).
+  const _bagues5 = ["bague1","bague2","bague3","bague4","bague5"]
+    .map(s => inventaire.slots?.[s]).filter(Boolean);
+  const toutesBagues = _bagues5.length === 5 && new Set(_bagues5.map(b => b.id)).size === 5;
   const combat = creerCombat(ennemis, {
     pv: heros.pv, pvMax: heros.pvMax,
     cartes: cartesEquipees(inventaire),
