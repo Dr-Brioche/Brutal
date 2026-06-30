@@ -68,10 +68,16 @@
     #cadre-jeu {
       --zl: min(100vw, calc(100vh * 16 / 9));
       --zh: calc(var(--zl) * 9 / 16);
+      /* Agrandi de 8 %, mais SEULEMENT s'il y a de la place au-delà de la zone
+         16:9 (écran plus large ou plus haut que 16:9) — sinon (16:9 pile, le
+         cas le plus courant) ça resterait à la taille normale, sans quoi le
+         cadre déborderait de l'écran et serait coupé (bande dorée tronquée). */
+      --zl2: min(calc(var(--zl) * 1.08), 100vw);
+      --zh2: min(calc(var(--zh) * 1.08), 100vh);
       position: fixed; z-index: 2; pointer-events: none;
-      left: calc(50vw - var(--zl) / 2);
-      top:  calc(50vh - var(--zh) / 2);
-      width: var(--zl); height: var(--zh);
+      left: calc(50vw - var(--zl2) / 2);
+      top:  calc(50vh - var(--zh2) / 2);
+      width: var(--zl2); height: var(--zh2);
       background: url("images/cadre-jeu.png") center / 100% 100% no-repeat;
     }
 
