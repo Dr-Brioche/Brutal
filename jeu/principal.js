@@ -776,7 +776,9 @@ export async function demarrerJeu(donneesInitiales = null) {
     return best;
   }
   function commencerMinage(v) {
-    minage = { veine: v, t: 0, duree: 0.55 }; // ≈ 0,55 s figé par coup de pioche
+    const outilDef = itemDef(inventaire.slots.outil?.id);
+    const vitesse = outilDef?.minage ?? 1;
+    minage = { veine: v, t: 0, duree: 0.55 / vitesse }; // plus rapide avec une meilleure pioche
     jouerSonPierre();
   }
   function avancerMinage(dt) {
@@ -790,12 +792,17 @@ export async function demarrerJeu(donneesInitiales = null) {
       minage = null;
       return;
     }
+    // Bonus selon la rareté : chance d'obtenir un minerai supplémentaire par coup.
+    const BONUS_RARETE = { commun: 0.10, uncommon: 0.15, rare: 0.20, epic: 0.25, legendaire: 0.35 };
+    const chancebonus = BONUS_RARETE[itemDef(v.type)?.rarete] ?? 0.10;
+    const bonus = Math.random() < chancebonus && ajouterObjet(inventaire, v.type, 1);
+    const qty = bonus ? 2 : 1;
     v.coups--;
     if (v.coups <= 0) {                      // filon épuisé → il disparaît
       veines = veines.filter((x) => x !== v);
-      afficherMessage(`⛏ +1 ${nom} — vein depleted`);
+      afficherMessage(qty > 1 ? `⛏ +${qty} ${nom} — vein depleted` : `⛏ +1 ${nom} — vein depleted`);
     } else {
-      afficherMessage(`⛏ +1 ${nom}`);
+      afficherMessage(qty > 1 ? `⛏ +${qty} ${nom}!` : `⛏ +1 ${nom}`);
     }
     minage = null;
   }
@@ -821,6 +828,13 @@ export async function demarrerJeu(donneesInitiales = null) {
       ctx.fillRect(x + 9, y + 11, 5, 5);
       ctx.fillRect(x + 18, y + 13, 6, 6);
       ctx.fillRect(x + 13, y + 19, 4, 4);
+    }
+    if (v === minage?.veine) { // en cours de minage → barre de progression
+      const prog = Math.min(1, minage.t / minage.duree);
+      const bx = x + 4, bw = TUILE - 8, bh = 4, by = y + TUILE - 5;
+      ctx.fillStyle = "#120f0c"; ctx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+      ctx.fillStyle = "#2d2620"; ctx.fillRect(bx, by, bw, bh);
+      ctx.fillStyle = "#ffcf57"; ctx.fillRect(bx, by, Math.round(bw * prog), bh);
     }
     if (v === veineProche) {   // à portée de minage → liseré doré
       ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 2;
