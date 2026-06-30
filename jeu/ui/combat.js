@@ -40,9 +40,9 @@ const ECHELLE_ARRIERE = ECHELLE_SCENE * 0.85; // rang arrière : 15 % plus petit
 const RATIO_ARRIERE   = ECHELLE_ARRIERE / ECHELLE_AVANT; // facteur UI arrière (0.85)
 const SOL_ARRIERE = SOL_Y - 18;              // pieds des ennemis arrière, 18 px plus hauts
 const PIVOT_SCENE = { x: 320, y: SOL_Y };
-const HEROS_ECRAN_CX = 165;         // centre du héros à l'écran (scène)
+const HEROS_ECRAN_CX = 140;         // centre du héros à l'écran (scène)
 // Le groupe d'ennemis est centré à droite ; ils s'étalent autour de ce centre.
-const ENNEMIS_CX = 470;
+const ENNEMIS_CX = 425;
 const ENNEMIS_ESPACE = 96;          // écart horizontal entre deux ennemis (scène)
 function versOrigine(cxEcran) {
   return PIVOT_SCENE.x + (cxEcran - PIVOT_SCENE.x) / ECHELLE_SCENE;
@@ -1310,19 +1310,19 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       }
       barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
         `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), 0, u.affInit);
-      // Bulle de niveau (oblong doré) à droite de la barre de vie (ou à gauche si ça déborde).
+      // Pill de niveau (rectangle arrondi doré) à droite de la barre de vie.
       const lvlEnn = u.e.def?.niveau;
       if (lvlEnn != null) {
-        const txt = `lv${lvlEnn}`;
+        const txt = `lvl ${lvlEnn}`;
         ctx.font = "bold 9px sans-serif";
         const tw = ctx.measureText(txt).width;
-        const rx = tw / 2 + 7, ry = 6; // demi-axes de l'ellipse
-        let cx = u.ecran.cx + BAR_L / 2 + 6 + rx;
-        if (cx + rx > 638) cx = u.ecran.cx - BAR_L / 2 - 6 - rx; // déborde à droite → gauche
+        const pw = tw + 14, ph = 14; // largeur et hauteur de la pill
+        let cx = u.ecran.cx + BAR_L / 2 + 6 + pw / 2;
+        if (cx + pw / 2 > 638) cx = u.ecran.cx - BAR_L / 2 - 6 - pw / 2;
         const cy = u.ecran.sol + VIE_SOUS + BAR_H / 2;
         ctx.fillStyle = "rgba(12, 9, 6, 0.90)";
         ctx.beginPath();
-        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.roundRect(cx - pw / 2, cy - ph / 2, pw, ph, ph / 2);
         ctx.fill();
         ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 1;
         ctx.stroke();
