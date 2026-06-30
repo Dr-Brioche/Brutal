@@ -1,7 +1,7 @@
 // Le héros : son état (position, direction...), sa mise à jour, son dessin.
 
 import { dessinerCase } from "../core/sprites.js";
-import { piedsLibres } from "../world/carte.js";
+import { piedsLibres, rectangleLibre, TUILE } from "../world/carte.js";
 
 // Lignes de la planche images/heros/nain.png
 const LIGNE = { bas: 0, gauche: 1, droite: 2, haut: 3 };
@@ -47,8 +47,45 @@ export function mettreAJourHeros(heros, clavier, dt, carte) {
 
     // Chaque axe est testé séparément contre les murs : si un seul des
     // deux est bloqué, on glisse le long du mur au lieu de rester planté.
-    if (piedsLibres(carte, heros.x + pasX, heros.y)) heros.x += pasX;
-    if (piedsLibres(carte, heros.x, heros.y + pasY)) heros.y += pasY;
+    const bougeX = piedsLibres(carte, heros.x + pasX, heros.y);
+    if (bougeX) heros.x += pasX;
+    const bougeY = piedsLibres(carte, heros.x, heros.y + pasY);
+    if (bougeY) heros.y += pasY;
+
+    // Aide au passage des galeries étroites (larges d'1 case). La « boîte des pieds »
+    // fait exactement une case de large : pour enfiler un couloir d'1 case, il faut
+    // être aligné au pixel près. Quand on pousse sur UN SEUL axe et qu'on bute tout
+    // droit, on regarde lequel des deux coins d'attaque touche le mur : si l'autre
+    // coin est libre, c'est qu'une ouverture est de ce côté → on glisse vers elle,
+    // en s'arrêtant PILE sur l'alignement de la case (donc sans dépasser ni osciller).
+    const aide = v * dt;
+    if (dx === 0 && dy !== 0 && !bougeY) {            // poussée verticale bloquée
+      const yb = heros.y + pasY + (dy < 0 ? 46 : 61); // bord d'attaque (haut si on monte, bas si on descend)
+      const gSolide = !rectangleLibre(carte, heros.x + 16, yb, 1, 1); // coin gauche des pieds
+      const dSolide = !rectangleLibre(carte, heros.x + 47, yb, 1, 1); // coin droit des pieds
+      if (gSolide && !dSolide) {                       // mur à gauche → ouverture à droite
+        const cible = (Math.floor((heros.x + 16) / TUILE) + 1) * TUILE - 16;
+        const nx = Math.min(heros.x + aide, cible);
+        if (piedsLibres(carte, nx, heros.y)) heros.x = nx;
+      } else if (dSolide && !gSolide) {                // mur à droite → ouverture à gauche
+        const cible = Math.floor((heros.x + 47) / TUILE) * TUILE - 48;
+        const nx = Math.max(heros.x - aide, cible);
+        if (piedsLibres(carte, nx, heros.y)) heros.x = nx;
+      }
+    } else if (dy === 0 && dx !== 0 && !bougeX) {     // poussée horizontale bloquée
+      const xb = heros.x + pasX + (dx < 0 ? 16 : 47); // bord d'attaque (gauche si on va à gauche, droite sinon)
+      const hSolide = !rectangleLibre(carte, xb, heros.y + 46, 1, 1); // coin haut des pieds
+      const bSolide = !rectangleLibre(carte, xb, heros.y + 61, 1, 1); // coin bas des pieds
+      if (hSolide && !bSolide) {                       // mur en haut → ouverture en bas
+        const cible = (Math.floor((heros.y + 46) / TUILE) + 1) * TUILE - 46;
+        const ny = Math.min(heros.y + aide, cible);
+        if (piedsLibres(carte, heros.x, ny)) heros.y = ny;
+      } else if (bSolide && !hSolide) {                // mur en bas → ouverture en haut
+        const cible = Math.floor((heros.y + 61) / TUILE) * TUILE - 62;
+        const ny = Math.max(heros.y - aide, cible);
+        if (piedsLibres(carte, heros.x, ny)) heros.y = ny;
+      }
+    }
 
     // La direction du regard suit le déplacement (l'axe horizontal gagne)
     if (dy > 0) heros.direction = "bas";
