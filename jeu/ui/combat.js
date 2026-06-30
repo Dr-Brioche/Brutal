@@ -397,6 +397,16 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     }
     if (combat.fini || !combat.tourJoueur) return;
 
+    // Pendant l'animation de pioche : Espace/Entrée PASSE l'animation, puis on ignore
+    // les jeux pendant 0,5 s (évite de lancer une carte si Espace reste enfoncé).
+    if (enAnimPioche) {
+      if (e.code === "Space" || e.code === "Enter") {
+        overlayPioche.onclick?.();               // passe l'animation en cours
+        _blocageJusqu = performance.now() + 500; // 0,5 s sans jouer
+      }
+      return; // aucune autre action clavier pendant la pioche
+    }
+
     // Phase CIBLAGE : on choisit l'ennemi visé par la carte armée.
     if (phaseCiblage) {
       if (e.code === "KeyA" || e.code === "ArrowLeft") cycleCible(-1);
@@ -428,6 +438,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // -- Actions du joueur ----------------------------------------------------
 
   let _tsDerniereCarteJouee = 0; // anti-double-clic : 200 ms entre deux cartes
+  let _blocageJusqu = 0;         // on ignore les jeux jusqu'à ce temps (anti-clic après skip de pioche)
 
   // Affiche chaque carte piochée en grand au centre pendant 800 ms.
   // `ajouterAMain` (optionnel) révèle les cartes une par une dans la main : chaque
@@ -646,6 +657,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   function jouer(i, cible = combat.cible) {
     const maintenant = performance.now();
     if (maintenant - _tsDerniereCarteJouee < 200) return; // anti-double-clic
+    if (maintenant < _blocageJusqu) return;   // 0,5 s sans jouer après un skip de pioche
     if (enAnimPioche) return; // bloque pendant l'anim de pioche
     _tsDerniereCarteJouee = maintenant;
     const carte = combat.main[i];
