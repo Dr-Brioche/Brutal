@@ -544,6 +544,9 @@ joueur qui progresse a **plus d'énergie à dépenser**, il lui faut donc des ca
 Sous le bouton **End Turn**, un petit bouton **Flee** (son tiers droit) permet de
 **quitter un combat**. Clic (ou touche **F**) → **confirmation** (action sans
 retour). Si on valide :
+- **Condition** : la fuite n'est possible que si on **n'a joué AUCUNE carte ce
+  tour-ci**. Dès qu'une carte est jouée, le bouton **se grise** jusqu'au tour
+  suivant (on s'est engagé dans l'action — on ne peut plus se défiler).
 - La **chance de réussite dépend du nombre de monstres VIVANTS** : 1 → **1/2**,
   2 → **1/3**, 3 → **1/4**, 4 → **1/4**, 5 → **1/5** (le % est affiché dans la
   confirmation). Plus il y a d'ennemis, plus c'est dur.

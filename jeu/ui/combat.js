@@ -283,6 +283,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   let selection = 0; // index dans [cartes…, bouton Fin du tour], ou -1 = rien
   let enAnimPioche = false; // bloque jouer/finDeTour + masque la surbrillance pendant l'animation de pioche
   let premiereMainCombat = true; // 1re main du combat : petite pause avant la pioche (ouverture moins abrupte)
+  let carteJouee = false; // a-t-on joué une carte CE tour ? (si oui : fuite interdite, bouton grisé)
 
   function elementsNavigables() {
     return [...conteneurMain.children, boutonFin, boutonFuite];
@@ -305,7 +306,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     });
     disposerEventail();
     boutonFin.disabled = combat.fini || !combat.tourJoueur;
-    boutonFuite.disabled = combat.fini || !combat.tourJoueur;
+    // Fuite possible seulement si AUCUNE carte n'a été jouée ce tour (sinon grisé).
+    boutonFuite.disabled = combat.fini || !combat.tourJoueur || carteJouee;
     elPiocheNb.textContent = combat.pioche.length;
     elDefausseNb.textContent = combat.defausse.length;
     majSelection();
@@ -681,6 +683,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     combat.dernierGainAleatoire = null;
     combat.dernierEchangeMain = null; // Bare Hands : échanges main à animer
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
+    carteJouee = true; // une carte a été jouée → on ne pourra plus fuir ce tour
     if (maitrise) incrementerMaitrise(maitrise, heros, carte.id);
 
     if (elJouee) animerCarteJouee(elJouee); // la carte sort, grandit, puis disparaît
@@ -921,6 +924,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // le tour (comme End Turn). Sinon la fuite réussit → fin du combat sans butin.
   function tenterFuite() {
     if (phaseCiblage || combat.fini || !combat.tourJoueur || enAnimPioche) return;
+    if (carteJouee) return; // déjà joué une carte ce tour → fuite interdite (raccourci clavier)
     if (confirmationActive()) return;
     // Plus il y a de monstres VIVANTS, plus la fuite est dure (chance de réussite).
     const nMobs = combat.ennemis.filter(ennemiVivant).length;
@@ -959,6 +963,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     acteurCourant = acteur; // pour la file des tours (1re case = acteur courant)
     if (acteur.id === "heros") {
       const nbAvantTour = combat.main.length; // snapshot avant la pioche (= 0 normalement)
+      carteJouee = false;         // nouveau tour du héros → la fuite redevient possible
       commencerTourHeros(combat); // recharge Chaleur + statuts du héros + pioche
       if (combat.tourSaute) {     // glace brisée : le héros est gelé solide, il saute son tour
         animerGelExplosionHeros();
