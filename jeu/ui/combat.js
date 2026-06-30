@@ -1058,6 +1058,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       ajouterFlottant(`💚+${evt.soin_allie}`, cx, cy, "#7edf82");
       jouerSonSortilege();
     }
+    if (evt.soin_heros > 0) { // soin CONFUS qui atterrit sur le HÉROS (erreur du caster)
+      jouerAnim(u, "attaque");
+      ajouterFlottant(`💚+${evt.soin_heros}`, heroEcran.cx, heroEcran.sommet - 16, "#7edf82");
+      jouerSonSortilege();
+    }
     if (evt.haste_allie > 0) { // le chaman accélère ses alliés
       jouerAnim(u, "attaque");
       ajouterFlottant(`⚡×${evt.haste_allie}`, u.ecran.cx, u.ecran.sommet, "#dff4ff");

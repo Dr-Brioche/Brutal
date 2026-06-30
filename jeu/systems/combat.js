@@ -1129,6 +1129,7 @@ export function agirEnnemi(combat, i) {
     attaque: 0, armureAbsorbe: 0, stun: false,
     soin_allie: 0,  // PV soignés sur un allié
     idx_soin: -1,   // index de l'ennemi soigné (pour le floater UI)
+    soin_heros: 0,  // PV soignés AU HÉROS par un soin CONFUS (le caster soigne son ennemi par erreur)
     haste_allie: 0, // tours de hâte donnés aux alliés vivants
     brulureRetour: 0, // brûlure renvoyée à l'attaquant par un passif (set Onyx)
     confusionRetour: 0, // confusion infligée à l'attaquant par un passif (set Croisé)
@@ -1210,14 +1211,34 @@ export function agirEnnemi(combat, i) {
       evt.idxAttaqueAllie = cibleConf;
     }
   } else if (e.intention?.type === "soigner") {
-    // Soigne la cible VERROUILLÉE à la préparation (l'allié au % le plus bas
-    // alors), sauf si elle est morte entre-temps → une nouvelle est verrouillée.
-    const cible = cibleSoinVerrou(combat, e);
-    if (cible) {
-      const avant = cible.pv;
-      cible.pv = Math.min(cible.pvMax, cible.pv + e.intention.valeur);
-      evt.soin_allie = cible.pv - avant;
-      evt.idx_soin = combat.ennemis.indexOf(cible);
+    if (confusActif) {
+      // Confusion : le soin part AU HASARD à la résolution — un ennemi vivant (dont
+      // lui-même) OU le HÉROS (le caster soigne son ennemi par erreur). L'intention/
+      // preview, elle, reste sur l'allié verrouillé (le « trait vert » habituel).
+      evt.confus = true;
+      const pool = [{ t: "heros" }];
+      combat.ennemis.forEach((o, j) => { if (ennemiVivant(o)) pool.push({ t: "ennemi", o, j }); });
+      const choix = pool[Math.floor(Math.random() * pool.length)];
+      if (choix.t === "heros") {
+        const avant = combat.pvHeros;
+        soinnerHeros(combat, e.intention.valeur);
+        evt.soin_heros = combat.pvHeros - avant;
+      } else {
+        const avant = choix.o.pv;
+        choix.o.pv = Math.min(choix.o.pvMax, choix.o.pv + e.intention.valeur);
+        evt.soin_allie = choix.o.pv - avant;
+        evt.idx_soin = choix.j;
+      }
+    } else {
+      // Soigne la cible VERROUILLÉE à la préparation (l'allié au % le plus bas
+      // alors), sauf si elle est morte entre-temps → une nouvelle est verrouillée.
+      const cible = cibleSoinVerrou(combat, e);
+      if (cible) {
+        const avant = cible.pv;
+        cible.pv = Math.min(cible.pvMax, cible.pv + e.intention.valeur);
+        evt.soin_allie = cible.pv - avant;
+        evt.idx_soin = combat.ennemis.indexOf(cible);
+      }
     }
   } else if (e.intention?.type === "haste-allie") {
     // Célérité à tous les alliés vivants (pas le chaman lui-même).
