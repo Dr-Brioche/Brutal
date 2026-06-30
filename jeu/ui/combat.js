@@ -1314,9 +1314,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const lvlEnn = u.e.def?.niveau;
       if (lvlEnn != null) {
         const txt = `lvl ${lvlEnn}`;
-        ctx.font = "bold 9px sans-serif";
+        ctx.font = "bold 6px sans-serif";
         const tw = ctx.measureText(txt).width;
-        const pw = tw + 14, ph = 14; // largeur et hauteur de la pill
+        const pw = tw + 9, ph = 9; // largeur et hauteur de la pill
         let cx = u.ecran.cx + BAR_L / 2 + 6 + pw / 2;
         if (cx + pw / 2 > 638) cx = u.ecran.cx - BAR_L / 2 - 6 - pw / 2;
         const cy = u.ecran.sol + VIE_SOUS + BAR_H / 2;
