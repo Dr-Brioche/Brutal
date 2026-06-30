@@ -5,7 +5,7 @@ import { clavier } from "./core/clavier.js";
 import { chargerImage } from "./core/sprites.js";
 import { creerCamera, mettreAJourCamera } from "./core/camera.js";
 import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js";
-import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, TUILE } from "./world/carte.js";
+import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, revelerAutour, estVu, TUILE } from "./world/carte.js";
 import { genererMine } from "./world/mine.js";
 import { CITY, ZONES } from "./data/zones.js";
 import { tuileDef, estPorte } from "./data/tuiles.js";
@@ -87,6 +87,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   let veines = [];             // veines minables de la mine courante (vide hors mine)
   let veineProche = null;      // veine à portée de minage (surbrillée en doré)
   let minage = null;           // minage en cours { veine, t, duree } : fige le héros
+  const RAYON_VUE = 5;         // brouillard de guerre (mine) : rayon de découverte, en cases
   let carte = creerCarte(CITY);
   let rencontres = creerRencontres();
   prechargerFonds(zoneActuelle);                // fonds de combat prêts en cache
@@ -693,6 +694,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     prechargerFonds(assetZone);          // télécharge les fonds pendant l'explo
     prechargerMusiquesCombat(assetZone); // idem pour les musiques de combat
     poserHeros(heros, entree.colonne, entree.ligne);
+    revelerAutour(carte, entree.colonne, entree.ligne, RAYON_VUE); // découvre le point d'arrivée (mine)
     rencontres = creerRencontres();  // période de grâce fraîche dans la zone
     veines = zone.veines ?? [];      // veines minables (mine) ; vide ailleurs
     minage = null; veineProche = null;
@@ -769,6 +771,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     const hx = heros.x + 32, hy = heros.y + 54;
     let best = null, bestD = 42; // portée ≈ 1,3 tuile
     for (const v of veines) {
+      if (!estVu(carte, v.col, v.lig)) continue; // une veine encore dans le noir n'est pas ciblable
       const vx = v.col * TUILE + TUILE / 2, vy = v.lig * TUILE + TUILE / 2;
       const d = Math.hypot(hx - vx, hy - vy);
       if (d < bestD) { bestD = d; best = v; }
@@ -931,6 +934,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (minage) avancerMinage(dt);
       else mettreAJourHeros(heros, clavier, dt, carte);
       const tuile = tuileSousLesPieds(carte, heros);
+      revelerAutour(carte, tuile.colonne, tuile.ligne, RAYON_VUE); // brouillard : on éclaire autour de soi
       verifierPointsInteret(tuile);
       verifierPorte(tuile);
       verifierEntreeMine(tuile); // marcher sur `M` descend dans une mine générée
@@ -979,8 +983,10 @@ export async function demarrerJeu(donneesInitiales = null) {
         for (const a of acteurs) a.dessiner();
       } else if (veines.length) {
         // En mine : veines + héros, triés par profondeur (pieds) pour le chevauchement.
+        // Une veine encore sous le brouillard n'est pas dessinée (on la découvre en explorant).
         const acteurs = [
-          ...veines.map((v) => ({ pieds: v.lig * TUILE + TUILE, dessiner: () => dessinerVeine(ctx, v) })),
+          ...veines.filter((v) => estVu(carte, v.col, v.lig))
+            .map((v) => ({ pieds: v.lig * TUILE + TUILE, dessiner: () => dessinerVeine(ctx, v) })),
           { pieds: heros.y + 54, dessiner: () => dessinerHeros(ctx, heros) },
         ];
         acteurs.sort((a, b) => a.pieds - b.pieds);

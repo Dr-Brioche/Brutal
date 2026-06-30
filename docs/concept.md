@@ -58,11 +58,12 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   (style Moria)** — l'exploration et les dangers. C'est là qu'on croise les
   monstres. *(1er jet : une zone reliée à la ville par une porte)*
 - **La « Profondeur » / les Mines** : mines **générées procéduralement**, atteintes
-  via les **entrées de mine** (`M`). On y explore des galeries reliées à des zones
-  aérées, on **mine des veines** dans les **parois** (matériaux → farm/craft) — plus
-  de rares **méga-gisements** au centre des salles — et on combat ; à la sortie
-  on revient au monde, et **re-entrer régénère** une mine neuve. La rareté des
-  trouvailles monte avec la profondeur (et la difficulté aussi).
+  via les **entrées de mine** (`M`). **Brouillard de guerre** : on ne voit qu'autour
+  de soi, il faut **explorer** (et aucun minerai près de l'entrée → pas de farm
+  entrer/ressortir). On y mine des **veines** dans les **parois** (matériaux →
+  farm/craft) — plus de rares **méga-gisements** (piliers) au centre des salles — et
+  on combat ; à la sortie on revient au monde, et **re-entrer régénère** une mine
+  neuve. La rareté des trouvailles monte avec la profondeur (et la difficulté aussi).
   **→ Design complet + journal d'avancement : [`docs/mines.md`](mines.md).**
   *(en cours d'implémentation)*
 - **Monstres invisibles sur la carte** : pas de sprite d'ennemi en exploration.

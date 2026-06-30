@@ -53,6 +53,11 @@ export function niveauMobsEtage(niveau) {
   return NIVEAU_MOBS[niveau] ?? [niveau + 2, niveau + 3];
 }
 
+// Distance minimale (en cases) entre l'entrée et le 1er minerai : avec le brouillard
+// de guerre, ça garantit qu'on ne voit AUCUN filon à l'arrivée → plus moyen de farmer
+// en entrant/ressortant jusqu'à tomber sur un minerai visible. Réglable.
+const DIST_MIN_ENTREE = 7;
+
 // Génère une mine VALIDE (connexe). Plusieurs tentatives au cas où un tirage
 // échoue (trop peu de salles / non connexe) ; en dernier recours on force.
 export function genererMine(profil = {}) {
@@ -162,14 +167,18 @@ function finaliser(g, salles, cfg) {
         if (g[y][x] === ",") solExplo.push([x, y]);
   }
 
+  // Trop près de l'entrée ? (distance en cases au départ) → on n'y pose pas de minerai.
+  const loinEntree = (x, y) => Math.hypot(x - dCol, y - dLig) >= DIST_MIN_ENTREE;
+
   // PAROIS minables : les minerais classiques s'incrustent dans la ROCHE (`#`)
   // qui borde le sol d'exploration. Le héros se tient sur le sol DEVANT la paroi
   // et mine le mur (la case reste solide, la veine n'est qu'un décor par-dessus).
+  // On écarte les parois trop proches de l'entrée (brouillard → rien de visible à l'arrivée).
   const paroiSet = new Set(), parois = [];
   for (const [x, y] of solExplo) {
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const nx = x + dx, ny = y + dy;
-      if (g[ny]?.[nx] === "#") {
+      if (g[ny]?.[nx] === "#" && loinEntree(nx, ny)) {
         const cle = nx + "," + ny;
         if (!paroiSet.has(cle)) { paroiSet.add(cle); parois.push([nx, ny]); }
       }
@@ -192,7 +201,7 @@ function finaliser(g, salles, cfg) {
   if (salles.length > 1 && Math.random() < 0.2) {
     const s = salles[entier(1, salles.length - 1)];
     const cx = s.cx, cy = s.cy;
-    const entoure = g[cy]?.[cx] === "," &&
+    const entoure = g[cy]?.[cx] === "," && loinEntree(cx, cy) &&
       [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dy]) => g[cy + dy]?.[cx + dx] === ",");
     if (entoure) {
       g[cy][cx] = "#"; // pilier de roche : bloque le passage (mine-able tout autour)

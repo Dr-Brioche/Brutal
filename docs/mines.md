@@ -27,6 +27,15 @@ carte pour l'instant) mène à une **mine générée procéduralement**. La bouc
 - Le **type de salles / la génération dépend de l'endroit où l'on entre** dans la
   Profondeur (pour l'instant une seule entrée → un seul profil).
 
+**Brouillard de guerre (exploration)**
+- Dans les mines, on **ne voit qu'autour de soi** : tout le reste est dans le noir.
+  On **découvre** les cases (et les veines) en s'en approchant (rayon ~5 cases) ;
+  ce qui a été vu **reste visible** pour la durée de la visite.
+- **Aucun minerai trop près de l'entrée** (≥ 7 cases du départ) → à l'arrivée, on
+  ne voit **jamais** de filon. Ça tue l'astuce « entrer / ressortir en boucle
+  jusqu'à voir un minerai à l'écran » : pour trouver, il faut **explorer**.
+- Re-entrer régénère la mine **et** remet le brouillard à zéro.
+
 **Entrée / sortie / sauvegarde**
 - Marcher sur l'entrée `M` (monde) → **génère + charge** une mine fraîche.
 - Une **sortie** (porte) dans la mine **ramène au monde** (à l'entrée).
@@ -159,6 +168,11 @@ en phase décor.
         **Méga-gisements** rares (~1 mine/5) = **pilier de roche solide (NON
         traversable)** au **centre d'une salle** : gros filon, 8–12 coups, minerai un
         cran plus riche. (Testé sur 3000 mines : placement + connexité préservée.)
+  - [x] **Brouillard de guerre** (mines) : on ne voit qu'autour de soi (rayon 5),
+        découverte au fil des pas (`carte.vu` dans `world/carte.js`), cases non vues
+        au noir. **Aucun minerai à < 7 cases de l'entrée** → fini le farm
+        entrer/ressortir. (Testé sur 3000 mines : jamais de filon trop près, veines
+        toujours présentes ~4,7/mine.)
   - [ ] *Plus tard* : nouveaux skins de monstres (niveaux 2+), mobs rares / élites.
 
   **Reprise (Phase 3)** : codée + testée (distribution des minerais par profondeur,

@@ -12,6 +12,10 @@ export function creerCarte(zone) {
   const lignes = zone.plan;
   const largeur = lignes[0].length;
   const hauteur = lignes.length;
+  // Brouillard de guerre : dans les MINES, on ne voit qu'autour de soi. Une grille
+  // `vu` (tout caché au départ) se découvre au fil de l'exploration. Hors mine
+  // (`vu` = null), tout est visible → aucun coût.
+  const brouillard = Boolean(zone.estMine);
   return {
     nom: zone.nom,
     lignes,
@@ -23,7 +27,29 @@ export function creerCarte(zone) {
     // soient centrés sur la tuile de départ
     departX: zone.depart.colonne * TUILE - 16,
     departY: zone.depart.ligne * TUILE - 38,
+    brouillard,
+    vu: brouillard ? Array.from({ length: hauteur }, () => Array(largeur).fill(false)) : null,
   };
+}
+
+// Découvre les cases dans un rayon (en cases) autour d'un point — appelé au fil
+// des pas du héros. Sans brouillard (`vu` null), ne fait rien.
+export function revelerAutour(carte, colonne, ligne, rayon) {
+  if (!carte.vu) return;
+  const r2 = rayon * rayon;
+  for (let dy = -rayon; dy <= rayon; dy++) {
+    for (let dx = -rayon; dx <= rayon; dx++) {
+      if (dx * dx + dy * dy > r2) continue;
+      const c = colonne + dx, l = ligne + dy;
+      if (c >= 0 && l >= 0 && c < carte.largeur && l < carte.hauteur) carte.vu[l][c] = true;
+    }
+  }
+}
+
+// Une case est-elle visible ? (toujours vrai hors brouillard.)
+export function estVu(carte, colonne, ligne) {
+  if (!carte.vu) return true;
+  return Boolean(carte.vu[ligne]?.[colonne]);
 }
 
 export function tuile(carte, colonne, ligne) {
@@ -71,6 +97,12 @@ export function dessinerCarte(ctx, carte, camera, largeurVue, hauteurVue) {
 
   for (let l = l0; l <= l1; l++) {
     for (let c = c0; c <= c1; c++) {
+      // Brouillard : une case non découverte reste dans le noir total.
+      if (carte.vu && !carte.vu[l][c]) {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(c * TUILE, l * TUILE, TUILE, TUILE);
+        continue;
+      }
       dessinerTuile(ctx, tuileDef(tuile(carte, c, l)), c * TUILE, l * TUILE, c, l);
     }
   }
