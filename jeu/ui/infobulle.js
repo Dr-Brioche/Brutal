@@ -17,6 +17,17 @@ function bulle() {
   return (tip ||= document.getElementById("inv-tip"));
 }
 
+let delaiTimer = null;
+let pendingId  = null;
+let pendingEl  = null;
+let lastMX = 0, lastMY = 0;
+
+function annulerDelai() {
+  if (delaiTimer !== null) { clearTimeout(delaiTimer); delaiTimer = null; }
+  pendingId = null;
+  pendingEl = null;
+}
+
 // Source de l'équipement courant (pour colorer les pièces d'un set : vert =
 // équipée, gris = manquante). On stocke un GETTER et non l'objet slots, car il
 // est recréé au chargement d'une sauvegarde (cf. chargerInventaire).
@@ -147,14 +158,23 @@ function construire(id) {
   return true;
 }
 
-// Affiche la bulle SOUS LA SOURIS (survol).
+// Affiche la bulle SOUS LA SOURIS (survol) — avec délai de 500 ms.
 export function montrerInfobulle(id, e) {
-  if (construire(id)) suivreInfobulle(e);
+  lastMX = e.clientX; lastMY = e.clientY;
+  if (pendingId === id) return;
+  annulerDelai();
+  pendingId = id;
+  delaiTimer = setTimeout(() => {
+    delaiTimer = null;
+    if (construire(pendingId)) suivreInfobulle({ clientX: lastMX, clientY: lastMY });
+  }, 500);
 }
 
 // La bulle suit la souris en restant dans l'écran.
 export function suivreInfobulle(e) {
+  lastMX = e.clientX; lastMY = e.clientY;
   const t = bulle();
+  if (t.hidden) return;
   const m = 14;
   const r = t.getBoundingClientRect();
   let x = e.clientX + m, y = e.clientY + m;
@@ -165,19 +185,25 @@ export function suivreInfobulle(e) {
 }
 
 // Affiche la bulle À CÔTÉ d'un élément (à sa droite, ou à gauche si pas de place)
-// — pour la navigation au CLAVIER (le marchand, par ex.).
+// — pour la navigation au CLAVIER (le marchand, par ex.) — avec délai de 500 ms.
 export function montrerInfobulleEl(id, el) {
-  if (!construire(id)) return;
-  const t = bulle();
-  const r = el.getBoundingClientRect();
-  const tr = t.getBoundingClientRect();
-  const m = 10;
-  let x = r.right + m;
-  if (x + tr.width + 8 > innerWidth) x = r.left - tr.width - m; // pas de place à droite → à gauche
-  let y = r.top;
-  if (y + tr.height + 8 > innerHeight) y = innerHeight - tr.height - 8;
-  t.style.left = Math.max(8, x) + "px";
-  t.style.top = Math.max(8, y) + "px";
+  annulerDelai();
+  pendingId = id;
+  pendingEl = el;
+  delaiTimer = setTimeout(() => {
+    delaiTimer = null;
+    if (!construire(pendingId)) return;
+    const t = bulle();
+    const r = pendingEl.getBoundingClientRect();
+    const tr = t.getBoundingClientRect();
+    const m = 10;
+    let x = r.right + m;
+    if (x + tr.width + 8 > innerWidth) x = r.left - tr.width - m;
+    let y = r.top;
+    if (y + tr.height + 8 > innerHeight) y = innerHeight - tr.height - 8;
+    t.style.left = Math.max(8, x) + "px";
+    t.style.top = Math.max(8, y) + "px";
+  }, 500);
 }
 
 // Note affichée au survol d'un SLOT VIDE qui injecte des cartes de SUPPLÉANCE
@@ -187,6 +213,7 @@ export function montrerInfobulleEl(id, el) {
 // Ne montre RIEN (et masque la bulle) pour un slot sans suppléance (collier,
 // bagues, sac). `label` = intitulé affiché du slot (« Hands », « Body »…).
 export function montrerNoteSlotVide(slot, label, e) {
+  annulerDelai();
   const supp = cartesSuppleanceSlot(slot);
   const c = supp && CARTES[supp.id];
   if (!c) { cacherInfobulle(); return false; }
@@ -223,5 +250,6 @@ export function montrerNoteSlotVide(slot, label, e) {
 }
 
 export function cacherInfobulle() {
+  annulerDelai();
   bulle().hidden = true;
 }
