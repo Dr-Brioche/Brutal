@@ -922,27 +922,31 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   function tenterFuite() {
     if (phaseCiblage || combat.fini || !combat.tourJoueur || enAnimPioche) return;
     if (confirmationActive()) return;
+    // Plus il y a de monstres VIVANTS, plus la fuite est dure (chance de réussite).
+    const nMobs = combat.ennemis.filter(ennemiVivant).length;
+    const CHANCE_FUITE = { 1: 1 / 2, 2: 1 / 3, 3: 1 / 4, 4: 1 / 4, 5: 1 / 5 };
+    const reussite = CHANCE_FUITE[nMobs] ?? 1 / 5;
     demanderConfirmation(
       {
         titre: "Flee the battle?",
-        message: "You'll leave with NO rewards. Escape works only about 1 time in 3 — otherwise you just lose your turn.",
+        message: `You'll leave with NO rewards. Escape chance: ${Math.round(reussite * 100)}% (more enemies = lower) — otherwise you just lose your turn.`,
         texteOui: "Flee",
         texteNon: "Stay",
         danger: true,
       },
       () => {
         if (combat.fini || !combat.tourJoueur) return; // l'état a pu changer entre-temps
-        if (Math.random() < 2 / 3) {
-          // Échec (2 chances sur 3) : on signale et on passe le tour comme un End Turn.
-          ajouterFlottant("✗ Escape failed!", heroEcran.cx, heroEcran.sommet - 24, "#ff6a58");
-          jouerSonNegatif();
-          finDeTour();
-        } else {
-          // Réussite (1 chance sur 3) : fin du combat sans vainqueur. Côté principal.js,
-          // surFin("fuite") restaure l'exploration SANS butin et rafraîchit la grâce.
+        if (Math.random() < reussite) {
+          // Réussite : fin du combat sans vainqueur. Côté principal.js, surFin("fuite")
+          // restaure l'exploration SANS butin et rafraîchit la grâce.
           fuirCombat(combat);
           jouerSonPioche();
           verifierFin(); // amorce le délai → la boucle ferme le combat (comme une victoire)
+        } else {
+          // Échec : on signale et on passe le tour comme un End Turn.
+          ajouterFlottant("✗ Escape failed!", heroEcran.cx, heroEcran.sommet - 24, "#ff6a58");
+          jouerSonNegatif();
+          finDeTour();
         }
       },
     );
