@@ -301,7 +301,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // → après une vente/confirmation, le curseur reste sur le même emplacement.
   function choixVente(selRoot = 0) {
     const choix = inventaire.objets.map((o, i) => ({
-      texte: `Sell ${ITEMS[o.id].nom}  ·  +${prixVente(o.id)} 🪙`,
+      texte: `Sell ${ITEMS[o.id].nom}${(o.quantite ?? 1) > 1 ? ` ×${o.quantite}` : ""}  ·  +${prixVente(o.id) * (o.quantite ?? 1)} 🪙`,
       itemId: o.id, // survol → bulle (on voit ce qu'on vend)
       action: () => {
         const d = ITEMS[o.id];
@@ -339,7 +339,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // ligne à retrouver dans le menu de vente au retour ; `selRoot` = retour racine.
   function menuVendreTout(selVente = 0, selRoot = 0) {
     const objets = [...inventaire.objets];
-    const total = objets.reduce((s, o) => s + prixVente(o.id), 0);
+    const total = objets.reduce((s, o) => s + prixVente(o.id) * (o.quantite ?? 1), 0);
     const retourVente = () => menuVendre(selVente, selRoot);
     ouvrirMenuMarchand("Sell EVERYTHING in your bag?", [
       { texte: "←  No, keep my items", action: () => { prochainMenu = retourVente; } },
@@ -358,9 +358,9 @@ export async function demarrerJeu(donneesInitiales = null) {
   // ligne de l'objet à retrouver dans le menu de vente au retour.
   function menuConfirmerVente(o, selVente = 0, selRoot = 0) {
     const d = ITEMS[o.id];
-    const prix = prixVente(o.id);
+    const prix = prixVente(o.id) * (o.quantite ?? 1);
     const retourVente = () => menuVendre(selVente, selRoot);
-    ouvrirMenuMarchand(`Sell ${d.nom}?`, [
+    ouvrirMenuMarchand(`Sell ${d.nom}${(o.quantite ?? 1) > 1 ? ` ×${o.quantite}` : ""}?`, [
       { texte: "←  No, keep it", action: () => { prochainMenu = retourVente; } },
       { texte: `⚠  Yes, sell · +${prix} 🪙`, action: () => {
           prochainMenu = retourVente;
@@ -531,7 +531,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (getPreference("confirmVente") && rareteAuMoins(objet.id, "rare")) {
         demanderConfirmation({
           titre: "Sell this item?",
-          message: `${d.nom} (${RARETES[d.rarete]?.nom ?? d.rarete}) · +${prixVente(objet.id)} 🪙`,
+          message: `${d.nom}${(objet.quantite ?? 1) > 1 ? ` ×${objet.quantite}` : ""} (${RARETES[d.rarete]?.nom ?? d.rarete}) · +${prixVente(objet.id) * (objet.quantite ?? 1)} 🪙`,
           texteOui: "Sell it",
           texteNon: "Keep it",
         }, vendre);

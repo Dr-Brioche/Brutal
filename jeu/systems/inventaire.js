@@ -273,7 +273,7 @@ export function ajouterOr(inv, n) { inv.or += n; }
 // Vend un objet du SAC au marchand : il quitte le sac, son prix est crédité en
 // or. Renvoie le prix obtenu.
 export function vendreObjet(inv, objet) {
-  const prix = prixVente(objet.id);
+  const prix = prixVente(objet.id) * (objet.quantite ?? 1);
   retirerObjet(inv, objet);
   inv.or += prix;
   return prix;
