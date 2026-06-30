@@ -97,15 +97,45 @@ export function dessinerCarte(ctx, carte, camera, largeurVue, hauteurVue) {
 
   for (let l = l0; l <= l1; l++) {
     for (let c = c0; c <= c1; c++) {
-      // Brouillard : une case non découverte reste dans le noir total.
-      if (carte.vu && !carte.vu[l][c]) {
-        ctx.fillStyle = "#000";
-        ctx.fillRect(c * TUILE, l * TUILE, TUILE, TUILE);
-        continue;
-      }
       dessinerTuile(ctx, tuileDef(tuile(carte, c, l)), c * TUILE, l * TUILE, c, l);
     }
   }
+}
+
+// Brouillard de guerre LISSE. On peint un masque basse résolution (1 px = 1 case)
+// dans un canvas à part — chaque case reçoit une opacité de noir : 255 = inexploré,
+// 0 = en pleine lumière (près du héros), et un dégradé entre les deux pour les zones
+// explorées hors de la vue proche. On étire ensuite ce masque sur la carte AVEC le
+// lissage du canvas → les bords deviennent de vrais dégradés, plus de gros pixels.
+//
+// `ctxFog` est un contexte 2D d'un canvas de taille largeur×hauteur (cases), fourni
+// et conservé par l'appelant (principal.js). `heroCol/heroLig` = case du héros.
+const DIM_MEMOIRE = 0.5; // assombrissement des zones explorées hors de la lampe (0..1)
+const R_CLAIR = 2.2;     // rayon (cases) en pleine lumière autour du héros
+const R_FONDU = 5.2;     // rayon (cases) où l'on atteint l'assombrissement « mémoire »
+
+export function peindreMasqueBrouillard(ctxFog, carte, heroCol, heroLig) {
+  const W = carte.largeur, H = carte.hauteur;
+  const img = ctxFog.createImageData(W, H);
+  const data = img.data;
+  for (let l = 0; l < H; l++) {
+    for (let c = 0; c < W; c++) {
+      const i = (l * W + c) * 4;
+      let alpha;
+      if (!carte.vu[l][c]) {
+        alpha = 255; // inexploré : noir
+      } else {
+        const d = Math.hypot(c - heroCol, l - heroLig);
+        let k; // 0 = pleine lumière, 1 = sombre « mémoire »
+        if (d <= R_CLAIR) k = 0;
+        else if (d >= R_FONDU) k = 1;
+        else k = (d - R_CLAIR) / (R_FONDU - R_CLAIR);
+        alpha = Math.round(k * DIM_MEMOIRE * 255);
+      }
+      data[i] = 0; data[i + 1] = 0; data[i + 2] = 0; data[i + 3] = alpha;
+    }
+  }
+  ctxFog.putImageData(img, 0, 0);
 }
 
 // Peint UNE tuile « au feutre » d'après sa définition (style + couleurs).

@@ -5,7 +5,7 @@ import { clavier } from "./core/clavier.js";
 import { chargerImage } from "./core/sprites.js";
 import { creerCamera, mettreAJourCamera } from "./core/camera.js";
 import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js";
-import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, revelerAutour, estVu, TUILE } from "./world/carte.js";
+import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, revelerAutour, estVu, peindreMasqueBrouillard, TUILE } from "./world/carte.js";
 import { genererMine } from "./world/mine.js";
 import { CITY, ZONES } from "./data/zones.js";
 import { tuileDef, estPorte } from "./data/tuiles.js";
@@ -88,6 +88,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   let veineProche = null;      // veine à portée de minage (surbrillée en doré)
   let minage = null;           // minage en cours { veine, t, duree } : fige le héros
   const RAYON_VUE = 5;         // brouillard de guerre (mine) : rayon de découverte, en cases
+  let fogCanvas = null, fogCtx = null; // masque basse résolution du brouillard (1 px = 1 case), réutilisé
   let carte = creerCarte(CITY);
   let rencontres = creerRencontres();
   prechargerFonds(zoneActuelle);                // fonds de combat prêts en cache
@@ -835,6 +836,26 @@ export async function demarrerJeu(donneesInitiales = null) {
     }
   }
 
+  // Brouillard de guerre LISSE (mine) : on peint un masque 1 px = 1 case (peindre…
+  // dans carte.js) puis on l'ÉTIRE sur la carte avec le lissage → dégradés doux au
+  // lieu de gros carrés noirs. Dessiné en DERNIER (par-dessus tuiles + veines + héros)
+  // pour assombrir tout ce qui est loin ; le héros, lui, est toujours en pleine lumière.
+  function dessinerBrouillard() {
+    if (!carte.vu) return;
+    const W = carte.largeur, H = carte.hauteur;
+    if (!fogCanvas || fogCanvas.width !== W || fogCanvas.height !== H) {
+      fogCanvas = document.createElement("canvas");
+      fogCanvas.width = W; fogCanvas.height = H;
+      fogCtx = fogCanvas.getContext("2d");
+    }
+    const ht = tuileSousLesPieds(carte, heros);
+    peindreMasqueBrouillard(fogCtx, carte, ht.colonne, ht.ligne);
+    const liss = ctx.imageSmoothingEnabled;
+    ctx.imageSmoothingEnabled = true;                          // le masque, lui, est lissé…
+    ctx.drawImage(fogCanvas, 0, 0, W, H, 0, 0, W * TUILE, H * TUILE);
+    ctx.imageSmoothingEnabled = liss;                          // … on rend le réglage d'origine (sprites nets)
+  }
+
   // Les rencontres : sur les tuiles de souterrain, un monstre invisible surgit.
   // Flash façon FF9, puis bascule sur l'écran de combat.
   async function declencherRencontre() {
@@ -994,6 +1015,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       } else {
         dessinerHeros(ctx, heros);
       }
+      dessinerBrouillard(); // par-dessus tout : assombrit le lointain en dégradé (mine)
       ctx.restore();
     },
   });

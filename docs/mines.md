@@ -31,6 +31,10 @@ carte pour l'instant) mène à une **mine générée procéduralement**. La bouc
 - Dans les mines, on **ne voit qu'autour de soi** : tout le reste est dans le noir.
   On **découvre** les cases (et les veines) en s'en approchant (rayon ~5 cases) ;
   ce qui a été vu **reste visible** pour la durée de la visite.
+- Rendu **diffus** (pas de gros carrés noirs) : un masque basse résolution (1 px =
+  1 case) est **étiré avec lissage** → de vrais **dégradés**. Effet de **lampe** :
+  pleine lumière autour du héros, qui s'assombrit en fondu vers le lointain et vers
+  l'inexploré (zones explorées hors de vue = pénombre « mémoire », pas noir total).
 - **Aucun minerai trop près de l'entrée** (≥ 7 cases du départ) → à l'arrivée, on
   ne voit **jamais** de filon. Ça tue l'astuce « entrer / ressortir en boucle
   jusqu'à voir un minerai à l'écran » : pour trouver, il faut **explorer**.
@@ -169,10 +173,11 @@ en phase décor.
         traversable)** au **centre d'une salle** : gros filon, 8–12 coups, minerai un
         cran plus riche. (Testé sur 3000 mines : placement + connexité préservée.)
   - [x] **Brouillard de guerre** (mines) : on ne voit qu'autour de soi (rayon 5),
-        découverte au fil des pas (`carte.vu` dans `world/carte.js`), cases non vues
-        au noir. **Aucun minerai à < 7 cases de l'entrée** → fini le farm
-        entrer/ressortir. (Testé sur 3000 mines : jamais de filon trop près, veines
-        toujours présentes ~4,7/mine.)
+        découverte au fil des pas (`carte.vu` dans `world/carte.js`). Rendu **lissé**
+        (`peindreMasqueBrouillard` : masque 1 px/case étiré avec lissage + effet de
+        lampe) → dégradés doux, plus de gros carrés noirs. **Aucun minerai à < 7 cases
+        de l'entrée** → fini le farm entrer/ressortir. (Testé sur 3000 mines : jamais
+        de filon trop près, veines toujours présentes ~4,7/mine.)
   - [ ] *Plus tard* : nouveaux skins de monstres (niveaux 2+), mobs rares / élites.
 
   **Reprise (Phase 3)** : codée + testée (distribution des minerais par profondeur,
