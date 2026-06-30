@@ -152,27 +152,52 @@ function finaliser(g, salles, cfg) {
   let dCol = px, dLig = py + 1;
   if (g[dLig]?.[dCol] !== ",") { dCol = px + 1; dLig = py; }
 
-  // Veines : sur des cases sol des salles d'EXPLORATION (pas la salle d'entrée),
-  // pour donner un but à l'exploration. Chacune : type au hasard + 2..5 coups.
-  const candidates = [];
+  // Cases SOL des salles d'EXPLORATION (pas la salle d'entrée) : sert au passage
+  // de descente et au méga-gisement.
+  const solExplo = [];
   for (let i = 1; i < salles.length; i++) {
     const s = salles[i];
     for (let y = s.y; y < s.y + s.h; y++)
       for (let x = s.x; x < s.x + s.w; x++)
-        if (g[y][x] === ",") candidates.push([x, y]);
+        if (g[y][x] === ",") solExplo.push([x, y]);
   }
-  melanger(candidates);
+
+  // PAROIS minables : les minerais classiques s'incrustent dans la ROCHE (`#`)
+  // qui borde le sol d'exploration. Le héros se tient sur le sol DEVANT la paroi
+  // et mine le mur (la case reste solide, la veine n'est qu'un décor par-dessus).
+  const paroiSet = new Set(), parois = [];
+  for (const [x, y] of solExplo) {
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy;
+      if (g[ny]?.[nx] === "#") {
+        const cle = nx + "," + ny;
+        if (!paroiSet.has(cle)) { paroiSet.add(cle); parois.push([nx, ny]); }
+      }
+    }
+  }
+  melanger(parois);
   const nb = entier(cfg.nbVeines[0], cfg.nbVeines[1]);
   const veines = [];
-  for (let i = 0; i < nb && i < candidates.length; i++) {
-    const [x, y] = candidates[i];
+  for (let i = 0; i < nb && i < parois.length; i++) {
+    const [x, y] = parois[i];
     veines.push({ col: x, lig: y, type: tirerMinerai(cfg.niveau, cfg.materiaux), coups: entier(2, 5) });
   }
 
+  // MÉGA-GISEMENT (rare) : un gros filon au CENTRE d'une salle d'exploration, posé
+  // au milieu du sol. Beaucoup de coups, minerai un cran plus riche. ~1 mine sur 5.
+  let megaTile = null;
+  if (salles.length > 1 && Math.random() < 0.2) {
+    const s = salles[entier(1, salles.length - 1)];
+    if (g[s.cy]?.[s.cx] === ",") {
+      veines.push({ col: s.cx, lig: s.cy, type: tirerMinerai(cfg.niveau + 1, cfg.materiaux), coups: entier(8, 12), mega: true });
+      megaTile = [s.cx, s.cy];
+    }
+  }
+
   // Passage de descente vers l'étage suivant : présent selon la chance de l'étage.
-  // Posé sur une case sol d'une salle d'exploration LIBRE (pas sur une veine), tuile `>`.
+  // Posé sur une case sol d'exploration LIBRE (pas sur le méga-gisement), tuile `>`.
   if (Math.random() * 100 < chanceDescente(cfg.niveau)) {
-    const libres = candidates.filter(([x, y]) => !veines.some((v) => v.col === x && v.lig === y));
+    const libres = solExplo.filter(([x, y]) => !(megaTile && x === megaTile[0] && y === megaTile[1]));
     if (libres.length) {
       const [x, y] = libres[entier(0, libres.length - 1)];
       g[y][x] = ">";

@@ -805,15 +805,30 @@ export async function demarrerJeu(donneesInitiales = null) {
   function dessinerVeine(ctx, v) {
     const x = v.col * TUILE, y = v.lig * TUILE;
     const col = itemDef(v.type)?.icone ?? "#aaa";
-    ctx.fillStyle = "#241f1a"; // gangue (roche sombre)
-    ctx.fillRect(x + 5, y + 7, TUILE - 10, TUILE - 11);
-    ctx.fillStyle = col;       // pépites de minerai
-    ctx.fillRect(x + 9, y + 11, 5, 5);
-    ctx.fillRect(x + 18, y + 13, 6, 6);
-    ctx.fillRect(x + 13, y + 19, 4, 4);
+    if (v.mega) {
+      // Méga-gisement : déborde la case, plus de pépites + éclats brillants.
+      ctx.fillStyle = "#1c1813"; // gangue large
+      ctx.fillRect(x - 3, y - 2, TUILE + 6, TUILE + 3);
+      ctx.fillStyle = col;       // gros amas de minerai
+      ctx.fillRect(x + 3, y + 5, 9, 9);
+      ctx.fillRect(x + 17, y + 4, 10, 10);
+      ctx.fillRect(x + 8, y + 17, 8, 8);
+      ctx.fillRect(x + 20, y + 18, 8, 8);
+      ctx.fillStyle = "#fff6d8"; // reflets
+      ctx.fillRect(x + 6, y + 8, 2, 2);
+      ctx.fillRect(x + 20, y + 7, 2, 2);
+    } else {
+      ctx.fillStyle = "#241f1a"; // gangue (roche sombre)
+      ctx.fillRect(x + 5, y + 7, TUILE - 10, TUILE - 11);
+      ctx.fillStyle = col;       // pépites de minerai
+      ctx.fillRect(x + 9, y + 11, 5, 5);
+      ctx.fillRect(x + 18, y + 13, 6, 6);
+      ctx.fillRect(x + 13, y + 19, 4, 4);
+    }
     if (v === veineProche) {   // à portée de minage → liseré doré
       ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 2;
-      ctx.strokeRect(x + 4, y + 6, TUILE - 8, TUILE - 10);
+      const m = v.mega ? 3 : 0;
+      ctx.strokeRect(x + 4 - m, y + 6 - m, TUILE - 8 + 2 * m, TUILE - 10 + 2 * m);
     }
   }
 
