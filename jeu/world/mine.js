@@ -183,14 +183,21 @@ function finaliser(g, salles, cfg) {
     veines.push({ col: x, lig: y, type: tirerMinerai(cfg.niveau, cfg.materiaux), coups: entier(2, 5) });
   }
 
-  // MÉGA-GISEMENT (rare) : un gros filon au CENTRE d'une salle d'exploration, posé
-  // au milieu du sol. Beaucoup de coups, minerai un cran plus riche. ~1 mine sur 5.
+  // MÉGA-GISEMENT (rare) : un gros filon au CENTRE d'une salle d'exploration. C'est
+  // un PILIER de roche (la case devient solide → il N'EST PAS traversable) ; on le
+  // mine depuis le sol autour, comme une grosse paroi. Beaucoup de coups, minerai un
+  // cran plus riche. ~1 mine sur 5. On n'autorise le pilier que si le centre est
+  // entouré de sol des 4 côtés → on peut toujours en faire le tour (connexité OK).
   let megaTile = null;
   if (salles.length > 1 && Math.random() < 0.2) {
     const s = salles[entier(1, salles.length - 1)];
-    if (g[s.cy]?.[s.cx] === ",") {
-      veines.push({ col: s.cx, lig: s.cy, type: tirerMinerai(cfg.niveau + 1, cfg.materiaux), coups: entier(8, 12), mega: true });
-      megaTile = [s.cx, s.cy];
+    const cx = s.cx, cy = s.cy;
+    const entoure = g[cy]?.[cx] === "," &&
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dy]) => g[cy + dy]?.[cx + dx] === ",");
+    if (entoure) {
+      g[cy][cx] = "#"; // pilier de roche : bloque le passage (mine-able tout autour)
+      veines.push({ col: cx, lig: cy, type: tirerMinerai(cfg.niveau + 1, cfg.materiaux), coups: entier(8, 12), mega: true });
+      megaTile = [cx, cy];
     }
   }
 

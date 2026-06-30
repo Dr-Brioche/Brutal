@@ -54,9 +54,11 @@ carte pour l'instant) mène à une **mine générée procéduralement**. La bouc
   bordent le sol d'exploration), pas au milieu du sol. On se place sur le sol
   **devant** la paroi et on mine le mur (la case reste solide, la veine n'est
   qu'un décor par-dessus). 3–6 par mine, **2 à 5 coups**.
-- **Méga-gisements** (rares, ~1 mine sur 5) : un **gros filon au centre d'une
-  salle**, posé au milieu du sol. Aspect plus gros, **8 à 12 coups**, minerai un
-  cran plus riche (`tirerMinerai(profondeur+1)`).
+- **Méga-gisements** (rares, ~1 mine sur 5) : un **pilier de roche au centre d'une
+  salle** — la case est **solide, NON traversable** ; on le mine en faisant le tour.
+  Aspect plus gros, **8 à 12 coups**, minerai un cran plus riche
+  (`tirerMinerai(profondeur+1)`). Placé seulement si le centre est entouré de sol
+  des 4 côtés (on peut toujours en faire le tour → connexité préservée).
 - Miner joue une **légère animation** + un **court temps où l'on ne peut pas
   bouger**.
 - Un filon épuisé **disparaît** et ne donne plus rien.
@@ -82,9 +84,9 @@ en monde jouable. **On ne touche donc pas au moteur** — on **fabrique** un obj
 - **Entrée** : marcher sur `M` (monde) déclenche la génération + le chargement
   (variante de `allerVersZone` qui accepte une zone-objet, pas seulement un id).
 - **Veines** : objets `{ col, lig, type, coups, mega? }` posés par le générateur,
-  gérés comme les points d'intérêt (proximité + interaction). Les classiques sont
-  sur des cases **roche** (`#`) bordant le sol ; le méga-gisement (`mega:true`) est
-  sur une case **sol** (`,`) au centre d'une salle.
+  gérés comme les points d'intérêt (proximité + interaction). Toutes sont sur des
+  cases **roche** (`#`) : les classiques sur les parois bordant le sol ; le
+  méga-gisement (`mega:true`) est un **pilier solide** au centre d'une salle.
 - **Profil de zone** : un objet de config (rareté, tables, profil de salles) passé
   au générateur → toute la variété et les futures mécaniques passent par là.
 
@@ -154,8 +156,9 @@ en phase décor.
         de niveau supérieur viendront avec de nouveaux skins.
   - [x] **Placement des veines revu** : minerais classiques **dans les parois** (roche
         `#` bordant le sol — on mine le mur d'en face), plus au milieu du sol.
-        **Méga-gisements** rares (~1 mine/5) au **centre d'une salle** : gros filon,
-        8–12 coups, minerai un cran plus riche. (Testé sur 3000 mines.)
+        **Méga-gisements** rares (~1 mine/5) = **pilier de roche solide (NON
+        traversable)** au **centre d'une salle** : gros filon, 8–12 coups, minerai un
+        cran plus riche. (Testé sur 3000 mines : placement + connexité préservée.)
   - [ ] *Plus tard* : nouveaux skins de monstres (niveaux 2+), mobs rares / élites.
 
   **Reprise (Phase 3)** : codée + testée (distribution des minerais par profondeur,
