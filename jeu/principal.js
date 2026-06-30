@@ -833,6 +833,21 @@ export async function demarrerJeu(donneesInitiales = null) {
       ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 2;
       const m = v.mega ? 3 : 0;
       ctx.strokeRect(x + 4 - m, y + 6 - m, TUILE - 8 + 2 * m, TUILE - 10 + 2 * m);
+      // Bulle flottante : nom du minerai (ellipse oblong au-dessus de la veine)
+      const nomV = itemDef(v.type)?.nom ?? v.type;
+      const bx = x + TUILE / 2, by = y - 13;
+      ctx.font = "bold 11px sans-serif";
+      const tw = ctx.measureText(nomV).width;
+      ctx.fillStyle = "rgba(10, 8, 5, 0.88)";
+      ctx.beginPath();
+      ctx.ellipse(bx, by, tw / 2 + 10, 9, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = "#ffe8b0";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(nomV, bx, by);
+      ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
     }
   }
 
