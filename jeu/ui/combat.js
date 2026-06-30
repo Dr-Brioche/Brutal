@@ -1328,7 +1328,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         ctx.stroke();
         ctx.fillStyle = "#ffffff";
         ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText(txt, cx, cy);
+        ctx.fillText(txt, cx, cy + 0.5);
         ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
       }
       ctx.restore();
