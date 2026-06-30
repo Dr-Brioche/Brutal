@@ -1310,6 +1310,23 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       }
       barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
         `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), 0, u.affInit);
+      // Bulle de niveau à droite de la barre de vie
+      const lvlEnn = u.e.def?.niveau;
+      if (lvlEnn != null) {
+        const bx = u.ecran.cx + BAR_L / 2 + 4;
+        const by = u.ecran.sol + VIE_SOUS + BAR_H / 2;
+        const txt = `lv${lvlEnn}`;
+        ctx.font = "bold 9px sans-serif";
+        const tw = ctx.measureText(txt).width;
+        ctx.fillStyle = "rgba(15, 10, 8, 0.85)";
+        ctx.fillRect(bx, by - 5, tw + 6, 11);
+        ctx.strokeStyle = "#6a5840"; ctx.lineWidth = 1;
+        ctx.strokeRect(bx, by - 5, tw + 6, 11);
+        ctx.fillStyle = "#c8b89a";
+        ctx.textAlign = "left"; ctx.textBaseline = "middle";
+        ctx.fillText(txt, bx + 3, by);
+        ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+      }
       ctx.restore();
       // Intention et tag NEXT hors du transform d'échelle : ecran.haut est déjà en
       // espace écran, la perspective est donc correcte pour avant et arrière-plan.
