@@ -73,6 +73,17 @@
       font: 600 clamp(11px, calc(var(--zl) * 0.0085), 18px) system-ui, sans-serif;
       color: #f3efe7; user-select: none;
     }
+    #hud-etage {
+      --zl: min(100vw, calc(100vh * 16 / 9));
+      --zh: calc(var(--zl) * 9 / 16);
+      position: fixed; z-index: 6;
+      right: calc(50vw - var(--zl) / 2 + 12px);
+      top:   calc(50vh - var(--zh) / 2 + 12px);
+      font: 600 clamp(11px, calc(var(--zl) * 0.0085), 18px) system-ui, sans-serif;
+      color: #f3efe7; user-select: none;
+      background: rgba(10, 8, 6, 0.66); border: 1px solid #3a2f26;
+      border-radius: 6px; padding: 3px 8px;
+    }
     #hud-info .hud-ligne, #hud-info .hud-min {
       display: flex; align-items: center; gap: 5px; width: max-content; min-width: 130px;
       background: rgba(10, 8, 6, 0.66); border: 1px solid #3a2f26;
@@ -1696,6 +1707,8 @@
   <canvas id="jeu" width="640" height="360" hidden></canvas>
   <!-- HUD d'exploration (haut-gauche) : niveau des mobs + minerais de l'étage -->
   <div id="hud-info" hidden></div>
+  <!-- HUD étage (haut-droite) : numéro d'étage en mine -->
+  <div id="hud-etage" hidden></div>
 
   <!-- Le fondu au noir (transitions entre zones) -->
   <div class="fondu" id="fondu"></div>

@@ -174,6 +174,7 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   const invite = document.getElementById("invite");
   const hudInfo = document.getElementById("hud-info");
+  const hudEtage = document.getElementById("hud-etage");
 
   // Parler au fanatique : un petit laïus, puis un choix (se faire soigner ou partir).
   function parlerAuFanatique() {
@@ -970,6 +971,9 @@ export async function demarrerJeu(donneesInitiales = null) {
       // pas quand un écran/menu est ouvert).
       barreMenu.hidden = Boolean(combatEnCours) || enPause;
       hudInfo.hidden = Boolean(combatEnCours) || enPause || !Array.isArray(zoneCourante.niveauMobs);
+      const enMine = Boolean(zoneCourante.estMine);
+      hudEtage.hidden = Boolean(combatEnCours) || enPause || !enMine;
+      if (enMine) hudEtage.textContent = `⛏ Floor ${zoneCourante.niveau ?? 1}`;
       // Pendant un combat, c'est lui qui pilote tout (le monde est figé)
       if (combatEnCours) { combatEnCours.mettreAJour(dt); return; }
       if (enPause) return;          // figé : menu ouvert ou transition en cours
