@@ -1239,13 +1239,16 @@ export function commencerTourHeros(combat) {
     combat.premierTourHeros = false;
     combat.derniereBrulure = combat.dernierPoisonHeros = combat.dernierFeuHeros = 0;
   } else {
-    combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + combat.chaleurRecharge);
+    // Surchauffe : on vérifie/applique les dégâts AVANT la recharge, sur la Chaleur
+    // de DÉBUT de tour. Ainsi, si c'est la recharge qui fait dépasser le seuil, on ne
+    // prend PAS les dégâts ce tour-là (grâce d'un tour au moment où l'on dépasse).
     combat.derniereBrulure = degatsSurchauffe(combat);
     if (combat.derniereBrulure > 0) {
       combat.pvHeros = Math.max(0, combat.pvHeros - combat.derniereBrulure);
       verifierFin(combat);
       if (combat.fini) return;
     }
+    combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + combat.chaleurRecharge);
     combat.dernierPoisonHeros = tiquerHeros(combat, "poison");
     combat.dernierFeuHeros = tiquerHeros(combat, "feu");
     verifierFin(combat);
