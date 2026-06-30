@@ -61,13 +61,27 @@
       z-index: 1;
     }
 
+    /* Cadre décoratif : image 16:9 à CENTRE TRANSPARENT, calée pile sur la zone de
+       jeu 16:9 (même repère que #hud-info). z-index 2 = au-dessus de la scène
+       (exploration ET combat, dessinées sur le canvas z1), SOUS toute l'interface
+       (HUD z6, cartes de combat, menus) qui reste donc lisible par-dessus. */
+    #cadre-jeu {
+      --zl: min(100vw, calc(100vh * 16 / 9));
+      --zh: calc(var(--zl) * 9 / 16);
+      position: fixed; z-index: 2; pointer-events: none;
+      left: calc(50vw - var(--zl) / 2);
+      top:  calc(50vh - var(--zh) / 2);
+      width: var(--zl); height: var(--zh);
+      background: url("images/cadre-jeu.png") center / 100% 100% no-repeat;
+    }
+
     /* HUD d'exploration : calé sur le COIN HAUT-GAUCHE du cadre 16:9 (même repère
        que #fond-combat), pas sur la fenêtre. Niveau des mobs + minerais de l'étage. */
     #hud-info {
       --zl: min(100vw, calc(100vh * 16 / 9));
       --zh: calc(var(--zl) * 9 / 16);
       position: fixed; z-index: 6;
-      left: calc(50vw - var(--zl) / 2 + 12px);
+      left: calc(50vw - var(--zl) / 2 + var(--zl) * 0.045 + 6px); /* dans l'ouverture du cadre */
       top:  calc(50vh - var(--zh) / 2 + 52px); /* sous le bouton debug "Remarque" (retiré au build final) */
       display: flex; flex-direction: column; gap: 4px;
       font: 600 clamp(11px, calc(var(--zl) * 0.0085), 18px) system-ui, sans-serif;
@@ -77,8 +91,8 @@
       --zl: min(100vw, calc(100vh * 16 / 9));
       --zh: calc(var(--zl) * 9 / 16);
       position: fixed; z-index: 6;
-      right: calc(50vw - var(--zl) / 2 + 12px);
-      top:   calc(50vh - var(--zh) / 2 + 12px);
+      right: calc(50vw - var(--zl) / 2 + var(--zl) * 0.045 + 6px); /* dans l'ouverture du cadre */
+      top:   calc(50vh - var(--zh) / 2 + var(--zh) * 0.05 + 6px);
       font: 600 clamp(11px, calc(var(--zl) * 0.0085), 18px) system-ui, sans-serif;
       color: #f3efe7; user-select: none;
       background: rgba(10, 8, 6, 0.66); border: 1px solid #3a2f26;
@@ -1312,7 +1326,11 @@
 
     /* ---- La barre de menu (bas-droite, façon micro-menu RPG) ---- */
     .barre-menu {
-      position: fixed; right: 14px; bottom: 14px; z-index: 11;
+      --zl: min(100vw, calc(100vh * 16 / 9));
+      --zh: calc(var(--zl) * 9 / 16);
+      position: fixed; z-index: 11;
+      right:  calc(50vw - var(--zl) / 2 + var(--zl) * 0.045 + 6px); /* dans l'ouverture du cadre */
+      bottom: calc(50vh - var(--zh) / 2 + var(--zh) * 0.05 + 6px);
       display: flex; gap: 6px; padding: 6px;
       background: rgba(20, 18, 26, 0.82);
       border: 1px solid #45424f; border-radius: 10px;
@@ -1744,6 +1762,8 @@
 
   <!-- L'écran du jeu : 640x360 pixels internes, agrandi sans flou -->
   <canvas id="jeu" width="640" height="360" hidden></canvas>
+  <!-- Cadre décoratif posé sur la zone 16:9 (centre transparent : le jeu passe au travers) -->
+  <div id="cadre-jeu" hidden></div>
   <!-- HUD d'exploration (haut-gauche) : niveau des mobs + minerais de l'étage -->
   <div id="hud-info" hidden></div>
   <!-- HUD étage (haut-droite) : numéro d'étage en mine -->
@@ -2078,6 +2098,7 @@
       lancer(donnees) {
         ecranTitre.hidden = true;
         canvas.hidden = false;
+        document.getElementById("cadre-jeu").hidden = false; // cadre décoratif visible en jeu
         installerTactile(); // contrôles tactiles si on est sur écran tactile
         demarrerJeu(donnees);
       },
