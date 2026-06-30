@@ -790,15 +790,12 @@ export async function demarrerJeu(donneesInitiales = null) {
       minage = null;
       return;
     }
-    const total = inventaire.objets
-      .filter((o) => o.id === v.type)
-      .reduce((s, o) => s + (o.quantite ?? 1), 0);
     v.coups--;
     if (v.coups <= 0) {                      // filon épuisé → il disparaît
       veines = veines.filter((x) => x !== v);
-      afficherMessage(`⛏ +1 ${nom} (×${total}) — vein depleted`);
+      afficherMessage(`⛏ +1 ${nom} — vein depleted`);
     } else {
-      afficherMessage(`⛏ +1 ${nom} (×${total})`);
+      afficherMessage(`⛏ +1 ${nom}`);
     }
     minage = null;
   }
