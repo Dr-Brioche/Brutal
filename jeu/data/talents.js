@@ -85,6 +85,16 @@ export const TALENTS = {
     effet: { deuxMains: 1 },
     description: "Wield massive two-handed weapons (greataxes, greatswords) — too heavy to equip without it.",
   },
+
+  // ⚠ TODO EXPORT FINAL : talent de TEST à RETIRER avant le build Steam.
+  // Gratuit, ON/OFF (toggle), désactivé par défaut : annule TOUTE rencontre de monstre.
+  noRencontre: {
+    id: "noRencontre", nom: "No Encounters (TEST)",
+    x: 0, y: 4, cout: 0, requis: [],
+    toggle: true, test: true,
+    effet: { sansRencontre: 1 },
+    description: "TEST ONLY — toggle to cancel all monster encounters (free, off by default).",
+  },
 };
 
 // Taille de la grille (pour dimensionner l'écran).
@@ -105,6 +115,7 @@ const NOM_EFFET = {
   pioche: "Cards drawn / turn",
   agilite: "Attack speed",
   evasion: "Fewer encounters",
+  sansRencontre: "Cancel all encounters (TEST)",
   sacSecondaire: "Second bag slot",
   maitrise: "Ancestral Mastery",
   slots: "Mastery slots",

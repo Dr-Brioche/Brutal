@@ -920,7 +920,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       verifierPorte(tuile);
       verifierEntreeMine(tuile); // marcher sur `M` descend dans une mine générée
       verifierDescente(tuile);   // marcher sur `>` descend d'un étage (en mine)
-      if (!minage && avancerRencontres(rencontres, tuile, heros.evasionRencontre || 0, zoneCourante.tauxRencontre ?? 1)) {
+      if (!minage && !heros.sansRencontre && avancerRencontres(rencontres, tuile, heros.evasionRencontre || 0, zoneCourante.tauxRencontre ?? 1)) {
         // Musique lancée immédiatement — au tout premier instant où le jeu sait
         // qu'une rencontre a lieu, avant même le flash ou la composition du groupe.
         const mc = musiqueCombat(zoneActuelle);

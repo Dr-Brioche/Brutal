@@ -45,6 +45,7 @@ export function appliquerTalents(heros) {
   heros.vitesse = VITESSE_BASE + (b.vitesse || 0);
   // Réduction des rencontres (0..0.8), alimentée par les talents type « Tunnel Sense ».
   heros.evasionRencontre = Math.min(0.8, (b.evasion || 0) / 100);
+  heros.sansRencontre = (b.sansRencontre || 0) > 0; // talent de TEST : annule TOUTE rencontre
   // Emplacements de Maîtrise débloqués (0, 3, ou 5), plafonnés au maximum absolu.
   heros.slotsMaitrise = Math.min(5, b.slots || 0);
   if (heros.pv > heros.pvMax) heros.pv = heros.pvMax;
@@ -61,4 +62,17 @@ export function debloquer(heros, id) {
   appliquerTalents(heros);
   heros.pv = Math.min(heros.pvMax, heros.pv + Math.max(0, heros.pvMax - ancienMax));
   return true;
+}
+
+// Active un nœud, ou le BASCULE si c'est un nœud `toggle` (talent de TEST gratuit
+// et réversible). Sinon, déblocage normal (dépense de points).
+export function activerOuBasculer(heros, id) {
+  const n = talentDef(id);
+  if (n?.toggle) {
+    heros.talents = heros.talents || {};
+    heros.talents[id] = heros.talents[id] ? 0 : 1; // on/off, gratuit
+    appliquerTalents(heros);
+    return true;
+  }
+  return debloquer(heros, id);
 }

@@ -5,7 +5,7 @@
 // (SVG) de prérequis à nœud. Couleur : débloqué / disponible / bloqué.
 
 import { TALENTS, TALENT_GRILLE, descEffet } from "../data/talents.js";
-import { etatNoeud, debloquer } from "../systems/talents.js";
+import { etatNoeud, debloquer, activerOuBasculer } from "../systems/talents.js";
 import { xpPourNiveau } from "../systems/progression.js";
 
 const COL_W = 92, ROW_H = 78, NODE = 46; // pas de la grille + taille d'un nœud
@@ -17,6 +17,7 @@ function iconeNoeud(n) {
   return {
     pvMax: "❤", vitesse: "👟", pioche: "🃏", agilite: "⚡", evasion: "🐾",
     chaleurSeuil: "🔥", chaleurMax: "🔥", chaleurDepart: "🔥", chaleurRecharge: "🔥",
+    sansRencontre: "🚫",
   }[k] || "★";
 }
 
@@ -80,7 +81,7 @@ export function installerTalents({ heros, surChangement, surFermer }) {
       voisin(DIRS[e.code]);
     } else if (e.code === "Space" || e.code === "Enter") {
       e.preventDefault(); e.stopPropagation();
-      if (debloquer(heros, selection)) { surChangement(); rendre(); }
+      if (activerOuBasculer(heros, selection)) { surChangement(); rendre(); }
     }
     // Échap : laissé au reste du jeu (ferme l'écran)
   }
@@ -125,7 +126,7 @@ export function installerTalents({ heros, surChangement, surFermer }) {
       b.addEventListener("mouseenter", () => decrire(n));
       b.addEventListener("click", () => {
         selection = n.id;
-        if (debloquer(heros, n.id)) surChangement();
+        if (activerOuBasculer(heros, n.id)) surChangement();
         rendre(); decrire(n);
       });
       elArbre.append(b);
