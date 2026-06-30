@@ -133,6 +133,22 @@
         radial-gradient(ellipse at 50% 55%, #2a1a10 0%, #0c0907 100%);
     }
 
+    /* ---- Bordures décoratives gauche/droite (pillarboxes sur écrans > 16:9) ---- */
+    #fond-gauche, #fond-droite {
+      --zl: min(100vw, calc(100vh * 16 / 9));
+      position: fixed; top: 0; height: 100vh;
+      width: calc((100vw - var(--zl)) / 2);
+      z-index: 0; pointer-events: none;
+    }
+    #fond-gauche {
+      left: 0;
+      background: url("images/fonds/Image-gauche.png") right center / cover no-repeat;
+    }
+    #fond-droite {
+      right: 0;
+      background: url("images/fonds/Image-droite.png") left center / cover no-repeat;
+    }
+
     [hidden] { display: none !important; }
 
     /* ---- L'écran de titre, par-dessus tout ---- */
@@ -1717,6 +1733,10 @@
   </style>
 </head>
 <body>
+  <!-- Bordures décoratives gauche/droite (visibles uniquement sur les écrans plus larges que 16:9) -->
+  <div id="fond-gauche" aria-hidden="true"></div>
+  <div id="fond-droite" aria-hidden="true"></div>
+
   <!-- Fond plein écran pour le combat : PNG cover derrière le canvas 16:9.
        Caché hors combat. Le PNG est choisi par zone (jeu/data/fonds.js) et posé
        par JS dans --fond-url ; sinon dégradé de secours. -->
