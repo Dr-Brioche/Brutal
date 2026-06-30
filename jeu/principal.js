@@ -175,6 +175,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   const invite = document.getElementById("invite");
   const hudInfo = document.getElementById("hud-info");
   const hudEtage = document.getElementById("hud-etage");
+  const veineLabel = document.getElementById("veine-label");
 
   // Parler au fanatique : un petit laïus, puis un choix (se faire soigner ou partir).
   function parlerAuFanatique() {
@@ -841,21 +842,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 2;
       const m = v.mega ? 3 : 0;
       ctx.strokeRect(x + 4 - m, y + 6 - m, TUILE - 8 + 2 * m, TUILE - 10 + 2 * m);
-      // Bulle flottante : nom du minerai (ellipse oblong au-dessus de la veine)
-      const nomV = itemDef(v.type)?.nom ?? v.type;
-      const bx = x + TUILE / 2, by = y - 13;
-      ctx.font = "bold 11px sans-serif";
-      const tw = ctx.measureText(nomV).width;
-      ctx.fillStyle = "rgba(10, 8, 5, 0.88)";
-      ctx.beginPath();
-      ctx.ellipse(bx, by, tw / 2 + 10, 9, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.fillStyle = "#ffe8b0";
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText(nomV, bx, by);
-      ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+      // (la bulle flottante est un élément DOM — voir majVeineLabel dans mettreAJour)
     }
   }
 
@@ -974,6 +961,8 @@ export async function demarrerJeu(donneesInitiales = null) {
       const enMine = Boolean(zoneCourante.estMine);
       hudEtage.hidden = Boolean(combatEnCours) || enPause || !enMine;
       if (enMine) hudEtage.textContent = `⛏ Floor ${zoneCourante.niveau ?? 1}`;
+      // Bulle de minerai masquée hors mine / en combat / en pause
+      if (Boolean(combatEnCours) || enPause || !enMine) veineLabel.hidden = true;
       // Pendant un combat, c'est lui qui pilote tout (le monde est figé)
       if (combatEnCours) { combatEnCours.mettreAJour(dt); return; }
       if (enPause) return;          // figé : menu ouvert ou transition en cours
@@ -1007,6 +996,20 @@ export async function demarrerJeu(donneesInitiales = null) {
       invite.hidden = !(zoneActuelle === "city" &&
         (fanatique.proche || marchand.proche || fontaine.proche));
       mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
+      // Bulle flottante du minerai : positionnée en CSS au-dessus de la veine
+      if (veineProche) {
+        const wx = veineProche.col * TUILE + TUILE / 2;
+        const wy = veineProche.lig * TUILE;
+        const rect = canvas.getBoundingClientRect();
+        const sx = rect.left + (wx - camera.x) * (rect.width / canvas.width);
+        const sy = rect.top  + (wy - camera.y) * (rect.height / canvas.height);
+        veineLabel.textContent = itemDef(veineProche.type)?.nom ?? veineProche.type;
+        veineLabel.style.left = sx + "px";
+        veineLabel.style.top  = sy + "px";
+        veineLabel.hidden = false;
+      } else {
+        veineLabel.hidden = true;
+      }
       alerteVie(heros.pv / heros.pvMax); // liseré rouge si la vie est basse
     },
     dessiner() {

@@ -84,6 +84,16 @@
       background: rgba(10, 8, 6, 0.66); border: 1px solid #3a2f26;
       border-radius: 6px; padding: 3px 8px;
     }
+    #veine-label {
+      position: fixed; z-index: 7; pointer-events: none; user-select: none;
+      transform: translate(-50%, calc(-100% - 6px));
+      background: rgba(10, 8, 5, 0.90); border: 1.5px solid #ffcf57;
+      border-radius: 999px;              /* forme "stade" / pill */
+      color: #ffe8b0;
+      font: bold 13px/1 system-ui, sans-serif;
+      padding: 5px 14px;
+      white-space: nowrap;
+    }
     #hud-info .hud-ligne, #hud-info .hud-min {
       display: flex; align-items: center; gap: 5px; width: max-content; min-width: 130px;
       background: rgba(10, 8, 6, 0.66); border: 1px solid #3a2f26;
@@ -1709,6 +1719,8 @@
   <div id="hud-info" hidden></div>
   <!-- HUD étage (haut-droite) : numéro d'étage en mine -->
   <div id="hud-etage" hidden></div>
+  <!-- Bulle flottante : nom du minerai à portée de minage -->
+  <div id="veine-label" hidden></div>
 
   <!-- Le fondu au noir (transitions entre zones) -->
   <div class="fondu" id="fondu"></div>
