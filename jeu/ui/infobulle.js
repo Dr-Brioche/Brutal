@@ -163,6 +163,7 @@ export function montrerInfobulle(id, e) {
   lastMX = e.clientX; lastMY = e.clientY;
   if (pendingId === id) return;
   annulerDelai();
+  bulle().hidden = true;
   pendingId = id;
   delaiTimer = setTimeout(() => {
     delaiTimer = null;
@@ -188,6 +189,7 @@ export function suivreInfobulle(e) {
 // — pour la navigation au CLAVIER (le marchand, par ex.) — avec délai de 500 ms.
 export function montrerInfobulleEl(id, el) {
   annulerDelai();
+  bulle().hidden = true;
   pendingId = id;
   pendingEl = el;
   delaiTimer = setTimeout(() => {
