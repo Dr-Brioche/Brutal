@@ -644,14 +644,10 @@ export async function demarrerJeu(donneesInitiales = null) {
       + `<span class="hud-logo">⚔</span> Lv ${z.niveauMobs[0]}–${z.niveauMobs[1]}</div>`;
     if (z.estMine) {
       const dist = distributionMinerais(z.niveau ?? 1, z.materiaux);
-      const chip = (e) => `<span class="hud-chip" data-tooltip="${itemDef(e.id).nom} — ${e.pct}%">`
-        + `<i style="background:${itemDef(e.id).icone}"></i>${e.pct}%</span>`;
-      const ligne = (familles, label) => {
-        const l = dist.filter((e) => familles.includes(itemDef(e.id)?.famille));
-        return l.length ? `<div class="hud-min" data-tooltip="${label}">${l.map(chip).join("")}</div>` : "";
-      };
-      html += ligne(["pierre", "metal"], "Metals & stone");
-      html += ligne(["gemme"], "Gems");
+      html += dist.map(e => {
+        const d = itemDef(e.id);
+        return `<div class="hud-min"><i class="hud-icone" style="background:${d.icone}"></i>${d.nom}<span class="hud-pct">${e.pct}%</span></div>`;
+      }).join("");
     }
     hudInfo.innerHTML = html;
   }
