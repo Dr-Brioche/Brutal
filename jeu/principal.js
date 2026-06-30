@@ -831,13 +831,6 @@ export async function demarrerJeu(donneesInitiales = null) {
       ctx.fillRect(x + 18, y + 13, 6, 6);
       ctx.fillRect(x + 13, y + 19, 4, 4);
     }
-    if (v === minage?.veine) { // en cours de minage → barre de progression
-      const prog = Math.min(1, minage.t / minage.duree);
-      const bx = x + 4, bw = TUILE - 8, bh = 4, by = y + TUILE - 5;
-      ctx.fillStyle = "#120f0c"; ctx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
-      ctx.fillStyle = "#2d2620"; ctx.fillRect(bx, by, bw, bh);
-      ctx.fillStyle = "#ffcf57"; ctx.fillRect(bx, by, Math.round(bw * prog), bh);
-    }
     if (v === veineProche) {   // à portée de minage → liseré doré
       ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 2;
       const m = v.mega ? 3 : 0;
@@ -1045,6 +1038,16 @@ export async function demarrerJeu(donneesInitiales = null) {
         dessinerHeros(ctx, heros);
       }
       dessinerBrouillard(); // par-dessus tout : assombrit le lointain en dégradé (mine)
+      // Barre de minage sous les pieds du héros — toujours visible, par-dessus brouillard et décors
+      if (minage) {
+        const prog = Math.min(1, minage.t / minage.duree);
+        const bw = 40, bh = 4;
+        const bx = heros.x + 32 - bw / 2;
+        const by = heros.y + 66; // 2 px sous le sprite (64 px de hauteur)
+        ctx.fillStyle = "#120f0c"; ctx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+        ctx.fillStyle = "#2d2620"; ctx.fillRect(bx, by, bw, bh);
+        ctx.fillStyle = "#ffcf57"; ctx.fillRect(bx, by, Math.round(bw * prog), bh);
+      }
       ctx.restore();
     },
   });
