@@ -23,11 +23,22 @@ export const FANATIQUE = {
 };
 
 // Marchand de TEST : permet de récupérer toutes les armes/armures gratuitement
-// pour essayer le stuff. Placeholder visuel : on réutilise le sprite du
-// fanatique en attendant un vrai sprite de marchand.
+// pour essayer le stuff. Sprite propre (nain de face qui fait tourner une pièce).
+// Il est STATIONNAIRE et regarde toujours devant : une seule ligne d'animation
+// (« passive »), jouée UNE fois de temps en temps (cf. `passif`) — le reste du
+// temps il reste sur la frame de repos (0). Grille : bande horizontale de 8 cases.
 export const MARCHAND = {
   id: "marchand",
   nom: "Renaud",
-  planche: FANATIQUE.planche,
-  sprite: FANATIQUE.sprite,
+  planche: "images/pnj/marchand.png",
+  sprite: {
+    caseL: 101,
+    caseH: 88,
+    anims: {
+      repos:   { frames: [0], ips: 1, boucle: true },                 // debout, immobile
+      passive: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 8, boucle: false }, // lance/rattrape la pièce
+    },
+  },
+  // Toutes les `min`–`max` secondes (aléatoire), il joue UNE fois l'animation passive.
+  passif: { anim: "passive", min: 5, max: 10 },
 };
