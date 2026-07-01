@@ -1,6 +1,8 @@
 // Un PNJ de ville : il fait les cent pas, et s'arrête pour faire face au héros
 // quand il s'approche (`pnj.proche` devient true → on peut lui parler).
 
+import { police, POLICE_NOM } from "../core/texte.js";
+
 const VITESSE = 38;        // px/s (plus lent que le héros)
 const PAUSE_BOUT = 0.8;    // pause à chaque extrémité du trajet (s)
 const DIST_PROCHE = 50;    // distance d'« accostage » (px)
@@ -116,7 +118,7 @@ export function dessinerPnj(ctx, pnj) {
     const nom = pnj.modele.nom;
     const cx = Math.round(pnj.x + s.caseL / 2);
     const cy = Math.round(pnj.y) - 2;
-    ctx.font = "bold 10px sans-serif";
+    ctx.font = police(10, POLICE_NOM);
     ctx.textAlign = "center";
     ctx.textBaseline = "bottom";
     const larg = ctx.measureText(nom).width;

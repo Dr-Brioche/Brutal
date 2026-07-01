@@ -22,6 +22,7 @@ import { setsActifs, itemDef, comboArmeActif } from "../data/items.js";
 import { bonusTalents } from "../systems/talents.js";
 import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
+import { police, POLICE_NOM } from "../core/texte.js"; // polices centrales (cf. core/texte.js)
 import { garnirCarte } from "./carte.js";
 import { alerteVie } from "./effets.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
@@ -1314,7 +1315,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const lvlEnn = u.e.def?.niveau;
       if (lvlEnn != null) {
         const txt = `lvl ${lvlEnn}`;
-        ctx.font = "bold 6px sans-serif";
+        ctx.font = police(6, POLICE_NOM);
         const tw = ctx.measureText(txt).width;
         const pw = tw + 9, ph = 9; // largeur et hauteur de la pill
         let cx = u.ecran.cx + BAR_L / 2 + 6 + pw / 2;
@@ -1366,7 +1367,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
     // Nombres flottants (dégâts/soins) AU-DESSUS des persos : gros + contour noir
     // pour rester lisibles sur n'importe quel fond. Ils montent en s'estompant.
-    ctx.font = "bold 16px ui-monospace, monospace";
+    ctx.font = police(16);
     ctx.textAlign = "center";
     ctx.lineWidth = 3.5;
     ctx.strokeStyle = "rgba(0, 0, 0, 0.9)";
@@ -1520,7 +1521,7 @@ function dessinerBarreVie(ctx, x, y, l, h, ratio, couleur, texte) {
   ctx.fillStyle = couleur;
   ctx.fillRect(x, y, l * r, h);
   if (texte) {
-    ctx.font = `bold ${Math.round(h * 0.82)}px ui-monospace, monospace`;
+    ctx.font = police(Math.round(h * 0.82));
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.lineWidth = 2.4;
@@ -1548,7 +1549,7 @@ function dessinerBouclier(ctx, cx, cy, taille, valeur) {
   ctx.lineWidth = 1;
   ctx.strokeStyle = "#bcd8f5";
   ctx.stroke();
-  ctx.font = `bold ${Math.round(taille * 0.6)}px ui-monospace, monospace`;
+  ctx.font = police(Math.round(taille * 0.6));
   ctx.fillStyle = "#fff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -1563,7 +1564,7 @@ const SORTS_GROUPE = new Set(["haste-allie"]);
 
 function dessinerIntention(ctx, intention, cx, y) {
   if (!intention) return;
-  ctx.font = "bold 12px ui-monospace, monospace";
+  ctx.font = police(12);
   ctx.textBaseline = "alphabetic";
   let icone = "⚔", couleur = "#ff8a5b";
   if (intention.type === "soigner") { icone = "💚"; couleur = "#7edf82"; }
@@ -1594,7 +1595,7 @@ function dessinerBadgeAll(ctx, x, y, w) {
   ctx.lineWidth = 1;
   ctx.strokeStyle = "#8fd6ff";
   ctx.stroke();
-  ctx.font = "bold 8px ui-monospace, monospace";
+  ctx.font = police(8);
   ctx.fillStyle = "#dff4ff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -1615,7 +1616,7 @@ function dessinerTagProchain(ctx, ecran, t) {
   ctx.lineWidth = 1;
   ctx.strokeStyle = "rgba(255, 220, 100, 0.6)";
   ctx.stroke();
-  ctx.font = "bold 7px ui-monospace, monospace";
+  ctx.font = police(7);
   ctx.fillStyle = "#1a0f00";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -1630,7 +1631,7 @@ function dessinerTagProchain(ctx, ecran, t) {
 // ce qui nuit (convention « vert = bon / rouge = mauvais pour le porteur »).
 function dessinerEtats(ctx, etats, cx, y) {
   if (!etats || etats.length === 0) return;
-  ctx.font = "bold 9px ui-monospace, monospace";
+  ctx.font = police(9);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   const espace = 26;        // écart entre deux pastilles

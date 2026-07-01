@@ -3,6 +3,7 @@
 import { lancerBoucle } from "./core/boucle.js";
 import { clavier } from "./core/clavier.js";
 import { chargerImage } from "./core/sprites.js";
+import { RES } from "./core/texte.js"; // réglages centraux : résolution + polices
 import { creerCamera, mettreAJourCamera } from "./core/camera.js";
 import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js";
 import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, revelerAutour, estVu, peindreMasqueBrouillard, TUILE } from "./world/carte.js";
@@ -53,10 +54,10 @@ const ctx = canvas.getContext("2d");
 const VUE = { l: 960, h: 540 };
 // Suréchantillonnage : le canvas a une résolution interne RES× plus grande que le
 // repère logique (VUE). Le monde reste dessiné en coordonnées 960×540, mais rendu
-// à 2× → le TEXTE (anti-aliasé par le navigateur) devient net au lieu d'être
-// agrandi en gros pixels. Les sprites, eux, gardent `imageSmoothingEnabled=false`
-// (nearest-neighbor) : leur rendu final est identique, juste calculé à 2×.
-const RES = 2;
+// à RES× → le TEXTE (anti-aliasé par le navigateur) devient net au lieu d'être
+// agrandi en gros pixels. Les sprites gardent `imageSmoothingEnabled=false`
+// (nearest-neighbor) : rendu final identique, juste calculé à RES×.
+// RES est défini dans core/texte.js (réglages centraux police + résolution).
 function ajusterEchelle() {
   canvas.width = VUE.l * RES;
   canvas.height = VUE.h * RES;

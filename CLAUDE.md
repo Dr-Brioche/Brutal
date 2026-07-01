@@ -66,6 +66,13 @@ Brutal/
   deux entrées. Y penser dès qu'on ajoute un écran, un menu ou un bouton.
   C'est aussi ce qui rendra le portage **manette** simple plus tard (le clavier
   se mappe facilement sur une manette).
+- **Texte dessiné sur le canvas** (noms de PNJ, niveau/HP des monstres, dégâts…) :
+  tout est centralisé dans **`jeu/core/texte.js`** (police + résolution). Règle :
+  pour tout nouveau texte canvas, utiliser `police(taille)` — **jamais** une
+  famille de police en dur. Ne rien faire de spécial pour la netteté : le canvas
+  est déjà rendu à `RES×` (le texte est donc net). Changer la police ou la
+  résolution de TOUT le jeu = modifier ce seul fichier. (Le texte d'interface —
+  HUD, cartes, menus, bulles — est en HTML/CSS : déjà net, indépendant de ça.)
 - GitHub Pages publie la branche `claude/epic-wright-69hom4` : c'est elle
   qui est en ligne. Pousser dessus = mettre à jour le jeu visible.
 - Les scores/sauvegardes du joueur se font en local dans le navigateur
