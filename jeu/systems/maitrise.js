@@ -45,11 +45,6 @@ export function carteMaitrisee(maitrise, carteId) {
   return compteurMaitrise(maitrise, carteId) >= SEUIL_MAITRISE;
 }
 
-export function cartesMaitrisees(maitrise) {
-  return Object.keys(maitrise.compteurs)
-    .filter((id) => carteMaitrisable(id) && carteMaitrisee(maitrise, id));
-}
-
 // Ajoute / retire une carte des slots choisis. `max` = nombre d'emplacements
 // débloqués (via les talents). Retourne false si tous les slots sont déjà
 // pleins et que la carte n'était pas déjà choisie.

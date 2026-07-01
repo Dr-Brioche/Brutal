@@ -832,6 +832,31 @@ valeurs **~1.5×** les armes à une main, chacune avec son **combo** :
 - *À venir* : navigation clavier complète, vraies icônes pixel art,
   agrandissement du sac, prix d'**achat** (le marchand de test est encore gratuit).
 
+## La Forge (pilier craft) — 1er jet (01/07/2026)
+
+L'**entrée du pilier** est en place ; le **gameplay de crafting reste à trancher**.
+
+- **Ferran le forgeron** : PNJ stationnaire en ville (rangée du marchand). Dialogue
+  de bienvenue, puis choix « ⚒ Forger » qui ouvre **la Forge**.
+- **La Forge = écran plein écran dédié** (comme le combat — cf. principe « les 3
+  piliers = écrans dédiés »). Thème braises, Échap ou ✕ pour ressortir. Contenu
+  actuel : **placeholder** (« bientôt, tu forgeras ici ton propre équipement »).
+- **PNJ de ville** : les trois (Luc, Renaud, Ferran) ont maintenant de vrais sprites
+  avec une **animation passive occasionnelle** (jouée UNE fois toutes les 3-10 s :
+  pièce lancée, coups de marteau) — pas de boucle permanente, la place respire.
+
+### Pistes de gameplay proposées (en attente de décision)
+
+1. **Forger les CARTES** : les minerais servent de réactifs pour retravailler les
+   cartes du deck (Fer = +1 dégât, minerai de feu = ajoute Brûlure…). La forge
+   devient le cœur du build deck-builder. *(La plus dans l'ADN du jeu.)*
+2. **Mini-jeu de trempe** : chauffer, puis frapper au bon moment (timing) ; la
+   qualité des coups décide de la rareté de l'objet. Risque/récompense, addictif.
+3. **Découverte de recettes** : combinaisons de minerais à expérimenter, carnet de
+   recettes à collectionner ; les minerais profonds débloquent les recettes rares.
+
+Ces pistes se combinent (ex. 1 + une touche de 2). Décision Brioche attendue.
+
 ## Progression : niveaux & arbre de talents (décision du 13/06/2026)
 
 **Séparation nette pour « ne pas tout mélanger »** :
