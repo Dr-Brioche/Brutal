@@ -23,6 +23,7 @@ import { bonusTalents } from "../systems/talents.js";
 import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 import { police, POLICE_NOM } from "../core/texte.js"; // polices centrales (cf. core/texte.js)
+import { cheminArrondi, RAYON } from "../core/style.js"; // coins arrondis centraux (cf. core/style.js)
 import { garnirCarte } from "./carte.js";
 import { alerteVie } from "./effets.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
@@ -1473,23 +1474,18 @@ function barreVieAuSol(ctx, perso, ratio, texte, couleur, etats, pierre, initRat
 function dessinerBarreInit(ctx, x, y, l, ratio) {
   const h = Math.max(2, Math.round(BAR_H / 4)); // 1/4 de la barre de vie
   const r = Math.max(0, Math.min(1, ratio));
-  ctx.fillStyle = "#000";
-  ctx.fillRect(x - 1, y - 1, l + 2, h + 2);
-  ctx.fillStyle = "#2a2218";
-  ctx.fillRect(x, y, l, h);
-  ctx.fillStyle = "#ff9a2c"; // orange (initiative)
-  ctx.fillRect(x, y, l * r, h);
-}
-
-// Tracé d'un rectangle à coins arrondis (pour les carrés de la file des tours).
-function cheminArrondi(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
+  cheminArrondi(ctx, x - 1, y - 1, l + 2, h + 2, RAYON);
+  ctx.fillStyle = "#000"; ctx.fill();
+  cheminArrondi(ctx, x, y, l, h, RAYON);
+  ctx.fillStyle = "#2a2218"; ctx.fill();
+  if (r > 0) {
+    ctx.save();
+    cheminArrondi(ctx, x, y, l, h, RAYON);
+    ctx.clip();
+    ctx.fillStyle = "#ff9a2c"; // orange (initiative)
+    ctx.fillRect(x, y, l * r, h);
+    ctx.restore();
+  }
 }
 
 // Un carré-portrait de la file : fond, tête (planche découpée au `portrait`),
@@ -1514,12 +1510,21 @@ function dessinerCarreTete(ctx, x, y, t, planche, portrait, courant, teinte) {
 
 function dessinerBarreVie(ctx, x, y, l, h, ratio, couleur, texte) {
   const r = Math.max(0, Math.min(1, ratio));
-  ctx.fillStyle = "#000";
-  ctx.fillRect(x - 1, y - 1, l + 2, h + 2);
-  ctx.fillStyle = "#3a3a3a";
-  ctx.fillRect(x, y, l, h);
-  ctx.fillStyle = couleur;
-  ctx.fillRect(x, y, l * r, h);
+  // Contour noir + fond gris, coins arrondis (cf. core/style.js).
+  cheminArrondi(ctx, x - 1, y - 1, l + 2, h + 2, RAYON);
+  ctx.fillStyle = "#000"; ctx.fill();
+  cheminArrondi(ctx, x, y, l, h, RAYON);
+  ctx.fillStyle = "#3a3a3a"; ctx.fill();
+  // Remplissage coloré, DÉCOUPÉ à la forme arrondie (bout gauche arrondi ; le bout
+  // droit suit l'arrondi quand la barre est pleine).
+  if (r > 0) {
+    ctx.save();
+    cheminArrondi(ctx, x, y, l, h, RAYON);
+    ctx.clip();
+    ctx.fillStyle = couleur;
+    ctx.fillRect(x, y, l * r, h);
+    ctx.restore();
+  }
   if (texte) {
     ctx.font = police(Math.round(h * 0.82));
     ctx.textAlign = "center";

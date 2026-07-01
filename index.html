@@ -38,6 +38,10 @@
     /* ---- Réglages de base ---- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    /* RÈGLE : toute fenêtre / cadre / zone de texte a des COINS ARRONDIS. Utiliser
+       border-radius: var(--rayon) par défaut (miroir de RAYON dans core/style.js). */
+    :root { --rayon: 8px; }
+
     html, body {
       height: 100%;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;

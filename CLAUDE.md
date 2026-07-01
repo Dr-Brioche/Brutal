@@ -73,6 +73,13 @@ Brutal/
   est déjà rendu à `RES×` (le texte est donc net). Changer la police ou la
   résolution de TOUT le jeu = modifier ce seul fichier. (Le texte d'interface —
   HUD, cartes, menus, bulles — est en HTML/CSS : déjà net, indépendant de ça.)
+- **Coins arrondis PAR DÉFAUT** : toute fenêtre, cadre ou zone de texte a des
+  coins arrondis (jamais de rectangle à angles vifs pour un élément d'interface).
+  Centralisé dans **`jeu/core/style.js`** (constante `RAYON` + helper
+  `cheminArrondi`) et, côté CSS, la variable `--rayon` (dans `index.html`).
+  Règle : en CSS `border-radius: var(--rayon)` ; sur le canvas
+  `cheminArrondi(ctx, x, y, w, h)` puis `fill()`/`stroke()` — jamais un `fillRect`
+  nu. Changer l'arrondi de tout le jeu = modifier `RAYON` et `--rayon`.
 - GitHub Pages publie la branche `claude/epic-wright-69hom4` : c'est elle
   qui est en ligne. Pousser dessus = mettre à jour le jeu visible.
 - Les scores/sauvegardes du joueur se font en local dans le navigateur
