@@ -81,7 +81,11 @@
          DÉBORDE exprès (haut/bas coupés, gauche/droite sur les bordures latérales). */
       --fw: calc(var(--zl) * 1.053);
       --fh: calc(var(--zh) * 1.091);
-      position: fixed; z-index: 2; pointer-events: none;
+      /* z-index 23 : le cadre est la DÉCORATION DE LA FENÊTRE, il borde donc TOUT
+         (scène, combat 12, forge 15, fondu 17, flash de combat 18, menus 16/20/22) ;
+         il reste SOUS les popups flottants (messages 25, bulles/aperçus 30+).
+         pointer-events:none → il ne bloque jamais un clic. */
+      position: fixed; z-index: 23; pointer-events: none;
       left: calc(50vw - var(--fw) / 2);
       top:  calc(50vh - var(--fh) / 2);
       width: var(--fw); height: var(--fh);
