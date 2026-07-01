@@ -51,9 +51,15 @@ const ctx = canvas.getContext("2d");
 // EXACTEMENT la même taille quelle que soit cette valeur (sa scène 640×360 remplit
 // toujours le cadre) → on peut régler le zoom d'exploration sans toucher au combat.
 const VUE = { l: 960, h: 540 };
+// Suréchantillonnage : le canvas a une résolution interne RES× plus grande que le
+// repère logique (VUE). Le monde reste dessiné en coordonnées 960×540, mais rendu
+// à 2× → le TEXTE (anti-aliasé par le navigateur) devient net au lieu d'être
+// agrandi en gros pixels. Les sprites, eux, gardent `imageSmoothingEnabled=false`
+// (nearest-neighbor) : leur rendu final est identique, juste calculé à 2×.
+const RES = 2;
 function ajusterEchelle() {
-  canvas.width = VUE.l;
-  canvas.height = VUE.h;
+  canvas.width = VUE.l * RES;
+  canvas.height = VUE.h * RES;
   // Plus grand rectangle 16:9 qui tient dans la fenêtre (limité par la largeur OU
   // la hauteur selon la forme de l'écran) ; le flex du body le centre tout seul.
   const zoneL = Math.min(innerWidth, innerHeight * 16 / 9);
@@ -464,7 +470,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     }
     if (donnees.maitrise) chargerMaitrise(maitrise, donnees.maitrise);
     appliquerEquipement(heros, inventaire, planches);
-    mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
+    mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
   }
 
   const menu = installerMenu({
@@ -701,7 +707,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     surPorte = true;                 // on arrive : ne pas re-déclencher une porte…
     surEntreeMine = true;            // … ni une entrée de mine si on atterrit dessus
     surDescente = true;              // … ni un passage de descente
-    mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
+    mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
     afficherMessage(carte.nom);
     majHudInfo();                    // HUD : niveau des mobs + minerais de l'étage
     const musique = zone.musique ?? null;
@@ -989,14 +995,14 @@ export async function demarrerJeu(donneesInitiales = null) {
       // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la fontaine
       invite.hidden = !(zoneActuelle === "city" &&
         (fanatique.proche || marchand.proche || fontaine.proche));
-      mettreAJourCamera(camera, heros, carte, canvas.width, canvas.height);
+      mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
       // Bulle flottante du minerai : positionnée en CSS au-dessus de la veine
       if (veineProche) {
         const wx = veineProche.col * TUILE + TUILE / 2;
         const wy = veineProche.lig * TUILE;
         const rect = canvas.getBoundingClientRect();
-        const sx = rect.left + (wx - camera.x) * (rect.width / canvas.width);
-        const sy = rect.top  + (wy - camera.y) * (rect.height / canvas.height);
+        const sx = rect.left + (wx - camera.x) * (rect.width / VUE.l);  // VUE = repère logique
+        const sy = rect.top  + (wy - camera.y) * (rect.height / VUE.h);
         veineLabel.textContent = itemDef(veineProche.type)?.nom ?? veineProche.type;
         veineLabel.style.left = sx + "px";
         veineLabel.style.top  = sy + "px";
@@ -1007,13 +1013,14 @@ export async function demarrerJeu(donneesInitiales = null) {
       alerteVie(heros.pv / heros.pvMax); // liseré rouge si la vie est basse
     },
     dessiner() {
-      if (combatEnCours) { combatEnCours.dessiner(); return; } // la scène de combat
+      if (combatEnCours) { combatEnCours.dessiner(); return; } // la scène de combat (gère son propre repère)
+      ctx.setTransform(RES, 0, 0, RES, 0, 0); // repère logique 960×540, rendu à RES×
       ctx.fillStyle = "#0b0a08";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, VUE.l, VUE.h);
       ctx.save();
       // Tout est dessiné dans le repère du monde, décalé par la caméra
       ctx.translate(-Math.round(camera.x), -Math.round(camera.y));
-      dessinerCarte(ctx, carte, camera, canvas.width, canvas.height);
+      dessinerCarte(ctx, carte, camera, VUE.l, VUE.h);
       // Les PNJ n'existent que dans la ville. Profondeur : on dessine héros et
       // PNJ du plus « haut » (pieds les plus en arrière) au plus « bas ».
       if (zoneActuelle === "city") {
