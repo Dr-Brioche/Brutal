@@ -32,7 +32,7 @@ export const MARCHAND = {
   nom: "Renaud",
   planche: "images/pnj/marchand.png",
   sprite: {
-    caseL: 101,
+    caseL: 104,
     caseH: 88,
     anims: {
       repos:   { frames: [0], ips: 1, boucle: true },                 // debout, immobile

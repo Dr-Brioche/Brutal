@@ -124,15 +124,15 @@ export async function demarrerJeu(donneesInitiales = null) {
     xMax: 40 * TUILE - 11,
   });
   // Renaud (marchand de TEST), STATIONNAIRE près de la sortie (rangée 11).
-  // Sprite 101×88 → offsets pour le centrer sur la tuile (−35) et poser ses pieds
+  // Sprite 104×88 → offsets pour le centrer sur la tuile (−36) et poser ses pieds
   // à la même hauteur qu'avant (rangée 11,5 → −72).
   const marchand = creerPnj({
     modele: MARCHAND,
     planche: planches.get(MARCHAND.planche),
-    x: 38 * TUILE - 35,
+    x: 38 * TUILE - 36,
     y: 11 * TUILE - 72,
-    xMin: 38 * TUILE - 35,
-    xMax: 38 * TUILE - 35,
+    xMin: 38 * TUILE - 36,
+    xMax: 38 * TUILE - 36,
   });
   // FONTAINE (build de TEST) : près de la porte de sortie. On lui parle
   // pour gagner 1 niveau d'un coup → tester l'arbre de talents sans farmer.

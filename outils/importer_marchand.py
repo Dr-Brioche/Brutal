@@ -22,6 +22,7 @@ from PIL import Image, ImageFilter
 SRC = 'images/sources/marchand-source.png'
 OUT = 'images/pnj/marchand.png'
 CASE_H = 88            # hauteur cible de la case (jeu)
+CASE_L = 104           # largeur FIXE de la case (marge autour du nain le plus large)
 BY0, BY1 = 20, 212     # bande verticale de la ligne 1 (de face)
 # Colonnes (x) des 8 nains dans la source (le reste = pièce en l'air, ignoré).
 COLS = [(49,196),(235,381),(408,571),(611,770),(806,960),(993,1151),(1191,1346),(1374,1536)]
@@ -87,11 +88,18 @@ def main():
         cx = leg_cx(a, b, t, d) - a
         strip.alpha_composite(fr, (int(round(i*CWn + CWn/2 - cx)), int(round(CHn - pad - (d-t)))))
 
-    # 5) Mise à l'échelle jeu.
+    # 5) Mise à l'échelle jeu, puis recentrage dans une case de largeur FIXE
+    #    (CASE_L) : ainsi la taille de case ne bouge JAMAIS d'une régénération à
+    #    l'autre (sinon le code devrait être réajusté à chaque nouvel upload).
     scale = CASE_H / CHn
-    CW = round(CWn*scale); CH = round(CHn*scale)
-    strip.resize((CW*8, CH), Image.LANCZOS).save(OUT)
-    print(f'{OUT} : caseL={CW} caseH={CH} (8 frames)')
+    cw = round(CWn * scale)
+    scaled = strip.resize((cw*8, CASE_H), Image.LANCZOS)
+    out = Image.new('RGBA', (CASE_L*8, CASE_H), (0, 0, 0, 0))
+    for i in range(8):
+        cell = scaled.crop((i*cw, 0, (i+1)*cw, CASE_H))
+        out.alpha_composite(cell, ((CASE_L - cw)//2 + i*CASE_L, 0))
+    out.save(OUT)
+    print(f'{OUT} : caseL={CASE_L} caseH={CASE_H} (8 frames)')
 
 
 if __name__ == '__main__':
