@@ -9,12 +9,12 @@
 
 import { ITEMS } from "../data/items.js";
 import { ENNEMIS } from "../data/ennemis.js";
-import { FANATIQUE, MARCHAND } from "../data/pnj.js";
+import { FANATIQUE, MARCHAND, FORGERON } from "../data/pnj.js";
 
 // La liste DÉDOUBLONNÉE des planches nécessaires pour afficher le jeu.
 // (Même calcul que dans demarrerJeu — c'est ce qui doit être prêt avant de lancer.)
 export function planchesDuJeu() {
-  const avecPlanche = [...Object.values(ITEMS), ...ENNEMIS, FANATIQUE, MARCHAND]
+  const avecPlanche = [...Object.values(ITEMS), ...ENNEMIS, FANATIQUE, MARCHAND, FORGERON]
     .filter((o) => o.planche);
   return [...new Set(avecPlanche.map((o) => o.planche))];
 }

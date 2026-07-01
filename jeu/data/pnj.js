@@ -42,3 +42,21 @@ export const MARCHAND = {
   // Toutes les `min`–`max` secondes (aléatoire), il joue UNE fois l'animation passive.
   passif: { anim: "passive", min: 5, max: 10 },
 };
+
+// Forgeron de la ville : stationnaire, de face. Il tape au marteau (pipe qui fume)
+// de temps en temps. Lui parler ouvre la FORGE (nouvel arc de gameplay). Même grille
+// que le marchand : bande horizontale de 8 cases (ligne 1 de la planche source).
+export const FORGERON = {
+  id: "forgeron",
+  nom: "Ferran",
+  planche: "images/pnj/forgeron.png",
+  sprite: {
+    caseL: 104,
+    caseH: 88,
+    anims: {
+      repos:   { frames: [0], ips: 1, boucle: true },
+      passive: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 9, boucle: false }, // coups de marteau
+    },
+  },
+  passif: { anim: "passive", min: 3, max: 7 }, // il forge régulièrement
+};

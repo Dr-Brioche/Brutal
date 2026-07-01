@@ -466,6 +466,60 @@
       justify-content: center;
     }
 
+    /* ---- LA FORGE : espace plein écran (arc de gameplay crafting) ---- */
+    .forge {
+      position: fixed; inset: 0; z-index: 15;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .forge-zone {
+      position: relative;
+      width: min(100vw, calc(100vh * 16 / 9));
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      container-type: size;   /* pour les unités cqw (dimensions relatives à la zone) */
+      display: flex; flex-direction: column;
+      border-radius: var(--rayon);
+      color: #f3e3c4;
+      /* braises au fond + halo de forge chaud vers le bas */
+      background:
+        radial-gradient(120% 80% at 50% 100%, rgba(255,140,40,0.35) 0%, rgba(120,40,10,0.15) 35%, rgba(0,0,0,0) 65%),
+        linear-gradient(180deg, #1a120c 0%, #120b07 55%, #0a0705 100%);
+      box-shadow: inset 0 0 120px rgba(0,0,0,0.7);
+      font-family: system-ui, sans-serif;
+    }
+    .forge-entete {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 3.2cqw 3.6cqw 0;
+    }
+    .forge-titre {
+      font-size: 3.4cqw; font-weight: 800; letter-spacing: 0.02em;
+      color: #ffcf8a; text-shadow: 0 2px 10px rgba(0,0,0,0.7);
+    }
+    .forge-fermer {
+      width: 5cqw; height: 5cqw; min-width: 32px; min-height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.6cqw; color: #f3e3c4; cursor: pointer;
+      background: rgba(20,14,10,0.7); border: 1px solid #6a4a2a;
+      border-radius: var(--rayon);
+      transition: background 0.15s, transform 0.1s;
+    }
+    .forge-fermer:hover { background: rgba(120,40,10,0.6); transform: scale(1.05); }
+    .forge-contenu {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 2.4cqw;
+    }
+    .forge-enclume {
+      font-size: 12cqw; filter: drop-shadow(0 0 24px rgba(255,140,40,0.5));
+    }
+    .forge-msg {
+      text-align: center; font-size: 2.1cqw; line-height: 1.5; color: #e7d3ab;
+      max-width: 70%; text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+    .forge-aide {
+      text-align: center; padding: 0 0 2.6cqw;
+      font-size: 1.5cqw; color: #b79a6e; letter-spacing: 0.04em;
+    }
+
     /* La ZONE DE JEU : le plus grand rectangle 16:9 tenant dans la fenêtre,
        centré, calé EXACTEMENT sur la scène dessinée dans le canvas. Tout l'HUD
        (jauge, End Turn) s'y place en PROPORTIONS (unités cq = % de la zone),
@@ -1828,6 +1882,23 @@
     <div class="combat-resultat" id="combat-resultat" hidden>
       <span class="combat-resultat-texte" id="combat-resultat-texte"></span>
       <button id="combat-continuer">Continue</button>
+    </div>
+  </div>
+
+  <!-- LA FORGE : espace plein écran (nouvel arc de gameplay : le crafting).
+       Ouvert en parlant au forgeron. Contenu = placeholder pour l'instant. -->
+  <div class="forge" id="forge" hidden>
+    <div class="forge-zone">
+      <div class="forge-entete">
+        <h1 class="forge-titre">La Forge de Ferran</h1>
+        <button class="forge-fermer" id="forge-fermer" title="Quitter (Échap)">✕</button>
+      </div>
+      <div class="forge-contenu">
+        <div class="forge-enclume">⚒</div>
+        <p class="forge-msg">L'atelier crépite, prêt à l'ouvrage.<br>
+          Bientôt, tu forgeras ici ton propre équipement.</p>
+      </div>
+      <div class="forge-aide">[Échap] Quitter la forge</div>
     </div>
   </div>
 

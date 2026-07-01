@@ -34,7 +34,8 @@ import { demarrerCombat } from "./ui/combat.js";
 import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
 import { fondCombat, prechargerFonds } from "./data/fonds.js";
 import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
-import { FANATIQUE, MARCHAND } from "./data/pnj.js";
+import { FANATIQUE, MARCHAND, FORGERON } from "./data/pnj.js";
+import { installerForge, ouvrirForge, forgeActive } from "./ui/forge.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
 import { getPreference } from "./systems/preferences.js";
@@ -82,7 +83,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   ajusterEchelle(); // règle la taille du canvas + coupe le lissage
 
   // On charge toutes les planches (items équipables + ennemis + PNJ), dédoublonnées
-  const aPlanche = [...Object.values(ITEMS), ...ENNEMIS, FANATIQUE, MARCHAND].filter((o) => o.planche);
+  const aPlanche = [...Object.values(ITEMS), ...ENNEMIS, FANATIQUE, MARCHAND, FORGERON].filter((o) => o.planche);
   const chemins = [...new Set(aPlanche.map((o) => o.planche))];
   const images = await Promise.all(chemins.map(chargerImage));
   const planches = new Map(chemins.map((chemin, i) => [chemin, images[i]]));
@@ -140,6 +141,16 @@ export async function demarrerJeu(donneesInitiales = null) {
     y: 11 * TUILE - 72,
     xMin: 38 * TUILE - 36,
     xMax: 38 * TUILE - 36,
+  });
+  // Ferran le forgeron, STATIONNAIRE (rangée 11, à droite du marchand). Lui parler
+  // ouvre la FORGE (nouvel arc de gameplay). Même sprite/offsets que le marchand.
+  const forgeron = creerPnj({
+    modele: FORGERON,
+    planche: planches.get(FORGERON.planche),
+    x: 32 * TUILE - 36,
+    y: 11 * TUILE - 72,
+    xMin: 32 * TUILE - 36,
+    xMax: 32 * TUILE - 36,
   });
   // FONTAINE (build de TEST) : près de la porte de sortie. On lui parle
   // pour gagner 1 niveau d'un coup → tester l'arbre de talents sans farmer.
@@ -210,6 +221,25 @@ export async function demarrerJeu(donneesInitiales = null) {
         },
       ],
     }, () => { enPause = false; });
+  }
+
+  // Parler à Ferran le forgeron : mot de bienvenue, puis on peut ouvrir la FORGE
+  // (espace plein écran). L'atelier lui-même est encore un placeholder.
+  function parlerAuForgeron() {
+    if (dialogueActif() || combatEnCours || enPause) return;
+    enPause = true;
+    invite.hidden = true;
+    ouvrirDialogue({
+      nom: "Ferran le forgeron",
+      texte: [
+        "Bienvenue à la forge, nain. Le feu ne dort jamais, ici.",
+        "Apporte-moi minerai et volonté — ensemble, on façonnera ton acier.",
+      ],
+      choix: [
+        { texte: "⚒  Forger", action: () => ouvrirForge(() => { enPause = false; }) },
+        { texte: "Plus tard", action: () => {} },
+      ],
+    }, () => { if (!forgeActive()) enPause = false; });
   }
 
   // Parler à la fontaine (build de TEST) : monter d'un niveau d'un coup pour
@@ -605,6 +635,7 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // La fenêtre de butin (fin de combat gagné) : on récupère le loot d'un clic / Espace.
   const butinUI = installerButin();
+  installerForge(); // la forge plein écran (ouverte via le forgeron)
 
   // Échap : ferme d'abord l'écran ouvert (inventaire, deck, talents, menu pause) ;
   // si rien n'est ouvert, ouvre le menu pause (sauvegarder / quitter).
@@ -632,6 +663,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (zoneActuelle !== "city") return;
     if (fanatique.proche) { e.preventDefault(); parlerAuFanatique(); }
     else if (marchand.proche) { e.preventDefault(); parlerAuMarchand(); }
+    else if (forgeron.proche) { e.preventDefault(); parlerAuForgeron(); }
     else if (fontaine.proche) { e.preventDefault(); parlerALaFontaine(); }
   });
 
@@ -986,6 +1018,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (zoneActuelle === "city") {
         mettreAJourPnj(fanatique, dt, heros);
         mettreAJourPnj(marchand, dt, heros);
+        mettreAJourPnj(forgeron, dt, heros);
         fontaine.t += dt;
         fontaine.proche =
           Math.abs((heros.x + 32) - fontaine.cx) < 46 &&
@@ -995,7 +1028,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       veineProche = (zoneCourante.estMine && !minage) ? veineLaPlusProche() : null;
       // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la fontaine
       invite.hidden = !(zoneActuelle === "city" &&
-        (fanatique.proche || marchand.proche || fontaine.proche));
+        (fanatique.proche || marchand.proche || forgeron.proche || fontaine.proche));
       mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
       // Bulle flottante du minerai : positionnée en CSS au-dessus de la veine
       if (veineProche) {
@@ -1029,6 +1062,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           { pieds: fontaine.solY, dessiner: () => dessinerFontaine(ctx, fontaine) },
           { pieds: piedsPnj(fanatique), dessiner: () => dessinerPnj(ctx, fanatique) },
           { pieds: piedsPnj(marchand), dessiner: () => dessinerPnj(ctx, marchand) },
+          { pieds: piedsPnj(forgeron), dessiner: () => dessinerPnj(ctx, forgeron) },
           { pieds: heros.y + 54, dessiner: () => dessinerHeros(ctx, heros) },
         ];
         acteurs.sort((a, b) => a.pieds - b.pieds);
