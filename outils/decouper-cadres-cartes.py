@@ -20,6 +20,31 @@ src = Image.open(SRC).convert("RGB")
 W, H = src.size
 rgb = src.load()
 
+# Assombrit les coulures/taches CLAIRES qui pendent dans la FENÊTRE (mousse, sang…) :
+# sinon elles ressortent en « points blancs » sur les cartes SANS illustration (fond
+# noir). On ne touche qu'aux pixels clairs SUSPENDUS dans l'ouverture (transparence
+# dessous + sur un côté, OU entourés de transparence) — jamais le décor du cadre.
+# À appliquer sur le cadre FINAL (500 px de large).
+def assombrir_coulures(rgba):
+    Wf, Hf = rgba.size
+    px = rgba.load()
+    a = rgba.getchannel("A").load()
+    def transp(x, y, dx, dy, n):
+        for d in range(1, n + 1):
+            xx, yy = x + dx * d, y + dy * d
+            if 0 <= xx < Wf and 0 <= yy < Hf and a[xx, yy] < 25:
+                return True
+        return False
+    for y in range(88, 432):
+        for x in range(46, 454):
+            r, g, b, al = px[x, y]
+            if al > 40 and max(r, g, b) > 128:
+                below = transp(x, y, 0, 1, 22)
+                side = transp(x, y, -1, 0, 22) or transp(x, y, 1, 0, 22)
+                entoure = transp(x, y, -1, 0, 16) and transp(x, y, 1, 0, 16)
+                if (below and side) or entoure:
+                    px[x, y] = (12, 12, 12, al)
+
 def col_active(x, s=24): return any(max(rgb[x, y]) > s for y in range(0, H, 3))
 def ligne_active(y, x0, x1, s=24): return any(max(rgb[x, y]) > s for x in range(x0, x1, 3))
 
@@ -64,6 +89,7 @@ for i, (x0, x1) in enumerate(blocs):
     alpha = alpha.filter(ImageFilter.GaussianBlur(FLOU))
     rgba.putalpha(alpha)
     rgba = rgba.resize((LARGEUR, round(h * LARGEUR / w)), Image.LANCZOS)
+    assombrir_coulures(rgba)  # coulures claires de la fenêtre → discrètes (fond noir)
     out = f"{OUT}/{NOMS[i]}.png"
     rgba.save(out, optimize=True)
     print(f"{NOMS[i]}.png : {rgba.size[0]}x{rgba.size[1]}  {os.path.getsize(out)//1024} Ko")
