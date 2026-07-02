@@ -123,13 +123,15 @@ export async function demarrerJeu(donneesInitiales = null) {
   let menuPauseOuvert = false;     // le menu pause (Échap) est-il ouvert ?
 
   // Luc l'hérétique : arpente le couloir devant la porte de sortie (rangée 13).
+  // Sprite 104×88 → offsets pour le centrer sur la tuile (−36) et poser ses pieds
+  // au même endroit qu'avant (pieds à rangée 13,5 → −72).
   const fanatique = creerPnj({
     modele: FANATIQUE,
     planche: planches.get(FANATIQUE.planche),
-    x: 37 * TUILE - 11,
-    y: 13 * TUILE - 56,
-    xMin: 34 * TUILE - 11,
-    xMax: 40 * TUILE - 11,
+    x: 37 * TUILE - 36,
+    y: 13 * TUILE - 72,
+    xMin: 34 * TUILE - 36,
+    xMax: 40 * TUILE - 36,
   });
   // Renaud (marchand de TEST), STATIONNAIRE près de la sortie (rangée 11).
   // Sprite 104×88 → offsets pour le centrer sur la tuile (−36) et poser ses pieds

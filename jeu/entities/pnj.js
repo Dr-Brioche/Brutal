@@ -32,9 +32,15 @@ export function creerPnj({ modele, planche, x, y, xMin, xMax }) {
 
 // Fait avancer l'animation passive : décompte, puis joue l'anim UNE fois, puis
 // re-tire un délai aléatoire. Rien à faire tant que le PNJ n'a pas de `passif`.
+// JAMAIS en marche : un PNJ qui se déplace coupe sa passive (sinon le fanatique
+// « prierait » en glissant) et le décompte est gelé jusqu'à l'arrêt.
 function majPassif(pnj, dt) {
   const p = pnj.modele.passif;
   if (!p) return;
+  if (pnj.mode === "marche") {
+    if (pnj.passifActif) { pnj.passifActif = false; pnj.passifDelai = alea(p.min, p.max); }
+    return;
+  }
   if (pnj.passifActif) {
     pnj.passifT += dt;
     const a = pnj.modele.sprite.anims[p.anim];
@@ -74,11 +80,13 @@ export function mettreAJourPnj(pnj, dt, heros) {
   // Pause en bout de trajet
   if (pnj.pause > 0) { pnj.pause -= dt; pnj.mode = "repos"; return; }
 
-  // Va-et-vient
+  // Va-et-vient. La pause aux extrémités est réglable par PNJ (`modele.pauseBout`) :
+  // le fanatique s'arrête longtemps (le temps de prier), les autres brièvement.
   pnj.mode = "marche";
+  const pauseBout = pnj.modele.pauseBout ?? PAUSE_BOUT;
   pnj.x += VITESSE * dt * (pnj.direction === "droite" ? 1 : -1);
-  if (pnj.x >= pnj.xMax) { pnj.x = pnj.xMax; pnj.direction = "gauche"; pnj.pause = PAUSE_BOUT; }
-  if (pnj.x <= pnj.xMin) { pnj.x = pnj.xMin; pnj.direction = "droite"; pnj.pause = PAUSE_BOUT; }
+  if (pnj.x >= pnj.xMax) { pnj.x = pnj.xMax; pnj.direction = "gauche"; pnj.pause = pauseBout; }
+  if (pnj.x <= pnj.xMin) { pnj.x = pnj.xMin; pnj.direction = "droite"; pnj.pause = pauseBout; }
 }
 
 export function dessinerPnj(ctx, pnj) {

@@ -11,15 +11,18 @@ export const FANATIQUE = {
   nom: "Luc l'hérétique",
   planche: "images/pnj/fanatique.png",
   sprite: {
-    caseL: 55,
-    caseH: 72,
+    caseL: 104,
+    caseH: 88,
     anims: {
-      repos:        { frames: [0, 1, 2, 3, 4],   ips: 5, boucle: true },
+      repos:        { frames: [0], ips: 1, boucle: true },                    // debout, immobile
+      passive:      { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 6, boucle: false }, // il prie (mains jointes)
       marcheGauche: { frames: [8, 9, 10, 11],    ips: 8, boucle: true },
       marcheDroite: { frames: [12, 13, 14, 15],  ips: 8, boucle: true },
-      // discussion (5-7) gardée pour un futur système de dialogue
     },
   },
+  // Il prie de temps en temps — seulement à l'arrêt (jamais en marchant).
+  passif: { anim: "passive", min: 4, max: 9 },
+  pauseBout: 3.2, // longue pause aux extrémités du trajet : le temps de prier
 };
 
 // Marchand de TEST : permet de récupérer toutes les armes/armures gratuitement

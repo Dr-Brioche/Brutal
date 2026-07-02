@@ -1,79 +1,99 @@
 #!/usr/bin/env python3
-# Outil de chantier : découpe la planche du PNJ « fanatique »
+# Outil de chantier : découpe la planche du PNJ « fanatique » (moine à la croix)
 # (images/sources/fanatique-source.png) en planche de jeu propre
-# (images/pnj/fanatique.png), à l'échelle de la CARTE (petit, comme le héros).
+# (images/pnj/fanatique.png), à l'échelle de la CARTE.
 #
-# On RESPECTE le dessin : on découpe, on détoure le fond noir, on réduit — rien
-# n'est redessiné.
+# Même pipeline que importer_marchand.py / importer_forgeron.py : détourage du
+# fond blanc, anti-frange, frames alignées sur les pieds, cases FIXES.
 #
-# Disposition de la source (détectée auto) :
-#   - repos        : 5 frames (de face)
-#   - discussion   : 3 frames (de face, gestes)
-#   - marche       : 8 frames (4 vers la gauche, puis 4 vers la droite)
-# Planche finale : 16 frames en une bande, cases égales, alignées sur les pieds.
-#   repos 0-4 | discussion 5-7 | marche gauche 8-11 | marche droite 12-15
-#
-# Lancer :  python3 outils/importer_fanatique.py
+# Le fanatique fait un VA-ET-VIENT horizontal + une pose face (prière) :
+#   source ligne 1 (8 frames)  : prière de face  → cases 0-7  (repos = case 0,
+#                                animation passive occasionnelle = 0-7)
+#   source ligne 4 (4 frames)  : marche profil GAUCHE → cases 8-11
+#   source ligne 5 (4 frames)  : marche profil DROIT  → cases 12-15
+# (lignes 2-3 = marche face/dos, inutilisées : il ne se déplace qu'à l'horizontale)
+# Planche finale : 16 cases de CASE_L×CASE_H en une bande.
 
-import sys, os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from PIL import Image, ImageChops
-from importer_gobelin import masque_sprite, plages, fusionner, bbox_frame
+from PIL import Image, ImageFilter
 
-SOURCE = "images/sources/fanatique-source.png"
-SORTIE = "images/pnj/fanatique.png"
-FRAMES_ATTENDUES = [5, 3, 8]   # repos, discussion, marche (gauche+droite)
-HAUTEUR_CIBLE = 72             # hauteur d'une case (px) — échelle carte
-SEUIL_FOND = 18
+SRC = 'images/sources/fanatique-source.png'
+OUT = 'images/pnj/fanatique.png'
+CASE_H = 88
+CASE_L = 104
+# (y0, y1, [colonnes (x0, x1)]) — mesuré sur la source (fond détouré)
+LIGNES = [
+    (20, 208, [(113,213),(297,395),(475,572),(652,749),(828,925),(1004,1102),(1182,1280),(1359,1457)]),
+    (554, 715, [(119,203),(297,381),(476,559),(656,735)]),
+    (719, 883, [(121,205),(301,383),(478,560),(654,738)]),
+]
 
 
 def main():
-    src = Image.open(SOURCE).convert("RGB")
-    W, H = src.size
-    px = masque_sprite(src).load()
+    im = Image.open(SRC).convert('RGBA')
+    W, H = im.size
+    px = im.load()
 
-    rowsum = [sum(1 for x in range(W) if px[x, y]) for y in range(H)]
-    bandes = fusionner(plages(rowsum, max(rowsum) * 0.03, 20), ecart_max=30)
-    if len(bandes) != len(FRAMES_ATTENDUES):
-        raise SystemExit(f"Attendu {len(FRAMES_ATTENDUES)} rangées, trouvé {len(bandes)}")
+    # 1) Détourage : fond clair et désaturé (blanc) → transparent.
+    for y in range(H):
+        for x in range(W):
+            r, g, b, a = px[x, y]
+            if r > 224 and g > 224 and b > 224 and (max(r, g, b) - min(r, g, b)) < 18:
+                px[x, y] = (r, g, b, 0)
 
-    pad = 10
+    # 2) Érosion 1 px : mange la frange claire d'anti-aliasing du contour.
+    im.putalpha(im.split()[3].filter(ImageFilter.MinFilter(3)))
+
+    # 3) Alpha-bleed (~3 px) : la couleur bave dans le transparent voisin pour que
+    #    la réduction ne réintroduise pas de liseré blanc.
+    apx = im.load()
+    for _ in range(3):
+        spx = im.copy().load()
+        for y in range(H):
+            for x in range(W):
+                if spx[x, y][3] == 0:
+                    for dx, dy in ((1,0),(-1,0),(0,1),(0,-1),(1,1),(1,-1),(-1,1),(-1,-1)):
+                        nx, ny = x+dx, y+dy
+                        if 0 <= nx < W and 0 <= ny < H and spx[nx, ny][3] > 0:
+                            r, g, b, _ = spx[nx, ny]
+                            apx[x, y] = (r, g, b, 0)
+                            break
+
+    # 4) Bbox précise de chaque frame, dans l'ordre final (prière, gauche, droite).
+    A = im.split()[3].load()
     frames = []
-    for (y0, y1), attendu in zip(bandes, FRAMES_ATTENDUES):
-        yb0, yb1 = max(0, y0 - pad), min(H - 1, y1 + pad)
-        colsum = [sum(1 for y in range(yb0, yb1 + 1) if px[x, y]) for x in range(W)]
-        cols = fusionner(plages(colsum, max(colsum) * 0.06, 12))
-        cols = [c for c in cols if c[1] - c[0] + 1 >= 20]
-        if len(cols) != attendu:
-            raise SystemExit(f"Rangée y={y0}: attendu {attendu}, trouvé {len(cols)}")
-        for x0, x1 in cols:
-            frames.append(bbox_frame(px, x0, x1, yb0, yb1))
+    for y0, y1, cols in LIGNES:
+        for a, b in cols:
+            xmin, xmax, ymin, ymax = W, 0, y1, y0
+            for y in range(y0, y1):
+                for x in range(max(0, a-20), min(W, b+20)):
+                    if A[x, y] > 60:
+                        xmin = min(xmin, x); xmax = max(xmax, x)
+                        ymin = min(ymin, y); ymax = max(ymax, y)
+            frames.append([xmin, xmax+1, ymin, ymax+1])
 
-    rgba = src.convert("RGBA")
-    r, g, b = src.split()
-    mx = ImageChops.lighter(ImageChops.lighter(r, g), b)
-    rgba.putalpha(mx.point(lambda v: 0 if v <= SEUIL_FOND else 255))
+    # Échelle COMMUNE (d'après la frame la plus haute) + pieds posés au bas de la
+    # case → le moine garde la même taille au sol quel que soit le sens.
+    pad = 6
+    CHn = max(d - t for _, _, t, d in frames) + pad*2
+    scale = CASE_H / CHn
 
-    cw = max(x1 - x0 + 1 for x0, _, x1, _ in frames) + 8
-    ch = max(y1 - y0 + 1 for _, y0, _, y1 in frames) + 8
-    echelle = HAUTEUR_CIBLE / ch
-    tcw, tch = round(cw * echelle), HAUTEUR_CIBLE
+    def leg_cx(a, b, t, d):  # centroïde des jambes (bas 25 %) = ancre horizontale
+        y0 = int(d - (d-t)*0.25); sx = n = 0
+        for y in range(y0, d):
+            for x in range(a, b):
+                if A[x, y] > 60: sx += x; n += 1
+        return sx/n if n else (a+b)/2
 
-    planche = Image.new("RGBA", (tcw * len(frames), tch), (0, 0, 0, 0))
-    for i, (x0, y0, x1, y1) in enumerate(frames):
-        frame = rgba.crop((x0, y0, x1 + 1, y1 + 1))
-        case = Image.new("RGBA", (cw, ch), (0, 0, 0, 0))
-        case.alpha_composite(frame, ((cw - frame.width) // 2, ch - frame.height))
-        # LANCZOS : belle réduction d'un dessin détaillé vers une petite taille
-        case = case.resize((tcw, tch), Image.LANCZOS)
-        planche.alpha_composite(case, (i * tcw, 0))
-
-    os.makedirs(os.path.dirname(SORTIE), exist_ok=True)
-    planche.save(SORTIE)
-    print(f"OK -> {SORTIE}")
-    print(f"  {len(frames)} frames | case {tcw}x{tch} | planche {planche.size[0]}x{planche.size[1]}")
-    print(f"  repos 0-4 | discussion 5-7 | marche gauche 8-11 | marche droite 12-15")
+    out = Image.new('RGBA', (CASE_L*len(frames), CASE_H), (0, 0, 0, 0))
+    for i, (a, b, t, d) in enumerate(frames):
+        fr = im.crop((a, t, b, d))
+        fw, fh = round(fr.width*scale), round(fr.height*scale)
+        fr = fr.resize((fw, fh), Image.LANCZOS)
+        cx = (leg_cx(a, b, t, d) - a) * scale
+        out.alpha_composite(fr, (int(round(i*CASE_L + CASE_L/2 - cx)), CASE_H - round(pad*scale) - fh))
+    out.save(OUT)
+    print(f'{OUT} : caseL={CASE_L} caseH={CASE_H} ({len(frames)} frames : prière 0-7, gauche 8-11, droite 12-15)')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
