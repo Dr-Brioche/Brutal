@@ -68,12 +68,15 @@ Brutal/
   se mappe facilement sur une manette).
 - **PNJ — RÈGLE ABSOLUE : ils se tournent vers le héros et ils sont solides.**
   Tout PNJ (présent ou futur) doit :
-  1. **se tourner vers le héros** quand on l'aborde — 4 sens (bas/haut/gauche/droite)
-     selon d'où on vient. Sa planche fournit donc 4 frames « debout » de regard,
-     déclarées dans `sprite.regard` (`jeu/data/pnj.js`) ; l'import (`outils/importer_*.py`)
-     découpe pour ça la ligne **face** (bas), **dos** (haut) et les deux **profils**
-     (gauche/droite) de la source. La logique est dans `jeu/entities/pnj.js` (aucune
-     retouche à faire par PNJ : renseigner `regard` suffit).
+  1. **se tourner vers le héros QUAND ON LUI PARLE** (ouverture du dialogue), pas
+     juste en passant à côté — 4 sens (bas/haut/gauche/droite) selon d'où on vient.
+     Sa planche fournit donc 4 frames « debout » de regard, déclarées dans
+     `sprite.regard` (`jeu/data/pnj.js`) ; l'import (`outils/importer_*.py`) découpe
+     pour ça la ligne **face** (bas), **dos** (haut) et les deux **profils**
+     (gauche/droite) de la source. Côté code : `regarderHeros(pnj, heros)` est appelé
+     à l'ouverture de chaque dialogue (`jeu/principal.js`) ; le reste du temps le PNJ
+     garde son comportement (il s'arrête juste s'il marchait, pour ne pas traverser
+     le héros). Aucune autre retouche par PNJ : renseigner `regard` suffit.
   2. **être un obstacle** : on ne le traverse pas. Sa boîte de blocage (aux pieds)
      est ajoutée dans `obstaclesVille()` de `jeu/principal.js`, passée à
      `mettreAJourHeros`. Idem pour les objets fixes (fontaine…).

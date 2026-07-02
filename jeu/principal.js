@@ -36,7 +36,7 @@ import { fondCombat, prechargerFonds } from "./data/fonds.js";
 import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
 import { FANATIQUE, MARCHAND, FORGERON } from "./data/pnj.js";
 import { installerForge, ouvrirForge, forgeActive } from "./ui/forge.js";
-import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj } from "./entities/pnj.js";
+import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
 import { getPreference } from "./systems/preferences.js";
 
@@ -217,6 +217,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Parler au fanatique : un petit laïus, puis un choix (se faire soigner ou partir).
   function parlerAuFanatique() {
     if (dialogueActif() || combatEnCours || enPause) return;
+    regarderHeros(fanatique, heros); // il se tourne vers le héros PENDANT qu'on lui parle
     enPause = true;
     invite.hidden = true;
     ouvrirDialogue({
@@ -245,6 +246,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // (espace plein écran). L'atelier lui-même est encore un placeholder.
   function parlerAuForgeron() {
     if (dialogueActif() || combatEnCours || enPause) return;
+    regarderHeros(forgeron, heros); // il se tourne vers le héros PENDANT qu'on lui parle
     enPause = true;
     invite.hidden = true;
     ouvrirDialogue({
@@ -309,6 +311,7 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   function parlerAuMarchand() {
     if (dialogueActif() || combatEnCours || enPause) return;
+    regarderHeros(marchand, heros); // il se tourne vers le héros PENDANT qu'on lui parle
     enPause = true;
     invite.hidden = true;
     document.body.classList.add("en-boutique"); // inventaire à côté (feedback des achats)

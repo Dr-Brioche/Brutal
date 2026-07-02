@@ -6,10 +6,11 @@
 //   planche : la planche générée par outils/importer_<pnj>.py
 //   sprite  : caseL/caseH + `regard` (frame par direction) + animations
 //
-// RÈGLE ABSOLUE DES PNJ : quand le héros s'approche pour parler, le PNJ se
-// tourne vers lui (bas/haut/gauche/droite). Chaque planche fournit donc 4 frames
-// « debout » de regard, listées dans `sprite.regard`. Tout nouveau PNJ DOIT en
-// avoir (cf. le pipeline d'import : lignes face / dos / profil gauche / profil droit).
+// RÈGLE ABSOLUE DES PNJ : quand on lui PARLE (ouverture du dialogue), le PNJ se
+// tourne vers le héros (bas/haut/gauche/droite selon d'où on l'aborde) — JAMAIS
+// juste en passant à côté. Chaque planche fournit donc 4 frames « debout » de
+// regard, listées dans `sprite.regard`. Tout nouveau PNJ DOIT en avoir (cf. le
+// pipeline d'import : lignes face / dos / profil gauche / profil droit).
 
 export const FANATIQUE = {
   id: "fanatique",
@@ -18,7 +19,7 @@ export const FANATIQUE = {
   sprite: {
     caseL: 104,
     caseH: 88,
-    // Frame « debout » vers laquelle il se tourne selon d'où on l'aborde.
+    // Frame « debout » vers laquelle il se tourne quand on lui parle (selon d'où on vient).
     regard: { bas: 0, gauche: 8, droite: 12, haut: 16 },
     anims: {
       repos:        { frames: [0], ips: 1, boucle: true },                    // debout, immobile
@@ -56,7 +57,7 @@ export const MARCHAND = {
 
 // Forgeron de la ville : stationnaire, de face. Il tape au marteau (pipe qui fume)
 // de temps en temps. Lui parler ouvre la FORGE (nouvel arc de gameplay). Comme le
-// marchand, il se tourne vers le héros quand on l'aborde (regard 4 directions).
+// marchand, il se tourne vers le héros quand on lui parle (regard 4 directions).
 export const FORGERON = {
   id: "forgeron",
   nom: "Ferran",

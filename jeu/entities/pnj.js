@@ -1,5 +1,6 @@
-// Un PNJ de ville : il fait les cent pas, et s'arrête pour faire face au héros
-// quand il s'approche (`pnj.proche` devient true → on peut lui parler).
+// Un PNJ de ville : il fait les cent pas, et s'arrête quand le héros s'approche
+// (`pnj.proche` devient true → on peut lui parler). Il ne se TOURNE vers le héros
+// que lorsqu'on lui PARLE (cf. regarderHeros), jamais en passant juste à côté.
 
 import { police, POLICE_NOM } from "../core/texte.js";
 
@@ -63,25 +64,21 @@ export function mettreAJourPnj(pnj, dt, heros) {
   // fixe fait tourner sa pièce de temps en temps.
   majPassif(pnj, dt);
 
-  // Position du héros RELATIVE au PNJ. En X : centre à centre. En Y : on vise le
-  // centre de la « boîte de blocage » aux pieds (caseH-17), pour que « au-dessus »
-  // et « en dessous » soient symétriques (le héros bute à ±17 px de ce point selon
-  // qu'il aborde par le haut ou par le bas → le regard vertical est fiable).
+  // Proximité au héros (X : centre à centre ; Y : visée du centre de la boîte de
+  // blocage aux pieds, caseH-17). Sert à AFFICHER l'invite « parler » et à ARRÊTER
+  // un PNJ qui marche pour qu'il ne traverse pas le héros. IMPORTANT : le PNJ ne se
+  // TOURNE PAS vers le héros ici — il ne le fait QUE lorsqu'on lui parle, via
+  // regarderHeros (appelé par principal.js à l'ouverture du dialogue).
   const dx = (heros.x + 32) - (pnj.x + s.caseL / 2);
   const dy = (heros.y + 54) - (pnj.y + s.caseH - 17);
-
-  // Héros tout proche : le PNJ s'arrête et se TOURNE VERS LUI (règle des PNJ).
   pnj.proche = Math.abs(dx) < DIST_PROCHE && Math.abs(dy) < 40;
-  if (pnj.proche) {
-    pnj.mode = "face";
-    // Axe dominant = d'où vient le héros → direction du regard (4 sens).
-    if (Math.abs(dx) >= Math.abs(dy)) pnj.regard = dx < 0 ? "gauche" : "droite";
-    else pnj.regard = dy < 0 ? "haut" : "bas";
-    return;
-  }
 
-  // PNJ sans trajet (xMin == xMax) : il reste planté, au repos.
+  // PNJ stationnaire (xMin == xMax) : toujours de face, au repos. Rien à stopper.
   if (pnj.xMin >= pnj.xMax) { pnj.mode = "repos"; return; }
+
+  // PNJ qui fait les cent pas : proche du héros → il s'ARRÊTE (au repos), sinon il
+  // lui marcherait dessus. Il repart dès qu'on s'éloigne.
+  if (pnj.proche) { pnj.mode = "repos"; return; }
 
   // Pause en bout de trajet
   if (pnj.pause > 0) { pnj.pause -= dt; pnj.mode = "repos"; return; }
@@ -95,6 +92,20 @@ export function mettreAJourPnj(pnj, dt, heros) {
   if (pnj.x <= pnj.xMin) { pnj.x = pnj.xMin; pnj.direction = "droite"; pnj.pause = pauseBout; }
 }
 
+// Fait PIVOTER le PNJ vers le héros — À N'APPELER QUE lorsqu'on interagit avec lui
+// (ouverture du dialogue). Fige sa pose « face », tournée dans le bon sens (bas/
+// haut/gauche/droite selon d'où vient le héros). Le monde est en pause pendant le
+// dialogue → la pose reste figée sur le héros tant qu'on lui parle. Quand on ferme,
+// mettreAJourPnj reprend la main et le PNJ retrouve son comportement normal.
+export function regarderHeros(pnj, heros) {
+  const s = pnj.modele.sprite;
+  const dx = (heros.x + 32) - (pnj.x + s.caseL / 2);
+  const dy = (heros.y + 54) - (pnj.y + s.caseH - 17);
+  pnj.mode = "face";
+  if (Math.abs(dx) >= Math.abs(dy)) pnj.regard = dx < 0 ? "gauche" : "droite";
+  else pnj.regard = dy < 0 ? "haut" : "bas";
+}
+
 export function dessinerPnj(ctx, pnj) {
   if (!pnj.planche) return;
   const s = pnj.modele.sprite;
@@ -102,19 +113,8 @@ export function dessinerPnj(ctx, pnj) {
   // Quelle image dessiner ?
   let frame;
   if (pnj.mode === "face" && s.regard) {
-    const p = pnj.modele.passif;
-    if (p && pnj.passifActif && pnj.regard === "bas") {
-      // Abordé PAR EN BAS (il te fait déjà face) : il continue son anim passive
-      // de face (pièce qui tourne, coups de marteau). L'anim passive est de face :
-      // interdite dès qu'il se tourne sur le côté ou de dos → frame fixe alors.
-      const anim = s.anims[p.anim];
-      let i = Math.floor(pnj.passifT * anim.ips);
-      i = anim.boucle ? i % anim.frames.length : Math.min(i, anim.frames.length - 1);
-      frame = anim.frames[i];
-    } else {
-      // Tourné vers le héros : frame « debout » fixe selon le sens du regard.
-      frame = s.regard[pnj.regard] ?? s.regard.bas;
-    }
+    // Tourné vers le héros (on lui parle) : frame « debout » fixe selon le regard.
+    frame = s.regard[pnj.regard] ?? s.regard.bas;
   } else {
     // Sinon : animation selon ce qu'il fait. `marcheGauche/Droite` peuvent ne pas
     // exister (PNJ stationnaire) → on retombe sur `repos`.
