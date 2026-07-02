@@ -159,6 +159,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Éléments d'interface (présents dans index.html)
   const overlay = document.getElementById("combat");
   const conteneurMain = document.getElementById("combat-main");
+  // Souris : quand le pointeur QUITTE la main, on RANGE la carte survolée (elle ne
+  // reste plus agrandie en permanence). N'affecte pas un bouton sélectionné (End
+  // Turn / Flee, hors de la main) ni un drag en cours. (Retiré dans fermer() :
+  // conteneurMain est PERSISTANT — sinon un écouteur s'empilerait par combat.)
+  function surSortieMain() {
+    if (!drag && selection >= 0 && selection < combat.main.length) { selection = -1; majSelection(); }
+  }
+  conteneurMain.addEventListener("pointerleave", surSortieMain);
   const overlayPioche = document.getElementById("combat-pioche-anim");
   const boutonFin = document.getElementById("combat-fin");
   const boutonFuite = document.getElementById("combat-fuite");
@@ -394,12 +402,20 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       return;
     }
 
-    // Échap : pendant le ciblage on ANNULE (retour à la main) ; sinon on ouvre le
-    // menu pause (réglages son). Géré AVANT le verrou « tour du joueur » pour qu'on
-    // puisse mettre en pause même pendant le tour ennemi (quand ça « gueule »).
+    // Échap : pendant le ciblage on ANNULE (retour à la main). Sinon, si on est SUR
+    // UNE CARTE (tour du joueur), Échap la RANGE et pose le curseur sur « End Turn »
+    // (sans l'activer) → on revoit toute la scène. Une 2e pression (curseur plus sur
+    // une carte) ouvre le menu pause. Géré AVANT le verrou « tour du joueur » pour
+    // qu'on puisse aussi mettre en pause pendant le tour ennemi (quand ça « gueule »).
     if (e.code === "Escape") {
-      if (phaseCiblage) phaseCiblage = false;
-      else surPause?.();
+      if (phaseCiblage) { phaseCiblage = false; return; }
+      if (!combat.fini && combat.tourJoueur && !enAnimPioche &&
+          selection >= 0 && selection < combat.main.length) {
+        selection = combat.main.length; // index du bouton « End Turn » (juste surligné)
+        majSelection();
+        return;
+      }
+      surPause?.();
       return;
     }
     if (combat.fini || !combat.tourJoueur) return;
@@ -1114,6 +1130,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     window.removeEventListener("keydown", surTouche, true);
     window.removeEventListener("pointermove", surDragMove); // au cas où un drag traîne
     window.removeEventListener("pointerup", surDragUp);
+    conteneurMain.removeEventListener("pointerleave", surSortieMain);
     ctx.canvas.style.cursor = ""; // au cas où on ferme pendant un ciblage souris
     heros.pv = combat.pvHeros; // la vie persiste vers la carte
     surFin(combat.resultat);

@@ -564,6 +564,16 @@ retour). Si on valide :
 Intérêt : une **soupape** face à un groupe trop dur, au prix du butin — un choix
 **risqué** (l'échec coûte un tour) plutôt qu'une sortie garantie.
 
+### Cartes en main : agrandies puis rangées (02/07/2026)
+
+Survoler une carte (souris) ou la sélectionner (clavier) l'**agrandit** — elle passe
+même **devant les monstres** pour que le texte soit bien lisible. Elle se **range**
+dès qu'on la quitte :
+- à la **souris** : en sortant le pointeur de la main (avant, elle restait en grand) ;
+- au **clavier** : **Échap** une fois **range** la carte et pose le curseur sur
+  **End Turn** (sans l'activer) → on **revoit toute la scène** (pratique pour lire une
+  info sur un monstre). Une **2ᵉ** pression d'Échap ouvre le **menu pause**.
+
 ### Cartes « combo » (récompensent une mise en place)
 
 Plusieurs cartes ont un effet RENFORCÉ selon l'état de la cible ou du héros :
