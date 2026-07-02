@@ -94,6 +94,16 @@ Brutal/
   Règle : en CSS `border-radius: var(--rayon)` ; sur le canvas
   `cheminArrondi(ctx, x, y, w, h)` puis `fill()`/`stroke()` — jamais un `fillRect`
   nu. Changer l'arrondi de tout le jeu = modifier `RAYON` et `--rayon`.
+- **Fenêtres d'interface : classe `panneau-ui` OBLIGATOIRE.** Le cadre doré borde
+  la **zone 16:9** (letterboxée, centrée), PAS la fenêtre du navigateur. Toute
+  fenêtre flottante (menu, dialogue, inventaire, deck, talents, butin, confirmation…)
+  doit donc tenir dans l'**ouverture du cadre**, même quand la fenêtre de jeu est
+  petite. Pour ça : donner la classe **`panneau-ui`** au panneau. Un petit script
+  (bas de `index.html`) le **réduit automatiquement** (`--echelle-ui`) juste ce qu'il
+  faut pour rentrer dans l'ouverture (jamais agrandi ; pleine taille sur grand écran).
+  Variables partagées : `--zl`/`--zh` (zone) et `--ouv-x`/`--ouv-y` (marge du cadre),
+  dans `:root`. Un panneau plein écran déjà responsive (unités `cqw`, ex. la Forge)
+  n'en a PAS besoin. Sans `panneau-ui`, la fenêtre déborde sous les barres du cadre.
 - GitHub Pages publie la branche `claude/epic-wright-69hom4` : c'est elle
   qui est en ligne. Pousser dessus = mettre à jour le jeu visible.
 - Les scores/sauvegardes du joueur se font en local dans le navigateur

@@ -40,7 +40,25 @@
 
     /* RÈGLE : toute fenêtre / cadre / zone de texte a des COINS ARRONDIS. Utiliser
        border-radius: var(--rayon) par défaut (miroir de RAYON dans core/style.js). */
-    :root { --rayon: 8px; }
+    :root {
+      --rayon: 8px;
+      /* La ZONE de jeu 16:9, letterboxée et centrée dans la fenêtre. Le cadre doré
+         borde CETTE zone (pas la fenêtre). Toute l'interface doit donc tenir dedans. */
+      --zl: min(100vw, calc(100vh * 16 / 9));   /* largeur de la zone */
+      --zh: calc(var(--zl) * 9 / 16);           /* hauteur de la zone */
+      /* Marge intérieure du cadre (les barres dorées) : l'ouverture utile. */
+      --ouv-x: calc(var(--zl) * 0.05 + 8px);
+      --ouv-y: calc(var(--zh) * 0.06 + 8px);
+    }
+    /* RÉGLAGE AUTOMATIQUE DES FENÊTRES D'INTERFACE : chaque panneau (menu, dialogue,
+       inventaire, forge…) est RÉDUIT juste ce qu'il faut pour tenir dans l'ouverture
+       du cadre, quelle que soit la taille de la fenêtre (le facteur --echelle-ui est
+       calculé par le petit script en bas de page, par panneau). Sans lui : les
+       fenêtres débordaient sous les barres du cadre quand la fenêtre était petite. */
+    .panneau-ui {
+      transform: scale(var(--echelle-ui, 1));
+      transform-origin: center center;
+    }
 
     html, body {
       height: 100%;
@@ -1068,7 +1086,9 @@
     }
     .dialogue-boite {
       width: min(640px, 94vw);
-      margin-bottom: 5vh;
+      /* Calé sur le BAS de la zone 16:9 (pas de la fenêtre) : en letterbox, le bas de
+         la fenêtre est SOUS le cadre → la bulle resterait cachée. */
+      margin-bottom: calc(50vh - var(--zh) / 2 + var(--ouv-y));
       padding: 18px 20px 14px;
       background: #14121a;
       border: 1px solid #3b2030;
@@ -1076,7 +1096,7 @@
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
       display: flex;
       flex-direction: column;
-      max-height: 82vh;
+      transform-origin: bottom center; /* la réduction auto part du bas (elle reste calée) */
     }
     .dialogue-nom {
       font-weight: 800;
@@ -1092,7 +1112,9 @@
       color: #f3f4f6;
       min-height: 2.2em;
     }
-    .dialogue-choix { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; min-height: 0; scrollbar-width: thin; scrollbar-color: #3b2030 transparent; }
+    /* La LISTE d'options est bornée (et défile) : utile pour le marchand dont le
+       catalogue peut être long. Les dialogues de PNJ (2-4 choix) n'y touchent pas. */
+    .dialogue-choix { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; min-height: 0; max-height: calc(var(--zh) - 2 * var(--ouv-y) - 6.5rem); scrollbar-width: thin; scrollbar-color: #3b2030 transparent; }
     .dialogue-option {
       padding: 9px 12px;
       font-size: 0.98rem;
@@ -1184,7 +1206,7 @@
     }
     .inv-panneau {
       width: min(420px, 94vw);
-      max-height: 94vh;
+      max-height: calc(var(--zh) - 2 * var(--ouv-y));
       overflow: auto;
       padding: 16px 18px 18px;
       background: #14121a;
@@ -1480,7 +1502,7 @@
       z-index: 16;
     }
     .tal-panneau {
-      width: min(540px, 94vw); max-height: 94vh; overflow: auto;
+      width: min(540px, 94vw); max-height: calc(var(--zh) - 2 * var(--ouv-y)); overflow: auto;
       padding: 16px 18px 18px;
       background: #14121a; border: 1px solid #3b2030; border-radius: 14px;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
@@ -1656,7 +1678,7 @@
     }
     .deck-panneau {
       width: min(760px, 94vw);
-      max-height: 94vh;
+      max-height: calc(var(--zh) - 2 * var(--ouv-y));
       overflow: auto;
       padding: 16px 18px 18px;
       background: #14121a;
@@ -1913,7 +1935,7 @@
 
   <!-- Les dialogues (PNJ) : texte + choix, navigables au clavier -->
   <div class="dialogue" id="dialogue" hidden>
-    <div class="dialogue-boite">
+    <div class="dialogue-boite panneau-ui">
       <div class="dialogue-nom" id="dialogue-nom"></div>
       <p class="dialogue-texte" id="dialogue-texte"></p>
       <div class="dialogue-choix" id="dialogue-choix"></div>
@@ -1923,7 +1945,7 @@
 
   <!-- La fiche de personnage / inventaire (touche B) -->
   <div class="inventaire" id="inventaire" hidden>
-    <div class="inv-panneau">
+    <div class="inv-panneau panneau-ui">
       <div class="inv-entete">
         <span class="inv-titre">Character</span>
         <span class="inv-pv-boite">❤ <span id="inv-pv">0/0</span></span>
@@ -1954,7 +1976,7 @@
   <div class="deck" id="deck" hidden>
     <!-- Aperçu grande carte au survol (souris ou clavier) -->
     <div id="deck-carte-preview" hidden aria-hidden="true"></div>
-    <div class="deck-panneau">
+    <div class="deck-panneau panneau-ui">
       <div class="inv-entete">
         <div class="deck-onglets">
           <button class="deck-onglet deck-onglet--actif" id="deck-onglet-deck">Deck · <span id="deck-total">0</span> cards</button>
@@ -1977,7 +1999,7 @@
 
   <!-- L'arbre de talents (touche T) : niveau, XP, points, nœuds à débloquer -->
   <div class="talents" id="talents" hidden>
-    <div class="tal-panneau">
+    <div class="tal-panneau panneau-ui">
       <div class="tal-entete">
         <span class="tal-titre">Talents</span>
         <span class="tal-meta">Lvl <b id="tal-niveau">1</b> &nbsp;·&nbsp; 🔹 <b id="tal-points">0</b> pts</span>
@@ -1997,7 +2019,7 @@
 
   <!-- La fenêtre de butin (au centre, à la fin d'un combat gagné) -->
   <div class="butin" id="butin" hidden>
-    <div class="butin-panneau">
+    <div class="butin-panneau panneau-ui">
       <div class="butin-titre">Victory!</div>
       <div class="butin-liste" id="butin-liste"></div>
       <div class="butin-xp" id="butin-xp">
@@ -2021,7 +2043,7 @@
 
   <!-- Fenêtre de confirmation oui/non (jeter un objet rare, quitter le butin…) -->
   <div class="confirm" id="confirmation" hidden>
-    <div class="confirm-panneau">
+    <div class="confirm-panneau panneau-ui">
       <div class="confirm-titre" id="confirm-titre">Are you sure?</div>
       <div class="confirm-message" id="confirm-message"></div>
       <div class="confirm-boutons">
@@ -2070,7 +2092,7 @@
 
   <!-- Le menu pause (touche Échap) : sauvegarder / charger / volume / préférences -->
   <div class="menu" id="menu" hidden>
-    <div class="menu-panneau">
+    <div class="menu-panneau panneau-ui">
       <h2 class="menu-titre">Paused</h2>
       <button class="menu-continuer" id="menu-reprendre">Resume</button>
       <div class="deck-onglets" style="margin: 12px 0 10px;">
@@ -2193,6 +2215,45 @@
         demarrerJeu(donnees);
       },
     });
+  </script>
+
+  <!-- Réglage automatique des fenêtres d'interface : chaque .panneau-ui (menu,
+       dialogue, inventaire, deck, talents, butin, confirmation) est RÉDUIT juste ce
+       qu'il faut pour tenir dans l'OUVERTURE du cadre (zone 16:9 moins les barres
+       dorées), quelle que soit la taille de la fenêtre. Sinon les fenêtres
+       débordaient sous le cadre quand la fenêtre de jeu était très petite. -->
+  <script>
+    (function () {
+      // Ouverture utile du cadre = la zone 16:9 letterboxée, moins les barres dorées.
+      function ouverture() {
+        var zl = Math.min(innerWidth, innerHeight * 16 / 9);
+        var zh = zl * 9 / 16;
+        return { w: zl - 2 * (zl * 0.05 + 8), h: zh - 2 * (zh * 0.06 + 8) };
+      }
+      // Un panneau : on mesure sa taille NATURELLE (offset* ignore le transform:scale)
+      // et on calcule le facteur pour qu'il tienne dans l'ouverture (jamais agrandi).
+      function ajuster(p) {
+        var w = p.offsetWidth, h = p.offsetHeight;
+        if (!w || !h) return;                       // panneau caché → rien à régler
+        var o = ouverture();
+        var e = Math.min(1, o.w / w, o.h / h);
+        p.style.setProperty("--echelle-ui", e.toFixed(4));
+      }
+      function tous(fn) {
+        var l = document.querySelectorAll(".panneau-ui");
+        for (var i = 0; i < l.length; i++) fn(l[i]);
+      }
+      // Recalcule à l'ouverture d'une fenêtre / changement de contenu (ResizeObserver)
+      // et au redimensionnement de la fenêtre.
+      if (window.ResizeObserver) {
+        var ro = new ResizeObserver(function (entries) {
+          for (var i = 0; i < entries.length; i++) ajuster(entries[i].target);
+        });
+        tous(function (p) { ro.observe(p); });
+      }
+      addEventListener("resize", function () { tous(ajuster); });
+      tous(ajuster);
+    })();
   </script>
 
   <!-- ══════════════════════════════════════════════════════════════════════════════
