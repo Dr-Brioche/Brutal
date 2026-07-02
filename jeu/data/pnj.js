@@ -3,8 +3,13 @@
 // Comme les ennemis : stats/planche + comment lire la planche.
 // Les PNJ vivent sur la CARTE (échelle réduite, comme le héros), pas en combat.
 //
-//   planche : la planche générée par outils/importer_fanatique.py
-//   sprite  : caseL/caseH + animations (frames, vitesse, boucle)
+//   planche : la planche générée par outils/importer_<pnj>.py
+//   sprite  : caseL/caseH + `regard` (frame par direction) + animations
+//
+// RÈGLE ABSOLUE DES PNJ : quand le héros s'approche pour parler, le PNJ se
+// tourne vers lui (bas/haut/gauche/droite). Chaque planche fournit donc 4 frames
+// « debout » de regard, listées dans `sprite.regard`. Tout nouveau PNJ DOIT en
+// avoir (cf. le pipeline d'import : lignes face / dos / profil gauche / profil droit).
 
 export const FANATIQUE = {
   id: "fanatique",
@@ -13,6 +18,8 @@ export const FANATIQUE = {
   sprite: {
     caseL: 104,
     caseH: 88,
+    // Frame « debout » vers laquelle il se tourne selon d'où on l'aborde.
+    regard: { bas: 0, gauche: 8, droite: 12, haut: 16 },
     anims: {
       repos:        { frames: [0], ips: 1, boucle: true },                    // debout, immobile
       passive:      { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 6, boucle: false }, // il prie (mains jointes)
@@ -26,10 +33,10 @@ export const FANATIQUE = {
 };
 
 // Marchand de TEST : permet de récupérer toutes les armes/armures gratuitement
-// pour essayer le stuff. Sprite propre (nain de face qui fait tourner une pièce).
-// Il est STATIONNAIRE et regarde toujours devant : une seule ligne d'animation
-// (« passive »), jouée UNE fois de temps en temps (cf. `passif`) — le reste du
-// temps il reste sur la frame de repos (0). Grille : bande horizontale de 8 cases.
+// pour essayer le stuff. Sprite propre (nain qui fait tourner une pièce). Il est
+// STATIONNAIRE : de face par défaut, mais il se tourne vers le héros quand on lui
+// parle (regard 4 directions). Le reste du temps il joue de temps en temps son
+// animation passive de face (cf. `passif`), sinon il reste sur la frame de repos (0).
 export const MARCHAND = {
   id: "marchand",
   nom: "Renaud",
@@ -37,6 +44,7 @@ export const MARCHAND = {
   sprite: {
     caseL: 104,
     caseH: 88,
+    regard: { bas: 0, gauche: 7, droite: 8, haut: 9 },
     anims: {
       repos:   { frames: [0], ips: 1, boucle: true },                 // debout, immobile
       passive: { frames: [0, 1, 2, 3, 4, 5, 6], ips: 7, boucle: false }, // pouce levé, pièce brandie
@@ -47,8 +55,8 @@ export const MARCHAND = {
 };
 
 // Forgeron de la ville : stationnaire, de face. Il tape au marteau (pipe qui fume)
-// de temps en temps. Lui parler ouvre la FORGE (nouvel arc de gameplay). Même grille
-// que le marchand : bande horizontale de 8 cases (ligne 1 de la planche source).
+// de temps en temps. Lui parler ouvre la FORGE (nouvel arc de gameplay). Comme le
+// marchand, il se tourne vers le héros quand on l'aborde (regard 4 directions).
 export const FORGERON = {
   id: "forgeron",
   nom: "Ferran",
@@ -56,6 +64,7 @@ export const FORGERON = {
   sprite: {
     caseL: 104,
     caseH: 88,
+    regard: { bas: 0, gauche: 8, droite: 9, haut: 10 },
     anims: {
       repos:   { frames: [0], ips: 1, boucle: true },
       passive: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 9, boucle: false }, // coups de marteau

@@ -14,7 +14,8 @@ const alea = (a, b) => a + Math.random() * (b - a); // réel aléatoire dans [a,
 export function creerPnj({ modele, planche, x, y, xMin, xMax }) {
   const pnj = {
     modele, planche, x, y, xMin, xMax,
-    direction: "droite",   // "gauche" | "droite"
+    direction: "droite",   // sens de MARCHE : "gauche" | "droite"
+    regard: "bas",         // sens du REGARD face au héros : bas|haut|gauche|droite
     mode: "marche",        // "marche" | "repos" | "face"
     t: 0,                  // horloge d'animation
     pause: 0,
@@ -62,15 +63,20 @@ export function mettreAJourPnj(pnj, dt, heros) {
   // fixe fait tourner sa pièce de temps en temps.
   majPassif(pnj, dt);
 
-  // Distance entre les pieds du héros et ceux du PNJ
+  // Position du héros RELATIVE au PNJ. En X : centre à centre. En Y : on vise le
+  // centre de la « boîte de blocage » aux pieds (caseH-17), pour que « au-dessus »
+  // et « en dessous » soient symétriques (le héros bute à ±17 px de ce point selon
+  // qu'il aborde par le haut ou par le bas → le regard vertical est fiable).
   const dx = (heros.x + 32) - (pnj.x + s.caseL / 2);
-  const dy = (heros.y + 54) - (pnj.y + s.caseH);
+  const dy = (heros.y + 54) - (pnj.y + s.caseH - 17);
 
-  // Héros tout proche : le PNJ s'arrête et se tourne vers lui (prêt à parler)
+  // Héros tout proche : le PNJ s'arrête et se TOURNE VERS LUI (règle des PNJ).
   pnj.proche = Math.abs(dx) < DIST_PROCHE && Math.abs(dy) < 40;
   if (pnj.proche) {
     pnj.mode = "face";
-    pnj.direction = dx < 0 ? "gauche" : "droite";
+    // Axe dominant = d'où vient le héros → direction du regard (4 sens).
+    if (Math.abs(dx) >= Math.abs(dy)) pnj.regard = dx < 0 ? "gauche" : "droite";
+    else pnj.regard = dy < 0 ? "haut" : "bas";
     return;
   }
 
@@ -93,27 +99,44 @@ export function dessinerPnj(ctx, pnj) {
   if (!pnj.planche) return;
   const s = pnj.modele.sprite;
 
-  // Quelle animation selon ce qu'il fait. `marche`/`marcheGauche` peuvent ne pas
-  // exister (marchand stationnaire, de face) → on retombe sur `repos`.
-  const marche = (dir) => (dir === "droite" ? s.anims.marcheDroite : s.anims.marcheGauche) ?? s.anims.repos;
-  let anim, fige = false, t = pnj.t;
-  if (pnj.modele.passif && pnj.passifActif) {
-    // Animation passive en cours : sa propre horloge, jouée une seule fois.
-    anim = s.anims[pnj.modele.passif.anim];
-    t = pnj.passifT;
-  } else if (pnj.mode === "marche") {
-    anim = marche(pnj.direction);
-  } else if (pnj.mode === "face") {
-    anim = marche(pnj.direction); // debout, tourné vers le héros (1re frame)
-    fige = true;
+  // Quelle image dessiner ?
+  let frame;
+  if (pnj.mode === "face" && s.regard) {
+    const p = pnj.modele.passif;
+    if (p && pnj.passifActif && pnj.regard === "bas") {
+      // Abordé PAR EN BAS (il te fait déjà face) : il continue son anim passive
+      // de face (pièce qui tourne, coups de marteau). L'anim passive est de face :
+      // interdite dès qu'il se tourne sur le côté ou de dos → frame fixe alors.
+      const anim = s.anims[p.anim];
+      let i = Math.floor(pnj.passifT * anim.ips);
+      i = anim.boucle ? i % anim.frames.length : Math.min(i, anim.frames.length - 1);
+      frame = anim.frames[i];
+    } else {
+      // Tourné vers le héros : frame « debout » fixe selon le sens du regard.
+      frame = s.regard[pnj.regard] ?? s.regard.bas;
+    }
   } else {
-    anim = s.anims.repos;
+    // Sinon : animation selon ce qu'il fait. `marcheGauche/Droite` peuvent ne pas
+    // exister (PNJ stationnaire) → on retombe sur `repos`.
+    const marche = (dir) => (dir === "droite" ? s.anims.marcheDroite : s.anims.marcheGauche) ?? s.anims.repos;
+    let anim, fige = false, t = pnj.t;
+    if (pnj.modele.passif && pnj.passifActif) {
+      // Animation passive en cours : sa propre horloge, jouée une seule fois.
+      anim = s.anims[pnj.modele.passif.anim];
+      t = pnj.passifT;
+    } else if (pnj.mode === "marche") {
+      anim = marche(pnj.direction);
+    } else if (pnj.mode === "face") {
+      anim = marche(pnj.direction); // PNJ sans `regard` : debout, 1re frame
+      fige = true;
+    } else {
+      anim = s.anims.repos;
+    }
+    if (fige) t = 0;
+    let i = Math.floor(t * anim.ips);
+    i = anim.boucle ? i % anim.frames.length : Math.min(i, anim.frames.length - 1);
+    frame = anim.frames[i];
   }
-
-  if (fige) t = 0;
-  let i = Math.floor(t * anim.ips);
-  i = anim.boucle ? i % anim.frames.length : Math.min(i, anim.frames.length - 1);
-  const frame = anim.frames[i];
 
   ctx.drawImage(
     pnj.planche,

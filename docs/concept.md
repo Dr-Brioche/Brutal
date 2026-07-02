@@ -51,6 +51,9 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   **dialogue** (texte + choix, navigable au clavier — Z/S, Espace). Le *fanatique*
   propose de **soigner** le héros (ou de l'envoyer balader). À terme : vraies
   quêtes. Format sprite : échelle carte, découpé par un outil dans `outils/`.
+  **Règle absolue** (cf. CLAUDE.md) : un PNJ **se tourne vers le héros** quand on
+  l'aborde (4 sens) et il est **solide** (on ne le traverse pas) — comme les objets
+  fixes (fontaine).
 - **La vie PERSISTE entre les combats** (pas de soin gratuit). On se soigne par
   des **PNJ** (le fanatique), et plus tard des **items / cartes**. À la défaite :
   réveil en ville à 1 PV (un vrai système de mort viendra).
@@ -844,6 +847,10 @@ L'**entrée du pilier** est en place ; le **gameplay de crafting reste à tranch
 - **PNJ de ville** : les trois (Luc, Renaud, Ferran) ont maintenant de vrais sprites
   avec une **animation passive occasionnelle** (jouée UNE fois toutes les 3-10 s :
   pièce lancée, coups de marteau) — pas de boucle permanente, la place respire.
+- **PNJ réactifs et solides** (règle absolue) : quand le héros s'approche, le PNJ
+  **se tourne vers lui** dans les 4 sens (face/dos/profils, selon d'où on vient) au
+  lieu de rester figé de face. Et on ne les **traverse plus** : chaque PNJ — ainsi
+  que la **fontaine** — est un obstacle à hauteur des pieds.
 
 ### Pistes de gameplay proposées (en attente de décision)
 

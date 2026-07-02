@@ -11,8 +11,10 @@
 #                                animation passive occasionnelle = 0-7)
 #   source ligne 4 (4 frames)  : marche profil GAUCHE → cases 8-11
 #   source ligne 5 (4 frames)  : marche profil DROIT  → cases 12-15
-# (lignes 2-3 = marche face/dos, inutilisées : il ne se déplace qu'à l'horizontale)
-# Planche finale : 16 cases de CASE_L×CASE_H en une bande.
+#   source ligne 3 (1 frame)   : DOS → case 16  (regard vers le haut)
+# La case dos sert la RÈGLE des PNJ : se tourner vers le héros quand on lui parle
+# (le profil gauche/droite réutilise la 1re frame de marche 8/12).
+# Planche finale : 17 cases de CASE_L×CASE_H en une bande.
 
 from PIL import Image, ImageFilter
 
@@ -25,6 +27,7 @@ LIGNES = [
     (20, 208, [(113,213),(297,395),(475,572),(652,749),(828,925),(1004,1102),(1182,1280),(1359,1457)]),
     (554, 715, [(119,203),(297,381),(476,559),(656,735)]),
     (719, 883, [(121,205),(301,383),(478,560),(654,738)]),
+    (391, 551, [(113, 209)]),   # ligne 3 = dos (regard vers le haut)
 ]
 
 
@@ -92,7 +95,7 @@ def main():
         cx = (leg_cx(a, b, t, d) - a) * scale
         out.alpha_composite(fr, (int(round(i*CASE_L + CASE_L/2 - cx)), CASE_H - round(pad*scale) - fh))
     out.save(OUT)
-    print(f'{OUT} : caseL={CASE_L} caseH={CASE_H} ({len(frames)} frames : prière 0-7, gauche 8-11, droite 12-15)')
+    print(f'{OUT} : caseL={CASE_L} caseH={CASE_H} ({len(frames)} frames : prière 0-7, gauche 8-11, droite 12-15, dos 16)')
 
 
 if __name__ == '__main__':

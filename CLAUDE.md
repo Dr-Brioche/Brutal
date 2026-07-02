@@ -66,6 +66,17 @@ Brutal/
   deux entrées. Y penser dès qu'on ajoute un écran, un menu ou un bouton.
   C'est aussi ce qui rendra le portage **manette** simple plus tard (le clavier
   se mappe facilement sur une manette).
+- **PNJ — RÈGLE ABSOLUE : ils se tournent vers le héros et ils sont solides.**
+  Tout PNJ (présent ou futur) doit :
+  1. **se tourner vers le héros** quand on l'aborde — 4 sens (bas/haut/gauche/droite)
+     selon d'où on vient. Sa planche fournit donc 4 frames « debout » de regard,
+     déclarées dans `sprite.regard` (`jeu/data/pnj.js`) ; l'import (`outils/importer_*.py`)
+     découpe pour ça la ligne **face** (bas), **dos** (haut) et les deux **profils**
+     (gauche/droite) de la source. La logique est dans `jeu/entities/pnj.js` (aucune
+     retouche à faire par PNJ : renseigner `regard` suffit).
+  2. **être un obstacle** : on ne le traverse pas. Sa boîte de blocage (aux pieds)
+     est ajoutée dans `obstaclesVille()` de `jeu/principal.js`, passée à
+     `mettreAJourHeros`. Idem pour les objets fixes (fontaine…).
 - **Texte dessiné sur le canvas** (noms de PNJ, niveau/HP des monstres, dégâts…) :
   tout est centralisé dans **`jeu/core/texte.js`** (police + résolution). Règle :
   pour tout nouveau texte canvas, utiliser `police(taille)` — **jamais** une
