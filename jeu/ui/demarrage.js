@@ -5,6 +5,8 @@
 // - sinon -> on propose "New Game" en haut + les emplacements à charger.
 
 import { tousLesSlots, creerLigneSlot } from "./slots.js";
+import { effacerSlot } from "../systems/sauvegarde.js";
+import { demanderConfirmation } from "./confirmation.js";
 
 export function installerDemarrage({ lancer }) {
   const boutonJouer = document.getElementById("bouton-jouer");
@@ -20,25 +22,44 @@ export function installerDemarrage({ lancer }) {
     lancer(donnees);
   }
 
+  // (Re)construit la liste des emplacements — rappelée après un effacement.
+  function remplirSlots() {
+    const slots = tousLesSlots();
+    const aDesSauvegardes = slots.some(({ donnees }) => donnees);
+    conteneurSlots.replaceChildren();
+    if (!aDesSauvegardes) return;
+    for (const { numero, donnees } of slots) {
+      conteneurSlots.append(
+        creerLigneSlot(numero, donnees, [
+          { texte: "Load", desactive: !donnees, surClic: () => lancerUneFois(donnees) },
+          {
+            texte: "Delete",
+            desactive: !donnees,
+            surClic: () => {
+              demanderConfirmation(
+                {
+                  titre: `Delete save — Slot ${numero}?`,
+                  message: "This save will be gone for good.",
+                  texteOui: "Delete",
+                  texteNon: "Keep",
+                  danger: true,
+                },
+                () => { effacerSlot(numero); remplirSlots(); },
+              );
+            },
+          },
+        ])
+      );
+    }
+  }
+
   // Focus automatique : Enter/Espace déclenchent Play sans souris.
   boutonJouer.focus();
 
   boutonJouer.addEventListener("click", () => {
-    const slots = tousLesSlots();
-    const aDesSauvegardes = slots.some(({ donnees }) => donnees);
-
     // On affiche TOUJOURS le panneau (même sans sauvegarde) pour laisser la
     // musique du titre se lancer avant l'entrée dans le jeu.
-    conteneurSlots.replaceChildren();
-    if (aDesSauvegardes) {
-      for (const { numero, donnees } of slots) {
-        conteneurSlots.append(
-          creerLigneSlot(numero, donnees, [
-            { texte: "Load", desactive: !donnees, surClic: () => lancerUneFois(donnees) },
-          ])
-        );
-      }
-    }
+    remplirSlots();
     boutonJouer.hidden = true;
     panneau.hidden = false;
     boutonNouvelle.focus();

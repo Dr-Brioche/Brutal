@@ -8,8 +8,9 @@
 //   - appliquerEtat(donnees): applique un état chargé au jeu
 //   - surChangementPause(b) : prévenu quand le menu s'ouvre (true) / ferme (false)
 
-import { lireSlot, ecrireSlot } from "../systems/sauvegarde.js";
+import { lireSlot, ecrireSlot, effacerSlot } from "../systems/sauvegarde.js";
 import { tousLesSlots, creerLigneSlot } from "./slots.js";
+import { demanderConfirmation } from "./confirmation.js";
 import {
   reglerVolumeMusique, reglerVolumeBruitages, reglerVolumeMusiqueCombat,
   getVolumeMusique, getVolumeBruitages, getVolumeMusiqueCombat,
@@ -93,6 +94,23 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
             surClic: () => {
               appliquerEtat(lireSlot(numero));
               fermer();
+            },
+          },
+          {
+            texte: "Delete",
+            desactive: !donnees,
+            surClic: () => {
+              // Action destructrice → confirmation (bouton sûr présélectionné).
+              demanderConfirmation(
+                {
+                  titre: `Delete save — Slot ${numero}?`,
+                  message: "This save will be gone for good.",
+                  texteOui: "Delete",
+                  texteNon: "Keep",
+                  danger: true,
+                },
+                () => { effacerSlot(numero); rafraichir(); },
+              );
             },
           },
         ])
