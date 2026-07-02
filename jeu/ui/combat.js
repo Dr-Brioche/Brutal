@@ -821,8 +821,16 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       } else {
         // Cartes piochées EN COURS DE TOUR (effet « piocher »/« piocher-par-ennemi »…).
         // drawn = nb cartes ajoutées : (taille après) - (taille avant - 1 carte jouée).
+        // On les RETIRE de la main pour les révéler EN GRAND une à une (exactement
+        // comme la pioche de début de tour) ; elles n'arrivent dans la main qu'au fil
+        // de l'animation (ajouterAMain). Sinon on les verrait déjà en main AVANT leur
+        // révélation.
         const drawn = combat.main.length - nbAvant + 1;
-        if (drawn > 0) animerPioche(combat.main.slice(-drawn), null);
+        if (drawn > 0) {
+          const aReveler = combat.main.splice(combat.main.length - drawn, drawn);
+          rafraichir(); // la main n'affiche pas encore les cartes piochées
+          animerPioche(aReveler, null, (c) => combat.main.push(c));
+        }
       }
     }
   }
