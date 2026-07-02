@@ -143,4 +143,13 @@ export function garnirCarte(el, carte) {
   cout.className = "combat-carte-cout";
   cout.textContent = carte.cout;
   el.append(cout);
+
+  // Couche 6 : écusson « all » en bas à droite si la carte frappe TOUS les ennemis
+  // (AOE). Aide à repérer d'un coup d'œil les cartes de groupe (pas de ciblage).
+  if (carte.aoe) {
+    const tous = document.createElement("span");
+    tous.className = "carte-aoe";
+    tous.textContent = "all";
+    el.append(tous);
+  }
 }

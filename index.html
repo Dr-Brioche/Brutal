@@ -760,6 +760,18 @@
       -webkit-text-stroke: 0.07em #000; /* garde le contour noir → reste lisible */
       paint-order: stroke fill;
     }
+    /* Écusson « all » (bas-droite) : carte qui frappe TOUS les ennemis (AOE). Même
+       forme que la pastille de niveau des monstres, mais fond noir / bord & texte
+       blancs. Taille relative à la carte → net à toutes les échelles. */
+    .combat-carte--cadre .carte-aoe {
+      position: absolute; right: 6.5%; bottom: 5.5%; z-index: 4;
+      display: flex; align-items: center; justify-content: center;
+      min-width: 1.8em; height: 1.5em; padding: 0 0.45em;
+      background: #0b0b0b; border: 0.11em solid #fff; border-radius: 0.75em;
+      color: #fff; font-weight: 800; letter-spacing: 0.04em;
+      font-size: calc(var(--carte-l, 150px) * 0.06);
+      box-shadow: 0 0.05em 0.16em rgba(0, 0, 0, 0.7);
+    }
     .combat-carte--cadre .carte-texte--moyen { font-size: calc(var(--carte-l, 150px) * 0.05); }
     .combat-carte--cadre .carte-texte--petit { font-size: calc(var(--carte-l, 150px) * 0.043); }
     /* 5. Coût : chiffre clair centré dans le médaillon en haut à gauche. */
