@@ -39,7 +39,7 @@ export const MARCHAND = {
     caseH: 88,
     anims: {
       repos:   { frames: [0], ips: 1, boucle: true },                 // debout, immobile
-      passive: { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 8, boucle: false }, // lance/rattrape la pièce
+      passive: { frames: [0, 1, 2, 3, 4, 5, 6], ips: 7, boucle: false }, // pouce levé, pièce brandie
     },
   },
   // Toutes les `min`–`max` secondes (aléatoire), il joue UNE fois l'animation passive.

@@ -23,9 +23,9 @@ SRC = 'images/sources/marchand-source.png'
 OUT = 'images/pnj/marchand.png'
 CASE_H = 88            # hauteur cible de la case (jeu)
 CASE_L = 104           # largeur FIXE de la case (marge autour du nain le plus large)
-BY0, BY1 = 20, 212     # bande verticale de la ligne 1 (de face)
-# Colonnes (x) des 8 nains dans la source (le reste = pièce en l'air, ignoré).
-COLS = [(49,196),(235,381),(408,571),(611,770),(806,960),(993,1151),(1191,1346),(1374,1536)]
+BY0, BY1 = 55, 215     # bande verticale de la ligne 1 (de face)
+# Colonnes (x) des nains de la ligne 1 (le nombre de frames s'adapte à la liste).
+COLS = [(76,197),(255,379),(448,588),(650,791),(850,992),(1052,1194),(1271,1395)]
 
 
 def main():
@@ -38,6 +38,14 @@ def main():
         for x in range(W):
             r, g, b, a = px[x, y]
             if r > 224 and g > 224 and b > 224 and (max(r, g, b) - min(r, g, b)) < 18:
+                px[x, y] = (r, g, b, 0)
+
+    # 1bis) L'OMBRE AU SOL du sheet (gris clair désaturé) ferait une tache sous les
+    # pieds sur le sol sombre du jeu — on la vire dans le BAS de la bande utile.
+    for y in range(max(0, BY1 - 50), min(H, BY1 + 15)):
+        for x in range(W):
+            r, g, b, a = px[x, y]
+            if a > 0 and r >= 178 and (max(r, g, b) - min(r, g, b)) <= 14:
                 px[x, y] = (r, g, b, 0)
 
     # 2) Érode l'alpha de 1 px : mange la frange claire du contour (anti-aliasing).
@@ -82,24 +90,28 @@ def main():
                 if A[x, y] > 60: sx += x; n += 1
         return sx/n if n else (a+b)/2
 
-    strip = Image.new('RGBA', (CWn*8, CHn), (0, 0, 0, 0))
+    N = len(frames)
+    strip = Image.new('RGBA', (CWn*N, CHn), (0, 0, 0, 0))
     for i, (a, b, t, d) in enumerate(frames):
         fr = im.crop((a, t, b, d))
         cx = leg_cx(a, b, t, d) - a
-        strip.alpha_composite(fr, (int(round(i*CWn + CWn/2 - cx)), int(round(CHn - pad - (d-t)))))
+        # Centre sur les jambes, mais BORNÉ pour que la frame ENTIÈRE reste dans sa
+        # cellule (sinon un accessoire excentré — la pièce brandie — serait coupé).
+        ox = max(0, min(round(CWn/2 - cx), CWn - fr.width))
+        strip.alpha_composite(fr, (i*CWn + ox, int(round(CHn - pad - (d-t)))))
 
     # 5) Mise à l'échelle jeu, puis recentrage dans une case de largeur FIXE
     #    (CASE_L) : ainsi la taille de case ne bouge JAMAIS d'une régénération à
     #    l'autre (sinon le code devrait être réajusté à chaque nouvel upload).
     scale = CASE_H / CHn
     cw = round(CWn * scale)
-    scaled = strip.resize((cw*8, CASE_H), Image.LANCZOS)
-    out = Image.new('RGBA', (CASE_L*8, CASE_H), (0, 0, 0, 0))
-    for i in range(8):
+    scaled = strip.resize((cw*N, CASE_H), Image.LANCZOS)
+    out = Image.new('RGBA', (CASE_L*N, CASE_H), (0, 0, 0, 0))
+    for i in range(N):
         cell = scaled.crop((i*cw, 0, (i+1)*cw, CASE_H))
         out.alpha_composite(cell, ((CASE_L - cw)//2 + i*CASE_L, 0))
     out.save(OUT)
-    print(f'{OUT} : caseL={CASE_L} caseH={CASE_H} (8 frames)')
+    print(f'{OUT} : caseL={CASE_L} caseH={CASE_H} ({N} frames)')
 
 
 if __name__ == '__main__':
