@@ -252,10 +252,11 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 >   intention, affichée au-dessus du lanceur, porte une petite case **« ALL »**
 >   collée à l'icône (⚡ ALL). Inutile de désigner une cible puisque c'est global.
 >
-> **Cohérence des flèches** : la **flèche de ciblage du joueur** (quand on tire une
-> carte d'attaque vers un monstre) utilise le **même rendu courbé et pointillé**,
-> en **rouge** et à opacité fixe, avec une pointe au bout — plus naturel qu'un
-> trait droit rigide.
+> **Ciblage à la souris** : quand on tire une carte d'attaque vers un monstre, un
+> **réticule rouge** (croix + rond au centre) suit le pointeur — le vrai curseur est
+> masqué le temps du drag. Le monstre visé s'**illumine d'un halo jaune dégradé**
+> (pulsation lente) et sa **barre de vie clignote** : on voit clairement quelle cible
+> sera touchée. On lâche dessus pour jouer la carte.
 
 ### Bestiaire actuel (1er jet)
 
@@ -985,7 +986,8 @@ que c'est addictif, **puis** on empile le suivant.
    cf. *Rencontres par zone*), les cartes
    d'attaque visent une **cible** — au **clavier** (on arme la carte puis on
    choisit la cible aux flèches, une flèche rouge la pointe) ou à la **souris**
-   (on tire une flèche de la carte vers le monstre et on lâche dessus).
+   (un réticule rouge suit le pointeur ; le monstre visé s'illumine en jaune et sa
+   barre de vie clignote — on lâche dessus pour jouer la carte).
    *À enrichir* : pioche/deck plus riche, variété d'ennemis, sons.
 2. **Craft / Forge** — second.
 3. **Économie / bourse** — en dernier.

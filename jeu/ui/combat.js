@@ -6,7 +6,9 @@
 //   - au clavier : on « arme » la carte (Espace), puis on choisit la cible avec
 //     les flèches (une flèche rouge animée pointe la cible), Espace confirme,
 //     Échap annule.
-//   - à la souris (commit suivant) : on tirera une flèche de la carte au monstre.
+//   - à la souris : on tire la carte vers le monstre. Un RÉTICULE rouge (croix +
+//     rond) suit le pointeur ; le monstre visé s'illumine en jaune et sa barre de
+//     vie clignote. On lâche sur lui pour jouer la carte.
 //
 // On renvoie { mettreAJour(dt), dessiner() } : la boucle principale appelle ces
 // deux fonctions tant que le combat est actif.
@@ -868,7 +870,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       x: p.x, y: p.y,
       cibleSurvol: -1,
     };
-    if (drag.vise) drag.cibleSurvol = ennemiSousPoint(p.x, p.y);
+    if (drag.vise) {
+      drag.cibleSurvol = ennemiSousPoint(p.x, p.y);
+      ctx.canvas.style.cursor = "none"; // le réticule rouge dessiné REMPLACE le curseur
+    }
     window.addEventListener("pointermove", surDragMove);
     window.addEventListener("pointerup", surDragUp);
   }
@@ -881,6 +886,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   function surDragUp(ev) {
     window.removeEventListener("pointermove", surDragMove);
     window.removeEventListener("pointerup", surDragUp);
+    ctx.canvas.style.cursor = ""; // fin du drag → on rend le vrai curseur
     const d = drag; drag = null;
     if (!d) return;
     if (d.vise) {
@@ -1100,6 +1106,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     window.removeEventListener("keydown", surTouche, true);
     window.removeEventListener("pointermove", surDragMove); // au cas où un drag traîne
     window.removeEventListener("pointerup", surDragUp);
+    ctx.canvas.style.cursor = ""; // au cas où on ferme pendant un ciblage souris
     heros.pv = combat.pvHeros; // la vie persiste vers la carte
     surFin(combat.resultat);
   }
@@ -1250,6 +1257,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const ordreDessin = [...ennemisUI].sort((a, b) => a.ecran.sol - b.ecran.sol);
     for (const u of ordreDessin) {
       if (u.partis) continue;
+      // Halo jaune de CIBLAGE derrière le monstre survolé à la souris : il pulse
+      // doucement pour montrer quelle cible sera touchée (dessiné AVANT le sprite).
+      if (drag && drag.vise && u.e.pv > 0 && drag.cibleSurvol === ennemisUI.indexOf(u))
+        dessinerLueurCible(ctx, u, temps);
       const def = u.spr.anims[u.anim.nom] ?? u.spr.anims.idle;
       const frame = frameAnim(def, u.anim.t);
       const tr = u.secousse > 0 ? (Math.random() - 0.5) * 6 : 0;
@@ -1310,8 +1321,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         ctx.scale(RATIO_ARRIERE, RATIO_ARRIERE);
         ctx.translate(-u.ecran.cx, -u.ecran.sol);
       }
+      // La barre de vie de la cible survolée à la souris CLIGNOTE (indique la cible).
+      const estCibleSouris = drag && drag.vise && drag.cibleSurvol === ennemisUI.indexOf(u);
+      const alphaAvantBarre = ctx.globalAlpha;
+      if (estCibleSouris)
+        ctx.globalAlpha = alphaAvantBarre * (0.28 + 0.72 * (0.5 + 0.5 * Math.sin(temps * 11)));
       barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
         `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), 0, u.affInit);
+      ctx.globalAlpha = alphaAvantBarre;
       // Pill de niveau (rectangle arrondi doré) à droite de la barre de vie.
       const lvlEnn = u.e.def?.niveau;
       if (lvlEnn != null) {
@@ -1348,18 +1365,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (u && u.e.pv > 0) dessinerFlecheCible(ctx, u.ecran, temps, true);
     }
 
-    // Flèche de DRAG souris : arc rouge pointillé de la carte vers le pointeur
-    // (ou l'ennemi survolé). La pointe s'arrête sur le bord du sprite, pas au centre.
+    // Curseur de CIBLAGE souris : une CROIX ROUGE avec un rond au centre, dessinée
+    // au pointeur (le vrai curseur est masqué le temps du drag). Le monstre visé,
+    // lui, s'illumine en jaune et sa barre de vie clignote (cf. la boucle ennemis).
     if (drag && drag.vise) {
-      const surv = drag.cibleSurvol >= 0 ? ennemisUI[drag.cibleSurvol] : null;
-      let ex, ey;
-      if (surv) {
-        const b = bordSprite(surv, drag.depart.x, drag.depart.y);
-        ex = b.x; ey = b.y;
-      } else {
-        ex = drag.x; ey = drag.y;
-      }
-      dessinerFlecheDrag(ctx, drag.depart.x, drag.depart.y, ex, ey, temps);
+      dessinerCurseurCible(ctx, drag.x, drag.y, temps, drag.cibleSurvol >= 0);
     }
 
     // Vie du héros (avec son bouclier d'armure = la Pierre).
@@ -1658,29 +1668,11 @@ function dessinerEtats(ctx, etats, cx, y) {
   ctx.textBaseline = "alphabetic";
 }
 
-// Trace une courbe quadratique POINTILLÉE (x0,y0)→(x1,y1) via le contrôle (cx,cy).
-// `offset` anime le défilement des pointillés (0 = trait figé). Base commune au
-// fil de sort (vert) et à la flèche de ciblage (rouge).
-function tracerArcPointille(ctx, x0, y0, cx, cy, x1, y1, couleur, offset, largeur) {
-  ctx.save();
-  ctx.strokeStyle = couleur;
-  ctx.lineWidth = largeur;
-  ctx.lineCap = "round";
-  ctx.setLineDash([5, 6]);
-  ctx.lineDashOffset = offset;
-  ctx.beginPath();
-  ctx.moveTo(x0, y0);
-  ctx.quadraticCurveTo(cx, cy, x1, y1);
-  ctx.stroke();
-  ctx.restore();
-}
-
-// Variante « cloche » du tracé pointillé : Bézier CUBIQUE dont les deux points de
-// contrôle sont posés À LA VERTICALE au-dessus de chaque extrémité, à la hauteur
-// `sommetY`. Conséquence géométrique : la tangente au départ et à l'arrivée est
-// VERTICALE → le fil s'élance presque droit vers le haut depuis la source et
-// REDESCEND presque droit sur la cible, symétriquement. Une vraie cloche, bien
-// plus marquée qu'un arc quadratique (qui, lui, reste pour la flèche souris).
+// Tracé pointillé en « cloche » : Bézier CUBIQUE dont les deux points de contrôle
+// sont posés À LA VERTICALE au-dessus de chaque extrémité, à la hauteur `sommetY`.
+// Conséquence géométrique : la tangente au départ et à l'arrivée est VERTICALE →
+// le fil s'élance presque droit vers le haut depuis la source et REDESCEND presque
+// droit sur la cible, symétriquement. `offset` anime le défilement des pointillés.
 function tracerClochePointille(ctx, x0, y0, x1, y1, sommetY, couleur, offset, largeur) {
   ctx.save();
   ctx.strokeStyle = couleur;
@@ -1733,64 +1725,69 @@ function dessinerFlecheCible(ctx, ecran, t, fort) {
   ctx.stroke();
 }
 
-// Renvoie le point sur le bord de la boîte englobante du sprite `u` visé par
-// la droite partant de (x0, y0) vers le centre du sprite.
-function bordSprite(u, x0, y0) {
-  const cx = u.ecran.cx;
-  // Vise le tiers supérieur du sprite (torse) plutôt que son centre exact.
-  const cy = u.ecran.haut + (u.ecran.sol - u.ecran.haut) * 0.33;
-  const hw = (u.spr.caseL * u.echelle) / 2;
-  const left = cx - hw, right = cx + hw;
-  const top = u.ecran.haut, bot = u.ecran.sol;
-  const dx = cx - x0, dy = cy - y0;
-  let tMin = 1; // 1 = centre ; on cherche le premier bord (t < 1)
-  function tester(t, xi, yi) {
-    if (t > 0 && t < tMin && xi >= left && xi <= right && yi >= top && yi <= bot)
-      tMin = t;
+// Curseur de ciblage souris : une CROIX ROUGE avec un rond au centre, dessinée au
+// pointeur pendant qu'on tire une carte offensive (le vrai curseur est masqué le
+// temps du drag). `surCible` = true quand on survole un monstre : le réticule
+// s'avive un peu et un anneau s'écarte en pulsant (renfort du verrouillage).
+function dessinerCurseurCible(ctx, x, y, t, surCible) {
+  ctx.save();
+  ctx.translate(x, y);
+  const R = 9;                                   // rayon du rond central
+  const rouge = surCible ? "#ff5c4d" : "#ff3b30";
+  ctx.lineCap = "round";
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = rouge;
+  ctx.shadowColor = "rgba(0, 0, 0, 0.55)";       // légère ombre → lisible sur tout fond
+  ctx.shadowBlur = 3;
+
+  ctx.beginPath();                               // le rond au milieu
+  ctx.arc(0, 0, R, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const a0 = R + 3, a1 = R + 9;                  // les 4 branches de la croix
+  ctx.beginPath();
+  ctx.moveTo(0, -a0); ctx.lineTo(0, -a1);
+  ctx.moveTo(0,  a0); ctx.lineTo(0,  a1);
+  ctx.moveTo(-a0, 0); ctx.lineTo(-a1, 0);
+  ctx.moveTo( a0, 0); ctx.lineTo( a1, 0);
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;                            // le point central
+  ctx.fillStyle = rouge;
+  ctx.beginPath();
+  ctx.arc(0, 0, 1.7, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (surCible) {                                // anneau qui s'écarte en pulsant
+    const p = 0.5 + 0.5 * Math.sin(t * 6);
+    ctx.globalAlpha = 0.55 * (1 - p);
+    ctx.beginPath();
+    ctx.arc(0, 0, R + 4 + p * 6, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
   }
-  if (dy) { const t = (bot  - y0) / dy; tester(t, x0 + t * dx, bot); }
-  if (dy) { const t = (top  - y0) / dy; tester(t, x0 + t * dx, top); }
-  if (dx) { const t = (left - x0) / dx; tester(t, left,  y0 + t * dy); }
-  if (dx) { const t = (right- x0) / dx; tester(t, right, y0 + t * dy); }
-  return { x: x0 + tMin * dx, y: y0 + tMin * dy };
+  ctx.restore();
 }
 
-// Flèche de ciblage souris : arc rouge POINTILLÉ de la carte (x0,y0) vers la
-// cible/pointeur (x1,y1), avec une pointe à son extrémité. Même rendu courbé que
-// le fil de sort, mais à opacité FIXE (pas de clignotement) — plus naturel qu'un
-// trait rigide. `t` anime seulement le léger défilement des pointillés.
-function dessinerFlecheDrag(ctx, x0, y0, x1, y1, t) {
-  const dx = x1 - x0, dy = y1 - y0;
-  const len = Math.hypot(dx, dy) || 1;
-  // Arc vers le HAUT ; plus prononcé quand la flèche est horizontale, plus doux
-  // quand elle est quasi verticale → déformation naturelle selon la distance/angle.
-  const horizFactor = Math.abs(dx) / len;
-  const bow = Math.max(15, Math.min(120, len * (0.15 + 0.35 * horizFactor)));
-  const cx = (x0 + x1) / 2;
-  const cy = (y0 + y1) / 2 - bow;
-
-  // Tangente finale → orientation de la pointe.
-  const a = Math.atan2(y1 - cy, x1 - cx);
-  // L'arc s'arrête avant la pointe : les pointillés ne dépassent pas la tête de flèche.
-  const gap = 12;
-  const x1e = x1 - gap * Math.cos(a);
-  const y1e = y1 - gap * Math.sin(a);
-
-  ctx.globalAlpha = 0.92;
-  tracerArcPointille(ctx, x0, y0, cx, cy, x1e, y1e, "#ff3b30", -t * 24, 3);
-
+// Halo jaune DÉGRADÉ derrière un monstre pour montrer qu'il est ciblé (souris).
+// Radial, centré sur le corps ; il pulse DOUCEMENT (clignotement lent) — dessiné
+// AVANT le sprite du monstre, donc « derrière » lui.
+function dessinerLueurCible(ctx, u, t) {
+  const cx = u.ecran.cx;
+  const cy = (u.ecran.haut + u.ecran.sol) / 2;
+  const rayon = Math.max(u.ecran.sol - u.ecran.haut, u.spr.caseL * u.echelle) * 0.72;
+  const puls = 0.5 + 0.5 * Math.sin(t * 3.2);    // lent = « clignote doucement »
+  const a = 0.16 + 0.32 * puls;
+  const g = ctx.createRadialGradient(cx, cy, rayon * 0.12, cx, cy, rayon);
+  g.addColorStop(0,    `rgba(255, 233, 138, ${a})`);
+  g.addColorStop(0.55, `rgba(255, 201, 66, ${a * 0.5})`);
+  g.addColorStop(1,    "rgba(255, 190, 40, 0)");
   ctx.save();
-  ctx.translate(x1, y1);
-  ctx.rotate(a);
-  ctx.fillStyle = "#ff3b30";
+  ctx.fillStyle = g;
   ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(-12, -6);
-  ctx.lineTo(-12, 6);
-  ctx.closePath();
+  ctx.arc(cx, cy, rayon, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
-  ctx.globalAlpha = 1;
 }
 
 // ----- Une carte en HTML ---------------------------------------------------
