@@ -1003,8 +1003,8 @@ export const CARTES = {
   // Bright Flame : sort qui éblouit la cible (Confusion).
   "flamme-vive": { id: "flamme-vive", nom: "Bright Flame", cout: 2, type: "attaque", portee: "range", nouveau: true,
     texte: "Apply 2 Confusion to the target.", effets: [{ type: "confusion", valeur: 2 }] },
-  // Standard Armor : bloc de Pierre standard (un peu plus que Light Armor).
-  "armure-standard": { id: "armure-standard", nom: "Standard Armor", cout: 1, type: "defense", nouveau: true,
+  // Standard Armor : bloc de Pierre standard (un peu plus que Light Armor). Uncommon.
+  "armure-standard": { id: "armure-standard", nom: "Standard Armor", cout: 1, type: "defense", rarete: "uncommon", nouveau: true,
     texte: "Gain 9 Stone.", effets: [{ type: "pierre", valeur: 9 }] },
   // Acceleration : petit gain de Hâte, gratuit en tempo.
   "acceleration": { id: "acceleration", nom: "Acceleration", cout: 1, type: "buff", nouveau: true,
