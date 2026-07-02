@@ -752,6 +752,14 @@
       paint-order: stroke fill;
       font-size: calc(var(--carte-l, 150px) * 0.058);
     }
+    /* Dégâts SUBIS par le héros ("Take N damage", "Lose N HP") : en ROUGE + un peu
+       plus gras, pour bien distinguer des dégâts infligés au monstre. */
+    .combat-carte--cadre .carte-degats-soi {
+      color: #ff4b3e;
+      font-weight: 700;
+      -webkit-text-stroke: 0.07em #000; /* garde le contour noir → reste lisible */
+      paint-order: stroke fill;
+    }
     .combat-carte--cadre .carte-texte--moyen { font-size: calc(var(--carte-l, 150px) * 0.05); }
     .combat-carte--cadre .carte-texte--petit { font-size: calc(var(--carte-l, 150px) * 0.043); }
     /* 5. Coût : chiffre clair centré dans le médaillon en haut à gauche. */

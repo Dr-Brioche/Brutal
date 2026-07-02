@@ -63,6 +63,25 @@ function ajusterTextePourTenir(parchemin, texte) {
   });
 }
 
+// Pose le texte d'effet en surlignant EN ROUGE (+ un peu plus gras) les dégâts que
+// le HÉROS s'inflige — "Take N damage", "Lose N HP" — pour qu'on ne les confonde pas
+// avec les dégâts portés au monstre ("Deal N damage"). Le texte des cartes vient de
+// nos données (de confiance) ; on construit des nœuds DOM (pas d'innerHTML).
+function poserTexteEffet(el, texte) {
+  const motif = /\b(?:take\s+\d+\s+damage|lose\s+\d+\s+hp)\b/gi;
+  el.textContent = "";
+  let dernier = 0, m;
+  while ((m = motif.exec(texte)) !== null) {
+    if (m.index > dernier) el.append(texte.slice(dernier, m.index));
+    const span = document.createElement("span");
+    span.className = "carte-degats-soi";
+    span.textContent = m[0];
+    el.append(span);
+    dernier = m.index + m[0].length;
+  }
+  if (dernier < texte.length) el.append(texte.slice(dernier));
+}
+
 export function garnirCarte(el, carte) {
   el.classList.add(`combat-carte--${carte.type}`, "combat-carte--cadre");
 
@@ -104,7 +123,7 @@ export function garnirCarte(el, carte) {
   parchemin.className = "carte-parchemin";
   const texte = document.createElement("span");
   texte.className = "carte-texte";
-  texte.textContent = carte.texte;
+  poserTexteEffet(texte, carte.texte || "");
   // Taille de DÉPART par paliers de longueur (cf. CSS). C'est une approximation :
   // l'auto-ajustement ci-dessous garantit ensuite que le texte tient vraiment.
   const n = (carte.texte || "").length;
