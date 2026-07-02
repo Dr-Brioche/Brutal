@@ -16,8 +16,8 @@ SRC = 'images/sources/forgeron-source.png'
 OUT = 'images/pnj/forgeron.png'
 CASE_H = 88            # hauteur cible de la case (jeu)
 CASE_L = 104           # largeur FIXE de la case (stable d'une régénération à l'autre)
-BY0, BY1 = 15, 232     # bande verticale de la ligne 1 (de face)
-COLS = [(20,192),(237,401),(442,597),(627,792),(838,993),(1029,1192),(1224,1388),(1405,1568)]
+BY0, BY1 = 10, 200     # bande verticale de la ligne 1 (de face)
+COLS = [(21,188),(216,375),(400,566),(602,760),(793,953),(983,1143),(1179,1338),(1371,1529)]
 
 
 def main():
@@ -30,6 +30,16 @@ def main():
         for x in range(W):
             r, g, b, a = px[x, y]
             if r > 224 and g > 224 and b > 224 and (max(r, g, b) - min(r, g, b)) < 18:
+                px[x, y] = (r, g, b, 0)
+
+    # 1bis) L'OMBRE AU SOL du sheet (gris ~185-200, désaturé) survivrait au seuil
+    # ci-dessus et ferait une tache claire sous les pieds sur le sol sombre du jeu.
+    # On la vire dans le BAS de la bande utile uniquement (la fumée de pipe, grise
+    # elle aussi, est en HAUT — hors de cette zone).
+    for y in range(max(0, BY1 - 50), min(H, BY1 + 15)):
+        for x in range(W):
+            r, g, b, a = px[x, y]
+            if a > 0 and r >= 178 and (max(r, g, b) - min(r, g, b)) <= 14:
                 px[x, y] = (r, g, b, 0)
 
     # 2) Érode l'alpha de 1 px : mange la frange claire du contour (anti-aliasing).
