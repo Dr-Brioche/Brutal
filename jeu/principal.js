@@ -162,6 +162,22 @@ export async function demarrerJeu(donneesInitiales = null) {
     proche: false,
     t: 0,
   };
+
+  // Obstacles PLEINS de la ville : on ne traverse pas les PNJ ni la fontaine.
+  // Chaque boîte est au niveau des PIEDS (on peut donc chevaucher les têtes en
+  // s'approchant ; la profondeur d'affichage gère qui passe devant). Recalculée
+  // à chaque frame (le fanatique se déplace). Vide hors de la ville.
+  function obstaclesVille() {
+    if (zoneActuelle !== "city") return [];
+    const boitePnj = (p) => {
+      const s = p.modele.sprite;
+      return { x: p.x + s.caseL / 2 - 16, y: p.y + s.caseH - 26, w: 32, h: 18 };
+    };
+    return [
+      boitePnj(fanatique), boitePnj(marchand), boitePnj(forgeron),
+      { x: fontaine.cx - 20, y: fontaine.solY - 16, w: 40, h: 22 },
+    ];
+  }
   function dessinerFontaine(ctx, f) {
     const cx = f.cx, by = f.solY;
     ctx.fillStyle = "rgba(0, 0, 0, 0.28)"; // ombre
@@ -1003,7 +1019,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (enPause) return;          // figé : menu ouvert ou transition en cours
       // Minage en cours : le héros est FIGÉ le temps du coup de pioche.
       if (minage) avancerMinage(dt);
-      else mettreAJourHeros(heros, clavier, dt, carte);
+      else mettreAJourHeros(heros, clavier, dt, carte, obstaclesVille());
       const tuile = tuileSousLesPieds(carte, heros);
       revelerAutour(carte, tuile.colonne, tuile.ligne, RAYON_VUE); // brouillard : on éclaire autour de soi
       verifierPointsInteret(tuile);

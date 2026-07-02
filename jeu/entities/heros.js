@@ -30,7 +30,16 @@ export function creerHeros() {
   };
 }
 
-export function mettreAJourHeros(heros, clavier, dt, carte) {
+// `obstacles` : boîtes pleines {x, y, w, h} à ne pas traverser (PNJ, fontaine…),
+// en plus des murs. On teste contre la BOÎTE DES PIEDS du héros (comme les murs).
+export function mettreAJourHeros(heros, clavier, dt, carte, obstacles = []) {
+  // Une position est LIBRE si les pieds ne touchent ni un mur ni un obstacle.
+  const libre = (x, y) => {
+    if (!piedsLibres(carte, x, y)) return false;
+    const px = x + 16, py = y + 46; // boîte des pieds : 32×16 (cf. piedsLibres)
+    return !obstacles.some((o) => px < o.x + o.w && px + 32 > o.x && py < o.y + o.h && py + 16 > o.y);
+  };
+
   // -1, 0 ou +1 sur chaque axe selon les touches enfoncées
   const dx = (clavier.droite() ? 1 : 0) - (clavier.gauche() ? 1 : 0);
   const dy = (clavier.bas() ? 1 : 0) - (clavier.haut() ? 1 : 0);
@@ -47,9 +56,9 @@ export function mettreAJourHeros(heros, clavier, dt, carte) {
 
     // Chaque axe est testé séparément contre les murs : si un seul des
     // deux est bloqué, on glisse le long du mur au lieu de rester planté.
-    const bougeX = piedsLibres(carte, heros.x + pasX, heros.y);
+    const bougeX = libre(heros.x + pasX, heros.y);
     if (bougeX) heros.x += pasX;
-    const bougeY = piedsLibres(carte, heros.x, heros.y + pasY);
+    const bougeY = libre(heros.x, heros.y + pasY);
     if (bougeY) heros.y += pasY;
 
     // Aide au passage des galeries étroites (larges d'1 case). La « boîte des pieds »
@@ -66,11 +75,11 @@ export function mettreAJourHeros(heros, clavier, dt, carte) {
       if (gSolide && !dSolide) {                       // mur à gauche → ouverture à droite
         const cible = (Math.floor((heros.x + 16) / TUILE) + 1) * TUILE - 16;
         const nx = Math.min(heros.x + aide, cible);
-        if (piedsLibres(carte, nx, heros.y)) heros.x = nx;
+        if (libre(nx, heros.y)) heros.x = nx;
       } else if (dSolide && !gSolide) {                // mur à droite → ouverture à gauche
         const cible = Math.floor((heros.x + 47) / TUILE) * TUILE - 48;
         const nx = Math.max(heros.x - aide, cible);
-        if (piedsLibres(carte, nx, heros.y)) heros.x = nx;
+        if (libre(nx, heros.y)) heros.x = nx;
       }
     } else if (dy === 0 && dx !== 0 && !bougeX) {     // poussée horizontale bloquée
       const xb = heros.x + pasX + (dx < 0 ? 16 : 47); // bord d'attaque (gauche si on va à gauche, droite sinon)
@@ -79,11 +88,11 @@ export function mettreAJourHeros(heros, clavier, dt, carte) {
       if (hSolide && !bSolide) {                       // mur en haut → ouverture en bas
         const cible = (Math.floor((heros.y + 46) / TUILE) + 1) * TUILE - 46;
         const ny = Math.min(heros.y + aide, cible);
-        if (piedsLibres(carte, heros.x, ny)) heros.y = ny;
+        if (libre(heros.x, ny)) heros.y = ny;
       } else if (bSolide && !hSolide) {                // mur en bas → ouverture en haut
         const cible = Math.floor((heros.y + 61) / TUILE) * TUILE - 62;
         const ny = Math.max(heros.y - aide, cible);
-        if (piedsLibres(carte, heros.x, ny)) heros.y = ny;
+        if (libre(heros.x, ny)) heros.y = ny;
       }
     }
 
