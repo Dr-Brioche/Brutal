@@ -20,18 +20,25 @@ const CADRE_PAR_TYPE = {
   buff:    "images/cartes/cadre-buff.png",
 };
 
-// Chemin de l'illustration d'une carte. Un champ `illustration` explicite a la
-// priorité ; sinon on déduit le nom de fichier du titre de la carte (sans accents
-// ni apostrophes, espaces → tirets). Ex. "Lucky Draw" → ".../lucky-draw.png".
-function cheminIllustration(carte) {
-  if (carte.illustration) return carte.illustration;
+// Chemins CANDIDATS de l'illustration d'une carte, essayés dans l'ordre. Un champ
+// `illustration` explicite a la priorité ; sinon on déduit le nom de fichier du
+// titre (sans accents ni apostrophes, espaces → tirets). Ex. "Lucky Draw" →
+// ".../lucky-draw". On tente :
+//   1. .webp — le format OPTIMISÉ (généré par outils/optimiser_illustrations.py) ;
+//   2. .png  — un upload frais, pas encore passé à l'outil ;
+//   3. .png avec 1re lettre majuscule — Windows capitalise parfois les noms.
+function cheminsIllustration(carte) {
+  if (carte.illustration) return [carte.illustration];
   const base = (carte.nom || carte.id || "")
     .toLowerCase()
     .normalize("NFD").replace(/[̀-ͯ]/g, "") // enlève les accents
     .replace(/['’]/g, "")                              // apostrophes
     .replace(/[^a-z0-9]+/g, "-")                        // tout le reste → tiret
     .replace(/^-+|-+$/g, "");
-  return base ? `images/cartes/illustrations/${base}.png` : null;
+  if (!base) return [];
+  const dossier = "images/cartes/illustrations/";
+  const maj = base.charAt(0).toUpperCase() + base.slice(1);
+  return [`${dossier}${base}.webp`, `${dossier}${base}.png`, `${dossier}${maj}.png`];
 }
 
 // Réduit la police du texte d'effet jusqu'à ce qu'il tienne dans le parchemin
@@ -60,24 +67,21 @@ export function garnirCarte(el, carte) {
   el.classList.add(`combat-carte--${carte.type}`, "combat-carte--cadre");
 
   // Couche 1 : la fenêtre (aplat sombre par défaut) + l'illustration si elle existe.
+  // On essaie les chemins candidats l'un après l'autre (webp → png → Png) ; si
+  // aucun n'existe, l'image est retirée et la fenêtre reste un aplat sombre.
   const fenetre = document.createElement("div");
   fenetre.className = "carte-fenetre";
-  const src = cheminIllustration(carte);
-  if (src) {
+  const candidats = cheminsIllustration(carte);
+  if (candidats.length) {
     const illu = document.createElement("img");
-    illu.src = src;
     illu.alt = "";
-    // Windows capitalise automatiquement la première lettre des noms de fichiers.
-    // Si le chemin minuscule échoue, on retente avec la première lettre en majuscule.
+    let essai = 0;
     illu.onerror = () => {
-      const srcMaj = src.replace(/\/([a-z])([^/]*)$/, (_, c, rest) => `/${c.toUpperCase()}${rest}`);
-      if (srcMaj !== src) {
-        illu.onerror = () => illu.remove();
-        illu.src = srcMaj;
-      } else {
-        illu.remove();
-      }
+      essai += 1;
+      if (essai < candidats.length) illu.src = candidats[essai];
+      else illu.remove();
     };
+    illu.src = candidats[0];
     fenetre.append(illu);
   }
   el.append(fenetre);
