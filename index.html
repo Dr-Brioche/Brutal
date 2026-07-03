@@ -580,6 +580,43 @@
     }
     .forge-forger:disabled { opacity: 0.4; cursor: default; filter: grayscale(0.5); }
     .forge-forger:not(:disabled):hover { filter: brightness(1.1); }
+
+    /* --- Mini-jeu de forge (par-dessus la table) --- */
+    .forge-minijeu {
+      position: absolute; inset: 0; z-index: 5; border-radius: var(--rayon);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4cqw;
+      background: rgba(8,4,2,0.86); cursor: pointer;
+    }
+    .forge-mj-titre {
+      font-size: 3.4cqw; font-weight: 800; color: #ffcf8a; text-align: center;
+      text-shadow: 0 2px 12px #000; min-height: 4cqw;
+    }
+    .forge-jauge {
+      position: relative; width: 74cqw; height: 6.5cqw; overflow: hidden;
+      background: linear-gradient(180deg,#f3982f,#c65c14);
+      border: 0.35cqw solid #2a1a0e; border-radius: 1cqw;
+      box-shadow: inset 0 0 2.5cqw rgba(0,0,0,0.5), 0 0 4cqw rgba(255,140,40,0.45);
+    }
+    /* Zones rouges aux extrémités (ratage extrême). Largeur = MJ.ROUGE (10 %). */
+    .forge-mj-rouge {
+      position: absolute; top: 0; height: 100%; width: 10%;
+      background: repeating-linear-gradient(45deg,#e23a26,#e23a26 1.2cqw,#a81810 1.2cqw,#a81810 2.4cqw);
+    }
+    .forge-mj-rouge--g { left: 0; box-shadow: inset -0.3cqw 0 0.6cqw rgba(0,0,0,0.4); }
+    .forge-mj-rouge--d { right: 0; box-shadow: inset 0.3cqw 0 0.6cqw rgba(0,0,0,0.4); }
+    /* Marqueur : 3 bandes concentriques (left = centre, width posée par forge.js).
+       Vert (grand) → bleu (moyen) → or (petit, le cœur) : plus on est au centre,
+       meilleure est la qualité. */
+    .forge-mj-m { position: absolute; top: 0; height: 100%; transform: translateX(-50%); }
+    .forge-mj-m--grand { background: rgba(143,206,122,0.55); }
+    .forge-mj-m--moyen { background: rgba(95,176,232,0.7); }
+    .forge-mj-m--petit { background: rgba(224,182,78,0.98); box-shadow: 0 0 2cqw rgba(255,210,90,0.9); }
+    .forge-mj-curseur {
+      position: absolute; top: -1.2cqw; height: calc(100% + 2.4cqw); width: 0.7cqw; left: 0;
+      transform: translateX(-50%); background: #fff;
+      box-shadow: 0 0 2cqw #fff, 0 0 0.5cqw #000;
+    }
+    .forge-mj-aide { font-size: 1.8cqw; color: #d8c19a; letter-spacing: 0.03em; }
     .forge-aide {
       text-align: center; padding: 0 0 2.6cqw;
       font-size: 1.5cqw; color: #b79a6e; letter-spacing: 0.04em;
@@ -1997,6 +2034,22 @@
         </div>
       </div>
       <div class="forge-aide" id="forge-aide">Assemble des ingrédients sur la table — l'objet apparaît à droite quand le motif est juste. [Échap] Quitter</div>
+
+      <!-- Mini-jeu de forge : jauge orange + curseur qui va-et-vient ; frappe sur
+           le marqueur (3 tailles concentriques) pour la qualité. Aux extrémités,
+           les zones ROUGES = ratage extrême (composants perdus). Rempli par forge.js. -->
+      <div class="forge-minijeu" id="forge-minijeu" hidden>
+        <div class="forge-mj-titre" id="forge-mj-titre">Frappe le métal&nbsp;!</div>
+        <div class="forge-jauge" id="forge-jauge">
+          <div class="forge-mj-rouge forge-mj-rouge--g"></div>
+          <div class="forge-mj-rouge forge-mj-rouge--d"></div>
+          <div class="forge-mj-m forge-mj-m--grand" id="forge-mj-grand"></div>
+          <div class="forge-mj-m forge-mj-m--moyen" id="forge-mj-moyen"></div>
+          <div class="forge-mj-m forge-mj-m--petit" id="forge-mj-petit"></div>
+          <div class="forge-mj-curseur" id="forge-mj-curseur"></div>
+        </div>
+        <div class="forge-mj-aide" id="forge-mj-aide">[Espace] ou clic : frappe&nbsp;! &nbsp;·&nbsp; [Échap] annule</div>
+      </div>
     </div>
   </div>
 

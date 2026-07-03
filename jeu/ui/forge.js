@@ -3,27 +3,38 @@
 // Table de craft 5×5 « façon Minecraft » : on prend une ressource dans la palette
 // (les ressources du sac) puis on la POSE sur les cases pour dessiner un motif.
 // Quand le motif correspond à une recette (cf. systems/craft.js), l'objet créé
-// s'affiche à droite. « Forger » consomme les ingrédients et crée l'objet.
+// s'affiche à droite. « Forger » lance le MINI-JEU de forge.
 //
-// NOTE (premier jet) : « Forger » fabrique directement en qualité NORMALE. Le
-// mini-jeu de forge (jauge + marqueur 3 tailles → qualité, + zones rouges =
-// ratage extrême) viendra remplacer cette résolution directe.
+// Mini-jeu : une jauge orange, un curseur qui fait des va-et-vient. On frappe
+// ([Espace]/clic) quand il est sur le MARQUEUR (3 bandes concentriques) :
+//   cœur (or) → Exceptional (+3) · milieu (bleu) → Master (+2) · large (vert) → Artisan (+1)
+//   zone orange (hors marqueur) → Normal (0, objet créé quand même)
+//   ZONES ROUGES aux extrémités → ratage EXTRÊME : composants perdus, aucun objet.
+// Les ingrédients sont TOUJOURS consommés à la frappe (sauf si on annule avec Échap).
 //
 // API alignée sur le combat : ouvrirForge(inv, surFermer) / fermerForge() / forgeActive().
 
 import { itemDef } from "../data/items.js";
-import { trouverRecette, ingredientsPoses } from "../systems/craft.js";
+import { QUALITES } from "../data/recettes.js";
+import {
+  trouverRecette, ingredientsPoses,
+  centreMarqueur, outcomeFrappe, QUALITE_PAR_MARQUEUR, MJ,
+} from "../systems/craft.js";
 import { compterRessource, retirerRessource, ajouterObjet } from "../systems/inventaire.js";
 
-const TAILLE = 5; // table 5×5
+const TAILLE = 5;         // table 5×5
+const MJ_PERIODE = 1300;  // ms pour un aller-retour du curseur (« assez rapidement »)
 
 let overlay, boutonFermer, elPalette, elTable, elSortie, elForger;
+let elMiniJeu, elCurseur, elMGrand, elMMoyen, elMPetit, elMJTitre, elMJAide;
 let actif = false;
 let surFermerActif = null;
 let inv = null;
 let grille = [];          // 5×5 d'ids de ressource (ou null)
 let ressourceSel = null;  // id de la ressource « en main » (clic pour poser)
 let recetteCourante = null;
+// État du mini-jeu.
+let miniActif = false, mjRaf = 0, mjCentre = 0.5, mjDebut = 0, mjPos = 0;
 
 export function installerForge() {
   overlay = document.getElementById("forge");
@@ -32,8 +43,16 @@ export function installerForge() {
   elTable = document.getElementById("forge-table");
   elSortie = document.getElementById("forge-sortie");
   elForger = document.getElementById("forge-forger");
+  elMiniJeu = document.getElementById("forge-minijeu");
+  elCurseur = document.getElementById("forge-mj-curseur");
+  elMGrand = document.getElementById("forge-mj-grand");
+  elMMoyen = document.getElementById("forge-mj-moyen");
+  elMPetit = document.getElementById("forge-mj-petit");
+  elMJTitre = document.getElementById("forge-mj-titre");
+  elMJAide = document.getElementById("forge-mj-aide");
   boutonFermer.addEventListener("click", fermerForge);
   elForger.addEventListener("click", forger);
+  elMiniJeu.addEventListener("click", () => { if (miniActif) validerFrappe(); });
 }
 
 export function ouvrirForge(inventaire, surFermer = null) {
@@ -43,6 +62,7 @@ export function ouvrirForge(inventaire, surFermer = null) {
   surFermerActif = surFermer;
   grille = Array.from({ length: TAILLE }, () => Array(TAILLE).fill(null));
   ressourceSel = null;
+  elMiniJeu.hidden = true;
   construireTable();
   rafraichir();
   overlay.hidden = false;
@@ -70,6 +90,7 @@ function posesSurTable(id) {
 }
 
 function cliquerCase(r, c) {
+  if (miniActif) return;
   if (grille[r][c]) {
     grille[r][c] = null;                 // case pleine → on retire
   } else if (ressourceSel) {
@@ -145,29 +166,100 @@ function rafraichir() {
   }
 }
 
-// PREMIER JET : forge directe en qualité normale (le mini-jeu viendra ici).
+// ----- Mini-jeu de forge ---------------------------------------------------
+
 function forger() {
-  if (!recetteCourante) return;
+  if (!recetteCourante || miniActif) return;
+  lancerMiniJeu();
+}
+
+// Place une bande du marqueur : `left` = centre (%), `width` = 2×demi-largeur (%).
+function placerBande(el, centre, demi) {
+  el.style.left = centre * 100 + "%";
+  el.style.width = demi * 2 * 100 + "%";
+}
+
+function lancerMiniJeu() {
+  mjCentre = centreMarqueur(Math.random());
+  placerBande(elMGrand, mjCentre, MJ.HG);
+  placerBande(elMMoyen, mjCentre, MJ.HM);
+  placerBande(elMPetit, mjCentre, MJ.HP);
+  elMJTitre.textContent = "Frappe le métal !";
+  elMJAide.hidden = false;
+  miniActif = true;
+  mjDebut = performance.now();
+  elMiniJeu.hidden = false;
+  mjRaf = requestAnimationFrame(boucleMiniJeu);
+}
+
+function boucleMiniJeu() {
+  const t = performance.now() - mjDebut;
+  const phase = (t % MJ_PERIODE) / MJ_PERIODE;      // 0..1
+  mjPos = phase < 0.5 ? phase * 2 : 2 - phase * 2;  // triangle : 0 → 1 → 0
+  elCurseur.style.left = mjPos * 100 + "%";
+  mjRaf = requestAnimationFrame(boucleMiniJeu);
+}
+
+function validerFrappe() {
+  if (!miniActif) return;
+  miniActif = false;
+  cancelAnimationFrame(mjRaf);
+  resoudreCraft(outcomeFrappe(mjPos, mjCentre));
+}
+
+function resoudreCraft(marqueur) {
+  // Les ingrédients sont TOUJOURS consommés à la frappe.
   const besoin = {};
   for (const id of ingredientsPoses(grille)) besoin[id] = (besoin[id] ?? 0) + 1;
   for (const id of Object.keys(besoin)) retirerRessource(inv, id, besoin[id]);
-  ajouterObjet(inv, recetteCourante.resultat, 1);
+
+  const qualite = QUALITE_PAR_MARQUEUR[marqueur]; // undefined si "rouge"
+  const d = itemDef(recetteCourante.resultat);
+  if (qualite) {
+    ajouterObjet(inv, recetteCourante.resultat, 1, { qualite });
+    const q = QUALITES[qualite];
+    elMJTitre.textContent = `${d.nom} — ${q.nom}${q.force > 0 ? ` (+${q.force} Force)` : ""} !`;
+  } else {
+    elMJTitre.textContent = "Raté ! Métal gâché — composants perdus.";
+  }
+  elMJAide.hidden = true;
   grille = Array.from({ length: TAILLE }, () => Array(TAILLE).fill(null));
   ressourceSel = null;
-  rafraichir();
+  // On laisse le message un instant, puis retour à la table.
+  setTimeout(() => {
+    if (!actif) return;               // forge fermée entre-temps
+    elMiniJeu.hidden = true;
+    rafraichir();
+  }, 1500);
+}
+
+function annulerMiniJeu() {
+  miniActif = false;
+  cancelAnimationFrame(mjRaf);
+  elMiniJeu.hidden = true;            // ingrédients gardés, motif intact
 }
 
 function surTouche(e) {
   if (e.code === "Escape") {
     e.preventDefault();
     e.stopPropagation();
-    fermerForge();
+    if (miniActif) annulerMiniJeu();
+    else fermerForge();
+    return;
+  }
+  if (miniActif && (e.code === "Space" || e.code === "Enter")) {
+    e.preventDefault();
+    e.stopPropagation();
+    validerFrappe();
   }
 }
 
 export function fermerForge() {
   if (!actif) return;
   actif = false;
+  miniActif = false;
+  cancelAnimationFrame(mjRaf);
+  elMiniJeu.hidden = true;
   overlay.hidden = true;
   window.removeEventListener("keydown", surTouche, true);
   const cb = surFermerActif;

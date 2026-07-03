@@ -70,7 +70,7 @@ function premierePlaceLibre(inv, l, h) {
 // Pose `n` exemplaires d'un item à la première place libre. Les items EMPILABLES
 // (ressources/minerais) complètent d'abord les piles existantes (< pileMax) avant
 // d'en créer une nouvelle. Renvoie true si tout est rangé, false si le sac est plein.
-export function ajouterObjet(inv, id, n = 1) {
+export function ajouterObjet(inv, id, n = 1, champs = null) {
   const d = itemDef(id);
   if (!d) return false;
   if (d.empilable) {
@@ -97,7 +97,9 @@ export function ajouterObjet(inv, id, n = 1) {
   }
   const pos = premierePlaceLibre(inv, d.taille.l, d.taille.h);
   if (!pos) return false;
-  inv.objets.push({ id, x: pos.x, y: pos.y });
+  // `champs` : données d'INSTANCE en plus (ex. { qualite: "maitre" } pour une arme
+  // forgée). Ignoré pour les empilables. Les objets lootés n'en ont pas (= normale).
+  inv.objets.push({ id, x: pos.x, y: pos.y, ...(champs || {}) });
   return true;
 }
 

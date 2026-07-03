@@ -3,14 +3,41 @@
 
 import { RECETTES } from "../data/recettes.js";
 
-// Marqueur touché dans le mini-jeu → qualité de forge. Raté (hors marqueurs) =
-// « normale » (cf. le choix : on forge quand même, sans bonus).
+// Résultat d'une FRAPPE du mini-jeu → qualité de forge (ou rien).
+//   petit  → exceptionnel (+3)   moyen → maitre (+2)   grand → artisan (+1)
+//   orange (raté simple) → normale (objet créé, sans bonus)
+//   rouge  (raté EXTRÊME, aux extrémités) → PAS d'objet (composants perdus)
 export const QUALITE_PAR_MARQUEUR = {
-  grand: "artisan",
-  moyen: "maitre",
   petit: "exceptionnel",
-  rate: "normale",
+  moyen: "maitre",
+  grand: "artisan",
+  orange: "normale",
+  // "rouge" absent volontairement → resoudre = pas d'objet.
 };
+
+// Géométrie du mini-jeu, en position NORMALISÉE le long de la jauge (0 = gauche,
+// 1 = droite). ROUGE = largeur de chaque zone rouge aux extrémités ; H* = DEMI-
+// largeur de chaque bande du marqueur (grand/moyen/petit), concentriques.
+export const MJ = { ROUGE: 0.10, HG: 0.085, HM: 0.045, HP: 0.018 };
+
+// Où est le marqueur (son centre) ? Au hasard, mais assez au centre pour que même
+// sa plus GRANDE bande ne touche pas les zones rouges. `alea` ∈ [0,1[ (injectable
+// pour les tests). Renvoie le centre normalisé.
+export function centreMarqueur(alea) {
+  const min = MJ.ROUGE + MJ.HG, max = 1 - MJ.ROUGE - MJ.HG;
+  return min + alea * (max - min);
+}
+
+// Frappe validée en `x` (position du curseur, 0..1) alors que le marqueur est
+// centré en `centre` → renvoie "petit"|"moyen"|"grand"|"orange"|"rouge".
+export function outcomeFrappe(x, centre) {
+  const d = Math.abs(x - centre);
+  if (d <= MJ.HP) return "petit";
+  if (d <= MJ.HM) return "moyen";
+  if (d <= MJ.HG) return "grand";
+  if (x < MJ.ROUGE || x > 1 - MJ.ROUGE) return "rouge";
+  return "orange";
+}
 
 // Réduit une grille 2D (ids ou null) à sa BOÎTE ENGLOBANTE (lignes/colonnes non
 // vides). Ainsi la position sur la table n'a pas d'importance, seule la forme.
