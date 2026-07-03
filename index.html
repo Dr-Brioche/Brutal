@@ -527,16 +527,59 @@
     }
     .forge-fermer:hover { background: rgba(120,40,10,0.6); transform: scale(1.05); }
     .forge-contenu {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 2.4cqw;
+      flex: 1; display: flex; flex-direction: row;
+      align-items: center; justify-content: center; gap: 3cqw;
     }
-    .forge-enclume {
-      font-size: 12cqw; filter: drop-shadow(0 0 24px rgba(255,140,40,0.5));
+    /* Palette : les ressources du sac, en colonne, cliquables (icône + quantité). */
+    .forge-palette {
+      display: flex; flex-direction: column; gap: 1cqw;
+      max-height: 40cqw; overflow-y: auto; padding: 0.4cqw;
     }
-    .forge-msg {
-      text-align: center; font-size: 2.1cqw; line-height: 1.5; color: #e7d3ab;
-      max-width: 70%; text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    .forge-palette:empty::after {
+      content: "Sac vide"; color: #8a7250; font-size: 1.5cqw; font-style: italic;
     }
+    .forge-palette-tuile {
+      display: flex; align-items: center; gap: 0.9cqw; width: 15cqw;
+      padding: 0.7cqw 1cqw; background: rgba(20,14,10,0.7);
+      border: 0.2cqw solid #6a4a2a; border-radius: var(--rayon);
+      cursor: pointer; color: #f3e3c4; transition: border-color 0.12s, background 0.12s;
+    }
+    .forge-palette-tuile:hover { border-color: #c98a3a; }
+    .forge-palette-tuile.sel { border-color: #ffcf57; background: rgba(90,50,20,0.7); }
+    .forge-pastille { width: 3cqw; height: 3cqw; border-radius: 0.5cqw; border: 0.15cqw solid #000; flex-shrink: 0; }
+    .forge-palette-nom { flex: 1; font-size: 1.5cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .forge-palette-qte { font-size: 1.6cqw; font-weight: 800; font-family: ui-monospace, monospace; }
+    /* Table de craft 5×5. */
+    .forge-table {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.6cqw;
+      padding: 1cqw; background: rgba(10,6,4,0.6);
+      border: 0.25cqw solid #5a3c1e; border-radius: var(--rayon);
+    }
+    .forge-case {
+      width: 7cqw; height: 7cqw; display: flex; align-items: center; justify-content: center;
+      background: rgba(30,20,14,0.8); border: 0.15cqw solid #4a3218; border-radius: 0.6cqw; cursor: pointer;
+    }
+    .forge-case:hover { border-color: #c98a3a; }
+    .forge-case .forge-pastille { width: 4.8cqw; height: 4.8cqw; border-radius: 0.6cqw; border: 0.2cqw solid #000; }
+    /* Résultat : slot de sortie (aperçu de l'objet) + bouton Forger. */
+    .forge-resultat { display: flex; flex-direction: column; align-items: center; gap: 1.6cqw; width: 17cqw; }
+    .forge-sortie {
+      width: 13cqw; height: 13cqw; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 0.6cqw; text-align: center;
+      background: rgba(20,14,10,0.7); border: 0.25cqw dashed #6a4a2a;
+      border-radius: var(--rayon); color: #cbb18a;
+    }
+    .forge-sortie.pleine { border-style: solid; border-color: #ffcf57; color: #f3e3c4; box-shadow: 0 0 3cqw rgba(255,180,60,0.35); }
+    .forge-sortie .forge-pastille { width: 5.4cqw; height: 5.4cqw; border-radius: 0.6cqw; border: 0.2cqw solid #000; }
+    .forge-sortie-nom { font-size: 1.5cqw; line-height: 1.15; font-weight: 700; }
+    .forge-forger {
+      padding: 1cqw 2.6cqw; font-size: 2cqw; font-weight: 800; color: #fff;
+      background: linear-gradient(180deg,#d9542a,#8a2f12); border: 0.2cqw solid #ffcf57;
+      border-radius: var(--rayon); cursor: pointer; letter-spacing: 0.04em;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    }
+    .forge-forger:disabled { opacity: 0.4; cursor: default; filter: grayscale(0.5); }
+    .forge-forger:not(:disabled):hover { filter: brightness(1.1); }
     .forge-aide {
       text-align: center; padding: 0 0 2.6cqw;
       font-size: 1.5cqw; color: #b79a6e; letter-spacing: 0.04em;
@@ -1942,11 +1985,18 @@
         <button class="forge-fermer" id="forge-fermer" title="Quitter (Échap)">✕</button>
       </div>
       <div class="forge-contenu">
-        <div class="forge-enclume">⚒</div>
-        <p class="forge-msg">L'atelier crépite, prêt à l'ouvrage.<br>
-          Bientôt, tu forgeras ici ton propre équipement.</p>
+        <!-- Palette : les ressources du sac, cliquables (clic = on prend, clic sur
+             une case = on pose). Remplie par ui/forge.js. -->
+        <div class="forge-palette" id="forge-palette"></div>
+        <!-- Table de craft 5×5 (25 cases). -->
+        <div class="forge-table" id="forge-table"></div>
+        <!-- Résultat : l'objet créé (aperçu + infobulle) + bouton Forger. -->
+        <div class="forge-resultat">
+          <div class="forge-sortie" id="forge-sortie"></div>
+          <button class="forge-forger" id="forge-forger" disabled>⚒ Forger</button>
+        </div>
       </div>
-      <div class="forge-aide">[Échap] Quitter la forge</div>
+      <div class="forge-aide" id="forge-aide">Assemble des ingrédients sur la table — l'objet apparaît à droite quand le motif est juste. [Échap] Quitter</div>
     </div>
   </div>
 

@@ -101,6 +101,31 @@ export function ajouterObjet(inv, id, n = 1) {
   return true;
 }
 
+// Combien d'exemplaires de `id` dans le sac (somme des piles). Utile au craft.
+export function compterRessource(inv, id) {
+  let n = 0;
+  for (const o of inv.objets) if (o.id === id) n += o.quantite ?? 1;
+  return n;
+}
+
+// Retire `n` exemplaires de `id` du sac (vide d'abord les piles entamées). Renvoie
+// le nombre RÉELLEMENT retiré (≤ n si le sac n'en avait pas assez). Utile au craft.
+// (À ne pas confondre avec `retirerObjet(inv, objet)` plus bas, qui retire UN
+// exemplaire précis déjà repéré.)
+export function retirerRessource(inv, id, n = 1) {
+  let reste = n;
+  for (let i = inv.objets.length - 1; i >= 0 && reste > 0; i--) {
+    const o = inv.objets[i];
+    if (o.id !== id) continue;
+    const dispo = o.quantite ?? 1;
+    const pris = Math.min(dispo, reste);
+    reste -= pris;
+    if (pris >= dispo) inv.objets.splice(i, 1); // pile épuisée → on la retire
+    else o.quantite = dispo - pris;
+  }
+  return n - reste;
+}
+
 // Vérifie sans muter si `id` trouverait une place dans le sac tel qu'il est.
 function peutAjouter(inv, id) {
   const d = itemDef(id);
