@@ -62,6 +62,8 @@ export function ouvrirForge(inventaire, surFermer = null) {
   surFermerActif = surFermer;
   grille = Array.from({ length: TAILLE }, () => Array(TAILLE).fill(null));
   ressourceSel = null;
+  miniActif = false;                 // sécurité : jamais de mini-jeu « collé » d'une session précédente
+  cancelAnimationFrame(mjRaf);
   elMiniJeu.hidden = true;
   construireTable();
   rafraichir();
