@@ -846,15 +846,23 @@ valeurs **~1.5×** les armes à une main, chacune avec son **combo** :
 - *À venir* : navigation clavier complète, vraies icônes pixel art,
   agrandissement du sac, prix d'**achat** (le marchand de test est encore gratuit).
 
-## La Forge (pilier craft) — 1er jet (01/07/2026)
+## La Forge (pilier craft) — 1er jet (01/07/2026, crafting le 03/07/2026)
 
-L'**entrée du pilier** est en place ; le **gameplay de crafting reste à trancher**.
+L'**entrée du pilier** est en place, et le **crafting est jouable** (1er jet). Détail
+complet dans **`docs/craft.md`** ; résumé :
 
 - **Ferran le forgeron** : PNJ stationnaire en ville (rangée du marchand). Dialogue
   de bienvenue, puis choix « ⚒ Forger » qui ouvre **la Forge**.
-- **La Forge = écran plein écran dédié** (comme le combat — cf. principe « les 3
-  piliers = écrans dédiés »). Thème braises, Échap ou ✕ pour ressortir. Contenu
-  actuel : **placeholder** (« bientôt, tu forgeras ici ton propre équipement »).
+- **La Forge = écran plein écran dédié** (comme le combat). On assemble des
+  **ressources** sur une **table 5×5** selon un **motif** (façon Minecraft) ; le bon
+  motif fait apparaître l'objet à créer. **Recettes cachées** (le joueur les découvre).
+- **Mini-jeu de forge** : jauge orange + curseur ; on frappe sur un **marqueur** à 3
+  bandes (Artisan/Master/Exceptional → +1/+2/+3 **Force**), la zone orange = Normal,
+  les **zones rouges** aux bouts = ratage **extrême** (composants perdus). La
+  **qualité** ainsi obtenue est un bonus **propre à la forge** → forger devient plus
+  intéressant que looter (les loots sont « Normal »).
+- **Bois** = nouvelle ressource (lâchée par les monstres pour l'instant). Onglet
+  **Resources** gratuit chez Renaud pour tester.
 - **PNJ de ville** : les trois (Luc, Renaud, Ferran) ont maintenant de vrais sprites
   avec une **animation passive occasionnelle** (jouée UNE fois toutes les 3-10 s :
   pièce lancée, coups de marteau) — pas de boucle permanente, la place respire.
