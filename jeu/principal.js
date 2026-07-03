@@ -307,6 +307,13 @@ export async function demarrerJeu(donneesInitiales = null) {
       { label: "Boots",  test: (it) => it.categorie === "botte" },
       { label: "Bags",   test: (it) => it.categorie === "sac" },
     ]},
+    // Onglet de TEST pour le craft : toutes les ressources (minerais + bois),
+    // GRATUITES, pour remplir le sac et essayer la forge (1 clic = +1, empilable).
+    { nom: "Resources", icone: "⛏", cats: ["ressource"], groupes: [
+      { label: "Ores & stone", test: (it) => it.famille === "metal" || it.famille === "pierre" },
+      { label: "Gems",         test: (it) => it.famille === "gemme" },
+      { label: "Wood & misc",  test: (it) => it.famille !== "metal" && it.famille !== "pierre" && it.famille !== "gemme" },
+    ]},
   ];
 
   function parlerAuMarchand() {
