@@ -20,7 +20,9 @@ export const SLOTS = [
 export function creerInventaire() {
   const slots = {};
   for (const s of SLOTS) slots[s] = null;
-  return { cols: COLS, rangs: RANGS_BASE, objets: [], slots, or: 0 };
+  // `qualites` : qualité de FORGE par slot équipé (parallèle à `slots`). Elle voyage
+  // avec l'exemplaire (slot ↔ sac). Vide/absent = qualité normale (cf. data/recettes.js).
+  return { cols: COLS, rangs: RANGS_BASE, objets: [], slots, qualites: {}, or: 0 };
 }
 
 // Hauteur réelle de la grille (le sac principal ajoute ses rangées).
@@ -234,15 +236,22 @@ export function equiper(inv, objet, heros, slotForce = null) {
     if (!ok) return "plein";
   }
 
-  // L'échange peut avoir lieu.
+  // L'échange peut avoir lieu. La QUALITÉ de forge suit l'exemplaire : celle qui
+  // ENTRE (objet.qualite) est mémorisée dans inv.qualites[slot] ; celle qui SORT
+  // repart au sac avec son arme.
+  inv.qualites ??= {};
   retirerObjet(inv, objet);
+  const ancienQualite = inv.qualites[slot] ?? null;
   inv.slots[slot] = objet.id;
+  inv.qualites[slot] = objet.qualite ?? null;
   // Arme à deux mains : libère la seconde main (retourne au sac), même si c'est
   // une arme mise là par Ambidextrie.
   if (slot === "arme1" && d.mains === 2 && inv.slots.arme2) {
-    const a2 = inv.slots.arme2; inv.slots.arme2 = null; ajouterObjet(inv, a2);
+    const a2 = inv.slots.arme2, a2q = inv.qualites.arme2 ?? null;
+    inv.slots.arme2 = null; inv.qualites.arme2 = null;
+    ajouterObjet(inv, a2, 1, a2q ? { qualite: a2q } : null);
   }
-  if (ancien) ajouterObjet(inv, ancien);
+  if (ancien) ajouterObjet(inv, ancien, 1, ancienQualite ? { qualite: ancienQualite } : null);
   return true;
 }
 
@@ -290,8 +299,10 @@ export function desequiper(inv, slot) {
       if (overflow) return "overflow";
     }
   }
-  if (!ajouterObjet(inv, id)) return false;
+  const q = inv.qualites?.[slot] ?? null;              // la qualité repart au sac
+  if (!ajouterObjet(inv, id, 1, q ? { qualite: q } : null)) return false;
   inv.slots[slot] = null;
+  if (inv.qualites) inv.qualites[slot] = null;
   return true;
 }
 
@@ -349,7 +360,7 @@ export function appliquerEquipement(heros, inv, planches) {
 // ---- Sauvegarde ----------------------------------------------------------
 
 export function etatInventaire(inv) {
-  return { or: inv.or, objets: inv.objets.map((o) => ({ ...o })), slots: { ...inv.slots } };
+  return { or: inv.or, objets: inv.objets.map((o) => ({ ...o })), slots: { ...inv.slots }, qualites: { ...(inv.qualites ?? {}) } };
 }
 
 export function chargerInventaire(inv, etat) {
@@ -357,21 +368,27 @@ export function chargerInventaire(inv, etat) {
   inv.or = Number.isFinite(etat.or) ? etat.or : 0;
   inv.objets = [];
   inv.slots = {};
+  inv.qualites = {};
   for (const s of SLOTS) inv.slots[s] = null;
-  // Slots : on ne garde que des ids connus
+  // Slots : on ne garde que des ids connus (+ leur qualité de forge éventuelle).
   if (etat.slots) for (const s of SLOTS) {
-    if (etat.slots[s] && itemDef(etat.slots[s])) inv.slots[s] = etat.slots[s];
+    if (etat.slots[s] && itemDef(etat.slots[s])) {
+      inv.slots[s] = etat.slots[s];
+      if (etat.qualites?.[s]) inv.qualites[s] = etat.qualites[s];
+    }
   }
   // Objets : on restaure la position rangée par le joueur si elle est valide,
-  // sinon on auto-place au premier creux (sac réduit, données anciennes…).
+  // sinon on auto-place au premier creux (sac réduit, données anciennes…). La
+  // qualité de forge (arme forgée) est conservée sur l'exemplaire.
   if (Array.isArray(etat.objets)) {
     for (const o of etat.objets) {
       if (!itemDef(o?.id)) continue;
+      const champs = o.qualite ? { qualite: o.qualite } : null;
       if (Number.isInteger(o.x) && Number.isInteger(o.y) &&
           peutPlacerA(inv, { id: o.id }, o.x, o.y)) {
-        inv.objets.push({ id: o.id, x: o.x, y: o.y });
+        inv.objets.push({ id: o.id, x: o.x, y: o.y, ...(champs || {}) });
       } else {
-        ajouterObjet(inv, o.id);
+        ajouterObjet(inv, o.id, 1, champs);
       }
     }
   }

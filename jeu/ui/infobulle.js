@@ -9,6 +9,7 @@
 
 import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES, setDeItem, comboArmeActif } from "../data/items.js";
 import { CARTES } from "../data/cartes.js";
+import { QUALITES } from "../data/recettes.js";
 import { cartesSuppleanceSlot } from "../systems/combat.js";
 import { garnirCarte } from "./carte.js";
 
@@ -20,12 +21,14 @@ function bulle() {
 let delaiTimer = null;
 let pendingId  = null;
 let pendingEl  = null;
+let pendingQualite = null;
 let lastMX = 0, lastMY = 0;
 
 function annulerDelai() {
   if (delaiTimer !== null) { clearTimeout(delaiTimer); delaiTimer = null; }
   pendingId = null;
   pendingEl = null;
+  pendingQualite = null;
 }
 
 // Source de l'équipement courant (pour colorer les pièces d'un set : vert =
@@ -99,7 +102,7 @@ function blocCombo(id) {
 
 // Remplit la bulle pour l'objet `id` (sans la positionner). Renvoie false si l'id
 // est inconnu.
-function construire(id) {
+function construire(id, qualite = null) {
   const d = itemDef(id);
   if (!d) return false;
   const t = bulle();
@@ -120,7 +123,18 @@ function construire(id) {
     return l;
   });
 
-  const enfants = [nom, rarete, ...lignes];
+  const enfants = [nom, rarete];
+  // Qualité de FORGE (exemplaire forgé) : ligne colorée, ex. « ⚒ Master · +2 Force ».
+  // Les objets lootés (qualite absente ou "normale") n'en affichent pas.
+  const q = qualite && qualite !== "normale" ? QUALITES[qualite] : null;
+  if (q) {
+    const ql = document.createElement("div");
+    ql.className = "inv-tip-rarete";
+    ql.style.color = q.couleur;
+    ql.textContent = `⚒ ${q.nom}${q.force > 0 ? ` · +${q.force} Force` : ""}`;
+    enfants.push(ql);
+  }
+  enfants.push(...lignes);
 
   // Le visuel des cartes ajoutées par l'objet (comme dans le deck, en mini).
   // On regroupe les exemplaires d'une même carte → badge « ×N » en haut à droite.
@@ -159,15 +173,16 @@ function construire(id) {
 }
 
 // Affiche la bulle SOUS LA SOURIS (survol) — avec délai de 500 ms.
-export function montrerInfobulle(id, e) {
+export function montrerInfobulle(id, e, qualite = null) {
   lastMX = e.clientX; lastMY = e.clientY;
-  if (pendingId === id) return;
+  if (pendingId === id && pendingQualite === qualite) return;
   annulerDelai();
   bulle().hidden = true;
   pendingId = id;
+  pendingQualite = qualite;
   delaiTimer = setTimeout(() => {
     delaiTimer = null;
-    if (construire(pendingId)) suivreInfobulle({ clientX: lastMX, clientY: lastMY });
+    if (construire(pendingId, pendingQualite)) suivreInfobulle({ clientX: lastMX, clientY: lastMY });
   }, 500);
 }
 
@@ -187,14 +202,15 @@ export function suivreInfobulle(e) {
 
 // Affiche la bulle À CÔTÉ d'un élément (à sa droite, ou à gauche si pas de place)
 // — pour la navigation au CLAVIER (le marchand, par ex.) — avec délai de 500 ms.
-export function montrerInfobulleEl(id, el) {
+export function montrerInfobulleEl(id, el, qualite = null) {
   annulerDelai();
   bulle().hidden = true;
   pendingId = id;
   pendingEl = el;
+  pendingQualite = qualite;
   delaiTimer = setTimeout(() => {
     delaiTimer = null;
-    if (!construire(pendingId)) return;
+    if (!construire(pendingId, pendingQualite)) return;
     const t = bulle();
     const r = pendingEl.getBoundingClientRect();
     const tr = t.getBoundingClientRect();

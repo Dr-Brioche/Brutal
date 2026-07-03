@@ -438,7 +438,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   // ---- Rendu ----------------------------------------------------------------
 
-  function iconeItem(id) {
+  function iconeItem(id, qualite = null) {
     const d = itemDef(id);
     const el = document.createElement("div");
     el.className = "inv-item";
@@ -449,7 +449,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     t.style.color = couleurRarete(id);
     el.append(t);
     // Bulle d'info au survol — sauf quand on tient un objet (geste en cours).
-    el.addEventListener("mouseenter", (e) => { if (!tenu) montrerInfobulle(id, e); });
+    el.addEventListener("mouseenter", (e) => { if (!tenu) montrerInfobulle(id, e, qualite); });
     el.addEventListener("mousemove", (e) => { if (!tenu) suivreInfobulle(e); });
     el.addEventListener("mouseleave", cacherInfobulle);
     return el;
@@ -475,7 +475,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     }
     const id = inventaire.slots[slot];
     if (id) {
-      const ic = iconeItem(id);
+      const ic = iconeItem(id, inventaire.qualites?.[slot]);
       const essayerDesequiper = (sl) => {
         const res = desequiper(inventaire, sl);
         if (res === true) { surChangement(); rendre(); }
@@ -603,7 +603,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
     for (const o of inventaire.objets) {
       const d = itemDef(o.id);
-      const ic = iconeItem(o.id);
+      const ic = iconeItem(o.id, o.qualite);
       if (tenu && o === tenu.objet) ic.classList.add("inv-item--tenu"); // grisé (en main)
       if (o === objetSousCurseur) ic.classList.add("inv-item--focus"); // focus clavier
       ic.style.position = "absolute";

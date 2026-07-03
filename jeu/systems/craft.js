@@ -18,7 +18,9 @@ export const QUALITE_PAR_MARQUEUR = {
 // Géométrie du mini-jeu, en position NORMALISÉE le long de la jauge (0 = gauche,
 // 1 = droite). ROUGE = largeur de chaque zone rouge aux extrémités ; H* = DEMI-
 // largeur de chaque bande du marqueur (grand/moyen/petit), concentriques.
-export const MJ = { ROUGE: 0.10, HG: 0.085, HM: 0.045, HP: 0.018 };
+// HG (grand/vert, Artisan) = large ; HM (moyen/bleu, Master) = moyen ; HP
+// (petit/or, Exceptional) = TRÈS fin. Difficulté croissante vers le centre.
+export const MJ = { ROUGE: 0.10, HG: 0.145, HM: 0.045, HP: 0.008 };
 
 // Où est le marqueur (son centre) ? Au hasard, mais assez au centre pour que même
 // sa plus GRANDE bande ne touche pas les zones rouges. `alea` ∈ [0,1[ (injectable
