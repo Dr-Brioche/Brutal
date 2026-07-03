@@ -123,15 +123,26 @@ export function ennemiParId(id) {
   return ENNEMIS.find((e) => e.id === id) ?? ENNEMIS[0];
 }
 
+// Bois : ressource de CRAFT lâchée par TOUS les monstres (source temporaire, cf.
+// docs/craft.md). Géré ici plutôt que dans chaque `butin` → vaut aussi pour les
+// futurs monstres, sans rien oublier. Réglage : chance + quantité par kill.
+const BOIS_CHANCE = 0.6;   // ~2 combats sur 3 en lâchent
+const BOIS_QTE = [1, 2];   // 1 ou 2 bûches quand ça tombe
+
 // Tire le butin d'un ennemi : renvoie { or, objets: [ids] }.
 export function tirerButin(ennemi) {
   const b = ennemi.butin;
-  if (!b) return { or: 0, objets: [] };
-  const [min, max] = b.or ?? [0, 0];
+  const objets = [];
+  if (b) {
+    for (const o of b.objets ?? []) if (Math.random() < o.chance) objets.push(o.id);
+  }
+  const [min, max] = b?.or ?? [0, 0];
   const or = min + Math.floor(Math.random() * (max - min + 1));
-  const objets = (b.objets ?? [])
-    .filter((o) => Math.random() < o.chance)
-    .map((o) => o.id);
+  // Drop universel de bois (indépendant du butin propre du monstre).
+  if (Math.random() < BOIS_CHANCE) {
+    const n = BOIS_QTE[0] + Math.floor(Math.random() * (BOIS_QTE[1] - BOIS_QTE[0] + 1));
+    for (let i = 0; i < n; i++) objets.push("bois");
+  }
   return { or, objets };
 }
 
