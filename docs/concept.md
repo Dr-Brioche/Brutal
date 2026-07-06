@@ -873,6 +873,25 @@ complet dans **`docs/craft.md`** ; résumé :
   Et on ne les **traverse plus** : chaque PNJ — ainsi que la **fontaine** — est un
   obstacle à hauteur des pieds.
 
+## L'Hôtel des ventes (pilier économie) — 1er jet (03/07/2026)
+
+Le **marché** est jouable (détail complet dans **`docs/marche.md`**) ; résumé :
+
+- **Baldrik le courtier** : nouveau PNJ en ville (place du marché). Lui parler
+  ouvre le **Deep-Market Exchange** (écran plein écran, comme la Forge).
+  *Sprite provisoire : le marchand teinté en bleu, en attendant sa planche.*
+- **Ressources = prix VIVANTS** : vendre fait baisser, acheter fait monter (même
+  taux, anti-exploit garanti), contrecoup sur d'autres ressources, dérive douce
+  vers la zone normale, **tableau d'historique** des prix.
+- **Événements rares** : **pénurie** (prix ×~3, le moment de vendre) ou **surplus**
+  (prix ×~0,4, le moment d'acheter), 5-10 min — le bandeau l'affiche et **Baldrik
+  glisse l'indice** dans son dialogue d'accueil.
+- **Objets = annonces à prix libre** : prix conseillé (valeur +10 %) vendu en
+  ~10-15 min de jeu ; plus on est gourmand, plus c'est long (exponentiel, +30 % ≈
+  1-3 h). L'or tombe **pendant qu'on joue** (« investissement passif »). Toujours
+  plus rentable que le marchand, jamais instantané.
+- **L'horloge du marché ne tourne qu'en jeu actif** — les menus/écrans la figent.
+
 ### Pistes de gameplay proposées (en attente de décision)
 
 1. **Forger les CARTES** : les minerais servent de réactifs pour retravailler les
@@ -1009,8 +1028,8 @@ que c'est addictif, **puis** on empile le suivant.
    (un réticule rouge suit le pointeur ; le monstre visé s'illumine en jaune et sa
    barre de vie clignote — on lâche dessus pour jouer la carte).
    *À enrichir* : pioche/deck plus riche, variété d'ennemis, sons.
-2. **Craft / Forge** — second.
-3. **Économie / bourse** — en dernier.
+2. **Craft / Forge** — second. *(1er jet jouable : table 5×5 + mini-jeu → `docs/craft.md`)*
+3. **Économie / bourse** — en dernier. *(1er jet jouable : Hôtel des ventes → `docs/marche.md`)*
 
 ## Contraintes techniques
 

@@ -524,6 +524,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       direction: heros.direction,
       inventaire: etatInventaire(inventaire),
       maitrise: etatMaitrise(maitrise),
+      marche: etatMarche(marche),
       armeNom: armeEquipee(inventaire)?.nom ?? "Unarmed",
       armureNom: armureEquipee(inventaire).nom,
     };
@@ -561,6 +562,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       heros.pv = Math.max(1, Math.min(heros.pvMax, donnees.pv)); // jamais 0 ni au-delà du max
     }
     if (donnees.maitrise) chargerMaitrise(maitrise, donnees.maitrise);
+    if (donnees.marche) chargerMarche(marche, donnees.marche); // prix + annonces en cours
     appliquerEquipement(heros, inventaire, planches);
     mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
   }
