@@ -48,8 +48,14 @@ const EVT_PENURIE = [2.6, 3.4];    // facteur prix pendant une pénurie
 const EVT_SURPLUS = [0.35, 0.45];  // facteur prix pendant un surplus
 const EVT_PART_PENURIE = 0.65;     // 65 % des événements sont des pénuries
 
-// Prix de base d'une ressource selon son `rang` (1..12) — progression ~×1,45.
-const PRIX_BASE_PAR_RANG = [0, 3, 4, 6, 9, 13, 19, 28, 41, 60, 88, 128, 188];
+// Prix de base d'une ressource selon son `rang` (1..12, cf. data/items.js) :
+// PRIX_RANG1 × RATIO_RANG^(rang-1). RATIO_RANG (bien plus raide qu'avant, ~×1,45)
+// fait que les minerais/cristaux les plus rares valent une FORTUNE face aux
+// communs — le fond de mine devient un vrai jackpot, et une pénurie/vente sur
+// un cristal rare pèse bien plus lourd en or qu'une pièce de pierre taillée.
+const PRIX_RANG1 = 3, RATIO_RANG = 1.8;
+const PRIX_BASE_PAR_RANG = [0];
+for (let r = 1; r <= 12; r++) PRIX_BASE_PAR_RANG.push(Math.round(PRIX_RANG1 * RATIO_RANG ** (r - 1)));
 export function prixBaseRessource(id) {
   const it = itemDef(id);
   return it?.prixBase || PRIX_BASE_PAR_RANG[it?.rang ?? 0] || 4;

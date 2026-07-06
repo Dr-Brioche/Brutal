@@ -634,8 +634,10 @@ export function couleurRarete(id) {
   return (it && RARETES[it.rarete]?.couleur) || "#9aa0a6";
 }
 
-// Prix de revente d'un item au marchand (or), selon sa rareté.
-const PRIX_VENTE = { commun: 2, uncommon: 4, rare: 6, epique: 15, legendaire: 40 };
+// Prix de revente d'un item au marchand (or), selon sa rareté. Échelle
+// (commun = 20 or, ×~2,3 par palier) : assez haute pour que les marges de l'HV
+// (cf. valeurReelle, systems/marche.js) restent lisibles après arrondi.
+const PRIX_VENTE = { commun: 20, uncommon: 45, rare: 100, epique: 250, legendaire: 700 };
 export function prixVente(id) {
   const it = ITEMS[id];
   return it ? (PRIX_VENTE[it.rarete] ?? 1) : 0;
