@@ -729,11 +729,15 @@
     }
     .hv-annonces:empty::after { content: "No items listed."; color: #6a7290; font-size: 1.4cqw; font-style: italic; }
     .hv-annonce {
-      display: flex; justify-content: space-between; gap: 1cqw;
+      display: flex; justify-content: space-between; align-items: center; gap: 1cqw;
       padding: 0.5cqw 1cqw; border-radius: var(--rayon);
       background: rgba(20,24,38,0.7); border: 0.14cqw solid #232b44; font-size: 1.45cqw;
     }
     .hv-annonce-reste { color: #8fa0c8; font-family: ui-monospace, monospace; }
+    /* Annonce VENDUE, prête à récolter : bord doré + léger halo, pour qu'elle
+       ressorte clairement de la liste (on doit avoir envie d'aller cliquer). */
+    .hv-annonce--vendue { border-color: #ffcf57; box-shadow: 0 0 1.4cqw rgba(255, 207, 87, 0.3); }
+    .hv-annonce--vendue .hv-btn--or { padding: 0.3cqw 0.9cqw; font-size: 1.3cqw; }
     /* Sous-fenêtre de mise en vente (par-dessus l'écran HV). */
     .hv-vente {
       position: absolute; inset: 0; z-index: 5; border-radius: var(--rayon);

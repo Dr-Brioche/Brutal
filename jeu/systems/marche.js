@@ -275,22 +275,40 @@ function pasMarche(marche, rng = Math.random) {
 }
 
 // Avance le marché de `dt` secondes de JEU ACTIF (l'appelant garantit qu'on
-// n'est ni en pause, ni dans un menu/écran). Renvoie les annonces CONCLUES
-// pendant ce laps (l'appelant crédite l'or et prévient le joueur).
+// n'est ni en pause, ni dans un menu/écran). Une annonce dont le délai s'écoule
+// n'est PAS payée automatiquement : elle passe en état VENDUE (`vendu: true`,
+// `reste` clampé à 0) et reste dans `marche.ventes` jusqu'à ce que le joueur
+// aille la RÉCOLTER lui-même à l'HV (cf. collecterVente) — l'investissement
+// reste passif, mais la récompense se va chercher. Renvoie les annonces qui
+// viennent tout juste de passer « vendue » à ce tick (l'appelant peut prévenir
+// le joueur, SANS créditer d'or).
 export function tickMarche(marche, dt, rng = Math.random) {
   marche.temps += dt;
-  const conclues = [];
-  for (let i = marche.ventes.length - 1; i >= 0; i--) {
-    const v = marche.ventes[i];
+  const fraichementVendues = [];
+  for (const v of marche.ventes) {
+    if (v.vendu) continue;
     v.reste -= dt;
-    if (v.reste <= 0) { conclues.push(v); marche.ventes.splice(i, 1); }
+    if (v.reste <= 0) { v.reste = 0; v.vendu = true; fraichementVendues.push(v); }
   }
   marche.tickAcc += dt;
   while (marche.tickAcc >= TICK) {
     marche.tickAcc -= TICK;
     pasMarche(marche, rng);
   }
-  return conclues;
+  return fraichementVendues;
+}
+
+// Récolte une annonce VENDUE : la retire de `marche.ventes` et renvoie
+// { prix, profitPct } — `profitPct` = plus-value (%) par rapport à la valeur
+// réelle de l'objet, pour le résumé affiché au joueur. `null` si l'annonce
+// n'est pas (encore) vendue ou n'existe plus (ex. HV rouvert entre-temps).
+export function collecterVente(marche, annonce) {
+  const i = marche.ventes.indexOf(annonce);
+  if (i < 0 || !annonce.vendu) return null;
+  marche.ventes.splice(i, 1);
+  const valeur = valeurReelle(annonce.id);
+  const profitPct = valeur > 0 ? Math.round((annonce.prix / valeur - 1) * 100) : 0;
+  return { prix: annonce.prix, profitPct };
 }
 
 // ----- Sauvegarde ----------------------------------------------------------------
@@ -321,6 +339,6 @@ export function chargerMarche(marche, etat) {
     : null;
   marche.ventes = Array.isArray(etat.ventes)
     ? etat.ventes.filter((v) => itemDef(v?.id) && Number.isFinite(v.prix) && Number.isFinite(v.reste))
-        .map((v) => ({ id: v.id, prix: Math.round(v.prix), qualite: v.qualite ?? null, reste: v.reste }))
+        .map((v) => ({ id: v.id, prix: Math.round(v.prix), qualite: v.qualite ?? null, reste: v.reste, vendu: v.vendu === true }))
     : [];
 }

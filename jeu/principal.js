@@ -1054,11 +1054,12 @@ export async function demarrerJeu(donneesInitiales = null) {
     mettreAJour(dt) {
       // L'HORLOGE DU MARCHÉ n'avance qu'en JEU ACTIF : exploration et combat
       // comptent ; les menus, dialogues, la Forge et l'HV (enPause / menu pause)
-      // la FIGENT. Les annonces conclues pendant qu'on joue paient ici.
+      // la FIGENT. Une annonce qui s'écoule ne PAIE PAS automatiquement — on
+      // prévient juste le joueur ; il doit aller la RÉCOLTER lui-même à l'HV
+      // (cf. ui/hv.js), qui affiche alors le résumé de la plus-value réalisée.
       if (!enPause && !menuPauseOuvert) {
         for (const v of tickMarche(marche, dt)) {
-          inventaire.or += v.prix;
-          afficherMessage(`📈 Sold ${itemDef(v.id)?.nom ?? v.id} for ${v.prix} 🪙 at the Exchange.`);
+          afficherMessage(`📈 ${itemDef(v.id)?.nom ?? v.id} sold at the Exchange — go collect your ${v.prix} 🪙!`);
         }
       }
       // La barre de menu n'est visible qu'en exploration libre (pas en combat,

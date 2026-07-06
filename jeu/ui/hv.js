@@ -18,7 +18,7 @@ import { QUALITES } from "../data/recettes.js";
 import {
   RESSOURCES_MARCHE, prixRessource, tendanceRessource, prixBaseRessource, variation30min,
   apercuAchat, apercuVente, acheterRessource, vendreRessource,
-  valeurReelle, prixConseille, bornesPrixVente, estimerDelaiVente, mettreEnVente,
+  valeurReelle, prixConseille, bornesPrixVente, estimerDelaiVente, mettreEnVente, collecterVente,
 } from "../systems/marche.js";
 import { ajouterObjet, compterRessource, retirerRessource, jeterObjet } from "../systems/inventaire.js";
 import { police } from "../core/texte.js";
@@ -40,7 +40,7 @@ let ventePrix = 0;
 let elVenteListe, elVentePrix, elVenteNom, elVenteMontant, elVenteNote,
     elVenteConfirmer, elVenteAide, elVenteTitre;
 
-const AIDE_DEFAUT = "[↑↓] Browse · [A] Buy · [V] Sell · [Esc] Leave";
+const AIDE_DEFAUT = "[↑↓] Browse · [A] Buy · [V] Sell · [C] Collect · [Esc] Leave";
 
 export function installerHV() {
   overlay = document.getElementById("hv");
@@ -105,10 +105,11 @@ function listeAffichee() {
 }
 
 // Message furtif dans la barre d'aide (« pas assez d'or », « sac plein »…).
-function noter(txt) {
+// `duree` plus longue pour un résumé à lire (ex. la plus-value d'une vente).
+function noter(txt, duree = 2000) {
   elAide.textContent = txt;
   clearTimeout(aideTimer);
-  aideTimer = setTimeout(() => { elAide.textContent = AIDE_DEFAUT; }, 2000);
+  aideTimer = setTimeout(() => { elAide.textContent = AIDE_DEFAUT; }, duree);
 }
 
 // ----- Achat / vente d'une ressource -----------------------------------------
@@ -301,12 +302,37 @@ function rendreAnnonces() {
   for (const v of marche.ventes) {
     const d = itemDef(v.id);
     const l = document.createElement("div");
-    l.className = "hv-annonce";
-    l.innerHTML = `<span></span><span class="hv-annonce-reste"></span>`;
+    l.className = "hv-annonce" + (v.vendu ? " hv-annonce--vendue" : "");
+    l.innerHTML = `<span></span>`;
     l.children[0].textContent = `${d?.nom ?? v.id} · ${v.prix} 🪙`;
-    l.children[1].textContent = fmtReste(v.reste);
+    if (v.vendu) {
+      // Vendue : on vient la RÉCOLTER soi-même (clic), le résumé de plus-value
+      // s'affiche à ce moment-là — pas de paiement automatique.
+      const btn = document.createElement("button");
+      btn.className = "hv-btn hv-btn--or";
+      btn.textContent = "💰 Collect";
+      btn.addEventListener("click", () => collecter(v));
+      l.append(btn);
+    } else {
+      const reste = document.createElement("span");
+      reste.className = "hv-annonce-reste";
+      reste.textContent = fmtReste(v.reste);
+      l.append(reste);
+    }
     elAnnonces.appendChild(l);
   }
+}
+
+// Récolte une annonce vendue : crédite l'or et affiche un résumé de la
+// plus-value réalisée (prix de vente vs valeur réelle de l'objet).
+function collecter(v) {
+  const d = itemDef(v.id);
+  const res = collecterVente(marche, v);
+  if (!res) return; // déjà récoltée entre-temps (ne devrait pas arriver, sécurité)
+  inv.or += res.prix;
+  const signe = res.profitPct >= 0 ? "+" : "";
+  noter(`💰 Collected ${res.prix} 🪙 for ${d?.nom ?? v.id} — ${signe}${res.profitPct}% profit vs. value.`, 3500);
+  rendre();
 }
 
 // ----- Mise en vente d'un objet (annonce à prix libre) ----------------------------
@@ -448,6 +474,13 @@ function surTouche(e) {
   } else if (k === "v") {
     e.preventDefault(); e.stopPropagation();
     vendre(selId);
+  } else if (k === "c") {
+    // Récolte la PREMIÈRE annonce vendue prête à collecter (équivalent clavier
+    // du clic sur « 💰 Collect » — appuyer plusieurs fois collecte les suivantes).
+    e.preventDefault(); e.stopPropagation();
+    const v = marche.ventes.find((v) => v.vendu);
+    if (v) collecter(v);
+    else noter("Nothing ready to collect yet.");
   }
 }
 
