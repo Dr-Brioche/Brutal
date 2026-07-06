@@ -617,6 +617,136 @@
       box-shadow: 0 0 2cqw #fff, 0 0 0.5cqw #000;
     }
     .forge-mj-aide { font-size: 1.8cqw; color: #d8c19a; letter-spacing: 0.03em; }
+
+    /* ---- L'HÔTEL DES VENTES (Deep-Market Exchange) : pilier économie ---- */
+    .hv {
+      position: fixed; inset: 0; z-index: 15;
+      display: flex; align-items: center; justify-content: center;
+    }
+    /* Même principe que la forge : zone 16:9 responsive en unités cqw, palette
+       plus froide (marché souterrain, reflets d'or). Réutilise l'en-tête, le
+       bouton ✕ et la barre d'aide de la forge (mêmes classes). */
+    .hv-zone {
+      position: relative;
+      width: min(100vw, calc(100vh * 16 / 9));
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      container-type: size;
+      display: flex; flex-direction: column;
+      border-radius: var(--rayon);
+      color: #e8e4d8;
+      background:
+        radial-gradient(120% 80% at 50% 0%, rgba(90,120,190,0.18) 0%, rgba(30,40,70,0.10) 40%, rgba(0,0,0,0) 70%),
+        linear-gradient(180deg, #12141c 0%, #0d0f16 55%, #090a10 100%);
+      box-shadow: inset 0 0 120px rgba(0,0,0,0.7);
+      font-family: system-ui, sans-serif;
+    }
+    .hv-or {
+      margin-left: auto; margin-right: 1.2cqw;
+      font-size: 2.2cqw; font-weight: 800; color: #ffcf57;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    }
+    /* Bandeau événement : pénurie (rouge chaud) ou surplus (vert froid). */
+    .hv-bandeau {
+      margin: 0.6cqw 3.6cqw 0; padding: 0.8cqw 1.4cqw;
+      border-radius: var(--rayon); font-size: 1.7cqw; font-weight: 600;
+      border: 0.15cqw solid;
+    }
+    .hv-bandeau--penurie { background: rgba(160,40,20,0.35); border-color: #d96a3a; color: #ffc9a8; }
+    .hv-bandeau--surplus { background: rgba(30,110,60,0.30); border-color: #3aa060; color: #b8e8c8; }
+    .hv-contenu {
+      flex: 1; min-height: 0;
+      display: flex; gap: 2cqw; padding: 1.2cqw 3.6cqw 0;
+    }
+    /* Colonne gauche : la liste des ressources. */
+    .hv-ressources {
+      flex: 1.35; min-width: 0; overflow-y: auto; padding-right: 0.4cqw;
+      display: flex; flex-direction: column; gap: 0.55cqw;
+      scrollbar-width: thin; scrollbar-color: #2a3350 transparent;
+    }
+    .hv-ligne {
+      display: flex; align-items: center; gap: 1cqw;
+      padding: 0.55cqw 1cqw; border-radius: var(--rayon);
+      background: rgba(20,24,38,0.7); border: 0.14cqw solid #232b44;
+      cursor: pointer;
+    }
+    .hv-ligne:hover { border-color: #3a4a7a; }
+    .hv-ligne.sel { border-color: #ffcf57; background: rgba(40,44,62,0.8); }
+    .hv-ligne--evt { box-shadow: 0 0 1.2cqw rgba(255,170,60,0.35); }
+    .hv-pastille { width: 2.4cqw; height: 2.4cqw; border-radius: 0.45cqw; border: 0.14cqw solid #000; flex-shrink: 0; }
+    .hv-nom { flex: 1; min-width: 0; font-size: 1.6cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hv-prix { font-size: 1.7cqw; font-weight: 800; color: #ffcf57; font-family: ui-monospace, monospace; }
+    .hv-tendance { width: 6.2cqw; text-align: right; font-size: 1.35cqw; font-weight: 700; font-family: ui-monospace, monospace; }
+    .hv-tendance--haut { color: #7fdc8f; }
+    .hv-tendance--bas  { color: #ff7a66; }
+    .hv-tendance--plat { color: #8a90a6; }
+    .hv-possede { width: 5.4cqw; text-align: right; font-size: 1.35cqw; color: #a8b0c6; }
+    .hv-btn {
+      padding: 0.45cqw 1.1cqw; font-size: 1.45cqw; font-weight: 700; color: #e8e4d8;
+      background: #1d2438; border: 0.14cqw solid #3a4a7a; border-radius: var(--rayon);
+      cursor: pointer;
+    }
+    .hv-btn:hover:not(:disabled) { border-color: #ffcf57; }
+    .hv-btn:disabled { opacity: 0.35; cursor: default; }
+    .hv-btn--or { background: linear-gradient(180deg,#b98a2a,#7a5210); border-color: #ffcf57; color: #fff; font-size: 1.7cqw; padding: 0.7cqw 1.6cqw; }
+    /* Colonne droite : historique + annonces. */
+    .hv-droite {
+      flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.5cqw;
+      overflow: hidden;
+    }
+    .hv-sous-titre {
+      font-size: 1.5cqw; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #8fa0c8; margin-top: 0.4cqw;
+    }
+    .hv-histo {
+      flex: 1.2; min-height: 0; overflow-y: auto;
+      background: rgba(15,18,30,0.7); border: 0.14cqw solid #232b44;
+      border-radius: var(--rayon); padding: 0.6cqw 1cqw;
+      font-size: 1.45cqw; font-family: ui-monospace, monospace;
+      scrollbar-width: thin; scrollbar-color: #2a3350 transparent;
+    }
+    .hv-histo-ligne { display: flex; justify-content: space-between; padding: 0.16cqw 0; color: #b8c0d6; }
+    .hv-histo-ligne--now { color: #ffcf57; font-weight: 800; }
+    .hv-annonces {
+      flex: 1; min-height: 0; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 0.4cqw;
+      scrollbar-width: thin; scrollbar-color: #2a3350 transparent;
+    }
+    .hv-annonces:empty::after { content: "No items listed."; color: #6a7290; font-size: 1.4cqw; font-style: italic; }
+    .hv-annonce {
+      display: flex; justify-content: space-between; gap: 1cqw;
+      padding: 0.5cqw 1cqw; border-radius: var(--rayon);
+      background: rgba(20,24,38,0.7); border: 0.14cqw solid #232b44; font-size: 1.45cqw;
+    }
+    .hv-annonce-reste { color: #8fa0c8; font-family: ui-monospace, monospace; }
+    /* Sous-fenêtre de mise en vente (par-dessus l'écran HV). */
+    .hv-vente {
+      position: absolute; inset: 0; z-index: 5; border-radius: var(--rayon);
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5,7,12,0.86);
+    }
+    .hv-vente-boite {
+      width: 56cqw; max-height: 46cqh; display: flex; flex-direction: column; gap: 1cqw;
+      background: #12141c; border: 0.18cqw solid #3a4a7a; border-radius: var(--rayon);
+      padding: 1.6cqw 2cqw;
+    }
+    .hv-vente-liste {
+      overflow-y: auto; display: flex; flex-direction: column; gap: 0.4cqw;
+      scrollbar-width: thin; scrollbar-color: #2a3350 transparent;
+    }
+    .hv-vente-liste:empty::after { content: "Nothing to sell in your bag."; color: #6a7290; font-size: 1.5cqw; font-style: italic; }
+    .hv-vente-item {
+      display: flex; justify-content: space-between; gap: 1cqw;
+      padding: 0.55cqw 1cqw; border-radius: var(--rayon);
+      background: rgba(20,24,38,0.7); border: 0.14cqw solid #232b44;
+      font-size: 1.55cqw; cursor: pointer;
+    }
+    .hv-vente-item:hover, .hv-vente-item.sel { border-color: #ffcf57; }
+    .hv-vente-prix { display: flex; flex-direction: column; align-items: center; gap: 1cqw; }
+    .hv-vente-nom { font-size: 2cqw; font-weight: 800; }
+    .hv-vente-picker { display: flex; align-items: center; gap: 1.6cqw; }
+    .hv-vente-montant { font-size: 3cqw; font-weight: 900; color: #ffcf57; font-family: ui-monospace, monospace; min-width: 12cqw; text-align: center; }
+    .hv-vente-note { font-size: 1.45cqw; color: #a8b0c6; text-align: center; line-height: 1.5; }
     .forge-aide {
       text-align: center; padding: 0 0 2.6cqw;
       font-size: 1.5cqw; color: #b79a6e; letter-spacing: 0.04em;
@@ -2049,6 +2179,53 @@
           <div class="forge-mj-curseur" id="forge-mj-curseur"></div>
         </div>
         <div class="forge-mj-aide" id="forge-mj-aide">[Espace] ou clic : frappe&nbsp;! &nbsp;·&nbsp; [Échap] annule</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- L'HÔTEL DES VENTES (Deep-Market Exchange) : écran plein écran du pilier
+       ÉCONOMIE. Ouvert en parlant à Baldrik le courtier. Prix des ressources
+       vivants (offre/demande + événements) + annonces d'objets à prix libre. -->
+  <div class="hv" id="hv" hidden>
+    <div class="hv-zone">
+      <div class="forge-entete">
+        <h1 class="forge-titre">Deep-Market Exchange</h1>
+        <div class="hv-or" id="hv-or">🪙 0</div>
+        <button class="forge-fermer" id="hv-fermer" title="Leave (Esc)">✕</button>
+      </div>
+      <!-- Bandeau d'événement (pénurie / surplus) avec la phrase-indice. -->
+      <div class="hv-bandeau" id="hv-bandeau" hidden></div>
+      <div class="hv-contenu">
+        <!-- Colonne gauche : les ressources (prix vivant, tendance, achat/vente). -->
+        <div class="hv-ressources" id="hv-ressources"></div>
+        <!-- Colonne droite : historique de la ressource sélectionnée + annonces. -->
+        <div class="hv-droite">
+          <div class="hv-sous-titre" id="hv-histo-titre">Price history</div>
+          <div class="hv-histo" id="hv-histo"></div>
+          <div class="hv-sous-titre">Your listings</div>
+          <div class="hv-annonces" id="hv-annonces"></div>
+          <button class="hv-btn" id="hv-vendre-objet">＋ Sell an item…</button>
+        </div>
+      </div>
+      <div class="forge-aide">[↑↓] Browse · [A] Buy · [V] Sell · [Esc] Leave</div>
+
+      <!-- Sous-fenêtre de MISE EN VENTE d'un objet (choix + prix libre). -->
+      <div class="hv-vente" id="hv-vente" hidden>
+        <div class="hv-vente-boite">
+          <div class="hv-sous-titre" id="hv-vente-titre">Sell an item</div>
+          <div class="hv-vente-liste" id="hv-vente-liste"></div>
+          <div class="hv-vente-prix" id="hv-vente-prix" hidden>
+            <div class="hv-vente-nom" id="hv-vente-nom"></div>
+            <div class="hv-vente-picker">
+              <button class="hv-btn" id="hv-prix-moins">−</button>
+              <div class="hv-vente-montant" id="hv-vente-montant">0 🪙</div>
+              <button class="hv-btn" id="hv-prix-plus">＋</button>
+            </div>
+            <div class="hv-vente-note" id="hv-vente-note"></div>
+            <button class="hv-btn hv-btn--or" id="hv-vente-confirmer">📈 List it</button>
+          </div>
+          <div class="forge-aide" id="hv-vente-aide">[↑↓] Choose · [Enter] Select · [Esc] Back</div>
+        </div>
       </div>
     </div>
   </div>

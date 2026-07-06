@@ -118,6 +118,21 @@ function contrecoup(marche, id, sens, n, rng = Math.random) {
   }
 }
 
+// APERÇUS (sans rien modifier) : ce que coûterait/rapporterait un échange de n
+// unités — la même arithmétique que l'échange réel (déterministe), sur une copie.
+// Sert à l'UI pour vérifier l'or AVANT d'acheter et afficher un prix honnête.
+function apercu(marche, id, sens, n) {
+  const copie = { mults: { ...marche.mults }, evenement: marche.evenement };
+  let total = 0;
+  for (let i = 0; i < n; i++) {
+    pousser(copie, id, sens);
+    total += prixRessource(copie, id);
+  }
+  return total;
+}
+export function apercuAchat(marche, id, n = 1) { return apercu(marche, id, +1, n); }
+export function apercuVente(marche, id, n = 1) { return apercu(marche, id, -1, n); }
+
 // VENDRE n unités : pour CHAQUE unité le prix baisse D'ABORD, puis on encaisse
 // le prix baissé (anti-exploit). Renvoie l'or total encaissé.
 export function vendreRessource(marche, id, n = 1, rng = Math.random) {

@@ -34,8 +34,10 @@ import { demarrerCombat } from "./ui/combat.js";
 import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
 import { fondCombat, prechargerFonds } from "./data/fonds.js";
 import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
-import { FANATIQUE, MARCHAND, FORGERON } from "./data/pnj.js";
+import { FANATIQUE, MARCHAND, FORGERON, COURTIER } from "./data/pnj.js";
 import { installerForge, ouvrirForge, forgeActive } from "./ui/forge.js";
+import { installerHV, ouvrirHV, hvActive, phraseCourtier } from "./ui/hv.js";
+import { creerMarche, tickMarche, etatMarche, chargerMarche } from "./systems/marche.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
 import { getPreference } from "./systems/preferences.js";
@@ -107,6 +109,9 @@ export async function demarrerJeu(donneesInitiales = null) {
   heros.x = carte.departX;
   heros.y = carte.departY;
   const inventaire = creerInventaire();
+  // Le MARCHÉ (Hôtel des ventes) : prix vivants des ressources + annonces d'objets.
+  // Son horloge n'avance qu'en JEU ACTIF (cf. le tick en tête de mettreAJour).
+  const marche = creerMarche();
   // La bulle d'info lit l'équipement courant pour colorer les pièces d'un set.
   definirSourceEquipement(() => inventaire.slots);
   inventaire.slots.armure = "tenue-de-voyageur"; // habits de base (corps)
@@ -154,6 +159,16 @@ export async function demarrerJeu(donneesInitiales = null) {
     xMin: 32 * TUILE - 36,
     xMax: 32 * TUILE - 36,
   });
+  // Baldrik le courtier (HÔTEL DES VENTES), STATIONNAIRE (rangée 11, à gauche du
+  // forgeron — la « place du marché »). Lui parler ouvrira l'HV (pilier économie).
+  const courtier = creerPnj({
+    modele: COURTIER,
+    planche: planches.get(COURTIER.planche),
+    x: 26 * TUILE - 36,
+    y: 11 * TUILE - 72,
+    xMin: 26 * TUILE - 36,
+    xMax: 26 * TUILE - 36,
+  });
   // FONTAINE (build de TEST) : près de la porte de sortie. On lui parle
   // pour gagner 1 niveau d'un coup → tester l'arbre de talents sans farmer.
   const fontaine = {
@@ -174,7 +189,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       return { x: p.x + s.caseL / 2 - 16, y: p.y + s.caseH - 26, w: 32, h: 18 };
     };
     return [
-      boitePnj(fanatique), boitePnj(marchand), boitePnj(forgeron),
+      boitePnj(fanatique), boitePnj(marchand), boitePnj(forgeron), boitePnj(courtier),
       { x: fontaine.cx - 20, y: fontaine.solY - 16, w: 40, h: 22 },
     ];
   }
@@ -264,6 +279,24 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // Parler à la fontaine (build de TEST) : monter d'un niveau d'un coup pour
   // essayer l'arbre de talents sans devoir farmer des combats.
+  // Parler à Baldrik le courtier : mot d'accueil, puis on ouvre l'HÔTEL DES
+  // VENTES (l'écran du pilier économie). S'il y a un événement de marché en
+  // cours, son accueil GLISSE L'INDICE (cf. phraseCourtier dans ui/hv.js).
+  function parlerAuCourtier() {
+    if (dialogueActif() || combatEnCours || enPause) return;
+    regarderHeros(courtier, heros); // il se tourne vers le héros PENDANT qu'on lui parle
+    enPause = true;
+    invite.hidden = true;
+    ouvrirDialogue({
+      nom: "Baldrik the Broker",
+      texte: phraseCourtier(marche),
+      choix: [
+        { texte: "📈  Trade", action: () => ouvrirHV(inventaire, marche, () => { enPause = false; }) },
+        { texte: "Later", action: () => {} },
+      ],
+    }, () => { if (!hvActive()) enPause = false; });
+  }
+
   function parlerALaFontaine() {
     if (dialogueActif() || combatEnCours || enPause) return;
     enPause = true;
@@ -664,6 +697,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // La fenêtre de butin (fin de combat gagné) : on récupère le loot d'un clic / Espace.
   const butinUI = installerButin();
   installerForge(); // la forge plein écran (ouverte via le forgeron)
+  installerHV();    // l'hôtel des ventes plein écran (ouvert via le courtier)
 
   // Échap : ferme d'abord l'écran ouvert (inventaire, deck, talents, menu pause) ;
   // si rien n'est ouvert, ouvre le menu pause (sauvegarder / quitter).
@@ -692,6 +726,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (fanatique.proche) { e.preventDefault(); parlerAuFanatique(); }
     else if (marchand.proche) { e.preventDefault(); parlerAuMarchand(); }
     else if (forgeron.proche) { e.preventDefault(); parlerAuForgeron(); }
+    else if (courtier.proche) { e.preventDefault(); parlerAuCourtier(); }
     else if (fontaine.proche) { e.preventDefault(); parlerALaFontaine(); }
   });
 
@@ -1015,6 +1050,15 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   lancerBoucle({
     mettreAJour(dt) {
+      // L'HORLOGE DU MARCHÉ n'avance qu'en JEU ACTIF : exploration et combat
+      // comptent ; les menus, dialogues, la Forge et l'HV (enPause / menu pause)
+      // la FIGENT. Les annonces conclues pendant qu'on joue paient ici.
+      if (!enPause && !menuPauseOuvert) {
+        for (const v of tickMarche(marche, dt)) {
+          inventaire.or += v.prix;
+          afficherMessage(`📈 Sold ${itemDef(v.id)?.nom ?? v.id} for ${v.prix} 🪙 at the Exchange.`);
+        }
+      }
       // La barre de menu n'est visible qu'en exploration libre (pas en combat,
       // pas quand un écran/menu est ouvert).
       barreMenu.hidden = Boolean(combatEnCours) || enPause;
@@ -1047,6 +1091,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         mettreAJourPnj(fanatique, dt, heros);
         mettreAJourPnj(marchand, dt, heros);
         mettreAJourPnj(forgeron, dt, heros);
+        mettreAJourPnj(courtier, dt, heros);
         fontaine.t += dt;
         fontaine.proche =
           Math.abs((heros.x + 32) - fontaine.cx) < 46 &&
@@ -1056,7 +1101,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       veineProche = (zoneCourante.estMine && !minage) ? veineLaPlusProche() : null;
       // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la fontaine
       invite.hidden = !(zoneActuelle === "city" &&
-        (fanatique.proche || marchand.proche || forgeron.proche || fontaine.proche));
+        (fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || fontaine.proche));
       mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
       // Bulle flottante du minerai : positionnée en CSS au-dessus de la veine
       if (veineProche) {
@@ -1091,6 +1136,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           { pieds: piedsPnj(fanatique), dessiner: () => dessinerPnj(ctx, fanatique) },
           { pieds: piedsPnj(marchand), dessiner: () => dessinerPnj(ctx, marchand) },
           { pieds: piedsPnj(forgeron), dessiner: () => dessinerPnj(ctx, forgeron) },
+          { pieds: piedsPnj(courtier), dessiner: () => dessinerPnj(ctx, courtier) },
           { pieds: heros.y + 54, dessiner: () => dessinerHeros(ctx, heros) },
         ];
         acteurs.sort((a, b) => a.pieds - b.pieds);
