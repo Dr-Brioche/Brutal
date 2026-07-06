@@ -13,7 +13,7 @@
 // Au clavier : flèches/WASD pour bouger le curseur, Entrée pour soulever/poser,
 // X pour le menu Equip/Discard, Échap pour reposer l'objet tenu.
 
-import { itemDef, couleurRarete } from "../data/items.js";
+import { itemDef, couleurRarete, prixVente } from "../data/items.js";
 import { xpPourNiveau } from "../systems/progression.js";
 import {
   rangsInventaire, colsInventaire, equiper, desequiper, arme2Bloquee,
@@ -294,12 +294,17 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     elMenu.style.top = Math.max(8, Math.min(y, innerHeight - r.height - 8)) + "px";
     surlignerMenu();
   }
-  // Actions Equip/Discard pour un objet du SAC.
+  // Actions Equip/Sell/Discard pour un objet du SAC. « Sell » n'apparaît QUE
+  // pendant qu'on est chez le marchand (raccourci au clic droit, en plus du
+  // glisser-déposer déjà possible sur sa fenêtre) — même action (`surVendre`)
+  // que le lâcher-déposer, donc même confirmation pour les objets rares.
   function menuSac(o) {
-    return [
-      { label: "Equip", fn: () => essayerEquiper(inventaire, heros, o, surChangement, rendre) },
-      { label: "Discard", danger: true, fn: () => surJeter && surJeter({ objet: o }) },
-    ];
+    const actions = [{ label: "Equip", fn: () => essayerEquiper(inventaire, heros, o, surChangement, rendre) }];
+    if (surVendre && document.body.classList.contains("en-boutique")) {
+      actions.push({ label: `Sell — ${prixVente(o.id) * (o.quantite ?? 1)} 🪙`, fn: () => surVendre(o) });
+    }
+    actions.push({ label: "Discard", danger: true, fn: () => surJeter && surJeter({ objet: o }) });
+    return actions;
   }
   // Ouvre le menu à la position ÉCRAN d'une case (pour la touche X au clavier).
   function ouvrirContexteCase(x, y, actions) {
