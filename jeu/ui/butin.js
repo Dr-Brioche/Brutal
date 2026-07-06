@@ -170,7 +170,7 @@ export function installerButin() {
       prendre = opts.prendre;
       surFin = opts.surFin;
       liste.replaceChildren();
-      if (or > 0) liste.append(ligneInfo(`🪙 <b>+${or}</b> Gold`)); // l'XP est dans la barre
+      if (or > 0) liste.append(ligneInfo(`<span class="icone-piece"></span> <b>+${or}</b> Gold`)); // l'XP est dans la barre
       restants = 0;
       for (const id of items) {
         if (!ITEMS[id]) continue;

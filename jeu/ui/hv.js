@@ -135,7 +135,7 @@ function vendre(id) {
 // ----- Rendu -------------------------------------------------------------------
 
 function rendre() {
-  elOr.textContent = `🪙 ${inv.or}`;
+  elOr.textContent = inv.or; // l'icône (#hv-or) est un élément statique du HTML — cf. index.html
 
   // Bandeau d'événement (pénurie/surplus) avec sa phrase-indice.
   const e = marche.evenement;
@@ -169,7 +169,7 @@ function rendre() {
       `<span class="hv-nom"></span>` +
       `<span class="hv-tendance hv-tendance--${clTend}" title="vs. base price">${fleche} ${tend > 0 ? "+" : ""}${tend}%</span>` +
       `<span class="hv-var30 hv-tendance--${cl30}" title="last 30 min">30m: ${var30 > 0 ? "+" : ""}${var30}%</span>` +
-      `<span class="hv-prix">${prix} 🪙</span>` +
+      `<span class="hv-prix">${prix} <span class="icone-piece"></span></span>` +
       `<span class="hv-possede">you: ${possede}</span>`;
     ligne.querySelector(".hv-nom").textContent = d.nom;
     const btnA = document.createElement("button");
@@ -198,6 +198,23 @@ function rendre() {
 // actif (fenêtre fixe : les points plus vieux sortent par la gauche), ligne
 // pointillée du prix de BASE en repère, point + étiquette sur le prix actuel.
 // Netteté : le canvas est rendu à devicePixelRatio× sa taille affichée.
+
+// Icône de monnaie en CANVAS (un seul coin, faute de place) : petit carré doré
+// avec un trou sombre au centre — pendant canvas de l'icône CSS `.icone-piece`
+// (cf. index.html) utilisée partout ailleurs. `x, y` = coin gauche/milieu vertical.
+function dessinerIconePiece(ctx, x, y, taille) {
+  ctx.save();
+  ctx.fillStyle = "#e0a83a";
+  ctx.strokeStyle = "#5a3a10";
+  ctx.lineWidth = 1;
+  ctx.fillRect(x, y - taille / 2, taille, taille);
+  ctx.strokeRect(x, y - taille / 2, taille, taille);
+  const trou = taille * 0.34;
+  ctx.fillStyle = "#1f1710";
+  ctx.fillRect(x + (taille - trou) / 2, y - trou / 2, trou, trou);
+  ctx.restore();
+}
+
 function rendreGraphe(id) {
   const cv = elGraphe;
   const larg = cv.clientWidth, haut = cv.clientHeight;
@@ -283,7 +300,10 @@ function rendreGraphe(id) {
   g.font = police(11);
   g.textAlign = "left"; g.textBaseline = "middle";
   g.fillStyle = "#ffcf57";
-  g.fillText(`${pts[pts.length - 1].prix} 🪙`, larg - M.d + 6, Math.max(M.h + 6, Math.min(haut - M.b - 6, yN)));
+  const txtPrix = `${pts[pts.length - 1].prix}`;
+  const xEtiq = larg - M.d + 6, yEtiq = Math.max(M.h + 6, Math.min(haut - M.b - 6, yN));
+  g.fillText(txtPrix, xEtiq, yEtiq);
+  dessinerIconePiece(g, xEtiq + g.measureText(txtPrix).width + 4, yEtiq, 9);
 
   // Peu d'historique (partie fraîche) : petit mot pour expliquer la ligne courte.
   if (pts.length <= 2) {
@@ -306,8 +326,7 @@ function rendreAnnonces() {
     const d = itemDef(v.id);
     const l = document.createElement("div");
     l.className = "hv-annonce" + (v.vendu ? " hv-annonce--vendue" : "");
-    l.innerHTML = `<span></span>`;
-    l.children[0].textContent = `${d?.nom ?? v.id} · ${v.prix} 🪙`;
+    l.innerHTML = `<span>${d?.nom ?? v.id} · ${v.prix} <span class="icone-piece"></span></span>`;
     if (v.vendu) {
       // Vendue : on vient la RÉCOLTER soi-même (clic), le résumé de plus-value
       // s'affiche à ce moment-là — pas de paiement automatique.
@@ -381,7 +400,7 @@ function rendreVente() {
       const q = o.qualite && o.qualite !== "normale" ? QUALITES[o.qualite] : null;
       const l = document.createElement("div");
       l.className = "hv-vente-item" + (i === venteSel ? " sel" : "");
-      l.innerHTML = `<span></span><span style="color:#8fa0c8">value ${valeurReelle(o.id)} 🪙</span>`;
+      l.innerHTML = `<span></span><span style="color:#8fa0c8">value ${valeurReelle(o.id)} <span class="icone-piece"></span></span>`;
       l.children[0].textContent = d.nom + (q ? ` · ⚒ ${q.nom}` : "");
       l.children[0].style.color = couleurRarete(o.id);
       l.addEventListener("click", () => { venteSel = i; choisirObjetVente(); });
@@ -396,13 +415,13 @@ function rendreVente() {
   ventePrix = Math.min(b.max, Math.max(b.min, ventePrix));
   elVenteNom.textContent = itemDef(id).nom;
   elVenteNom.style.color = couleurRarete(id);
-  elVenteMontant.textContent = `${ventePrix} 🪙`;
+  elVenteMontant.innerHTML = `${ventePrix} <span class="icone-piece"></span>`;
   const e = estimerDelaiVente(id, ventePrix);
   const marge = Math.round((ventePrix / valeurReelle(id) - 1) * 100);
   elVenteNote.innerHTML =
     `Estimated sale time: <b>${fmtEstim(e.min)} – ${fmtEstim(e.max)}</b> of play` +
     ` &nbsp;(${marge >= 0 ? "+" : ""}${marge}% vs. value)<br>` +
-    `Recommended: ${prixConseille(id)} 🪙 · Merchant would pay: ${prixVente(id)} 🪙`;
+    `Recommended: ${prixConseille(id)} <span class="icone-piece"></span> · Merchant would pay: ${prixVente(id)} <span class="icone-piece"></span>`;
 }
 
 function choisirObjetVente() {
