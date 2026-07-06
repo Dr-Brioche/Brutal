@@ -56,8 +56,9 @@ export function prixBaseRessource(id) {
 }
 
 // Valeur RÉELLE d'un objet (non-ressource) selon sa rareté — surchargée par
-// `it.valeur` si un objet mérite un prix particulier.
-const VALEUR_REELLE = { commun: 5, uncommon: 12, rare: 25, epique: 60, legendaire: 150 };
+// `it.valeur` si un objet mérite un prix particulier. Échelle en dizaines pour
+// que 1 or ≈ un pas de ~10 % ou moins (le curseur de prix reste précis).
+const VALEUR_REELLE = { commun: 10, uncommon: 24, rare: 50, epique: 120, legendaire: 300 };
 export function valeurReelle(id) {
   const it = itemDef(id);
   return it?.valeur ?? VALEUR_REELLE[it?.rarete] ?? 5;
@@ -189,16 +190,19 @@ function largeurFourchette(id, prix) {
   return 0.3 + 0.015 * Math.max(0, marge);
 }
 
+// Le délai FINAL (médian × hasard) reste borné : 45 s à 72 h de jeu actif.
+const bornerDelai = (s) => Math.min(72 * 3600, Math.max(45, Math.round(s)));
+
 // Fourchette AFFICHÉE au joueur : { min, max } en secondes de jeu actif.
 export function estimerDelaiVente(id, prix) {
   const T = delaiMedian(id, prix), w = largeurFourchette(id, prix);
-  return { min: Math.round(T * Math.pow(2, -w)), max: Math.round(T * Math.pow(2, w)) };
+  return { min: bornerDelai(T * Math.pow(2, -w)), max: bornerDelai(T * Math.pow(2, w)) };
 }
 
 // Tirage RÉEL du délai (au moment de la mise en vente) : médian × 2^(u·w).
 export function tirerDelaiVente(id, prix, rng = Math.random) {
   const T = delaiMedian(id, prix), w = largeurFourchette(id, prix);
-  return Math.round(T * Math.pow(2, (rng() * 2 - 1) * w));
+  return bornerDelai(T * Math.pow(2, (rng() * 2 - 1) * w));
 }
 
 // Met un objet en annonce. Renvoie l'annonce créée (l'objet doit déjà avoir été

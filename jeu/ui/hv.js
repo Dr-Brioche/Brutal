@@ -13,12 +13,14 @@
 // API alignée sur la forge : installerHV() / ouvrirHV(inv, marche, surFermer) /
 // fermerHV() / hvActive() — plus phraseCourtier(marche) pour le dialogue.
 
-import { itemDef } from "../data/items.js";
+import { itemDef, couleurRarete, prixVente } from "../data/items.js";
+import { QUALITES } from "../data/recettes.js";
 import {
   RESSOURCES_MARCHE, prixRessource, tendanceRessource, prixBaseRessource,
   apercuAchat, apercuVente, acheterRessource, vendreRessource,
+  valeurReelle, prixConseille, bornesPrixVente, estimerDelaiVente, mettreEnVente,
 } from "../systems/marche.js";
-import { ajouterObjet, compterRessource, retirerRessource } from "../systems/inventaire.js";
+import { ajouterObjet, compterRessource, retirerRessource, jeterObjet } from "../systems/inventaire.js";
 
 let overlay, elOr, elBandeau, elRessources, elHisto, elHistoTitre, elAnnonces,
     elBtnVendre, elVente, boutonFermer, elAide;
@@ -27,6 +29,14 @@ let surFermerActif = null;
 let inv = null, marche = null;
 let selRes = 0;            // index de la ressource sélectionnée (historique)
 let aideTimer = 0;         // restauration du texte d'aide après un message furtif
+// Sous-fenêtre de mise en vente : null (fermée) | "liste" (choix de l'objet)
+// | "prix" (réglage du prix). `venteObjet` = l'exemplaire du sac choisi.
+let venteEtape = null;
+let venteSel = 0;
+let venteObjet = null;
+let ventePrix = 0;
+let elVenteListe, elVentePrix, elVenteNom, elVenteMontant, elVenteNote,
+    elVenteConfirmer, elVenteAide, elVenteTitre;
 
 const AIDE_DEFAUT = "[↑↓] Browse · [A] Buy · [V] Sell · [Esc] Leave";
 
@@ -42,8 +52,19 @@ export function installerHV() {
   elVente = document.getElementById("hv-vente");
   boutonFermer = document.getElementById("hv-fermer");
   elAide = overlay.querySelector(".forge-aide");
+  elVenteListe = document.getElementById("hv-vente-liste");
+  elVentePrix = document.getElementById("hv-vente-prix");
+  elVenteNom = document.getElementById("hv-vente-nom");
+  elVenteMontant = document.getElementById("hv-vente-montant");
+  elVenteNote = document.getElementById("hv-vente-note");
+  elVenteConfirmer = document.getElementById("hv-vente-confirmer");
+  elVenteAide = document.getElementById("hv-vente-aide");
+  elVenteTitre = document.getElementById("hv-vente-titre");
   boutonFermer.addEventListener("click", fermerHV);
-  elBtnVendre.hidden = true; // la mise en vente d'objets arrive au commit suivant
+  elBtnVendre.addEventListener("click", ouvrirVente);
+  document.getElementById("hv-prix-moins").addEventListener("click", () => bougerPrix(-1));
+  document.getElementById("hv-prix-plus").addEventListener("click", () => bougerPrix(+1));
+  elVenteConfirmer.addEventListener("click", confirmerVente);
 }
 
 export function ouvrirHV(inventaire, marcheJeu, surFermer = null) {
@@ -53,6 +74,7 @@ export function ouvrirHV(inventaire, marcheJeu, surFermer = null) {
   marche = marcheJeu;
   surFermerActif = surFermer;
   selRes = 0;
+  venteEtape = null;
   elVente.hidden = true;
   rendre();
   overlay.hidden = false;
@@ -185,10 +207,124 @@ function rendreAnnonces() {
   }
 }
 
+// ----- Mise en vente d'un objet (annonce à prix libre) ----------------------------
+
+// Les objets du sac VENDABLES à l'annonce : tout sauf les ressources (elles ont
+// leur marché vivant à gauche) — armes, armures, bijoux…
+function objetsVendables() {
+  return inv.objets.filter((o) => itemDef(o.id)?.categorie !== "ressource");
+}
+
+function ouvrirVente() {
+  venteEtape = "liste";
+  venteSel = 0;
+  venteObjet = null;
+  rendreVente();
+  elVente.hidden = false;
+}
+
+function fermerVente() {
+  venteEtape = null;
+  elVente.hidden = true;
+}
+
+// Formatage d'une durée de jeu actif (estimations & fourchettes).
+function fmtEstim(s) {
+  if (s < 3600) return `${Math.max(1, Math.round(s / 60))} min`;
+  return `${(s / 3600).toFixed(s < 10 * 3600 ? 1 : 0)} h`;
+}
+
+function rendreVente() {
+  const enListe = venteEtape === "liste";
+  elVenteListe.hidden = !enListe;
+  elVentePrix.hidden = enListe;
+  elVenteTitre.textContent = enListe ? "Sell an item" : "Set your price";
+  elVenteAide.textContent = enListe
+    ? "[↑↓] Choose · [Enter] Select · [Esc] Back"
+    : "[←→] Price ±1 (Shift: ±5) · [Enter] List it · [Esc] Back";
+
+  if (enListe) {
+    elVenteListe.replaceChildren();
+    objetsVendables().forEach((o, i) => {
+      const d = itemDef(o.id);
+      const q = o.qualite && o.qualite !== "normale" ? QUALITES[o.qualite] : null;
+      const l = document.createElement("div");
+      l.className = "hv-vente-item" + (i === venteSel ? " sel" : "");
+      l.innerHTML = `<span></span><span style="color:#8fa0c8">value ${valeurReelle(o.id)} 🪙</span>`;
+      l.children[0].textContent = d.nom + (q ? ` · ⚒ ${q.nom}` : "");
+      l.children[0].style.color = couleurRarete(o.id);
+      l.addEventListener("click", () => { venteSel = i; choisirObjetVente(); });
+      elVenteListe.appendChild(l);
+    });
+    return;
+  }
+
+  // Étape prix : montant, estimation de délai, repères (conseillé / marchand).
+  const id = venteObjet.id;
+  const b = bornesPrixVente(id);
+  ventePrix = Math.min(b.max, Math.max(b.min, ventePrix));
+  elVenteNom.textContent = itemDef(id).nom;
+  elVenteNom.style.color = couleurRarete(id);
+  elVenteMontant.textContent = `${ventePrix} 🪙`;
+  const e = estimerDelaiVente(id, ventePrix);
+  const marge = Math.round((ventePrix / valeurReelle(id) - 1) * 100);
+  elVenteNote.innerHTML =
+    `Estimated sale time: <b>${fmtEstim(e.min)} – ${fmtEstim(e.max)}</b> of play` +
+    ` &nbsp;(${marge >= 0 ? "+" : ""}${marge}% vs. value)<br>` +
+    `Recommended: ${prixConseille(id)} 🪙 · Merchant would pay: ${prixVente(id)} 🪙`;
+}
+
+function choisirObjetVente() {
+  const objets = objetsVendables();
+  venteObjet = objets[venteSel] ?? null;
+  if (!venteObjet) return;
+  ventePrix = prixConseille(venteObjet.id);
+  venteEtape = "prix";
+  rendreVente();
+}
+
+function bougerPrix(pas) {
+  if (venteEtape !== "prix") return;
+  ventePrix += pas;
+  rendreVente(); // borné dans rendreVente
+}
+
+function confirmerVente() {
+  if (venteEtape !== "prix" || !venteObjet) return;
+  // L'objet quitte le sac et part à l'annonce (la qualité de forge voyage avec :
+  // elle reviendra si on ajoute un jour l'annulation d'annonce).
+  jeterObjet(inv, venteObjet);
+  mettreEnVente(marche, venteObjet.id, ventePrix, venteObjet.qualite ?? null);
+  noter(`📈 ${itemDef(venteObjet.id).nom} listed for ${ventePrix} 🪙.`);
+  fermerVente();
+  rendre();
+}
+
 // ----- Clavier -------------------------------------------------------------------
 
 function surTouche(e) {
   if (!actif) return;
+
+  // Sous-fenêtre de mise en vente ouverte : le clavier lui appartient.
+  if (venteEtape) {
+    e.preventDefault(); e.stopPropagation();
+    if (e.code === "Escape") {
+      if (venteEtape === "prix") { venteEtape = "liste"; rendreVente(); }
+      else fermerVente();
+    } else if (venteEtape === "liste") {
+      const n = objetsVendables().length;
+      if (e.code === "ArrowUp" && n)   { venteSel = (venteSel - 1 + n) % n; rendreVente(); }
+      if (e.code === "ArrowDown" && n) { venteSel = (venteSel + 1) % n; rendreVente(); }
+      if ((e.code === "Enter" || e.code === "Space") && n) choisirObjetVente();
+    } else if (venteEtape === "prix") {
+      const pas = e.shiftKey ? 5 : 1;
+      if (e.code === "ArrowLeft")  bougerPrix(-pas);
+      if (e.code === "ArrowRight") bougerPrix(+pas);
+      if (e.code === "Enter" || e.code === "Space") confirmerVente();
+    }
+    return;
+  }
+
   if (e.code === "Escape") {
     e.preventDefault(); e.stopPropagation();
     fermerHV();
