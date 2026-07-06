@@ -43,14 +43,21 @@ Prix affiché = **prix de base** (selon le `rang` 1→12, ~×1,45 par rang ; boi
    régulièrement paie.
 
 **Historique** : le prix de chaque ressource est échantillonné toutes les 60 s de
-jeu actif (1 h conservée) et affiché en tableau pour la ressource sélectionnée.
+jeu actif (1 h conservée) et affiché en **graphique** (courbe façon trading, ligne
+pointillée = prix de base) pour la ressource sélectionnée.
+
+**Tri** : la liste des ressources peut se trier par ordre par défaut, ou par
+**momentum sur 30 min** (Top gainers / Top losers) — le badge « 30m: +N % » de
+chaque ligne, différent de la tendance vs prix de base, sert à repérer d'un coup
+d'œil ce qui grimpe vite (vendre) ou s'effondre (acheter).
 
 ## Les objets : annonces à prix libre
 
-- **Valeur réelle** par rareté : commun 10 · uncommon 24 · rare 50 · épique 120 ·
-  légendaire 300 (surchargeable par objet via `it.valeur`).
-- **Prix conseillé** à l'HV = valeur **+10 %** — toujours plus rentable que le
-  marchand (qui paie 2/4/6/15/40), mais **pas instantané**.
+- **Valeur réelle** = **prix marchand (`prixVente`) + 10 %** — surchargeable par
+  objet via `it.valeur`. Garantit que l'HV est toujours plus rentable que le
+  marchand, même sans marge supplémentaire.
+- **Prix conseillé** à l'HV = valeur réelle **+10 %** (donc ≈ +21 % par rapport au
+  marchand).
 - On règle le prix librement (du prix marchand au **double** de la valeur). Le
   **délai de vente** suit une croissance exponentielle de la marge `m` (% au-dessus
   de la valeur réelle) :
@@ -63,10 +70,21 @@ jeu actif (1 h conservée) et affiché en tableau pour la ressource sélectionn�
   Ce qui donne en pratique : **+10 % ≈ 9-16 min** · **+30 % ≈ 1-3 h** ·
   **+50 % ≈ 10-43 h** · +100 % plafonné à 72 h. La fourchette de hasard
   **s'élargit** avec la marge (gros prix = acheteur imprévisible).
-- L'objet **quitte le sac** à la mise en annonce ; quand le délai s'écoule (en
-  jouant), l'or est **crédité automatiquement** avec un message
-  « 📈 Sold … at the Exchange ». La **qualité de forge** voyage avec l'annonce.
+- L'objet **quitte le sac** à la mise en annonce. Quand le délai s'écoule (en
+  jouant), l'annonce passe en état **VENDUE** (bord doré, bouton « 💰 Collect ») —
+  **rien n'est payé automatiquement**. Un message prévient sans créditer d'or
+  (« … sold at the Exchange — go collect your N 🪙 ! »). Il faut retourner à l'HV
+  et **cliquer dessus** (ou touche **[C]**) pour toucher l'or ; un résumé de la
+  **plus-value réalisée (%)** vs. la valeur réelle s'affiche à ce moment-là.
+  La **qualité de forge** voyage avec l'annonce.
 - Des **talents de marchand** pourront plus tard réduire ces délais (prévu).
+
+⚠️ **Numéros de test** : le marchand de test a des prix très bas (2/4/6/15/40 or
+selon la rareté). Avec la règle « valeur = marchand +10 % », l'arrondi absorbe
+souvent le +10 % sur les objets communs/uncommon/rare (2,2 → 2 or, par ex.) — la
+plus-value affichée peut donc paraître nulle sur ces objets tant que
+`PRIX_VENTE` (data/items.js) restera à ces valeurs symboliques. À rééquilibrer
+quand l'économie deviendra réelle.
 
 ## Fichiers
 
@@ -74,7 +92,7 @@ jeu actif (1 h conservée) et affiché en tableau pour la ressource sélectionn�
 jeu/systems/marche.js  ← tout le modèle (prix, événements, annonces, horloge) + réglages
 jeu/ui/hv.js           ← l'écran (ressources, historique, annonces, mise en vente)
 jeu/data/pnj.js        ← COURTIER (Baldrik) — planche du marchand TEINTÉE (provisoire)
-jeu/principal.js       ← tick du marché (jeu actif), paiement des ventes, save/load
+jeu/principal.js       ← tick du marché (jeu actif), notification (sans paiement), save/load
 ```
 
 Tous les **réglages d'équilibrage** (taux, planchers, fréquence des événements,
