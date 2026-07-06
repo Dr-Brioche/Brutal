@@ -138,11 +138,15 @@ export function dessinerPnj(ctx, pnj) {
     frame = anim.frames[i];
   }
 
+  // `teinte` (optionnelle) : filtre CSS appliqué à la planche — permet de décliner
+  // un même sprite en un autre personnage (comme les ennemis, cf. dessinerEnnemi).
+  if (pnj.modele.teinte) ctx.filter = pnj.modele.teinte;
   ctx.drawImage(
     pnj.planche,
     frame * s.caseL, 0, s.caseL, s.caseH,
     Math.round(pnj.x), Math.round(pnj.y), s.caseL, s.caseH
   );
+  if (pnj.modele.teinte) ctx.filter = "none";
 
   if (pnj.proche && pnj.modele.nom) {
     ctx.save();

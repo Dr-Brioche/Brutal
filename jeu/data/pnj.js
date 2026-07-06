@@ -58,6 +58,27 @@ export const MARCHAND = {
 // Forgeron de la ville : stationnaire, de face. Il tape au marteau (pipe qui fume)
 // de temps en temps. Lui parler ouvre la FORGE (nouvel arc de gameplay). Comme le
 // marchand, il se tourne vers le héros quand on lui parle (regard 4 directions).
+// Baldrik le courtier : tient l'HÔTEL DES VENTES (pilier économie / Deep-Market).
+// Stationnaire. PROVISOIRE : il réutilise la planche du marchand avec une TEINTE
+// (comme les ennemis déclinés) en attendant sa propre planche — mêmes frames,
+// donc même `regard` (règle absolue des PNJ respectée sans retouche).
+export const COURTIER = {
+  id: "courtier",
+  nom: "Baldrik",
+  planche: "images/pnj/marchand.png",
+  teinte: "hue-rotate(190deg) saturate(0.8) brightness(1.05)", // habits froids (bleus)
+  sprite: {
+    caseL: 104,
+    caseH: 88,
+    regard: { bas: 0, gauche: 7, droite: 8, haut: 9 },
+    anims: {
+      repos:   { frames: [0], ips: 1, boucle: true },
+      passive: { frames: [0, 1, 2, 3, 4, 5, 6], ips: 7, boucle: false }, // il fait sauter une pièce…
+    },
+  },
+  passif: { anim: "passive", min: 6, max: 12 },
+};
+
 export const FORGERON = {
   id: "forgeron",
   nom: "Ferran",
