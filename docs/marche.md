@@ -20,7 +20,8 @@ n'y joue pas.
 
 ## Les prix des ressources
 
-Prix affiché = **prix de base** (selon le `rang` 1→12, ~×1,45 par rang ; bois = 5)
+Prix affiché = **prix de base** (selon le `rang` 1→12, ~×1,8 par rang — formule
+`PRIX_RANG1 × RATIO_RANG^(rang-1)` dans marche.js ; bois = 5)
 × **multiplicateur vivant** × **facteur d'événement**. Le multiplicateur bouge avec :
 
 1. **Les échanges du joueur** — vendre fait **baisser**, acheter fait **monter**,
@@ -79,12 +80,10 @@ d'œil ce qui grimpe vite (vendre) ou s'effondre (acheter).
   La **qualité de forge** voyage avec l'annonce.
 - Des **talents de marchand** pourront plus tard réduire ces délais (prévu).
 
-⚠️ **Numéros de test** : le marchand de test a des prix très bas (2/4/6/15/40 or
-selon la rareté). Avec la règle « valeur = marchand +10 % », l'arrondi absorbe
-souvent le +10 % sur les objets communs/uncommon/rare (2,2 → 2 or, par ex.) — la
-plus-value affichée peut donc paraître nulle sur ces objets tant que
-`PRIX_VENTE` (data/items.js) restera à ces valeurs symboliques. À rééquilibrer
-quand l'économie deviendra réelle.
+**Échelle des prix marchand** (`PRIX_VENTE`, data/items.js) : commun 20 · uncommon
+45 · rare 100 · épique 250 · légendaire 700 — assez haut pour que le +10 % de
+l'HV reste lisible après arrondi (avant un rééquilibrage antérieur, commun
+valait 2 or : le +10 % s'arrondissait à rien).
 
 ## Fichiers
 
