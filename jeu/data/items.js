@@ -139,7 +139,7 @@ export const ITEMS = {
   // Bois : ressource de CRAFT — ce n'est PAS un minerai (absent de MINERAIS → ne se
   // mine pas). Lâché par les monstres pour l'instant (cf. tirerButin dans ennemis.js).
   // Sert à forger (ex. Miner's Pick = 3 fer + 2 bois). Empilable comme les minerais.
-  "bois":           { id: "bois",           nom: "Wood",         categorie: "ressource", famille: "bois",   rarete: "commun",   taille: { l: 1, h: 1 }, icone: "#7a5230", empilable: true, pileMax: 10 },
+  "bois":           { id: "bois",           nom: "Wood",         categorie: "ressource", famille: "bois",   rarete: "commun",   prixBase: 5, taille: { l: 1, h: 1 }, icone: "#7a5230", empilable: true, pileMax: 10 },
   // Croc de basilic : arme à poison (moteur de stacks). 6× Venom Stab + 2× Poison
   // Dance (AOE) + 1× Weakness Exploitation + 1× Explosion Of Poison (détonateur répétable).
   "croc-de-basilic": {
