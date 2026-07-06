@@ -218,9 +218,16 @@ function resoudreCraft(marqueur) {
   const qualite = QUALITE_PAR_MARQUEUR[marqueur]; // undefined si "rouge"
   const d = itemDef(recetteCourante.resultat);
   if (qualite) {
-    ajouterObjet(inv, recetteCourante.resultat, 1, { qualite });
-    const q = QUALITES[qualite];
-    elMJTitre.textContent = `${d.nom} — ${q.nom}${q.force > 0 ? ` (+${q.force} Force)` : ""} !`;
+    if (ajouterObjet(inv, recetteCourante.resultat, 1, { qualite })) {
+      const q = QUALITES[qualite];
+      elMJTitre.textContent = `${d.nom} — ${q.nom}${q.force > 0 ? ` (+${q.force} Force)` : ""} !`;
+    } else {
+      // Sac plein : impossible de placer l'objet forgé. On REND les ingrédients
+      // (leurs cases viennent d'être libérées, la place ne manquera pas) plutôt
+      // que de faire disparaître l'objet dans le vide.
+      for (const id of Object.keys(besoin)) ajouterObjet(inv, id, besoin[id]);
+      elMJTitre.textContent = "Sac plein ! Fais de la place — rien n'est perdu.";
+    }
   } else {
     elMJTitre.textContent = "Raté ! Métal gâché — composants perdus.";
   }
