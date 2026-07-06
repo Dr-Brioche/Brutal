@@ -98,6 +98,22 @@ export function tendanceRessource(marche, id) {
   return Math.round((ratio - 1) * 100);
 }
 
+// Variation (%) du prix sur les ~30 DERNIÈRES MINUTES de jeu actif — sert au tri
+// « meilleure hausse / pire baisse » (le momentum récent, différent de la
+// tendance vs prix de base : une ressource peut être « chère » ET stagner, ou
+// « pas chère » ET grimper vite). Compare au point d'historique le plus proche
+// de (maintenant − 30 min) ; s'il n'y a pas encore assez d'historique, compare
+// au plus ancien point connu (0 % si aucun historique).
+export function variation30min(marche, id) {
+  const h = marche.histo[id] ?? [];
+  if (!h.length) return 0;
+  const cible = marche.temps - 1800;
+  let repere = h[0];
+  for (const p of h) { if (p.t <= cible) repere = p; else break; } // h est croissant en t
+  if (repere.prix <= 0) return 0;
+  return Math.round(((prixRessource(marche, id) - repere.prix) / repere.prix) * 100);
+}
+
 // Poussée asymptotique d'UNE unité : vers le plancher (vente) ou le plafond
 // (achat). Plus on est proche de la borne, plus le pas est petit — ça ne
 // s'arrête jamais tout à fait, mais ça devient insignifiant.

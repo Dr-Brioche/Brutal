@@ -16,7 +16,7 @@
 import { itemDef, couleurRarete, prixVente } from "../data/items.js";
 import { QUALITES } from "../data/recettes.js";
 import {
-  RESSOURCES_MARCHE, prixRessource, tendanceRessource, prixBaseRessource,
+  RESSOURCES_MARCHE, prixRessource, tendanceRessource, prixBaseRessource, variation30min,
   apercuAchat, apercuVente, acheterRessource, vendreRessource,
   valeurReelle, prixConseille, bornesPrixVente, estimerDelaiVente, mettreEnVente,
 } from "../systems/marche.js";
@@ -24,11 +24,12 @@ import { ajouterObjet, compterRessource, retirerRessource, jeterObjet } from "..
 import { police } from "../core/texte.js";
 
 let overlay, elOr, elBandeau, elRessources, elHisto, elHistoTitre, elAnnonces,
-    elBtnVendre, elVente, boutonFermer, elAide, elGraphe;
+    elBtnVendre, elVente, boutonFermer, elAide, elGraphe, elTri;
 let actif = false;
 let surFermerActif = null;
 let inv = null, marche = null;
-let selRes = 0;            // index de la ressource sélectionnée (historique)
+let selId = RESSOURCES_MARCHE[0]; // id de la ressource sélectionnée (historique, achat/vente clavier)
+let triMode = "defaut";            // "defaut" | "hausse" | "baisse" (tri par variation 30 min)
 let aideTimer = 0;         // restauration du texte d'aide après un message furtif
 // Sous-fenêtre de mise en vente : null (fermée) | "liste" (choix de l'objet)
 // | "prix" (réglage du prix). `venteObjet` = l'exemplaire du sac choisi.
@@ -62,6 +63,14 @@ export function installerHV() {
   elVenteAide = document.getElementById("hv-vente-aide");
   elVenteTitre = document.getElementById("hv-vente-titre");
   elGraphe = document.getElementById("hv-graphe");
+  elTri = document.getElementById("hv-tri");
+  elTri.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".hv-tri-btn");
+    if (!btn) return;
+    triMode = btn.dataset.tri;
+    [...elTri.children].forEach((b) => b.classList.toggle("hv-tri-btn--actif", b === btn));
+    rendre();
+  });
   boutonFermer.addEventListener("click", fermerHV);
   // Le graphique se recale si la fenêtre change de taille pendant que l'HV est ouvert.
   window.addEventListener("resize", () => { if (actif) rendre(); });
@@ -77,12 +86,22 @@ export function ouvrirHV(inventaire, marcheJeu, surFermer = null) {
   inv = inventaire;
   marche = marcheJeu;
   surFermerActif = surFermer;
-  selRes = 0;
   venteEtape = null;
   elVente.hidden = true;
   rendre();
   overlay.hidden = false;
   window.addEventListener("keydown", surTouche, true);
+}
+
+// Ordre d'affichage des ressources selon le tri choisi. Le tri par défaut
+// respecte RESSOURCES_MARCHE (du plus commun au plus rare) ; les deux autres
+// trient par le MOMENTUM récent (30 min) — pour repérer d'un coup d'œil ce qui
+// grimpe (vendre) ou s'effondre (acheter).
+function listeAffichee() {
+  if (triMode === "defaut") return RESSOURCES_MARCHE;
+  const parVariationDesc = [...RESSOURCES_MARCHE]
+    .sort((a, b) => variation30min(marche, b) - variation30min(marche, a));
+  return triMode === "hausse" ? parVariationDesc : parVariationDesc.reverse();
 }
 
 // Message furtif dans la barre d'aide (« pas assez d'or », « sac plein »…).
@@ -127,22 +146,25 @@ function rendre() {
     elBandeau.hidden = true;
   }
 
-  // Colonne gauche : une ligne par ressource.
+  // Colonne gauche : une ligne par ressource, dans l'ordre choisi par le tri.
   elRessources.replaceChildren();
-  RESSOURCES_MARCHE.forEach((id, i) => {
+  listeAffichee().forEach((id) => {
     const d = itemDef(id);
     const prix = prixRessource(marche, id);
     const tend = tendanceRessource(marche, id);
+    const var30 = variation30min(marche, id);
     const possede = compterRessource(inv, id);
     const ligne = document.createElement("div");
-    ligne.className = "hv-ligne" + (i === selRes ? " sel" : "") +
+    ligne.className = "hv-ligne" + (id === selId ? " sel" : "") +
       (e && e.id === id ? " hv-ligne--evt" : "");
     const clTend = tend > 2 ? "haut" : tend < -2 ? "bas" : "plat";
     const fleche = tend > 2 ? "▲" : tend < -2 ? "▼" : "＝";
+    const cl30 = var30 > 2 ? "haut" : var30 < -2 ? "bas" : "plat";
     ligne.innerHTML =
       `<span class="hv-pastille" style="background:${d.icone}"></span>` +
       `<span class="hv-nom"></span>` +
-      `<span class="hv-tendance hv-tendance--${clTend}">${fleche} ${tend > 0 ? "+" : ""}${tend}%</span>` +
+      `<span class="hv-tendance hv-tendance--${clTend}" title="vs. base price">${fleche} ${tend > 0 ? "+" : ""}${tend}%</span>` +
+      `<span class="hv-var30 hv-tendance--${cl30}" title="last 30 min">30m: ${var30 > 0 ? "+" : ""}${var30}%</span>` +
       `<span class="hv-prix">${prix} 🪙</span>` +
       `<span class="hv-possede">you: ${possede}</span>`;
     ligne.querySelector(".hv-nom").textContent = d.nom;
@@ -150,21 +172,20 @@ function rendre() {
     btnA.className = "hv-btn";
     btnA.textContent = "Buy";
     btnA.disabled = inv.or < apercuAchat(marche, id, 1);
-    btnA.addEventListener("click", (ev) => { ev.stopPropagation(); selRes = i; acheter(id); });
+    btnA.addEventListener("click", (ev) => { ev.stopPropagation(); selId = id; acheter(id); });
     const btnV = document.createElement("button");
     btnV.className = "hv-btn";
     btnV.textContent = "Sell";
     btnV.disabled = possede < 1;
-    btnV.addEventListener("click", (ev) => { ev.stopPropagation(); selRes = i; vendre(id); });
+    btnV.addEventListener("click", (ev) => { ev.stopPropagation(); selId = id; vendre(id); });
     ligne.append(btnA, btnV);
-    ligne.addEventListener("click", () => { selRes = i; rendre(); });
+    ligne.addEventListener("click", () => { selId = id; rendre(); });
     elRessources.appendChild(ligne);
   });
 
   // Colonne droite : graphique des prix de la ressource sélectionnée.
-  const idSel = RESSOURCES_MARCHE[selRes];
-  elHistoTitre.textContent = `Price history — ${itemDef(idSel)?.nom ?? idSel}`;
-  rendreGraphe(idSel);
+  elHistoTitre.textContent = `Price history — ${itemDef(selId)?.nom ?? selId}`;
+  rendreGraphe(selId);
 
   rendreAnnonces();
 }
@@ -414,17 +435,19 @@ function surTouche(e) {
   const k = e.key.toLowerCase();
   if (e.code === "ArrowUp" || e.code === "ArrowDown") {
     e.preventDefault(); e.stopPropagation();
-    const n = RESSOURCES_MARCHE.length;
-    selRes = (selRes + (e.code === "ArrowDown" ? 1 : -1) + n) % n;
+    const liste = listeAffichee();
+    const n = liste.length;
+    const i = Math.max(0, liste.indexOf(selId));
+    selId = liste[(i + (e.code === "ArrowDown" ? 1 : -1) + n) % n];
     rendre();
     // garde la ligne sélectionnée visible dans la liste
-    elRessources.children[selRes]?.scrollIntoView({ block: "nearest" });
+    elRessources.children[liste.indexOf(selId)]?.scrollIntoView({ block: "nearest" });
   } else if (k === "a") {
     e.preventDefault(); e.stopPropagation();
-    acheter(RESSOURCES_MARCHE[selRes]);
+    acheter(selId);
   } else if (k === "v") {
     e.preventDefault(); e.stopPropagation();
-    vendre(RESSOURCES_MARCHE[selRes]);
+    vendre(selId);
   }
 }
 

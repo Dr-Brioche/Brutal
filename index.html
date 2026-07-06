@@ -658,9 +658,18 @@
       flex: 1; min-height: 0;
       display: flex; gap: 2cqw; padding: 1.2cqw 3.6cqw 0;
     }
-    /* Colonne gauche : la liste des ressources. */
+    /* Colonne gauche : barre de tri (fixe) + la liste des ressources (défile). */
+    .hv-colonne-gauche { flex: 1.35; min-width: 0; display: flex; flex-direction: column; min-height: 0; gap: 0.5cqw; }
+    .hv-tri { display: flex; gap: 0.5cqw; flex-shrink: 0; }
+    .hv-tri-btn {
+      padding: 0.4cqw 0.9cqw; font-size: 1.3cqw; font-weight: 700; color: #a8b0c6;
+      background: #1a2032; border: 0.14cqw solid #232b44; border-radius: var(--rayon);
+      cursor: pointer;
+    }
+    .hv-tri-btn:hover { border-color: #3a4a7a; color: #e8e4d8; }
+    .hv-tri-btn--actif { background: #2a3350; color: #ffcf57; border-color: #ffcf57; }
     .hv-ressources {
-      flex: 1.35; min-width: 0; overflow-y: auto; padding-right: 0.4cqw;
+      flex: 1; min-height: 0; overflow-y: auto; padding-right: 0.4cqw;
       display: flex; flex-direction: column; gap: 0.55cqw;
       scrollbar-width: thin; scrollbar-color: #2a3350 transparent;
     }
@@ -676,10 +685,18 @@
     .hv-pastille { width: 2.4cqw; height: 2.4cqw; border-radius: 0.45cqw; border: 0.14cqw solid #000; flex-shrink: 0; }
     .hv-nom { flex: 1; min-width: 0; font-size: 1.6cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .hv-prix { font-size: 1.7cqw; font-weight: 800; color: #ffcf57; font-family: ui-monospace, monospace; }
-    .hv-tendance { width: 6.2cqw; text-align: right; font-size: 1.35cqw; font-weight: 700; font-family: ui-monospace, monospace; }
+    .hv-tendance {
+      flex: 0 0 auto; min-width: 5.6cqw; text-align: right; white-space: nowrap;
+      font-size: 1.3cqw; font-weight: 700; font-family: ui-monospace, monospace;
+    }
     .hv-tendance--haut { color: #7fdc8f; }
     .hv-tendance--bas  { color: #ff7a66; }
     .hv-tendance--plat { color: #8a90a6; }
+    /* Variation sur 30 min (momentum récent) : même code couleur que la tendance,
+       mais étiquetée « 30m » pour ne pas la confondre avec la tendance vs base.
+       Largeur FLEXIBLE (pas fixe) : les gros écarts (événements, ex. +111 %) ne
+       doivent jamais passer à la ligne et casser la hauteur de la rangée. */
+    .hv-var30 { flex: 0 0 auto; min-width: 6.4cqw; text-align: right; white-space: nowrap; font-size: 1.15cqw; font-weight: 700; font-family: ui-monospace, monospace; }
     .hv-possede { width: 5.4cqw; text-align: right; font-size: 1.35cqw; color: #a8b0c6; }
     .hv-btn {
       padding: 0.45cqw 1.1cqw; font-size: 1.45cqw; font-weight: 700; color: #e8e4d8;
@@ -2194,8 +2211,15 @@
       <!-- Bandeau d'événement (pénurie / surplus) avec la phrase-indice. -->
       <div class="hv-bandeau" id="hv-bandeau" hidden></div>
       <div class="hv-contenu">
-        <!-- Colonne gauche : les ressources (prix vivant, tendance, achat/vente). -->
-        <div class="hv-ressources" id="hv-ressources"></div>
+        <!-- Colonne gauche : tri + ressources (prix vivant, tendance, achat/vente). -->
+        <div class="hv-colonne-gauche">
+          <div class="hv-tri" id="hv-tri">
+            <button class="hv-tri-btn hv-tri-btn--actif" data-tri="defaut">Default</button>
+            <button class="hv-tri-btn" data-tri="hausse">📈 Top gainers (30m)</button>
+            <button class="hv-tri-btn" data-tri="baisse">📉 Top losers (30m)</button>
+          </div>
+          <div class="hv-ressources" id="hv-ressources"></div>
+        </div>
         <!-- Colonne droite : graphique des prix de la ressource sélectionnée
              (façon trading, 1 h de jeu actif) + annonces. -->
         <div class="hv-droite">
