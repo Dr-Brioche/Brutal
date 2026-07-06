@@ -55,13 +55,13 @@ export function prixBaseRessource(id) {
   return it?.prixBase || PRIX_BASE_PAR_RANG[it?.rang ?? 0] || 4;
 }
 
-// Valeur RÉELLE d'un objet (non-ressource) selon sa rareté — surchargée par
-// `it.valeur` si un objet mérite un prix particulier. Échelle en dizaines pour
-// que 1 or ≈ un pas de ~10 % ou moins (le curseur de prix reste précis).
-const VALEUR_REELLE = { commun: 10, uncommon: 24, rare: 50, epique: 120, legendaire: 300 };
+// Valeur RÉELLE d'un objet (non-ressource) à l'HV = prix marchand (PRIX_VENTE,
+// cf. data/items.js) + 10 % — surchargée par `it.valeur` si un objet mérite un
+// prix particulier. Garantit que l'HV est TOUJOURS plus rentable que le
+// marchand, même sans marge supplémentaire (cf. prixConseille plus bas).
 export function valeurReelle(id) {
   const it = itemDef(id);
-  return it?.valeur ?? VALEUR_REELLE[it?.rarete] ?? 5;
+  return it?.valeur ?? Math.max(1, Math.round(prixVente(id) * 1.1));
 }
 
 // ----- État ------------------------------------------------------------------
