@@ -698,15 +698,13 @@
       font-size: 1.5cqw; font-weight: 800; letter-spacing: 0.08em;
       text-transform: uppercase; color: #8fa0c8; margin-top: 0.4cqw;
     }
+    /* Le graphique des prix (canvas redessiné par hv.js, netteté via devicePixelRatio). */
     .hv-histo {
-      flex: 1.2; min-height: 0; overflow-y: auto;
+      flex: 1.2; min-height: 0; overflow: hidden;
       background: rgba(15,18,30,0.7); border: 0.14cqw solid #232b44;
-      border-radius: var(--rayon); padding: 0.6cqw 1cqw;
-      font-size: 1.45cqw; font-family: ui-monospace, monospace;
-      scrollbar-width: thin; scrollbar-color: #2a3350 transparent;
+      border-radius: var(--rayon); padding: 0.5cqw;
     }
-    .hv-histo-ligne { display: flex; justify-content: space-between; padding: 0.16cqw 0; color: #b8c0d6; }
-    .hv-histo-ligne--now { color: #ffcf57; font-weight: 800; }
+    #hv-graphe { display: block; width: 100%; height: 100%; }
     .hv-annonces {
       flex: 1; min-height: 0; overflow-y: auto;
       display: flex; flex-direction: column; gap: 0.4cqw;
@@ -2198,10 +2196,13 @@
       <div class="hv-contenu">
         <!-- Colonne gauche : les ressources (prix vivant, tendance, achat/vente). -->
         <div class="hv-ressources" id="hv-ressources"></div>
-        <!-- Colonne droite : historique de la ressource sélectionnée + annonces. -->
+        <!-- Colonne droite : graphique des prix de la ressource sélectionnée
+             (façon trading, 1 h de jeu actif) + annonces. -->
         <div class="hv-droite">
           <div class="hv-sous-titre" id="hv-histo-titre">Price history</div>
-          <div class="hv-histo" id="hv-histo"></div>
+          <div class="hv-histo" id="hv-histo">
+            <canvas id="hv-graphe"></canvas>
+          </div>
           <div class="hv-sous-titre">Your listings</div>
           <div class="hv-annonces" id="hv-annonces"></div>
           <button class="hv-btn" id="hv-vendre-objet">＋ Sell an item…</button>

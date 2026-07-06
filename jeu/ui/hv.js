@@ -21,9 +21,10 @@ import {
   valeurReelle, prixConseille, bornesPrixVente, estimerDelaiVente, mettreEnVente,
 } from "../systems/marche.js";
 import { ajouterObjet, compterRessource, retirerRessource, jeterObjet } from "../systems/inventaire.js";
+import { police } from "../core/texte.js";
 
 let overlay, elOr, elBandeau, elRessources, elHisto, elHistoTitre, elAnnonces,
-    elBtnVendre, elVente, boutonFermer, elAide;
+    elBtnVendre, elVente, boutonFermer, elAide, elGraphe;
 let actif = false;
 let surFermerActif = null;
 let inv = null, marche = null;
@@ -60,7 +61,10 @@ export function installerHV() {
   elVenteConfirmer = document.getElementById("hv-vente-confirmer");
   elVenteAide = document.getElementById("hv-vente-aide");
   elVenteTitre = document.getElementById("hv-vente-titre");
+  elGraphe = document.getElementById("hv-graphe");
   boutonFermer.addEventListener("click", fermerHV);
+  // Le graphique se recale si la fenêtre change de taille pendant que l'HV est ouvert.
+  window.addEventListener("resize", () => { if (actif) rendre(); });
   elBtnVendre.addEventListener("click", ouvrirVente);
   document.getElementById("hv-prix-moins").addEventListener("click", () => bougerPrix(-1));
   document.getElementById("hv-prix-plus").addEventListener("click", () => bougerPrix(+1));
@@ -106,12 +110,6 @@ function vendre(id) {
 }
 
 // ----- Rendu -------------------------------------------------------------------
-
-function fmtDuree(s) {
-  if (s < 90) return "just now";
-  if (s < 3600) return `${Math.round(s / 60)}m ago`;
-  return `${Math.floor(s / 3600)}h ${Math.round((s % 3600) / 60)}m ago`;
-}
 
 function rendre() {
   elOr.textContent = `🪙 ${inv.or}`;
@@ -163,29 +161,112 @@ function rendre() {
     elRessources.appendChild(ligne);
   });
 
-  // Colonne droite : historique de la ressource sélectionnée (récent en haut).
+  // Colonne droite : graphique des prix de la ressource sélectionnée.
   const idSel = RESSOURCES_MARCHE[selRes];
   elHistoTitre.textContent = `Price history — ${itemDef(idSel)?.nom ?? idSel}`;
-  elHisto.replaceChildren();
-  const now = document.createElement("div");
-  now.className = "hv-histo-ligne hv-histo-ligne--now";
-  now.innerHTML = `<span>now</span><span>${prixRessource(marche, idSel)} 🪙</span>`;
-  elHisto.appendChild(now);
-  const histo = (marche.histo[idSel] ?? []).slice(-14).reverse();
-  for (const pt of histo) {
-    const l = document.createElement("div");
-    l.className = "hv-histo-ligne";
-    l.innerHTML = `<span>${fmtDuree(marche.temps - pt.t)}</span><span>${pt.prix} 🪙</span>`;
-    elHisto.appendChild(l);
-  }
-  if (!histo.length) {
-    const l = document.createElement("div");
-    l.className = "hv-histo-ligne";
-    l.textContent = "No history yet — come back later.";
-    elHisto.appendChild(l);
-  }
+  rendreGraphe(idSel);
 
   rendreAnnonces();
+}
+
+// Graphique « façon trading » : la courbe du prix sur la DERNIÈRE HEURE de jeu
+// actif (fenêtre fixe : les points plus vieux sortent par la gauche), ligne
+// pointillée du prix de BASE en repère, point + étiquette sur le prix actuel.
+// Netteté : le canvas est rendu à devicePixelRatio× sa taille affichée.
+function rendreGraphe(id) {
+  const cv = elGraphe;
+  const larg = cv.clientWidth, haut = cv.clientHeight;
+  if (!larg || !haut) return;
+  const dpr = window.devicePixelRatio || 1;
+  if (cv.width !== Math.round(larg * dpr) || cv.height !== Math.round(haut * dpr)) {
+    cv.width = Math.round(larg * dpr);
+    cv.height = Math.round(haut * dpr);
+  }
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, larg, haut);
+
+  const FENETRE = 3600; // 1 h de jeu actif
+  const now = marche.temps;
+  const pts = (marche.histo[id] ?? []).filter((p) => now - p.t <= FENETRE);
+  pts.push({ t: now, prix: prixRessource(marche, id) }); // le point « maintenant »
+
+  // Échelle Y : englobe la courbe ET le prix de base, avec une marge de respiration.
+  const base = prixBaseRessource(id);
+  let yMin = Math.min(base, ...pts.map((p) => p.prix));
+  let yMax = Math.max(base, ...pts.map((p) => p.prix));
+  const marge = Math.max(1, (yMax - yMin) * 0.18);
+  yMin -= marge; yMax += marge;
+
+  const M = { g: 8, d: 44, h: 10, b: 18 }; // marges internes (étiquettes à droite/bas)
+  const X = (t) => M.g + (1 - (now - t) / FENETRE) * (larg - M.g - M.d);
+  const Y = (p) => M.h + (1 - (p - yMin) / (yMax - yMin)) * (haut - M.h - M.b);
+
+  // Grille horizontale discrète + repères de temps.
+  g.strokeStyle = "rgba(58, 74, 122, 0.25)";
+  g.lineWidth = 1;
+  for (let i = 0; i <= 3; i++) {
+    const y = M.h + (i / 3) * (haut - M.h - M.b);
+    g.beginPath(); g.moveTo(M.g, y); g.lineTo(larg - M.d, y); g.stroke();
+  }
+  g.fillStyle = "#6a7290";
+  g.font = police(10);
+  g.textAlign = "center"; g.textBaseline = "top";
+  const yTxt = haut - M.b + 4;
+  g.fillText("-1h", X(now - FENETRE) + 12, yTxt);
+  g.fillText("-30m", X(now - 1800), yTxt);
+  g.fillText("now", X(now) - 12, yTxt);
+
+  // Ligne pointillée du prix de BASE (le repère « zone normale »). Son étiquette
+  // s'efface si le prix actuel est trop proche (les deux partagent la marge droite).
+  g.strokeStyle = "rgba(143, 160, 200, 0.5)";
+  g.setLineDash([4, 4]);
+  g.beginPath(); g.moveTo(M.g, Y(base)); g.lineTo(larg - M.d, Y(base)); g.stroke();
+  g.setLineDash([]);
+  if (Math.abs(Y(base) - Y(pts[pts.length - 1].prix)) > 13) {
+    g.textAlign = "left"; g.textBaseline = "middle";
+    g.fillStyle = "#8fa0c8";
+    g.fillText(`${base}`, larg - M.d + 6, Y(base));
+  }
+
+  // La courbe : aplat dégradé dessous + trait doré + point sur « maintenant ».
+  if (pts.length > 1) {
+    const degrade = g.createLinearGradient(0, M.h, 0, haut - M.b);
+    degrade.addColorStop(0, "rgba(255, 207, 87, 0.28)");
+    degrade.addColorStop(1, "rgba(255, 207, 87, 0)");
+    g.beginPath();
+    g.moveTo(X(pts[0].t), Y(pts[0].prix));
+    for (const p of pts) g.lineTo(X(p.t), Y(p.prix));
+    g.lineTo(X(now), haut - M.b);
+    g.lineTo(X(pts[0].t), haut - M.b);
+    g.closePath();
+    g.fillStyle = degrade;
+    g.fill();
+  }
+  g.beginPath();
+  g.moveTo(X(pts[0].t), Y(pts[0].prix));
+  for (const p of pts) g.lineTo(X(p.t), Y(p.prix));
+  g.strokeStyle = "#ffcf57";
+  g.lineWidth = 2;
+  g.lineJoin = "round";
+  g.stroke();
+
+  // Le point « maintenant » + son étiquette de prix (dans la marge de droite).
+  const xN = X(now), yN = Y(pts[pts.length - 1].prix);
+  g.beginPath(); g.arc(xN, yN, 3.2, 0, Math.PI * 2);
+  g.fillStyle = "#ffcf57"; g.fill();
+  g.font = police(11);
+  g.textAlign = "left"; g.textBaseline = "middle";
+  g.fillStyle = "#ffcf57";
+  g.fillText(`${pts[pts.length - 1].prix} 🪙`, larg - M.d + 6, Math.max(M.h + 6, Math.min(haut - M.b - 6, yN)));
+
+  // Peu d'historique (partie fraîche) : petit mot pour expliquer la ligne courte.
+  if (pts.length <= 2) {
+    g.fillStyle = "#6a7290";
+    g.font = police(10);
+    g.textAlign = "center"; g.textBaseline = "alphabetic";
+    g.fillText("History builds up as you play…", (M.g + larg - M.d) / 2, M.h + 14);
+  }
 }
 
 function fmtReste(s) {
