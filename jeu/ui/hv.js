@@ -88,8 +88,11 @@ export function ouvrirHV(inventaire, marcheJeu, surFermer = null) {
   surFermerActif = surFermer;
   venteEtape = null;
   elVente.hidden = true;
-  rendre();
+  // L'écran doit être VISIBLE avant rendre() : le graphique (canvas) lit
+  // clientWidth/clientHeight, qui valent 0 tant que #hv est caché — sinon le
+  // tout premier affichage reste vide jusqu'à la prochaine interaction.
   overlay.hidden = false;
+  rendre();
   window.addEventListener("keydown", surTouche, true);
 }
 
