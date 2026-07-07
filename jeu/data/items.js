@@ -140,6 +140,18 @@ export const ITEMS = {
   // mine pas). Lâché par les monstres pour l'instant (cf. tirerButin dans ennemis.js).
   // Sert à forger (ex. Miner's Pick = 3 fer + 2 bois). Empilable comme les minerais.
   "bois":           { id: "bois",           nom: "Wood",         categorie: "ressource", famille: "bois",   rarete: "commun",   prixBase: 5, taille: { l: 1, h: 1 }, icone: "#7a5230", empilable: true, pileMax: 10 },
+
+  // ---- Trésors : objets RARES qui NE S'ÉQUIPENT PAS et NE SERVENT À RIEN, sinon
+  // à être REVENDUS. La catégorie "tresor" n'est dans AUCUN slot (SLOT_PAR_CATEGORIE)
+  // → equiper() les refuse ; le menu d'inventaire ne propose donc que Sell/Discard.
+  // Leur prix de revente est FIXÉ par item (`valeurVente`, lu par prixVente) au lieu
+  // de dépendre de la rareté — ça permet trois valeurs distinctes. Vendables au
+  // marchand ET à l'Hôtel des ventes (valeurReelle = valeurVente +10 %). Non
+  // empilables (chaque trésor est une pièce unique). Butin de coffres/monstres à venir.
+  "idole-doree":    { id: "idole-doree",    nom: "Gilded Idol",     categorie: "tresor", rarete: "rare", valeurVente: 200, taille: { l: 2, h: 2 }, icone: "#e8c54f" },
+  "calice-cristal": { id: "calice-cristal", nom: "Crystal Chalice", categorie: "tresor", rarete: "rare", valeurVente: 160, taille: { l: 1, h: 2 }, icone: "#bfe6f0" },
+  "chevaliere-ancienne": { id: "chevaliere-ancienne", nom: "Ancient Signet", categorie: "tresor", rarete: "rare", valeurVente: 120, taille: { l: 1, h: 1 }, icone: "#c8862f" },
+
   // Croc de basilic : arme à poison (moteur de stacks). 6× Venom Stab + 2× Poison
   // Dance (AOE) + 1× Weakness Exploitation + 1× Explosion Of Poison (détonateur répétable).
   "croc-de-basilic": {
@@ -640,7 +652,9 @@ export function couleurRarete(id) {
 const PRIX_VENTE = { commun: 20, uncommon: 45, rare: 100, epique: 250, legendaire: 700 };
 export function prixVente(id) {
   const it = ITEMS[id];
-  return it ? (PRIX_VENTE[it.rarete] ?? 1) : 0;
+  if (!it) return 0;
+  // `valeurVente` : prix fixé PAR item (les trésors), sinon le barème par rareté.
+  return it.valeurVente ?? PRIX_VENTE[it.rarete] ?? 1;
 }
 
 // True si la rareté de l'item atteint AU MOINS le seuil donné (ex. "rare"). Sert
@@ -760,6 +774,7 @@ export function setDeItem(id) {
 const NOM_CATEGORIE = {
   arme: "Weapon", bouclier: "Off-hand", armure: "Armor", gant: "Gloves",
   botte: "Boots", collier: "Amulet", bague: "Ring", sac: "Bag",
+  ressource: "Resource", tresor: "Valuable",
 };
 
 // Libellé court de catégorie (« Ring », « Weapon »…) pour l'en-tête d'une bulle.
@@ -776,6 +791,7 @@ export function statsLisibles(id) {
   const d = ITEMS[id];
   if (!d) return [];
   const lignes = [];
+  if (d.categorie === "tresor") lignes.push("A valuable — no use but to sell for gold.");
   if (d.mains === 2) lignes.push("Two-handed");
   if (d.rangsBonus) lignes.push(`+${d.rangsBonus} bag rows`);
   if (d.armureDepart) lignes.push(`+${d.armureDepart} Stone at combat start`);

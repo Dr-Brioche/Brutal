@@ -13,7 +13,13 @@
 // Au clavier : flèches/WASD pour bouger le curseur, Entrée pour soulever/poser,
 // X pour le menu Equip/Discard, Échap pour reposer l'objet tenu.
 
-import { itemDef, couleurRarete, prixVente } from "../data/items.js";
+import { itemDef, couleurRarete, prixVente, SLOT_PAR_CATEGORIE } from "../data/items.js";
+
+// Un objet est-il équipable ? (sa catégorie va sur un slot). Les trésors et les
+// ressources n'en ont pas → pas de « Equip » proposé pour eux.
+function estEquipable(id) {
+  return Boolean(SLOT_PAR_CATEGORIE[itemDef(id)?.categorie]);
+}
 import { xpPourNiveau } from "../systems/progression.js";
 import {
   rangsInventaire, colsInventaire, equiper, desequiper, arme2Bloquee,
@@ -299,7 +305,10 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   // glisser-déposer déjà possible sur sa fenêtre) — même action (`surVendre`)
   // que le lâcher-déposer, donc même confirmation pour les objets rares.
   function menuSac(o) {
-    const actions = [{ label: "Equip", fn: () => essayerEquiper(inventaire, heros, o, surChangement, rendre) }];
+    // « Equip » seulement pour un objet équipable (pas pour un trésor / une ressource).
+    const actions = estEquipable(o.id)
+      ? [{ label: "Equip", fn: () => essayerEquiper(inventaire, heros, o, surChangement, rendre) }]
+      : [];
     if (surVendre && document.body.classList.contains("en-boutique")) {
       actions.push({ label: `Sell — ${prixVente(o.id) * (o.quantite ?? 1)} 🪙`, fn: () => surVendre(o) });
     }

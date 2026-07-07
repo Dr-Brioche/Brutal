@@ -608,6 +608,8 @@ export async function demarrerJeu(donneesInitiales = null) {
       { label: "Gems",         test: (it) => it.famille === "gemme" },
       { label: "Wood & misc",  test: (it) => it.famille !== "metal" && it.famille !== "pierre" && it.famille !== "gemme" },
     ]},
+    // Trésors : objets non-utilisables, juste à revendre (marchand / HV / test).
+    { nom: "Valuables", icone: "💎", cats: ["tresor"] },
   ];
 
   function parlerAuMarchand() {

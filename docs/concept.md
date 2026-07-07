@@ -873,6 +873,20 @@ complet dans **`docs/craft.md`** ; résumé :
   Et on ne les **traverse plus** : chaque PNJ — ainsi que la **fontaine** — est un
   obstacle à hauteur des pieds.
 
+## Trésors (objets de pure valeur marchande) — ajout du 07/07/2026
+
+Une nouvelle catégorie d'objets `tresor` : **rares, NON utilisables**, ils ne
+s'équipent pas et ne font rien — leur seul intérêt est d'être **revendus**
+(marchand ou Hôtel des ventes). Butin de coffres / monstres à venir ; pour
+l'instant on les récupère via l'onglet **« Valuables »** du marchand de test.
+
+- Trois premiers : **Gilded Idol** (200 🪙), **Crystal Chalice** (160 🪙),
+  **Ancient Signet** (120 🪙). Prix fixé **par item** (champ `valeurVente`,
+  au lieu du barème par rareté) → trois valeurs distinctes.
+- Techniquement : catégorie hors `SLOT_PAR_CATEGORIE` → `equiper()` les refuse,
+  et l'inventaire ne propose que **Sell / Discard** (pas d'« Equip »). Vendables
+  au marchand (`valeurVente`) comme à l'HV (`valeurReelle` = +10 %).
+
 ## L'Hôtel des ventes (pilier économie) — 1er jet (03/07/2026)
 
 Le **marché** est jouable (détail complet dans **`docs/marche.md`**) ; résumé :
