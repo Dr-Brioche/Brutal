@@ -3,7 +3,7 @@
 import { lancerBoucle } from "./core/boucle.js";
 import { clavier } from "./core/clavier.js";
 import { chargerImage } from "./core/sprites.js";
-import { RES } from "./core/texte.js"; // réglages centraux : résolution + polices
+import { RES, police } from "./core/texte.js"; // réglages centraux : résolution + polices
 import { creerCamera, mettreAJourCamera } from "./core/camera.js";
 import { creerHeros, mettreAJourHeros, dessinerHeros } from "./entities/heros.js";
 import { creerCarte, dessinerCarte, piedsLibres, tuileSousLesPieds, revelerAutour, estVu, peindreMasqueBrouillard, TUILE } from "./world/carte.js";
@@ -38,6 +38,10 @@ import { FANATIQUE, MARCHAND, FORGERON, COURTIER } from "./data/pnj.js";
 import { installerForge, ouvrirForge, forgeActive } from "./ui/forge.js";
 import { installerHV, ouvrirHV, hvActive, phraseCourtier } from "./ui/hv.js";
 import { creerMarche, tickMarche, etatMarche, chargerMarche } from "./systems/marche.js";
+import {
+  BATIMENTS, creerBatiments, possede, etatBatiment, acheterBatiment,
+  tickBatiments, tempsAvantVersement, collecterTresorerie, etatBatiments, chargerBatiments,
+} from "./systems/batiments.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
 import { getPreference } from "./systems/preferences.js";
@@ -112,6 +116,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Le MARCHÉ (Hôtel des ventes) : prix vivants des ressources + annonces d'objets.
   // Son horloge n'avance qu'en JEU ACTIF (cf. le tick en tête de mettreAJour).
   const marche = creerMarche();
+  // Les BÂTIMENTS à acheter (revenu passif à récolter) — cf. systems/batiments.js.
+  const batiments = creerBatiments();
   // La bulle d'info lit l'équipement courant pour colorer les pièces d'un set.
   definirSourceEquipement(() => inventaire.slots);
   inventaire.slots.armure = "tenue-de-voyageur"; // habits de base (corps)
@@ -178,6 +184,18 @@ export async function demarrerJeu(donneesInitiales = null) {
     t: 0,
   };
 
+  // LA SCIERIE (1er bâtiment à acheter) : le bloc de murs cols 15-16 / rangées
+  // 9-10 lui sert de corps (le vrai visuel viendra plus tard — on dessine une
+  // façade placeholder par-dessus). Devant, un PANNEAU planté au sol : c'est LUI
+  // qu'on lit ([Space]) pour acheter le bâtiment, puis pour récolter le revenu.
+  const SCIERIE_BLOC = { x: 15 * TUILE, y: 9 * TUILE, l: 2 * TUILE, h: 2 * TUILE };
+  const panneauScierie = {
+    cx: 16 * TUILE,             // centré sous la façade
+    solY: 11 * TUILE + 14,      // pieds du poteau (profondeur + dessin)
+    proche: false,
+    t: 0,                       // anime la pastille « or à récolter »
+  };
+
   // Obstacles PLEINS de la ville : on ne traverse pas les PNJ ni la fontaine.
   // Chaque boîte est au niveau des PIEDS (on peut donc chevaucher les têtes en
   // s'approchant ; la profondeur d'affichage gère qui passe devant). Recalculée
@@ -191,6 +209,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     return [
       boitePnj(fanatique), boitePnj(marchand), boitePnj(forgeron), boitePnj(courtier),
       { x: fontaine.cx - 20, y: fontaine.solY - 16, w: 40, h: 22 },
+      // Le panneau de la scierie : petit poteau planté au sol, on ne le traverse pas.
+      { x: panneauScierie.cx - 12, y: panneauScierie.solY - 8, w: 24, h: 10 },
     ];
   }
   function dessinerFontaine(ctx, f) {
@@ -222,6 +242,68 @@ export async function demarrerJeu(donneesInitiales = null) {
       const yj = by - 30 - Math.sin(p * Math.PI) * 15;
       ctx.fillRect(Math.round(cx + dxj) - 1, Math.round(yj), 2, 3);
     }
+  }
+
+  // Façade PLACEHOLDER de la scierie, dessinée par-dessus son bloc de murs :
+  // planches de bois + porte + lame de scie, pour qu'on repère le bâtiment en
+  // attendant le vrai visuel.
+  function dessinerScierie(ctx) {
+    const { x, y, l, h } = SCIERIE_BLOC;
+    ctx.fillStyle = "#4a3421";                  // mur en planches
+    ctx.fillRect(x, y, l, h);
+    ctx.fillStyle = "#3a2818";                  // lignes des planches
+    for (let i = 1; i < 4; i++) ctx.fillRect(x, y + i * (h / 4), l, 2);
+    ctx.fillStyle = "#2a1d10";                  // auvent (haut)
+    ctx.fillRect(x - 3, y - 4, l + 6, 8);
+    ctx.fillStyle = "#241708";                  // porte
+    ctx.fillRect(x + l / 2 - 8, y + h - 24, 16, 24);
+    // Lame de scie circulaire (l'enseigne du métier), côté gauche.
+    const sx = x + 16, sy = y + 18;
+    ctx.fillStyle = "#8f8f96";
+    ctx.beginPath(); ctx.arc(sx, sy, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#c9c9d2";                  // dents (4 crans clairs)
+    for (let i = 0; i < 4; i++) {
+      const a = i * Math.PI / 2 + Math.PI / 4;
+      ctx.fillRect(sx + Math.cos(a) * 8 - 2, sy + Math.sin(a) * 8 - 2, 4, 4);
+    }
+    ctx.fillStyle = "#4a3421";                  // moyeu
+    ctx.beginPath(); ctx.arc(sx, sy, 3, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Le PANNEAU devant la scierie : écriteau sur poteau. Avant l'achat il affiche
+  // « FOR SALE » ; après, « SAWMILL » + une pastille dorée qui pulse quand la
+  // trésorerie a de l'or à récolter (rouge clignotant si elle est PLEINE :
+  // production à l'arrêt — viens vider la caisse !).
+  function dessinerPanneauScierie(ctx, p) {
+    const cx = p.cx, by = p.solY;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.28)";      // ombre au sol
+    ctx.beginPath(); ctx.ellipse(cx, by, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#5a4126";                  // poteau
+    ctx.fillRect(cx - 2, by - 26, 4, 26);
+    ctx.fillStyle = "#6d4f2c";                  // écriteau
+    ctx.fillRect(cx - 25, by - 44, 50, 20);
+    ctx.strokeStyle = "#3a2818"; ctx.lineWidth = 2;
+    ctx.strokeRect(cx - 25, by - 44, 50, 20);
+    ctx.save();
+    ctx.font = police(9);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    if (!possede(batiments, "scierie")) {
+      ctx.fillStyle = "#ffe9b0";
+      ctx.fillText("FOR SALE", cx, by - 34);
+    } else {
+      ctx.fillStyle = "#e8d9b0";
+      ctx.fillText("SAWMILL", cx, by - 34);
+      const b = etatBatiment(batiments, "scierie");
+      const plein = b && b.tresorerie >= BATIMENTS.scierie.tresorerieMax;
+      if (b && (b.tresorerie > 0 || b.stock > 0)) {
+        // Pastille au-dessus du panneau : or à récolter (dorée) / caisse pleine (rouge).
+        const pulse = 0.6 + 0.4 * Math.sin(p.t * (plein ? 9 : 4));
+        ctx.fillStyle = plein ? `rgba(255, 90, 70, ${pulse})` : `rgba(255, 207, 87, ${pulse})`;
+        ctx.beginPath(); ctx.arc(cx + 20, by - 48, 4, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    ctx.restore();
   }
 
   const invite = document.getElementById("invite");
@@ -319,6 +401,64 @@ export async function demarrerJeu(donneesInitiales = null) {
         { texte: "Leave", action: () => {} },
       ],
     }, () => { enPause = false; });
+  }
+
+  // Lire le PANNEAU de la scierie. Deux états :
+  //  - À VENDRE : tout est expliqué (prix, revenu, plafond, règle de récolte)
+  //    puis on peut acheter — refusé proprement si l'or manque.
+  //  - POSSÉDÉE : trésorerie / prochain versement / production à l'arrêt, et on
+  //    RÉCOLTE ici (l'or + le bonus de bois vont dans le sac).
+  function lirePanneauScierie() {
+    if (dialogueActif() || combatEnCours || enPause) return;
+    enPause = true;
+    invite.hidden = true;
+    const def = BATIMENTS.scierie;
+    if (!possede(batiments, "scierie")) {
+      ouvrirDialogue({
+        nom: "🪧 FOR SALE — Sawmill",
+        texte: [
+          "“Sturdy sawmill for sale! It mills timber hauled down from the surface — a steady little business for a dwarf with coin to spare.”",
+          `“Price: ${def.prix} 🪙, once. It then earns ${def.revenu} 🪙 + ${def.bonus.parVersement} Wood every HOUR OF PLAY, stored in its own treasury.”`,
+          `“⚠ The treasury holds ${def.tresorerieMax} 🪙 at most. FULL treasury = the saw STOPS, and you earn NOTHING. Come back to this sign to collect!”`,
+        ],
+        choix: [
+          {
+            texte: `🪙  Buy the sawmill — ${def.prix} 🪙`,
+            action: () => {
+              if (acheterBatiment(batiments, inventaire, "scierie")) {
+                afficherMessage(`🪚 The Sawmill is yours! First payout in 1 h of play — collect at its sign.`);
+              } else {
+                afficherMessage(`Not enough gold — it costs ${def.prix} 🪙 and you have ${inventaire.or} 🪙.`);
+              }
+            },
+          },
+          { texte: "Leave", action: () => {} },
+        ],
+      }, () => { enPause = false; });
+      return;
+    }
+    const b = etatBatiment(batiments, "scierie");
+    const plein = b.tresorerie >= def.tresorerieMax;
+    const attente = tempsAvantVersement(batiments, "scierie");
+    const statut = plein
+      ? `⚠ Treasury FULL (${b.tresorerie}/${def.tresorerieMax} 🪙) — the saw has STOPPED. Collect now to restart production!`
+      : `Treasury: ${b.tresorerie}/${def.tresorerieMax} 🪙${b.stock > 0 ? `  ·  Wood stored: ${b.stock}` : ""}. Next payout (+${def.revenu} 🪙, +${def.bonus.parVersement} Wood) in ${Math.max(1, Math.ceil((attente ?? 0) / 60))} min of play.`;
+    const choix = [];
+    if (b.tresorerie > 0 || b.stock > 0) {
+      choix.push({
+        texte: `💰  Collect ${b.tresorerie} 🪙${b.stock > 0 ? ` + ${b.stock} Wood` : ""}`,
+        action: () => {
+          const r = collecterTresorerie(batiments, inventaire, "scierie");
+          if (!r) return;
+          let msg = `💰 +${r.or} 🪙 from the Sawmill`;
+          if (r.bonusPris > 0) msg += `, +${r.bonusPris} Wood`;
+          if (r.bonusReste > 0) msg += ` — bag full: ${r.bonusReste} Wood left at the mill`;
+          afficherMessage(msg + ".");
+        },
+      });
+    }
+    choix.push({ texte: "Leave", action: () => {} });
+    ouvrirDialogue({ nom: "🪚 Sawmill — your business", texte: [statut], choix }, () => { enPause = false; });
   }
 
   // Marchand de TEST : propose TOUS les items du jeu, gratuits, rangés par
@@ -525,6 +665,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       inventaire: etatInventaire(inventaire),
       maitrise: etatMaitrise(maitrise),
       marche: etatMarche(marche),
+      batiments: etatBatiments(batiments),
       armeNom: armeEquipee(inventaire)?.nom ?? "Unarmed",
       armureNom: armureEquipee(inventaire).nom,
     };
@@ -563,6 +704,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     }
     if (donnees.maitrise) chargerMaitrise(maitrise, donnees.maitrise);
     if (donnees.marche) chargerMarche(marche, donnees.marche); // prix + annonces en cours
+    if (donnees.batiments) chargerBatiments(batiments, donnees.batiments); // scierie & co
     appliquerEquipement(heros, inventaire, planches);
     mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
   }
@@ -730,6 +872,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     else if (forgeron.proche) { e.preventDefault(); parlerAuForgeron(); }
     else if (courtier.proche) { e.preventDefault(); parlerAuCourtier(); }
     else if (fontaine.proche) { e.preventDefault(); parlerALaFontaine(); }
+    else if (panneauScierie.proche) { e.preventDefault(); lirePanneauScierie(); }
   });
 
   // Les points d'intérêt : le message vient du catalogue (champ `interet`),
@@ -1061,6 +1204,12 @@ export async function demarrerJeu(donneesInitiales = null) {
         for (const v of tickMarche(marche, dt)) {
           afficherMessage(`📈 ${itemDef(v.id)?.nom ?? v.id} sold at the Exchange — go collect your ${v.prix} 🪙!`);
         }
+        // Les BÂTIMENTS produisent sur la MÊME horloge de jeu actif que le marché.
+        for (const e of tickBatiments(batiments, dt)) {
+          const nom = BATIMENTS[e.id]?.nom ?? e.id;
+          if (e.type === "versement") afficherMessage(`🪚 ${nom}: +${e.montant} 🪙 in its treasury — collect at its sign.`);
+          else if (e.type === "plein") afficherMessage(`⚠ ${nom}: treasury FULL — production STOPPED until you collect!`);
+        }
       }
       // La barre de menu n'est visible qu'en exploration libre (pas en combat,
       // pas quand un écran/menu est ouvert).
@@ -1099,12 +1248,18 @@ export async function demarrerJeu(donneesInitiales = null) {
         fontaine.proche =
           Math.abs((heros.x + 32) - fontaine.cx) < 46 &&
           Math.abs((heros.y + 54) - fontaine.solY) < 46;
+        panneauScierie.t += dt;
+        panneauScierie.proche =
+          Math.abs((heros.x + 32) - panneauScierie.cx) < 46 &&
+          Math.abs((heros.y + 54) - panneauScierie.solY) < 46;
       }
       // Veine minable la plus proche (en mine) → surbrillée en doré (dessinerVeine).
       veineProche = (zoneCourante.estMine && !minage) ? veineLaPlusProche() : null;
-      // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la fontaine
-      invite.hidden = !(zoneActuelle === "city" &&
-        (fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || fontaine.proche));
+      // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la
+      // fontaine / du panneau de la scierie (où « Read » remplace « Talk »).
+      const presPnj = fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || fontaine.proche;
+      invite.hidden = !(zoneActuelle === "city" && (presPnj || panneauScierie.proche));
+      if (!invite.hidden) invite.textContent = presPnj ? "[Space] Talk" : "[Space] Read";
       mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
       // Bulle flottante du minerai : positionnée en CSS au-dessus de la veine
       if (veineProche) {
@@ -1135,6 +1290,9 @@ export async function demarrerJeu(donneesInitiales = null) {
       // PNJ du plus « haut » (pieds les plus en arrière) au plus « bas ».
       if (zoneActuelle === "city") {
         const acteurs = [
+          // La façade de la scierie couvre son bloc de murs ; le panneau est devant.
+          { pieds: SCIERIE_BLOC.y + SCIERIE_BLOC.h, dessiner: () => dessinerScierie(ctx) },
+          { pieds: panneauScierie.solY, dessiner: () => dessinerPanneauScierie(ctx, panneauScierie) },
           { pieds: fontaine.solY, dessiner: () => dessinerFontaine(ctx, fontaine) },
           { pieds: piedsPnj(fanatique), dessiner: () => dessinerPnj(ctx, fanatique) },
           { pieds: piedsPnj(marchand), dessiner: () => dessinerPnj(ctx, marchand) },
