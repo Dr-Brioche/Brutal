@@ -39,9 +39,10 @@ import { installerForge, ouvrirForge, forgeActive } from "./ui/forge.js";
 import { installerHV, ouvrirHV, hvActive, phraseCourtier } from "./ui/hv.js";
 import { creerMarche, tickMarche, etatMarche, chargerMarche } from "./systems/marche.js";
 import {
-  BATIMENTS, creerBatiments, possede, etatBatiment, acheterBatiment,
-  tickBatiments, tempsAvantVersement, collecterTresorerie, etatBatiments, chargerBatiments,
+  BATIMENTS, creerBatiments, possede, etatBatiment,
+  tickBatiments, etatBatiments, chargerBatiments,
 } from "./systems/batiments.js";
+import { installerBatiment, ouvrirBatiment, batimentActif } from "./ui/batiment.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
 import { getPreference } from "./systems/preferences.js";
@@ -403,62 +404,16 @@ export async function demarrerJeu(donneesInitiales = null) {
     }, () => { enPause = false; });
   }
 
-  // Lire le PANNEAU de la scierie. Deux états :
-  //  - À VENDRE : tout est expliqué (prix, revenu, plafond, règle de récolte)
-  //    puis on peut acheter — refusé proprement si l'or manque.
-  //  - POSSÉDÉE : trésorerie / prochain versement / production à l'arrêt, et on
-  //    RÉCOLTE ici (l'or + le bonus de bois vont dans le sac).
+  // Lire le PANNEAU de la scierie : ouvre l'ÉCRAN BÂTIMENT (ui/batiment.js) —
+  // la fiche claire du bâtiment (à vendre / possédé) avec ses jauges. Le MONDE
+  // se fige (le héros ne bouge plus) mais l'HORLOGE DE JEU CONTINUE de tourner
+  // tant que l'écran est ouvert (cf. le tick : batimentActif() la maintient) —
+  // on peut regarder la production avancer en direct.
   function lirePanneauScierie() {
     if (dialogueActif() || combatEnCours || enPause) return;
     enPause = true;
     invite.hidden = true;
-    const def = BATIMENTS.scierie;
-    if (!possede(batiments, "scierie")) {
-      ouvrirDialogue({
-        nom: "🪧 FOR SALE — Sawmill",
-        texte: [
-          "“Sturdy sawmill for sale! It mills timber hauled down from the surface — a steady little business for a dwarf with coin to spare.”",
-          `“Price: ${def.prix} 🪙, once. It then earns ${def.revenu} 🪙 + ${def.bonus.parVersement} Wood every HOUR OF PLAY, stored in its own treasury.”`,
-          `“⚠ The treasury holds ${def.tresorerieMax} 🪙 at most. FULL treasury = the saw STOPS, and you earn NOTHING. Come back to this sign to collect!”`,
-        ],
-        choix: [
-          {
-            texte: `🪙  Buy the sawmill — ${def.prix} 🪙`,
-            action: () => {
-              if (acheterBatiment(batiments, inventaire, "scierie")) {
-                afficherMessage(`🪚 The Sawmill is yours! First payout in 1 h of play — collect at its sign.`);
-              } else {
-                afficherMessage(`Not enough gold — it costs ${def.prix} 🪙 and you have ${inventaire.or} 🪙.`);
-              }
-            },
-          },
-          { texte: "Leave", action: () => {} },
-        ],
-      }, () => { enPause = false; });
-      return;
-    }
-    const b = etatBatiment(batiments, "scierie");
-    const plein = b.tresorerie >= def.tresorerieMax;
-    const attente = tempsAvantVersement(batiments, "scierie");
-    const statut = plein
-      ? `⚠ Treasury FULL (${b.tresorerie}/${def.tresorerieMax} 🪙) — the saw has STOPPED. Collect now to restart production!`
-      : `Treasury: ${b.tresorerie}/${def.tresorerieMax} 🪙${b.stock > 0 ? `  ·  Wood stored: ${b.stock}` : ""}. Next payout (+${def.revenu} 🪙, +${def.bonus.parVersement} Wood) in ${Math.max(1, Math.ceil((attente ?? 0) / 60))} min of play.`;
-    const choix = [];
-    if (b.tresorerie > 0 || b.stock > 0) {
-      choix.push({
-        texte: `💰  Collect ${b.tresorerie} 🪙${b.stock > 0 ? ` + ${b.stock} Wood` : ""}`,
-        action: () => {
-          const r = collecterTresorerie(batiments, inventaire, "scierie");
-          if (!r) return;
-          let msg = `💰 +${r.or} 🪙 from the Sawmill`;
-          if (r.bonusPris > 0) msg += `, +${r.bonusPris} Wood`;
-          if (r.bonusReste > 0) msg += ` — bag full: ${r.bonusReste} Wood left at the mill`;
-          afficherMessage(msg + ".");
-        },
-      });
-    }
-    choix.push({ texte: "Leave", action: () => {} });
-    ouvrirDialogue({ nom: "🪚 Sawmill — your business", texte: [statut], choix }, () => { enPause = false; });
+    ouvrirBatiment("scierie", batiments, inventaire, () => { enPause = false; });
   }
 
   // Marchand de TEST : propose TOUS les items du jeu, gratuits, rangés par
@@ -840,8 +795,9 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // La fenêtre de butin (fin de combat gagné) : on récupère le loot d'un clic / Espace.
   const butinUI = installerButin();
-  installerForge(); // la forge plein écran (ouverte via le forgeron)
-  installerHV();    // l'hôtel des ventes plein écran (ouvert via le courtier)
+  installerForge();    // la forge plein écran (ouverte via le forgeron)
+  installerHV();       // l'hôtel des ventes plein écran (ouvert via le courtier)
+  installerBatiment(); // l'écran bâtiment (ouvert via le panneau de la scierie)
 
   // Échap : ferme d'abord l'écran ouvert (inventaire, deck, talents, menu pause) ;
   // si rien n'est ouvert, ouvre le menu pause (sauvegarder / quitter).
@@ -1200,7 +1156,10 @@ export async function demarrerJeu(donneesInitiales = null) {
       // la FIGENT. Une annonce qui s'écoule ne PAIE PAS automatiquement — on
       // prévient juste le joueur ; il doit aller la RÉCOLTER lui-même à l'HV
       // (cf. ui/hv.js), qui affiche alors le résumé de la plus-value réalisée.
-      if (!enPause && !menuPauseOuvert) {
+      // SEULE EXCEPTION : l'écran BÂTIMENT (batimentActif) laisse le temps
+      // s'écouler — on y regarde la production avancer en direct ; le plafond
+      // de trésorerie borne ce que l'AFK peut rapporter (aucun abus possible).
+      if ((!enPause || batimentActif()) && !menuPauseOuvert) {
         for (const v of tickMarche(marche, dt)) {
           afficherMessage(`📈 ${itemDef(v.id)?.nom ?? v.id} sold at the Exchange — go collect your ${v.prix} 🪙!`);
         }

@@ -910,7 +910,10 @@ Deuxième jambe du pilier économie après l'HV : **investir dans la pierre**
 (détail complet dans **`docs/batiments.md`**) ; résumé :
 
 - Certains bâtiments de la ville sont **à vendre**. Un **panneau** planté devant
-  explique TOUT (prix, revenu, plafond) ; on le lit avec *[Space] Read*.
+  ouvre l'**écran bâtiment** (*[Space] Read*) : une fiche claire (prix, revenu,
+  plafond, jauges vivantes). **Le temps de jeu continue de s'écouler sur cet
+  écran** (seule exception à la règle « les écrans figent l'horloge ») — on y
+  regarde sa production avancer en direct, sans abus possible (plafond).
 - **Achat une fois, revenu passif ensuite** : le bâtiment verse de l'or dans sa
   **trésorerie** à chaque **heure de JEU ACTIF** (même horloge que le marché —
   les menus/écrans la figent, impossible de farmer en laissant tourner le jeu).

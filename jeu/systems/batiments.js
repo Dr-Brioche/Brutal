@@ -29,6 +29,8 @@ export const BATIMENTS = {
   scierie: {
     id: "scierie",
     nom: "Sawmill",                 // les textes du jeu sont en anglais (cf. concept)
+    icone: "🪚",
+    description: "Mills timber hauled down from the surface — a steady little business.",
     prix: 1200,                     // 🪙 à l'achat (somme conséquente, une fois)
     revenu: 120,                    // 🪙 versés dans la trésorerie à chaque période
     periode: 3600,                  // s de jeu ACTIF entre deux versements (1 h)

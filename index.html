@@ -1910,6 +1910,75 @@
     .butin-btn--laisser { background: #2f2d3a; border: 1px solid #45424f; color: #cbd0d6; }
     .butin-aide { margin-top: 10px; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
+    /* ---- L'écran BÂTIMENT (fiche claire d'un bâtiment, cf. ui/batiment.js).
+       Le temps de jeu continue de s'écouler pendant qu'il est ouvert : le fond
+       est un peu moins opaque que les autres écrans (on « voit » le jeu vivre). */
+    .bat {
+      position: fixed; inset: 0; z-index: 38;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5, 5, 8, 0.55);
+    }
+    .bat-panneau {
+      width: min(520px, 92vw); padding: 22px 24px;
+      background: #16131d; border: 1px solid #6d4f2c; border-radius: var(--rayon);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    }
+    .bat-entete { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+    .bat-entete-txt { flex: 1; min-width: 0; }
+    .bat-titre { font-size: 1.35rem; font-weight: 800; color: #ffcf57; }
+    .bat-sous { color: #a8b0c6; font-size: 0.88rem; margin-top: 2px; font-style: italic; }
+    .bat-fermer {
+      flex: 0 0 auto; width: 34px; height: 34px; font-size: 1rem; font-weight: 800;
+      color: #cbd0d6; background: #241f2e; border: 1px solid #45424f;
+      border-radius: var(--rayon); cursor: pointer;
+    }
+    .bat-fermer:hover { background: #322b40; }
+    /* Bandeau d'état : à vendre (doré) / en production (vert) / à l'arrêt (rouge). */
+    .bat-etat {
+      padding: 8px 12px; margin-bottom: 12px; border-radius: var(--rayon);
+      font-weight: 800; font-size: 0.95rem; text-align: center;
+    }
+    .bat-etat--vente { background: rgba(255, 207, 87, 0.12); color: #ffcf57; border: 1px dashed #8a6b28; }
+    .bat-etat--ok    { background: rgba(80, 200, 120, 0.10); color: #7fdc8f; border: 1px solid #2c5236; }
+    .bat-etat--stop  { background: rgba(255, 90, 70, 0.12);  color: #ff7a66; border: 1px solid #6b2a20; }
+    /* Rangées d'infos : étiquette à gauche, valeur à droite — lisible d'un coup d'œil. */
+    .bat-ligne {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      padding: 9px 2px; border-bottom: 1px dashed #2a2736;
+    }
+    .bat-ligne-label { flex: 0 0 auto; color: #9aa2b8; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .bat-ligne-valeur { flex: 1; text-align: right; color: #e8e4d8; font-size: 0.95rem; }
+    .bat-ligne-valeur small { color: #8a90a6; font-weight: 400; }
+    .bat-or { color: #ffcf57; }
+    .bat-ok { color: #7fdc8f; }
+    .bat-manque { color: #ff7a66; }
+    /* Jauges (trésorerie, progression du prochain versement) : elles VIVENT. */
+    .bat-jauge {
+      position: relative; width: 100%; height: 18px;
+      background: #221f2e; border: 1px solid #3a3648; border-radius: var(--rayon);
+      overflow: hidden;
+    }
+    .bat-jauge-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #3a6ea5, #57a0e0);
+      transition: width 0.25s linear;
+    }
+    .bat-jauge--or .bat-jauge-fill { background: linear-gradient(90deg, #b45309, #ffcf57); }
+    .bat-jauge-txt {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 800; color: #fff; text-shadow: 0 1px 2px #000;
+    }
+    .bat-note {
+      margin-top: 10px; padding: 9px 12px; font-size: 0.82rem; color: #cbd0d6;
+      background: #1d1926; border-radius: var(--rayon); line-height: 1.45;
+    }
+    .bat-boutons { display: flex; gap: 10px; margin-top: 14px; }
+    .bat-btn { flex: 1; padding: 12px; font-weight: 800; font-size: 0.95rem; border: none; border-radius: var(--rayon); cursor: pointer; }
+    .bat-btn--or { background: linear-gradient(135deg, #b45309, #7c2d12); color: #fff; }
+    .bat-btn--or:disabled { background: #2f2d3a; color: #6b7280; cursor: not-allowed; }
+    .bat-btn--gris { background: #2f2d3a; border: 1px solid #45424f; color: #cbd0d6; }
+    .bat-aide { margin-top: 10px; margin-bottom: 0; font-size: 0.72rem; color: #6b7280; text-align: center; }
+
     /* ---- Fenêtre de confirmation oui/non (jeter un objet rare, etc.) ---- */
     .confirm {
       position: fixed; inset: 0; z-index: 40;
@@ -2387,6 +2456,24 @@
         <button class="butin-btn butin-btn--laisser" id="butin-laisser">Discard rest</button>
       </div>
       <p class="butin-aide" id="butin-aide">Click or ↑↓+Enter: take item &nbsp;·&nbsp; Space: take all &nbsp;·&nbsp; Esc: leave</p>
+    </div>
+  </div>
+
+  <!-- L'écran BÂTIMENT (fiche d'un bâtiment à vendre / possédé, cf. ui/batiment.js).
+       Particularité : le temps de jeu CONTINUE de s'écouler tant qu'il est ouvert. -->
+  <div class="bat" id="batiment" hidden>
+    <div class="bat-panneau panneau-ui">
+      <div class="bat-entete">
+        <div class="bat-entete-txt">
+          <div class="bat-titre" id="bat-titre"></div>
+          <div class="bat-sous" id="bat-sous"></div>
+        </div>
+        <button class="bat-fermer" id="bat-fermer" title="Close (Esc)">✕</button>
+      </div>
+      <div class="bat-etat" id="bat-etat"></div>
+      <div class="bat-lignes" id="bat-lignes"></div>
+      <div class="bat-boutons" id="bat-boutons"></div>
+      <p class="bat-aide" id="bat-aide"></p>
     </div>
   </div>
 

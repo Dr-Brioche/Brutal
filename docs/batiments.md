@@ -13,9 +13,14 @@ régulièrement, sinon la production s'arrête.
 ## Comment ça marche (règles)
 
 1. **Le panneau** : chaque bâtiment à vendre a un panneau planté devant lui.
-   S'en approcher affiche *[Space] Read* ; le lire ouvre un dialogue qui
-   explique **tout** avant l'achat : prix, revenu par heure, bonus en nature,
-   plafond de la trésorerie et règle d'arrêt de production. Aucune surprise.
+   S'en approcher affiche *[Space] Read* ; le lire ouvre l'**écran bâtiment**
+   (`jeu/ui/batiment.js`, fenêtre `panneau-ui` au-dessus du jeu) qui explique
+   **tout** avant l'achat : prix, revenu par heure, bonus en nature, plafond
+   de la trésorerie et règle d'arrêt de production. Aucune surprise.
+   **Particularité unique : le temps de jeu CONTINUE de s'écouler tant que cet
+   écran est ouvert** (contrairement aux autres écrans qui figent l'horloge) —
+   on peut regarder la jauge du prochain versement se remplir en direct. Pas
+   d'abus AFK possible : le plafond de trésorerie arrête la production seul.
 2. **L'achat** : une somme conséquente, payée une fois. Refusé proprement si
    l'or manque (le dialogue rappelle combien on a).
 3. **Le revenu** : toutes les **1 h de JEU ACTIF**, le bâtiment verse son
@@ -27,9 +32,9 @@ régulièrement, sinon la production s'arrête.
    s'arrête** et le rendement est **perdu** tant qu'on ne vide pas la caisse.
    C'est LA règle qui force à repasser en ville (et rend le tour de ville
    vivant), en écho aux annonces de l'HV qu'on va aussi récolter soi-même.
-5. **La récolte** : au panneau, choix *Collect* → l'or + le bonus en nature
-   vont dans le sac. Si le sac ne peut pas tout prendre (bois…), le reste
-   **attend au bâtiment** (rien n'est perdu).
+5. **La récolte** : sur l'écran bâtiment, bouton *Collect* → l'or + le bonus
+   en nature vont dans le sac. Si le sac ne peut pas tout prendre (bois…), le
+   reste **attend au bâtiment** (rien n'est perdu).
 6. **Bonus spécial** : chaque bâtiment a sa production **en nature** en plus
    de l'or (champ `bonus` du catalogue), plafonnée elle aussi.
 
@@ -66,6 +71,12 @@ l'équilibrage se règle à UN endroit.
   - après : **« SAWMILL »** + une **pastille dorée qui pulse** quand il y a de
     l'or à récolter, **rouge clignotante** si la caisse est pleine (production
     à l'arrêt).
+- **L'écran bâtiment** (ouvert en lisant le panneau) : bandeau d'état
+  (🪧 à vendre / ● en production / ⛔ à l'arrêt), rangées d'infos
+  étiquette→valeur, **jauges vivantes** (trésorerie + progression du prochain
+  versement, rafraîchies 4×/s), encart de règles, boutons *Buy* / *Collect* /
+  *Close*. Souris OU clavier : [Space] action principale, [Esc] fermer,
+  clic hors du panneau ferme aussi.
 - **Messages flottants** en jeu : à chaque versement (« +120 🪙 in its
   treasury ») et quand la caisse se remplit (« production STOPPED »).
 - **Sauvegarde** : l'état des bâtiments (possédés, trésorerie, progression,
