@@ -75,7 +75,7 @@ export function valeurReelle(id) {
 export function creerMarche() {
   const mults = {}, histo = {};
   for (const id of RESSOURCES_MARCHE) { mults[id] = 1; histo[id] = []; }
-  return {
+  const marche = {
     mults,          // id → multiplicateur courant (hors événement)
     histo,          // id → [{ t, prix }] (échantillonné toutes les 60 s)
     temps: 0,       // horloge du marché (s de jeu ACTIF cumulées)
@@ -84,6 +84,20 @@ export function creerMarche() {
     evenement: null, // { id, type: "penurie"|"surplus", facteur, reste } | null
     ventes: [],     // annonces d'objets : { id, prix, qualite, reste }
   };
+  semerHistorique(marche);
+  return marche;
+}
+
+// Sème un point d'historique « maintenant » pour toute ressource qui n'en a
+// AUCUN : la variation sur 30 min a ainsi un repère dès la PREMIÈRE seconde.
+// Sans ça, en début de partie (historique vide jusqu'au 1er échantillon à 60 s),
+// tous les « 30m » restent à 0 % — le tri « Top gainers/losers » paraît
+// aléatoire et une grosse vente du joueur n'y laisse aucune trace.
+function semerHistorique(marche) {
+  for (const id of RESSOURCES_MARCHE) {
+    const h = marche.histo[id] ??= [];
+    if (!h.length) h.push({ t: Math.round(marche.temps), prix: prixRessource(marche, id) });
+  }
 }
 
 // ----- Prix des ressources -----------------------------------------------------
@@ -347,4 +361,5 @@ export function chargerMarche(marche, etat) {
     ? etat.ventes.filter((v) => itemDef(v?.id) && Number.isFinite(v.prix) && Number.isFinite(v.reste))
         .map((v) => ({ id: v.id, prix: Math.round(v.prix), qualite: v.qualite ?? null, reste: v.reste, vendu: v.vendu === true }))
     : [];
+  semerHistorique(marche); // vieilles sauvegardes sans historique : repère immédiat
 }

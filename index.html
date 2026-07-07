@@ -712,6 +712,11 @@
        Largeur FLEXIBLE (pas fixe) : les gros écarts (événements, ex. +111 %) ne
        doivent jamais passer à la ligne et casser la hauteur de la rangée. */
     .hv-var30 { flex: 0 0 auto; min-width: 6.4cqw; text-align: right; white-space: nowrap; font-size: 1.15cqw; font-weight: 700; font-family: ui-monospace, monospace; }
+    /* Tri « Top gainers/losers » : la variation 30 min EST le critère de
+       classement → on la grossit et on estompe la tendance vs prix normal,
+       pour que l'ordre des lignes colle à ce que l'œil lit. */
+    .hv-var30--tri { font-size: 1.5cqw; }
+    .hv-tendance--estompe { opacity: 0.4; }
     .hv-possede { width: 5.4cqw; text-align: right; font-size: 1.35cqw; color: #a8b0c6; }
     .hv-btn {
       padding: 0.45cqw 1.1cqw; font-size: 1.45cqw; font-weight: 700; color: #e8e4d8;
