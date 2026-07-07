@@ -79,6 +79,28 @@ export const COURTIER = {
   passif: { anim: "passive", min: 6, max: 12 },
 };
 
+// Magnar le commissaire-priseur : tient la VENTE AUX ENCHÈRES du soir (pilier
+// économie, contenu tardif — talent « Title of Nobility » requis). Stationnaire.
+// PROVISOIRE : planche du marchand TEINTÉE pourpre (habits de noblesse) en
+// attendant sa propre planche — mêmes frames, donc même `regard` (règle absolue
+// des PNJ respectée sans retouche).
+export const COMMISSAIRE = {
+  id: "commissaire",
+  nom: "Magnar",
+  planche: "images/pnj/marchand.png",
+  teinte: "hue-rotate(300deg) saturate(1.15) brightness(0.98)", // pourpre & or
+  sprite: {
+    caseL: 104,
+    caseH: 88,
+    regard: { bas: 0, gauche: 7, droite: 8, haut: 9 },
+    anims: {
+      repos:   { frames: [0], ips: 1, boucle: true },
+      passive: { frames: [0, 1, 2, 3, 4, 5, 6], ips: 7, boucle: false }, // il soupèse une pièce
+    },
+  },
+  passif: { anim: "passive", min: 7, max: 14 },
+};
+
 export const FORGERON = {
   id: "forgeron",
   nom: "Ferran",

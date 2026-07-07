@@ -34,15 +34,24 @@ import { demarrerCombat } from "./ui/combat.js";
 import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
 import { fondCombat, prechargerFonds } from "./data/fonds.js";
 import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
-import { FANATIQUE, MARCHAND, FORGERON, COURTIER } from "./data/pnj.js";
+import { FANATIQUE, MARCHAND, FORGERON, COURTIER, COMMISSAIRE } from "./data/pnj.js";
 import { installerForge, ouvrirForge, forgeActive } from "./ui/forge.js";
 import { installerHV, ouvrirHV, hvActive, phraseCourtier } from "./ui/hv.js";
-import { creerMarche, tickMarche, etatMarche, chargerMarche } from "./systems/marche.js";
+import { creerMarche, tickMarche, etatMarche, chargerMarche, valeurReelle } from "./systems/marche.js";
 import {
   BATIMENTS, creerBatiments, possede, etatBatiment,
   tickBatiments, etatBatiments, chargerBatiments,
 } from "./systems/batiments.js";
 import { installerBatiment, ouvrirBatiment, batimentActif } from "./ui/batiment.js";
+import {
+  creerTemps, tickTemps, phase, numeroJour, positionCycle, tempsAvantSoir,
+  enFenetreInscription, DUREE_JOUR, etatTemps, chargerTemps,
+} from "./systems/temps.js";
+import {
+  TICKET, FENETRE_ENTREE, creerEncheres, aTicket, acheterTicket, genererLots,
+  lotDepot, resoudreHorsEcran, depotAcceptable, etatEncheres, chargerEncheres,
+} from "./systems/encheres.js";
+import { installerEncheres, ouvrirEncheres, enchereActive } from "./ui/encheres.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
 import { getPreference } from "./systems/preferences.js";
@@ -119,6 +128,10 @@ export async function demarrerJeu(donneesInitiales = null) {
   const marche = creerMarche();
   // Les BÂTIMENTS à acheter (revenu passif à récolter) — cf. systems/batiments.js.
   const batiments = creerBatiments();
+  // Le CYCLE JOUR/NUIT de la cité (1 h de jour + 30 min de nuit, en jeu actif).
+  const temps = creerTemps();
+  // La VENTE AUX ENCHÈRES du soir (ticket, dépôt, gains en attente).
+  const encheres = creerEncheres();
   // La bulle d'info lit l'équipement courant pour colorer les pièces d'un set.
   definirSourceEquipement(() => inventaire.slots);
   inventaire.slots.armure = "tenue-de-voyageur"; // habits de base (corps)
@@ -176,6 +189,17 @@ export async function demarrerJeu(donneesInitiales = null) {
     xMin: 26 * TUILE - 36,
     xMax: 26 * TUILE - 36,
   });
+  // Magnar le commissaire-priseur (VENTE AUX ENCHÈRES du soir), STATIONNAIRE
+  // (rangée 11, à gauche du courtier — le coin chic de la place du marché).
+  // Contenu tardif : sans le talent « Title of Nobility », il vous éconduit.
+  const commissaire = creerPnj({
+    modele: COMMISSAIRE,
+    planche: planches.get(COMMISSAIRE.planche),
+    x: 21 * TUILE - 36,
+    y: 11 * TUILE - 72,
+    xMin: 21 * TUILE - 36,
+    xMax: 21 * TUILE - 36,
+  });
   // FONTAINE (build de TEST) : près de la porte de sortie. On lui parle
   // pour gagner 1 niveau d'un coup → tester l'arbre de talents sans farmer.
   const fontaine = {
@@ -209,6 +233,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     };
     return [
       boitePnj(fanatique), boitePnj(marchand), boitePnj(forgeron), boitePnj(courtier),
+      boitePnj(commissaire),
       { x: fontaine.cx - 20, y: fontaine.solY - 16, w: 40, h: 22 },
       // Le panneau de la scierie : petit poteau planté au sol, on ne le traverse pas.
       { x: panneauScierie.cx - 12, y: panneauScierie.solY - 8, w: 24, h: 10 },
@@ -416,6 +441,147 @@ export async function demarrerJeu(donneesInitiales = null) {
     ouvrirBatiment("scierie", batiments, inventaire, () => { enPause = false; });
   }
 
+  // ----- Magnar le commissaire-priseur (vente aux enchères du soir) ---------
+
+  // Minutes de jeu lisibles (« 12 min » / « 1 h 05 »).
+  function fmtTempsJeu(s) {
+    if (s < 90) return `${Math.max(1, Math.round(s))} s`;
+    const m = Math.ceil(s / 60);
+    return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
+  }
+
+  function parlerAuCommissaire() {
+    if (dialogueActif() || combatEnCours || enPause) return;
+    regarderHeros(commissaire, heros); // il se tourne vers le héros PENDANT qu'on lui parle
+    enPause = true;
+    invite.hidden = true;
+    menuCommissaire();
+  }
+
+  // Le dialogue reste figé tant qu'un sous-menu ou l'écran d'enchères est ouvert.
+  const finCommissaire = () => { if (!dialogueActif() && !enchereActive()) enPause = false; };
+
+  function menuCommissaire() {
+    // Sans titre de noblesse : la porte reste fermée (contenu tardif).
+    if (!heros.noblesse) {
+      ouvrirDialogue({
+        nom: "Magnar the Auctioneer",
+        texte: [
+          "“The evening auctions are for the TITLED of Brütàl, stranger.”",
+          "“Earn yourself a Title of Nobility — see the talent masters — and we shall talk business.”",
+        ],
+        choix: [{ texte: "Leave", action: () => {} }],
+      }, finCommissaire);
+      return;
+    }
+    const jour = numeroJour(temps);
+    const nuit = phase(temps) === "nuit";
+    const attente = tempsAvantSoir(temps);
+    const porteOuverte = nuit && positionCycle(temps) < DUREE_JOUR + FENETRE_ENTREE &&
+      aTicket(encheres, jour) && encheres.derniereVenteJouee < jour;
+
+    const texte = [];
+    if (porteOuverte) {
+      texte.push("“You made it, my lord. The hall is warming up — shall we go in?”");
+    } else if (nuit) {
+      texte.push(encheres.derniereVenteJouee >= jour
+        ? "“Quite a show tonight, wasn't it? Come back tomorrow evening.”"
+        : "“The doors are shut — tonight's auction goes on without you. There is always tomorrow.”");
+    } else if (enFenetreInscription(temps)) {
+      texte.push(`“The auction starts at dusk — in ${fmtTempsJeu(attente)} of play. Registrations are OPEN, my lord.”`);
+    } else {
+      texte.push(`“Next auction at dusk, in ${fmtTempsJeu(attente)} of play. Registrations open shortly before — don't be late.”`);
+    }
+    if (encheres.depot) texte.push(`“Your ${ITEMS[encheres.depot.id].nom} is consigned for the next sale. The room will decide its fate.”`);
+
+    const choix = [];
+    // Gains / lots en attente (vente hors écran, sac plein…).
+    const du = encheres.aRecuperer;
+    if (du.or > 0 || du.objets.length) {
+      const detail = [du.or > 0 ? `${du.or} 🪙` : null, du.objets.length ? `${du.objets.length} item${du.objets.length > 1 ? "s" : ""}` : null]
+        .filter(Boolean).join(" + ");
+      choix.push({ texte: `💰  Collect your dues — ${detail}`, action: collecterDusEncheres });
+    }
+    if (porteOuverte) {
+      choix.push({ texte: "🔔  Enter the auction hall", action: () => entrerEnchere(jour) });
+    }
+    if (!nuit && enFenetreInscription(temps) && !aTicket(encheres, jour)) {
+      choix.push({
+        texte: `🎫  Buy tonight's entry ticket — ${TICKET} 🪙`,
+        action: () => {
+          if (acheterTicket(encheres, inventaire, jour)) afficherMessage("🎫 Ticket in pocket — be at the hall when the bell rings!");
+          else afficherMessage(`Not enough gold (the ticket costs ${TICKET} 🪙).`);
+        },
+      });
+    }
+    if (!nuit && !encheres.depot) {
+      choix.push({ texte: "📦  Consign an item for tonight…", action: () => menuDepotEnchere() });
+    }
+    choix.push({ texte: "Leave", action: () => {} });
+    ouvrirDialogue({ nom: "Magnar the Auctioneer", texte, choix }, finCommissaire);
+  }
+
+  // Sous-menu de DÉPÔT : les objets du sac dignes de la salle (équipement rare+).
+  function menuDepotEnchere() {
+    const eligibles = inventaire.objets.filter((o) => depotAcceptable(o.id));
+    if (!eligibles.length) {
+      ouvrirDialogue({
+        nom: "Magnar the Auctioneer",
+        texte: ["“Nothing in your bag is worthy of my room — bring me RARE craft or better.”"],
+        choix: [{ texte: "←  Back", action: () => menuCommissaire() }],
+      }, finCommissaire);
+      return;
+    }
+    const choix = eligibles.map((o) => ({
+      texte: `Consign ${ITEMS[o.id].nom}  ·  value ~${valeurReelle(o.id)} 🪙`,
+      itemId: o.id,
+      action: () => {
+        jeterObjet(inventaire, o); // il quitte le sac (il est chez Magnar désormais)
+        encheres.depot = { id: o.id, qualite: o.qualite ?? null, jour: numeroJour(temps) };
+        afficherMessage(`📦 ${ITEMS[o.id].nom} consigned — it goes under the hammer at dusk.`);
+        inventaireUI.rendre();
+      },
+    }));
+    choix.push({ texte: "←  Back", action: () => menuCommissaire() });
+    ouvrirDialogue({
+      nom: "Magnar — Consignment",
+      texte: ["“A word of honesty: the room decides the price. Riches… or a loss. Floor price = what a merchant would pay.”"],
+      choix,
+    }, finCommissaire);
+  }
+
+  function collecterDusEncheres() {
+    const du = encheres.aRecuperer;
+    const morceaux = [];
+    if (du.or > 0) { ajouterOr(inventaire, du.or); morceaux.push(`+${du.or} 🪙`); du.or = 0; }
+    const restent = [];
+    for (const o of du.objets) {
+      if (ajouterObjet(inventaire, o.id, o.quantite ?? 1, o.qualite ? { qualite: o.qualite } : null)) {
+        morceaux.push(ITEMS[o.id].nom);
+      } else {
+        restent.push(o); // sac plein : ça reste chez Magnar
+      }
+    }
+    du.objets = restent;
+    let msg = `💰 ${morceaux.join(", ")}`;
+    if (restent.length) msg += ` — bag full: ${restent.length} item${restent.length > 1 ? "s" : ""} still with Magnar`;
+    afficherMessage(msg + ".");
+    inventaireUI.rendre();
+  }
+
+  // Entrer dans la salle : lots de la maison + (en dernier) le dépôt du joueur.
+  function entrerEnchere(jour) {
+    const lots = genererLots();
+    if (encheres.depot && encheres.depot.jour <= jour) {
+      lots.push(lotDepot(encheres.depot));
+    }
+    encheres.derniereVenteJouee = jour;
+    ouvrirEncheres({
+      inv: inventaire, enc: encheres, lots, jour,
+      surFin: () => { enPause = false; inventaireUI.rendre(); },
+    });
+  }
+
   // Marchand de TEST : propose TOUS les items du jeu, gratuits, rangés par
   // sous-catégories (armes / armures / bijoux / autres). On choisit ensuite quoi
   // équiper via l'inventaire (ouvert à côté). Échap ou « Leave » ferme la boutique.
@@ -621,6 +787,8 @@ export async function demarrerJeu(donneesInitiales = null) {
       maitrise: etatMaitrise(maitrise),
       marche: etatMarche(marche),
       batiments: etatBatiments(batiments),
+      temps: etatTemps(temps),
+      encheres: etatEncheres(encheres),
       armeNom: armeEquipee(inventaire)?.nom ?? "Unarmed",
       armureNom: armureEquipee(inventaire).nom,
     };
@@ -660,6 +828,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (donnees.maitrise) chargerMaitrise(maitrise, donnees.maitrise);
     if (donnees.marche) chargerMarche(marche, donnees.marche); // prix + annonces en cours
     if (donnees.batiments) chargerBatiments(batiments, donnees.batiments); // scierie & co
+    if (donnees.temps) chargerTemps(temps, donnees.temps);                 // cycle jour/nuit
+    if (donnees.encheres) chargerEncheres(encheres, donnees.encheres);     // ticket, dépôt, dus
     appliquerEquipement(heros, inventaire, planches);
     mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
   }
@@ -798,6 +968,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   installerForge();    // la forge plein écran (ouverte via le forgeron)
   installerHV();       // l'hôtel des ventes plein écran (ouvert via le courtier)
   installerBatiment(); // l'écran bâtiment (ouvert via le panneau de la scierie)
+  installerEncheres(); // la salle des ventes du soir (ouverte via Magnar)
 
   // Échap : ferme d'abord l'écran ouvert (inventaire, deck, talents, menu pause) ;
   // si rien n'est ouvert, ouvre le menu pause (sauvegarder / quitter).
@@ -827,6 +998,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     else if (marchand.proche) { e.preventDefault(); parlerAuMarchand(); }
     else if (forgeron.proche) { e.preventDefault(); parlerAuForgeron(); }
     else if (courtier.proche) { e.preventDefault(); parlerAuCourtier(); }
+    else if (commissaire.proche) { e.preventDefault(); parlerAuCommissaire(); }
     else if (fontaine.proche) { e.preventDefault(); parlerALaFontaine(); }
     else if (panneauScierie.proche) { e.preventDefault(); lirePanneauScierie(); }
   });
@@ -1169,6 +1341,32 @@ export async function demarrerJeu(donneesInitiales = null) {
           if (e.type === "versement") afficherMessage(`🪚 ${nom}: +${e.montant} 🪙 in its treasury — collect at its sign.`);
           else if (e.type === "plein") afficherMessage(`⚠ ${nom}: treasury FULL — production STOPPED until you collect!`);
         }
+        // Le CYCLE JOUR/NUIT avance aussi en jeu actif. À la tombée du soir, la
+        // cloche des enchères sonne (elle ne parle qu'aux nobles).
+        for (const e of tickTemps(temps, dt)) {
+          if (e.type === "soir") {
+            afficherMessage(heros.noblesse
+              ? "🌙 Dusk falls on Brütàl — the auction bell rings!"
+              : "🌙 Dusk falls on Brütàl.");
+          } else if (e.type === "aube") {
+            afficherMessage(`🌅 Day ${numeroJour(temps)} dawns on Brütàl.`);
+          }
+        }
+        // Dépôt du joueur non assisté : quand la fenêtre d'entrée de SA vente est
+        // passée sans qu'il soit venu, l'objet est vendu HORS ÉCRAN (même modèle
+        // de salle) et l'or attend chez Magnar.
+        if (encheres.depot && !enchereActive()) {
+          const jour = numeroJour(temps);
+          const d = encheres.depot;
+          const rate = jour > d.jour ||
+            (jour === d.jour && positionCycle(temps) >= DUREE_JOUR + FENETRE_ENTREE && encheres.derniereVenteJouee < jour);
+          if (rate) {
+            const resultat = resoudreHorsEcran(lotDepot(d));
+            encheres.aRecuperer.or += resultat.prix;
+            encheres.depot = null;
+            afficherMessage(`🔨 Your ${itemDef(d.id)?.nom ?? d.id} sold at auction for ${resultat.prix} 🪙 — collect from Magnar.`);
+          }
+        }
       }
       // La barre de menu n'est visible qu'en exploration libre (pas en combat,
       // pas quand un écran/menu est ouvert).
@@ -1203,6 +1401,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         mettreAJourPnj(marchand, dt, heros);
         mettreAJourPnj(forgeron, dt, heros);
         mettreAJourPnj(courtier, dt, heros);
+        mettreAJourPnj(commissaire, dt, heros);
         fontaine.t += dt;
         fontaine.proche =
           Math.abs((heros.x + 32) - fontaine.cx) < 46 &&
@@ -1216,7 +1415,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       veineProche = (zoneCourante.estMine && !minage) ? veineLaPlusProche() : null;
       // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la
       // fontaine / du panneau de la scierie (où « Read » remplace « Talk »).
-      const presPnj = fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || fontaine.proche;
+      const presPnj = fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || commissaire.proche || fontaine.proche;
       invite.hidden = !(zoneActuelle === "city" && (presPnj || panneauScierie.proche));
       if (!invite.hidden) invite.textContent = presPnj ? "[Space] Talk" : "[Space] Read";
       mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
@@ -1257,6 +1456,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           { pieds: piedsPnj(marchand), dessiner: () => dessinerPnj(ctx, marchand) },
           { pieds: piedsPnj(forgeron), dessiner: () => dessinerPnj(ctx, forgeron) },
           { pieds: piedsPnj(courtier), dessiner: () => dessinerPnj(ctx, courtier) },
+          { pieds: piedsPnj(commissaire), dessiner: () => dessinerPnj(ctx, commissaire) },
           { pieds: heros.y + 54, dessiner: () => dessinerHeros(ctx, heros) },
         ];
         acteurs.sort((a, b) => a.pieds - b.pieds);
