@@ -963,6 +963,25 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (e.code === "KeyT" && !e.repeat) { e.preventDefault(); basculerTalents(); }
   });
 
+  // ⚠ TODO EXPORT FINAL — RACCOURCI DE TEST à RETIRER avant le build Steam.
+  // Touche K : « saut au crépuscule » pour essayer les enchères sans attendre
+  // 1 h 30 de jeu. Elle t'octroie le titre de noblesse + un ticket gratuit et
+  // avance le temps juste après la tombée du soir de la prochaine vente non
+  // jouée → tu vas voir Magnar et « Enter the auction hall » tout de suite.
+  window.addEventListener("keydown", (e) => {
+    if (e.code !== "KeyK" || e.repeat) return;
+    if (combatEnCours || dialogueActif() || enPause) return;
+    e.preventDefault();
+    heros.talents = heros.talents || {};
+    heros.talents.noblesse = 1;   // titre de noblesse (accès aux enchères)
+    appliquerTalents(heros);
+    // Avance jusqu'au prochain soir dont la vente n'a pas encore été jouée.
+    temps.total += tempsAvantSoir(temps) + 1; // 1 s DANS la nuit
+    if (encheres.derniereVenteJouee >= numeroJour(temps)) temps.total += DUREE_JOUR; // déjà vue → soir suivant
+    encheres.ticketPour = numeroJour(temps);  // ticket gratuit du soir
+    afficherMessage("🧪 TEST: dusk! Nobility + ticket granted — go see Magnar to enter the auction.");
+  });
+
   // La fenêtre de butin (fin de combat gagné) : on récupère le loot d'un clic / Espace.
   const butinUI = installerButin();
   installerForge();    // la forge plein écran (ouverte via le forgeron)

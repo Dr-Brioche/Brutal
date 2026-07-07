@@ -101,6 +101,15 @@ enchère (annonces « once/twice » à 1,4 s / 2,8 s), les rivaux réfléchissen
   de fin. Le lot du joueur passe en dernier (on regarde, on ne mise pas).
 - **Sauvegarde** : cycle du temps, ticket, dépôt en cours, gains à réclamer.
 
+## Raccourci de TEST (à retirer avant l'export)
+
+Touche **K** en exploration (⚠ balisé `TODO EXPORT FINAL` dans `principal.js`) :
+« saut au crépuscule ». Elle octroie le **titre de noblesse** + un **ticket
+gratuit** et avance le temps juste après la prochaine tombée du soir → on va
+voir Magnar et on entre dans la salle **tout de suite**, sans attendre 1 h 30
+de jeu. À supprimer pour le build Steam (comme la fontaine et le talent
+« No Encounters »).
+
 ## À venir (idées, non décidé)
 
 - Cycle jour/nuit **visuel** (teinte d'écran, horloge au HUD) branché sur
