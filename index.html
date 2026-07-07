@@ -1979,6 +1979,66 @@
     .bat-btn--gris { background: #2f2d3a; border: 1px solid #45424f; color: #cbd0d6; }
     .bat-aide { margin-top: 10px; margin-bottom: 0; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
+    /* ---- L'écran de VENTE AUX ENCHÈRES du soir (cf. ui/encheres.js) ----
+       L'ambiance d'une salle feutrée : fond très sombre, panneau bordé d'or. */
+    .ench {
+      position: fixed; inset: 0; z-index: 39;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(3, 3, 6, 0.78);
+    }
+    .ench-panneau {
+      width: min(560px, 94vw); padding: 20px 24px;
+      background: #14101a; border: 1px solid #8a6b28; border-radius: var(--rayon);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75);
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .ench-entete { display: flex; align-items: baseline; justify-content: space-between; }
+    .ench-titre { font-size: 1.25rem; font-weight: 800; color: #ffcf57; }
+    .ench-solde { font-weight: 800; color: #ffcf57; }
+    .ench-scene { min-height: 190px; }
+    .ench-lot { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .ench-lot-pastille {
+      width: 44px; height: 44px; flex: 0 0 auto;
+      border: 2px solid #000; border-radius: var(--rayon);
+    }
+    .ench-lot-nom { font-size: 1.15rem; font-weight: 800; }
+    .ench-lot-sous { color: #9aa2b8; font-size: 0.82rem; }
+    .ench-prix-bloc { text-align: center; padding: 8px 0 4px; }
+    .ench-prix { font-size: 2.1rem; font-weight: 900; color: #ffcf57; font-family: ui-monospace, monospace; }
+    .ench-tenant { color: #cbd0d6; font-size: 0.9rem; min-height: 1.2em; }
+    .ench-attente { color: #8a90a6; font-style: italic; padding: 26px 0; text-align: center; }
+    /* Le marteau : une barre qui se remplit ; une enchère la remet à zéro. */
+    .ench-marteau {
+      position: relative; height: 20px; margin-top: 8px;
+      background: #221f2e; border: 1px solid #3a3648; border-radius: var(--rayon); overflow: hidden;
+    }
+    .ench-marteau-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #7a3020, #c0392b); }
+    .ench-marteau-txt {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem; font-weight: 800; color: #fff; text-shadow: 0 1px 2px #000;
+      letter-spacing: 0.06em;
+    }
+    .ench-rivaux { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; justify-content: center; }
+    .ench-rival {
+      padding: 3px 10px; font-size: 0.78rem; font-weight: 700; color: #a8b0c6;
+      background: #1d1926; border: 1px solid #2a2736; border-radius: var(--rayon);
+    }
+    .ench-rival--tenant { color: #ffcf57; border-color: #8a6b28; background: rgba(255, 207, 87, 0.08); }
+    .ench-spectateur { flex: 1; text-align: center; color: #8a90a6; font-style: italic; padding: 12px; }
+    /* Le journal de la salle (dernière ligne en haut). */
+    .ench-log {
+      height: 110px; overflow-y: auto; padding: 8px 10px;
+      background: #100d16; border: 1px solid #2a2736; border-radius: var(--rayon);
+      font-size: 0.8rem; color: #a8b0c6; line-height: 1.5;
+    }
+    .ench-log--vous { color: #ffcf57; }
+    .ench-log--marteau { color: #ff9d8a; font-style: italic; }
+    .ench-log--vendu { color: #e8e4d8; font-weight: 700; }
+    .ench-fin-titre { font-size: 1.2rem; font-weight: 800; color: #ffcf57; text-align: center; margin: 14px 0; }
+    .ench-fin-ligne { padding: 6px 10px; margin: 4px 0; background: #1d1926; border-radius: var(--rayon); font-size: 0.88rem; color: #cbd0d6; }
+    .ench-fin--ok { border-left: 3px solid #7fdc8f; }
+    .ench-fin--perte { border-left: 3px solid #ff7a66; }
+
     /* ---- Fenêtre de confirmation oui/non (jeter un objet rare, etc.) ---- */
     .confirm {
       position: fixed; inset: 0; z-index: 40;
@@ -2474,6 +2534,20 @@
       <div class="bat-lignes" id="bat-lignes"></div>
       <div class="bat-boutons" id="bat-boutons"></div>
       <p class="bat-aide" id="bat-aide"></p>
+    </div>
+  </div>
+
+  <!-- L'écran de VENTE AUX ENCHÈRES du soir (cf. ui/encheres.js). -->
+  <div class="ench" id="encheres" hidden>
+    <div class="ench-panneau panneau-ui">
+      <div class="ench-entete">
+        <div class="ench-titre" id="ench-jour"></div>
+        <div class="ench-solde"><span id="ench-or"></span> <span class="icone-piece"></span></div>
+      </div>
+      <div class="ench-scene" id="ench-scene"></div>
+      <div class="bat-boutons" id="ench-boutons"></div>
+      <div class="ench-log" id="ench-log"></div>
+      <p class="bat-aide" id="ench-aide"></p>
     </div>
   </div>
 
