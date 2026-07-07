@@ -46,6 +46,7 @@ export function appliquerTalents(heros) {
   // Réduction des rencontres (0..0.8), alimentée par les talents type « Tunnel Sense ».
   heros.evasionRencontre = Math.min(0.8, (b.evasion || 0) / 100);
   heros.sansRencontre = (b.sansRencontre || 0) > 0; // talent de TEST : annule TOUTE rencontre
+  heros.noblesse = (b.noblesse || 0) > 0; // titre de noblesse : accès aux enchères du soir
   // Emplacements de Maîtrise débloqués (0, 3, ou 5), plafonnés au maximum absolu.
   heros.slotsMaitrise = Math.min(5, b.slots || 0);
   if (heros.pv > heros.pvMax) heros.pv = heros.pvMax;

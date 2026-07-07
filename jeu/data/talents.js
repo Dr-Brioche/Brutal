@@ -36,6 +36,14 @@ export const TALENTS = {
   esprit2: { id: "esprit2", nom: "Bellows Lungs",   x: 4, y: 2, cout: 1, requis: ["esprit1"], effet: { chaleurRecharge: 1 } },
 
   forge4:  { id: "forge4",  nom: "Molten Veins",    x: 0, y: 3, cout: 1, requis: ["forge2"],  effet: { chaleurMax: 2 } },
+  // Branche ÉCONOMIE (côté esprit) : un titre de noblesse de Brütàl — la clé
+  // des VENTES AUX ENCHÈRES du soir (contenu de fin de progression économique).
+  noblesse: {
+    id: "noblesse", nom: "Title of Nobility",
+    x: 4, y: 3, cout: 2, requis: ["esprit2"],
+    effet: { noblesse: 1 },
+    description: "A minor title of Brütàl nobility — grants entry to the exclusive evening auctions (entry ticket still required).",
+  },
   // Branche forge : le nain mineur connaît les galeries et évite les bestioles.
   evasion1: {
     id: "evasion1", nom: "Tunnel Sense", x: 1, y: 3, cout: 1, requis: ["forge3"],
@@ -117,6 +125,7 @@ const NOM_EFFET = {
   evasion: "Fewer encounters",
   sansRencontre: "Cancel all encounters (TEST)",
   sacSecondaire: "Second bag slot",
+  noblesse: "Auction access",
   maitrise: "Ancestral Mastery",
   slots: "Mastery slots",
   ambidextrie: "Ambidexterity",
