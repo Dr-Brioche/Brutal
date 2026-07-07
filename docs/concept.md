@@ -904,6 +904,29 @@ Le **marché** est jouable (détail complet dans **`docs/marche.md`**) ; résum�
 
 Ces pistes se combinent (ex. 1 + une touche de 2). Décision Brioche attendue.
 
+## Les bâtiments à acheter (pilier économie) — 1er jet (07/07/2026)
+
+Deuxième jambe du pilier économie après l'HV : **investir dans la pierre**
+(détail complet dans **`docs/batiments.md`**) ; résumé :
+
+- Certains bâtiments de la ville sont **à vendre**. Un **panneau** planté devant
+  explique TOUT (prix, revenu, plafond) ; on le lit avec *[Space] Read*.
+- **Achat une fois, revenu passif ensuite** : le bâtiment verse de l'or dans sa
+  **trésorerie** à chaque **heure de JEU ACTIF** (même horloge que le marché —
+  les menus/écrans la figent, impossible de farmer en laissant tourner le jeu).
+- **La trésorerie a un PLAFOND** : pleine, la **production S'ARRÊTE** (rendement
+  perdu). Il faut revenir **à pied** au panneau pour **récolter** — même
+  philosophie que les annonces de l'HV : l'investissement est passif, la
+  récompense se va chercher.
+- **Bonus spécial par bâtiment** : chaque bâtiment produit aussi un petit
+  quelque chose **en nature**, récolté avec le bénéfice.
+- **1er bâtiment (test) : la SCIERIE**, qui débite du bois importé de la
+  surface — 1 200 🪙 à l'achat, 120 🪙 + 2 bois par heure de jeu, trésorerie
+  plafonnée à 480 🪙 (≈ 4 h) → remboursée en ~10 h de jeu actif. Le panneau
+  affiche une **pastille dorée** quand il y a de l'or à récolter (rouge
+  clignotante si la caisse est pleine). *Visuel du bâtiment : façade
+  placeholder (planches + lame de scie), en attendant le vrai sprite.*
+
 ## Progression : niveaux & arbre de talents (décision du 13/06/2026)
 
 **Séparation nette pour « ne pas tout mélanger »** :
