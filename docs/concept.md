@@ -930,6 +930,27 @@ Deuxième jambe du pilier économie après l'HV : **investir dans la pierre**
   clignotante si la caisse est pleine). *Visuel du bâtiment : façade
   placeholder (planches + lame de scie), en attendant le vrai sprite.*
 
+## La vente aux enchères du soir (pilier économie) — 1er jet (07/07/2026)
+
+Troisième volet du pilier économie (après l'HV et les bâtiments) : un
+**rendez-vous** (détail + équilibrage dans **`docs/encheres.md`**). Résumé :
+
+- **Nouveau socle : cycle jour/nuit** (`systems/temps.js`) sur l'horloge de jeu
+  actif — **journée = 1 h, nuit = 30 min** → une vente **toutes les 1 h 30**,
+  à la tombée du soir. *(Pas encore visuel ; la mécanique est là.)*
+- **Magnar le commissaire-priseur** : nouveau PNJ. Contenu **tardif** — il faut
+  le talent **« Title of Nobility »** (branche économie de l'arbre) pour entrer,
+  plus un **ticket** acheté un peu avant la cloche (raté = prochaine vente).
+- **Écran d'enchères en temps réel** : 3-4 lots (équipement rare+, gros paquets
+  de minerai), mise à prix basse, **rivaux PNJ à budget secret** (frileux ou
+  obstinés — **plus l'objet est rare, plus la salle monte haut**). Bonnes
+  affaires possibles, mais on peut se **faire piéger** : savoir s'arrêter.
+- **Dépôt de ses objets d'exception** : vendus le soir, souvent au-dessus de la
+  valeur HV, **rarement à perte** (jamais sous le prix marchand). Vente ratée =
+  adjugée hors écran, l'or attend chez Magnar.
+- **Trois façons de vendre** désormais, chacune son profil : marchand
+  (instantané, faible), HV (lent, sûr), **enchères (rapide, joueur)**.
+
 ## Progression : niveaux & arbre de talents (décision du 13/06/2026)
 
 **Séparation nette pour « ne pas tout mélanger »** :
