@@ -1932,13 +1932,42 @@
     .butin-btn--laisser { background: #2f2d3a; border: 1px solid #45424f; color: #cbd0d6; }
     .butin-aide { margin-top: 10px; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
-    /* ---- L'écran BÂTIMENT (fiche claire d'un bâtiment, cf. ui/batiment.js).
-       Le temps de jeu continue de s'écouler pendant qu'il est ouvert : le fond
-       est un peu moins opaque que les autres écrans (on « voit » le jeu vivre). */
-    .bat {
-      position: fixed; inset: 0; z-index: 38;
+    /* ==== SOCLE COMMUN des écrans ÉCONOMIE (HV, bâtiment, enchères) ============
+       Une FENÊTRE PLEINE qui masque le jeu : `.eco-ecran` centre, `.eco-zone`
+       remplit toute la zone 16:9 avec un fond OPAQUE — la surface prête à
+       recevoir un beau visuel de fond plus tard (remplacer le dégradé par une
+       image). Même principe que l'Hôtel des ventes (.hv-zone). Le contenu est
+       posé PAR-DESSUS (panneau centré). */
+    .eco-ecran {
+      position: fixed; inset: 0;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(5, 5, 8, 0.55);
+    }
+    .eco-zone {
+      position: relative;
+      width: min(100vw, calc(100vh * 16 / 9));
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      container-type: size;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--rayon);
+      color: #e8e4d8;
+      /* Fond OPAQUE par défaut (à remplacer par une image de fond par écran). */
+      background:
+        radial-gradient(120% 80% at 50% 0%, rgba(90,120,190,0.15) 0%, rgba(30,40,70,0.08) 40%, rgba(0,0,0,0) 70%),
+        linear-gradient(180deg, #12141c 0%, #0d0f16 55%, #090a10 100%);
+      box-shadow: inset 0 0 120px rgba(0,0,0,0.7);
+      font-family: system-ui, sans-serif;
+    }
+
+    /* ---- L'écran BÂTIMENT (fiche claire d'un bâtiment, cf. ui/batiment.js).
+       Le temps de jeu continue de s'écouler pendant qu'il est ouvert. */
+    .bat { z-index: 38; }
+    /* Fond de zone propre au bâtiment (teinte bois/scierie — à remplacer par un
+       visuel plus tard). */
+    .bat-zone {
+      background:
+        radial-gradient(120% 80% at 50% 0%, rgba(150,110,60,0.14) 0%, rgba(60,45,25,0.08) 40%, rgba(0,0,0,0) 70%),
+        linear-gradient(180deg, #17130d 0%, #100c08 55%, #0a0805 100%);
     }
     .bat-panneau {
       width: min(520px, 92vw); padding: 22px 24px;
@@ -2002,11 +2031,14 @@
     .bat-aide { margin-top: 10px; margin-bottom: 0; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
     /* ---- L'écran de VENTE AUX ENCHÈRES du soir (cf. ui/encheres.js) ----
-       L'ambiance d'une salle feutrée : fond très sombre, panneau bordé d'or. */
-    .ench {
-      position: fixed; inset: 0; z-index: 39;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(3, 3, 6, 0.78);
+       Fenêtre pleine (socle .eco-zone) : l'ambiance d'une salle feutrée. */
+    .ench { z-index: 39; }
+    /* Fond de zone propre aux enchères (pourpre/or feutré — à remplacer par un
+       visuel de salle des ventes plus tard). */
+    .ench-zone {
+      background:
+        radial-gradient(120% 80% at 50% 0%, rgba(150,90,60,0.16) 0%, rgba(70,35,55,0.10) 40%, rgba(0,0,0,0) 70%),
+        linear-gradient(180deg, #17111a 0%, #100b12 55%, #0a070c 100%);
     }
     .ench-panneau {
       width: min(560px, 94vw); padding: 20px 24px;
@@ -2551,33 +2583,37 @@
 
   <!-- L'écran BÂTIMENT (fiche d'un bâtiment à vendre / possédé, cf. ui/batiment.js).
        Particularité : le temps de jeu CONTINUE de s'écouler tant qu'il est ouvert. -->
-  <div class="bat" id="batiment" hidden>
-    <div class="bat-panneau panneau-ui">
-      <div class="bat-entete">
-        <div class="bat-entete-txt">
-          <div class="bat-titre" id="bat-titre"></div>
-          <div class="bat-sous" id="bat-sous"></div>
+  <div class="bat eco-ecran" id="batiment" hidden>
+    <div class="eco-zone bat-zone">
+      <div class="bat-panneau panneau-ui">
+        <div class="bat-entete">
+          <div class="bat-entete-txt">
+            <div class="bat-titre" id="bat-titre"></div>
+            <div class="bat-sous" id="bat-sous"></div>
+          </div>
+          <button class="bat-fermer" id="bat-fermer" title="Close (Esc)">✕</button>
         </div>
-        <button class="bat-fermer" id="bat-fermer" title="Close (Esc)">✕</button>
+        <div class="bat-etat" id="bat-etat"></div>
+        <div class="bat-lignes" id="bat-lignes"></div>
+        <div class="bat-boutons" id="bat-boutons"></div>
+        <p class="bat-aide" id="bat-aide"></p>
       </div>
-      <div class="bat-etat" id="bat-etat"></div>
-      <div class="bat-lignes" id="bat-lignes"></div>
-      <div class="bat-boutons" id="bat-boutons"></div>
-      <p class="bat-aide" id="bat-aide"></p>
     </div>
   </div>
 
   <!-- L'écran de VENTE AUX ENCHÈRES du soir (cf. ui/encheres.js). -->
-  <div class="ench" id="encheres" hidden>
-    <div class="ench-panneau panneau-ui">
-      <div class="ench-entete">
-        <div class="ench-titre" id="ench-jour"></div>
-        <div class="ench-solde"><span id="ench-or"></span> <span class="icone-piece"></span></div>
+  <div class="ench eco-ecran" id="encheres" hidden>
+    <div class="eco-zone ench-zone">
+      <div class="ench-panneau panneau-ui">
+        <div class="ench-entete">
+          <div class="ench-titre" id="ench-jour"></div>
+          <div class="ench-solde"><span id="ench-or"></span> <span class="icone-piece"></span></div>
+        </div>
+        <div class="ench-scene" id="ench-scene"></div>
+        <div class="bat-boutons" id="ench-boutons"></div>
+        <div class="ench-log" id="ench-log"></div>
+        <p class="bat-aide" id="ench-aide"></p>
       </div>
-      <div class="ench-scene" id="ench-scene"></div>
-      <div class="bat-boutons" id="ench-boutons"></div>
-      <div class="ench-log" id="ench-log"></div>
-      <p class="bat-aide" id="ench-aide"></p>
     </div>
   </div>
 
