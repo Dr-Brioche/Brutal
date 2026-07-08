@@ -48,7 +48,7 @@ export const SLOT_PAR_CATEGORIE = {
 export const MINERAIS = [
   "pierre-taillee", "charbon", "cuivre", "fer", "argent", "or",
   "malachite", "lapis", "amethyste", "titane", "emeraude", "rubis",
-  "saphir", "diamant", "mithril", "onyx",
+  "saphir", "diamant", "mithril", "onyx", "pierre-solaire",
 ];
 
 // Tire le minerai d'une veine selon la PROFONDEUR. Chaque minerai n'apparaît qu'à
@@ -136,6 +136,10 @@ export const ITEMS = {
   "diamant":        { id: "diamant",        nom: "Diamond",      categorie: "ressource", famille: "gemme",  rang: 11, profMin: 8,  rarete: "epique",   taille: { l: 1, h: 1 }, icone: "#bfe6f0", empilable: true, pileMax: 10 },
   "mithril":        { id: "mithril",        nom: "Mithril",      categorie: "ressource", famille: "metal",  rang: 11, profMin: 8,  rarete: "epique",   taille: { l: 1, h: 1 }, icone: "#acc6d4", empilable: true, pileMax: 10 },
   "onyx":           { id: "onyx",           nom: "Onyx",         categorie: "ressource", famille: "gemme",  rang: 12, profMin: 10, rarete: "epique",   taille: { l: 1, h: 1 }, icone: "#1a1a22", empilable: true, pileMax: 10 },
+  // Sunstone : la gemme de LUMIÈRE — pendant clair de l'Onyx. La plus rare lueur
+  // du fond de mine (là où les nains ne voient jamais le soleil). Cœur des armes/
+  // armures qui jouent sur la LUMIÈRE (soin, gloire, saint). Épique, gemme.
+  "pierre-solaire": { id: "pierre-solaire", nom: "Sunstone",     categorie: "ressource", famille: "gemme",  rang: 12, profMin: 10, rarete: "epique",   taille: { l: 1, h: 1 }, icone: "#f6e6a0", empilable: true, pileMax: 10 },
   // Bois : ressource de CRAFT — ce n'est PAS un minerai (absent de MINERAIS → ne se
   // mine pas). Lâché par les monstres pour l'instant (cf. tirerButin dans ennemis.js).
   // Sert à forger (ex. Miner's Pick = 3 fer + 2 bois). Empilable comme les minerais.
