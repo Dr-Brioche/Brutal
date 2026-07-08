@@ -162,11 +162,13 @@ function alea(c, l, graine = 0) {
 function solideEn(carte, c, l) { return estSolide(tuile(carte, c, l)); }
 
 // Ombre douce (ambient occlusion) sur 3 bandes dégressives depuis un bord.
+// `mult` accentue/atténue : lumière venant du HAUT → un mur AU-DESSUS projette
+// une ombre plus marquée vers le bas que les côtés ; le bas est presque nul.
 const BANDES_AO = [[3, 0.30], [3, 0.15], [3, 0.06]];
-function ombreCote(ctx, x, y, cote) {
+function ombreCote(ctx, x, y, cote, mult = 1) {
   let off = 0;
   for (const [ep, a] of BANDES_AO) {
-    ctx.fillStyle = `rgba(0,0,0,${a})`;
+    ctx.fillStyle = `rgba(0,0,0,${Math.min(0.6, a * mult).toFixed(3)})`;
     if (cote === "haut")   ctx.fillRect(x, y + off, TUILE, ep);
     else if (cote === "bas")    ctx.fillRect(x, y + TUILE - off - ep, TUILE, ep);
     else if (cote === "gauche") ctx.fillRect(x + off, y, ep, TUILE);
@@ -186,6 +188,21 @@ function dessinerRoche(ctx, carte, c, l, x, y, k) {
     ctx.fillStyle = alea(c, l, i) < 0.5 ? "rgba(0,0,0,0.16)" : "rgba(255,238,214,0.06)";
     ctx.fillRect(rx, ry, s, s);
   }
+  // Crevasse : une fissure sombre sur ~1 bloc sur 6 (verticale, longueur variable).
+  if (alea(c, l, 20) < 0.16) {
+    ctx.fillStyle = "rgba(0,0,0,0.30)";
+    const fx = x + 6 + Math.floor(alea(c, l, 21) * 16);
+    const fy = y + 4 + Math.floor(alea(c, l, 22) * 6);
+    ctx.fillRect(fx, fy, 2, 8 + Math.floor(alea(c, l, 23) * 9));
+  }
+  // Bloc plus clair incrusté : ~1 sur 7 (un gros caillou dans la paroi).
+  if (alea(c, l, 30) < 0.14) {
+    const bx = x + 5 + Math.floor(alea(c, l, 31) * 12);
+    const by = y + 5 + Math.floor(alea(c, l, 32) * 12);
+    const bw = 7 + Math.floor(alea(c, l, 33) * 6);
+    ctx.fillStyle = "rgba(255,238,214,0.07)"; ctx.fillRect(bx, by, bw, bw - 2);
+    ctx.fillStyle = "rgba(255,238,214,0.10)"; ctx.fillRect(bx, by, bw, 2); // sommet éclairé
+  }
   // Bords selon les voisins : lumière en haut/gauche, ombre en bas/droite.
   if (!solideEn(carte, c, l - 1)) { ctx.fillStyle = "rgba(255,240,214,0.18)"; ctx.fillRect(x, y, TUILE, 3); }
   if (!solideEn(carte, c - 1, l)) { ctx.fillStyle = "rgba(255,240,214,0.10)"; ctx.fillRect(x, y, 2, TUILE); }
@@ -193,24 +210,47 @@ function dessinerRoche(ctx, carte, c, l, x, y, k) {
   if (!solideEn(carte, c + 1, l)) { ctx.fillStyle = "rgba(0,0,0,0.24)"; ctx.fillRect(x + TUILE - 2, y, 2, TUILE); }
 }
 
+// Petit rocher / caillou de DÉCOR sur le sol (cavernes seulement). Purement visuel,
+// non bloquant : au pied des murs (case sol avec roche au-dessus) ou isolé, rare.
+function decorSol(ctx, carte, c, l, x, y) {
+  if (solideEn(carte, c, l - 1) && alea(c, l, 61) < 0.22) {
+    const bx = x + 6 + Math.floor(alea(c, l, 62) * (TUILE - 16));
+    ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillRect(bx - 1, y + 9, 9, 4); // ombre au sol
+    ctx.fillStyle = "#3b352d"; ctx.fillRect(bx, y + 3, 7, 9);              // rocher
+    ctx.fillStyle = "#544d42"; ctx.fillRect(bx, y + 3, 7, 3);             // sommet éclairé
+  } else if (alea(c, l, 70) < 0.05) {
+    const px = x + 9 + Math.floor(alea(c, l, 71) * (TUILE - 18));
+    const py = y + 11 + Math.floor(alea(c, l, 72) * (TUILE - 18));
+    ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.fillRect(px, py + 3, 5, 2);
+    ctx.fillStyle = "#4a443b"; ctx.fillRect(px, py, 5, 4);
+    ctx.fillStyle = "#5c5449"; ctx.fillRect(px, py, 5, 1);
+  }
+}
+
 function dessinerSol(ctx, carte, c, l, x, y, k) {
   ctx.fillStyle = k.damier[(c + l) % 2];
   ctx.fillRect(x, y, TUILE, TUILE);
-  // Grain / gravats déterministes (seulement si la tuile en déclare).
+  // Grandes plaques de teinte (basse fréquence : par blocs 2×2) → casse la
+  // monotonie du damier sans bruit case-par-case.
+  const patch = alea(c >> 1, l >> 1, 99);
+  if (patch > 0.72) { ctx.fillStyle = "rgba(255,240,220,0.03)"; ctx.fillRect(x, y, TUILE, TUILE); }
+  else if (patch < 0.28) { ctx.fillStyle = "rgba(0,0,0,0.10)"; ctx.fillRect(x, y, TUILE, TUILE); }
+  // Grain / gravats déterministes (seulement si la tuile en déclare : cavernes).
   if (k.gravats) {
-    for (let i = 0; i < 4; i++) {
-      if (alea(c, l, i + 11) < 0.5) continue;
+    for (let i = 0; i < 3; i++) {
+      if (alea(c, l, i + 11) < 0.55) continue;
       const gx = x + Math.floor(alea(c, l, i + 21) * (TUILE - 4));
       const gy = y + Math.floor(alea(c, l, i + 31) * (TUILE - 4));
-      ctx.fillStyle = (k.veine && alea(c, l, i + 41) > 0.75) ? k.veine : k.gravats;
+      ctx.fillStyle = (k.veine && alea(c, l, i + 41) > 0.72) ? k.veine : k.gravats;
       ctx.fillRect(gx, gy, 2 + Math.floor(alea(c, l, i + 51) * 2), 2);
     }
+    decorSol(ctx, carte, c, l, x, y); // rochers/cailloux de décor (cavernes)
   }
-  // Ombre douce le long des bords qui touchent la roche (le sol paraît creusé).
-  if (solideEn(carte, c, l - 1)) ombreCote(ctx, x, y, "haut");
-  if (solideEn(carte, c, l + 1)) ombreCote(ctx, x, y, "bas");
-  if (solideEn(carte, c - 1, l)) ombreCote(ctx, x, y, "gauche");
-  if (solideEn(carte, c + 1, l)) ombreCote(ctx, x, y, "droite");
+  // Ombre DIRECTIONNELLE le long des bords qui touchent la roche (lumière du haut).
+  if (solideEn(carte, c, l - 1)) ombreCote(ctx, x, y, "haut", 1.25);   // mur au-dessus : ombre marquée
+  if (solideEn(carte, c - 1, l)) ombreCote(ctx, x, y, "gauche", 0.9);
+  if (solideEn(carte, c + 1, l)) ombreCote(ctx, x, y, "droite", 0.9);
+  if (solideEn(carte, c, l + 1)) ombreCote(ctx, x, y, "bas", 0.5);     // mur en dessous : ombre faible
   // Coins CONCAVES (roche en diagonale, mais les deux côtés sont du sol) :
   // petit renfort d'ombre dans le coin → les recoins de grotte respirent.
   const coin = (dc, dl, cx, cy) => {
