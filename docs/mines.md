@@ -104,8 +104,16 @@ en monde jouable. **On ne touche donc pas au moteur** — on **fabrique** un obj
   au générateur → toute la variété et les futures mécaniques passent par là.
 
 Tuiles utilisées (Phase 1) : `#` roche (mur), `,` sol de galerie (réutilise le sol
-souterrain → active les rencontres), `P` sortie. Un rendu « galerie » dédié viendra
-en phase décor.
+souterrain → active les rencontres), `P` sortie.
+
+**Rendu texturé (sans spritesheet, ajout du 08/07/2026)** : `jeu/world/carte.js`
+peint chaque case au canvas de façon RICHE et CONSCIENTE DES VOISINS (autotiling
+« procédural ») — roche crayeuse avec bords éclairés (haut/gauche) / ombrés
+(bas/droite), sol de caverne moucheté de minerais + **ombre douce** (ambient
+occlusion) le long des bords et dans les coins qui touchent la roche → la salle
+paraît creusée. Tout est déterministe (pas de scintillement). Le jour où de
+vraies tuiles pixel art arrivent, on remplace ce « pinceau » par des images avec
+la MÊME logique de voisinage, sans toucher au reste.
 
 ## 4. Plan par phases
 

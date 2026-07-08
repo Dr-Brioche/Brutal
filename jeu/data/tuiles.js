@@ -22,7 +22,11 @@
 export const TUILES = {
   "#": {
     id: "mur", nom: "Stone wall", solide: true,
-    style: "mur", couleurs: { fond: "#4a505a", joint: "#2b2f36" },
+    // Pierre naine chaude (grise-brune) : cohérente en ville ET en grotte. Le
+    // rendu (jeu/world/carte.js) ajoute texture + bords éclairés/ombrés selon les
+    // voisins. `joint` n'est plus dessiné (remplacé par les biseaux) mais gardé
+    // pour un usage futur / le style d'origine.
+    style: "mur", couleurs: { fond: "#4a453d", joint: "#2a251f" },
   },
   ".": {
     id: "sol-ville", nom: "City floor", solide: false,

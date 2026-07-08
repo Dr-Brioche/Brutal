@@ -97,7 +97,7 @@ export function dessinerCarte(ctx, carte, camera, largeurVue, hauteurVue) {
 
   for (let l = l0; l <= l1; l++) {
     for (let c = c0; c <= c1; c++) {
-      dessinerTuile(ctx, tuileDef(tuile(carte, c, l)), c * TUILE, l * TUILE, c, l);
+      dessinerTuile(ctx, carte, c, l);
     }
   }
 }
@@ -138,18 +138,100 @@ export function peindreMasqueBrouillard(ctxFog, carte, heroCol, heroLig) {
   ctxFog.putImageData(img, 0, 0);
 }
 
-// Peint UNE tuile « au feutre » d'après sa définition (style + couleurs).
-function dessinerTuile(ctx, def, x, y, c, l) {
+// ---- Rendu texturé « au pinceau » -------------------------------------------
+//
+// Pas de spritesheet : on PEINT chaque case au canvas, mais de façon riche et
+// consciente des VOISINS (autotiling « procédural »). Deux principes :
+//  - Roche (`#`) : texture crayeuse + bords ÉCLAIRÉS (côté sol au-dessus/à
+//    gauche, lumière venant du haut-gauche) et OMBRÉS (côté sol en bas/à droite).
+//  - Sol de caverne (`,`) : grain déterministe + OMBRE DOUCE (ambient occlusion)
+//    le long des bords/coins qui touchent la roche → le sol paraît creusé, la
+//    roche « projette » son ombre.
+// TOUT est DÉTERMINISTE (le hasard dépend de la position de la case, pas du
+// temps) : une case garde toujours le même aspect, aucun scintillement. Le jour
+// où de vraies tuiles pixel art arrivent, on remplace ce pinceau par des images
+// AVEC la même logique de voisinage — le reste du jeu ne bouge pas.
+
+// Nombre pseudo-aléatoire STABLE dérivé de (c, l, graine) — 0..1.
+function alea(c, l, graine = 0) {
+  let h = (c * 374761393 + l * 668265263 + graine * 2246822519) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+}
+// Le voisin (dc, dl) est-il de la roche (solide) ? Hors carte = roche.
+function solideEn(carte, c, l) { return estSolide(tuile(carte, c, l)); }
+
+// Ombre douce (ambient occlusion) sur 3 bandes dégressives depuis un bord.
+const BANDES_AO = [[3, 0.30], [3, 0.15], [3, 0.06]];
+function ombreCote(ctx, x, y, cote) {
+  let off = 0;
+  for (const [ep, a] of BANDES_AO) {
+    ctx.fillStyle = `rgba(0,0,0,${a})`;
+    if (cote === "haut")   ctx.fillRect(x, y + off, TUILE, ep);
+    else if (cote === "bas")    ctx.fillRect(x, y + TUILE - off - ep, TUILE, ep);
+    else if (cote === "gauche") ctx.fillRect(x + off, y, ep, TUILE);
+    else if (cote === "droite") ctx.fillRect(x + TUILE - off - ep, y, ep, TUILE);
+    off += ep;
+  }
+}
+
+function dessinerRoche(ctx, carte, c, l, x, y, k) {
+  ctx.fillStyle = k.fond;
+  ctx.fillRect(x, y, TUILE, TUILE);
+  // Texture crayeuse : quelques taches sombres/claires posées par le hasard STABLE.
+  for (let i = 0; i < 6; i++) {
+    const rx = x + Math.floor(alea(c, l, i * 3 + 1) * (TUILE - 7));
+    const ry = y + Math.floor(alea(c, l, i * 3 + 2) * (TUILE - 7));
+    const s = 3 + Math.floor(alea(c, l, i * 3 + 3) * 5);
+    ctx.fillStyle = alea(c, l, i) < 0.5 ? "rgba(0,0,0,0.16)" : "rgba(255,238,214,0.06)";
+    ctx.fillRect(rx, ry, s, s);
+  }
+  // Bords selon les voisins : lumière en haut/gauche, ombre en bas/droite.
+  if (!solideEn(carte, c, l - 1)) { ctx.fillStyle = "rgba(255,240,214,0.18)"; ctx.fillRect(x, y, TUILE, 3); }
+  if (!solideEn(carte, c - 1, l)) { ctx.fillStyle = "rgba(255,240,214,0.10)"; ctx.fillRect(x, y, 2, TUILE); }
+  if (!solideEn(carte, c, l + 1)) { ctx.fillStyle = "rgba(0,0,0,0.40)"; ctx.fillRect(x, y + TUILE - 4, TUILE, 4); }
+  if (!solideEn(carte, c + 1, l)) { ctx.fillStyle = "rgba(0,0,0,0.24)"; ctx.fillRect(x + TUILE - 2, y, 2, TUILE); }
+}
+
+function dessinerSol(ctx, carte, c, l, x, y, k) {
+  ctx.fillStyle = k.damier[(c + l) % 2];
+  ctx.fillRect(x, y, TUILE, TUILE);
+  // Grain / gravats déterministes (seulement si la tuile en déclare).
+  if (k.gravats) {
+    for (let i = 0; i < 4; i++) {
+      if (alea(c, l, i + 11) < 0.5) continue;
+      const gx = x + Math.floor(alea(c, l, i + 21) * (TUILE - 4));
+      const gy = y + Math.floor(alea(c, l, i + 31) * (TUILE - 4));
+      ctx.fillStyle = (k.veine && alea(c, l, i + 41) > 0.75) ? k.veine : k.gravats;
+      ctx.fillRect(gx, gy, 2 + Math.floor(alea(c, l, i + 51) * 2), 2);
+    }
+  }
+  // Ombre douce le long des bords qui touchent la roche (le sol paraît creusé).
+  if (solideEn(carte, c, l - 1)) ombreCote(ctx, x, y, "haut");
+  if (solideEn(carte, c, l + 1)) ombreCote(ctx, x, y, "bas");
+  if (solideEn(carte, c - 1, l)) ombreCote(ctx, x, y, "gauche");
+  if (solideEn(carte, c + 1, l)) ombreCote(ctx, x, y, "droite");
+  // Coins CONCAVES (roche en diagonale, mais les deux côtés sont du sol) :
+  // petit renfort d'ombre dans le coin → les recoins de grotte respirent.
+  const coin = (dc, dl, cx, cy) => {
+    if (solideEn(carte, c + dc, l + dl) && !solideEn(carte, c + dc, l) && !solideEn(carte, c, l + dl)) {
+      ctx.fillStyle = "rgba(0,0,0,0.22)";
+      ctx.fillRect(cx, cy, 5, 5);
+    }
+  };
+  coin(-1, -1, x, y);
+  coin(1, -1, x + TUILE - 5, y);
+  coin(-1, 1, x, y + TUILE - 5);
+  coin(1, 1, x + TUILE - 5, y + TUILE - 5);
+}
+
+// Peint UNE tuile d'après sa définition (style + couleurs) et ses voisins.
+function dessinerTuile(ctx, carte, c, l) {
+  const def = tuileDef(tuile(carte, c, l));
+  const x = c * TUILE, y = l * TUILE;
   const k = def.couleurs;
 
-  if (def.style === "mur") {
-    ctx.fillStyle = k.fond;
-    ctx.fillRect(x, y, TUILE, TUILE);
-    ctx.fillStyle = k.joint; // joints entre les blocs de pierre
-    ctx.fillRect(x, y + TUILE - 2, TUILE, 2);
-    ctx.fillRect(x + TUILE - 2, y, 2, TUILE);
-    return;
-  }
+  if (def.style === "mur") { dessinerRoche(ctx, carte, c, l, x, y, k); return; }
 
   if (def.style === "porte") {
     ctx.fillStyle = k.fond;
@@ -173,18 +255,5 @@ function dessinerTuile(ctx, def, x, y, c, l) {
     return;
   }
 
-  // style "sol" : damier discret + détails optionnels (gravats, veine)
-  ctx.fillStyle = k.damier[(c + l) % 2];
-  ctx.fillRect(x, y, TUILE, TUILE);
-  if (k.gravats) {
-    const motif = (c * 7 + l * 13) % 9;
-    if (motif === 0) {
-      ctx.fillStyle = k.gravats;
-      ctx.fillRect(x + 12, y + 18, 5, 3);
-      ctx.fillRect(x + 21, y + 9, 3, 3);
-    } else if (motif === 4 && k.veine) {
-      ctx.fillStyle = k.veine;
-      ctx.fillRect(x + 22, y + 21, 3, 3);
-    }
-  }
+  dessinerSol(ctx, carte, c, l, x, y, k); // style "sol"
 }
