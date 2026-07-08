@@ -210,20 +210,21 @@ function dessinerRoche(ctx, carte, c, l, x, y, k) {
   if (!solideEn(carte, c + 1, l)) { ctx.fillStyle = "rgba(0,0,0,0.24)"; ctx.fillRect(x + TUILE - 2, y, 2, TUILE); }
 }
 
-// PIERRE TAILLÉE (murs de ville) : maçonnerie de blocs réguliers en appareil
-// « à joints croisés » (running bond). Le motif est calculé en coordonnées MONDE
-// → les blocs traversent les tuiles sans coupure (masonry continue). On peint le
-// mortier en fond, puis les faces de blocs par-dessus (les 1 px laissés révèlent
-// les joints). Bloc éclairé en haut, ombré en bas → pierre bien taillée.
-const P_BW = 21, P_BH = 11; // taille d'un bloc (px, repère monde)
+// PIERRE TAILLÉE (murs de ville) — style FORTERESSE NAINE : de GROS blocs
+// d'appareil en joints croisés (running bond), joints de mortier CREUSÉS, une
+// légère VARIATION DE TEINTE par bloc (clair/sombre + parfois un soupçon de
+// chaud/froid) et un CHANFREIN sur les bords (biseau : clair en haut-gauche,
+// sombre en bas-droite) → chaque pierre paraît taillée en relief. Le motif est
+// calculé en coordonnées MONDE → maçonnerie continue d'une tuile à l'autre.
+const P_BW = 28, P_BH = 15; // GROS blocs (px, repère monde)
 function dessinerPierreTaillee(ctx, carte, c, l, x, y, k) {
   ctx.save();
   ctx.beginPath();
   ctx.rect(x, y, TUILE, TUILE);
   ctx.clip();
-  ctx.fillStyle = k.joint; // mortier de fond
+  ctx.fillStyle = k.joint; // mortier de fond (les joints = les 2 px laissés autour des blocs)
   ctx.fillRect(x, y, TUILE, TUILE);
-  const r0 = Math.floor(y / P_BH), r1 = Math.floor((y + TUILE - 1) / P_BH);
+  const r0 = Math.floor(y / P_BH) - 1, r1 = Math.floor((y + TUILE - 1) / P_BH) + 1;
   for (let r = r0; r <= r1; r++) {
     const ry = r * P_BH;
     const off = (r & 1) ? (P_BW >> 1) : 0; // rangée décalée d'un demi-bloc
@@ -231,16 +232,30 @@ function dessinerPierreTaillee(ctx, carte, c, l, x, y, k) {
     const cc1 = Math.floor((x + TUILE - off) / P_BW) + 1;
     for (let cc = cc0; cc <= cc1; cc++) {
       const bx = cc * P_BW + off;
+      const fx = bx + 2, fy = ry + 2, fw = P_BW - 4, fh = P_BH - 4; // face (joint 2 px)
+      // Base + variation CLAIR/SOMBRE par bloc (légère mais perceptible).
       ctx.fillStyle = k.fond;
-      ctx.fillRect(bx + 1, ry + 1, P_BW - 2, P_BH - 2); // face du bloc (joint 1 px autour)
-      const t = alea(cc, r, 5); // teinte du bloc, stable
-      if (t > 0.68) { ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fillRect(bx + 1, ry + 1, P_BW - 2, P_BH - 2); }
-      else if (t < 0.32) { ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(bx + 1, ry + 1, P_BW - 2, P_BH - 2); }
-      ctx.fillStyle = "rgba(255,255,255,0.13)"; ctx.fillRect(bx + 1, ry + 1, P_BW - 2, 1);       // rebord clair
-      ctx.fillStyle = "rgba(0,0,0,0.20)"; ctx.fillRect(bx + 1, ry + P_BH - 2, P_BW - 2, 1);      // ombre basse
-      if (alea(cc, r, 6) < 0.28) { // petit éclat de taille, discret
+      ctx.fillRect(fx, fy, fw, fh);
+      const dv = (alea(cc, r, 5) - 0.5) * 0.18; // -0.09 .. +0.09
+      ctx.fillStyle = dv >= 0 ? `rgba(255,255,255,${dv.toFixed(3)})` : `rgba(0,0,0,${(-dv).toFixed(3)})`;
+      ctx.fillRect(fx, fy, fw, fh);
+      // Soupçon de teinte chaude/froide sur quelques pierres (variation de couleur).
+      const teinte = alea(cc, r, 9);
+      if (teinte > 0.86) { ctx.fillStyle = "rgba(150,120,70,0.06)"; ctx.fillRect(fx, fy, fw, fh); }       // pierre chaude
+      else if (teinte < 0.14) { ctx.fillStyle = "rgba(70,95,125,0.05)"; ctx.fillRect(fx, fy, fw, fh); }   // pierre froide
+      // CHANFREIN (biseau) : 2 px dégradés — haut+gauche éclairés, bas+droite ombrés.
+      ctx.fillStyle = "rgba(255,255,255,0.20)"; ctx.fillRect(fx, fy, fw, 1);
+      ctx.fillStyle = "rgba(255,255,255,0.10)"; ctx.fillRect(fx, fy + 1, fw, 1);
+      ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fillRect(fx, fy, 1, fh);
+      ctx.fillStyle = "rgba(255,255,255,0.07)"; ctx.fillRect(fx + 1, fy, 1, fh);
+      ctx.fillStyle = "rgba(0,0,0,0.30)"; ctx.fillRect(fx, fy + fh - 1, fw, 1);
+      ctx.fillStyle = "rgba(0,0,0,0.15)"; ctx.fillRect(fx, fy + fh - 2, fw, 1);
+      ctx.fillStyle = "rgba(0,0,0,0.24)"; ctx.fillRect(fx + fw - 1, fy, 1, fh);
+      ctx.fillStyle = "rgba(0,0,0,0.12)"; ctx.fillRect(fx + fw - 2, fy, 1, fh);
+      // Quelques piqûres de taille discrètes.
+      if (alea(cc, r, 6) < 0.4) {
         ctx.fillStyle = "rgba(0,0,0,0.10)";
-        ctx.fillRect(bx + 3 + Math.floor(alea(cc, r, 7) * (P_BW - 8)), ry + 3 + Math.floor(alea(cc, r, 8) * (P_BH - 6)), 2, 2);
+        ctx.fillRect(fx + 2 + Math.floor(alea(cc, r, 7) * (fw - 4)), fy + 2 + Math.floor(alea(cc, r, 8) * (fh - 4)), 2, 2);
       }
     }
   }
