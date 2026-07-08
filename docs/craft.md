@@ -28,7 +28,11 @@ rend la forge **plus intéressante que le loot** (un loot est toujours « Normal
 - **Recettes NON montrées** au joueur : il les découvre. Des **indices** en jeu guideront vers
   les objets rares (à faire). L'aperçu du résultat n'apparaît que si le motif est juste.
 
-### Les 37 armes ont toutes une recette (source = le classeur Excel)
+### Tous les objets qui donnent des cartes ont une recette (source = le classeur Excel)
+
+> **118 recettes** : les 37 **armes** + tous les **équipements** qui apportent des
+> cartes (armures, bottes, gants, bagues, colliers, mains secondes). Bref, tout ce
+> qui se **fabrique et se joue** peut se forger.
 
 > **La SOURCE, c'est `docs/BRUTAL-items-et-cartes.xlsx`, onglet « Recettes ».**
 > On édite les grilles là-bas (cases colorées, lisibles), puis on régénère le jeu :
@@ -50,10 +54,20 @@ Trois règles guident le design des patterns :
    **émeraude/malachite** ; glace → **lapis/saphir** ; feu → **charbon + rubis** ;
    pierre → **pierre taillée + titane** ; brute → **fer/titane** ; arcane →
    **améthyste + diamant** ; sacré → **or/sunstone/diamant** ; onyx → **onyx**.
-3. **Les formes VARIENT.** Deux armes du même thème n'ont pas la même silhouette
+3. **Les formes VARIENT.** Deux objets du même thème n'ont pas la même silhouette
    (ex. Frostbrand et Emberblade sont toutes deux élémentaires mais ont des motifs
    différents) : impossible de deviner tout le catalogue en testant un seul patron
-   avec chaque minerai.
+   avec chaque minerai. Chaque **type d'objet a sa famille de formes** : armures =
+   grands blocs « plastron », bottes = « pied » en L, gants = moufles compactes,
+   bagues = petits anneaux (2-4 pièces), colliers = pendentif (chaîne + goutte),
+   mains secondes = boucliers / livres / sceptres.
+
+**Cas des bijoux** (bagues, colliers) : ce sont de petits objets, donc peu de
+pièces. Leur identité EST leur gemme → une bague/collier tient dans un **métal de
+monture** (cuivre commun → argent uncommon → or/mithril pour les plus rares) + **une
+gemme signature** du thème, même en commun (une bague, c'est une gemme sur un
+anneau). Les versions « parfaites » d'une même ligne montent en gemme (ex. la ligne
+Saphir : argent+1 saphir → or+2 saphir → saphir+diamant).
 
 - 1re recette historique : **Miner's Pick** = `FFF / .W. / .W.` (3 fer en ligne + 2 bois sous le centre).
 

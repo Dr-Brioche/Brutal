@@ -381,5 +381,665 @@ export const RECETTES = [
     ],
     legende: { X: "onyx", R: "rubis", I: "mithril", W: "bois" },
   },
+  {
+    resultat: "armure-cuir",
+    forme: [
+      "WFW",
+      "WWW",
+    ],
+    legende: { W: "bois", F: "fer" },
+  },
+  {
+    resultat: "gilet-rembourre",
+    forme: [
+      "WWW",
+      "WWW",
+    ],
+    legende: { W: "bois" },
+  },
+  {
+    resultat: "cotte-mailles",
+    forme: [
+      "FFF",
+      "FFF",
+    ],
+    legende: { F: "fer" },
+  },
+  {
+    resultat: "armure-peau",
+    forme: [
+      "WWW",
+      "WFW",
+    ],
+    legende: { W: "bois", F: "fer" },
+  },
+  {
+    resultat: "tenue-de-voyageur",
+    forme: [
+      "CWC",
+      "WWW",
+    ],
+    legende: { C: "cuivre", W: "bois" },
+  },
+  {
+    resultat: "plaque-de-fer",
+    forme: [
+      "FFF",
+      "FAF",
+      "FFF",
+    ],
+    legende: { F: "fer", A: "argent" },
+  },
+  {
+    resultat: "armure-cloutee",
+    forme: [
+      "SFS",
+      "FFF",
+      "SFS",
+    ],
+    legende: { S: "pierre-taillee", F: "fer" },
+  },
+  {
+    resultat: "peau-berserk",
+    forme: [
+      "RWR",
+      "WAW",
+    ],
+    legende: { R: "rubis", W: "bois", A: "argent" },
+  },
+  {
+    resultat: "armure-stone-age",
+    forme: [
+      "SSS",
+      "SAS",
+    ],
+    legende: { S: "pierre-taillee", A: "argent" },
+  },
+  {
+    resultat: "plate-croise",
+    forme: [
+      "OTO",
+      "TTT",
+      "OTO",
+    ],
+    legende: { O: "or", T: "titane" },
+  },
+  {
+    resultat: "plate-sang",
+    forme: [
+      "RTR",
+      "TTT",
+      "RTR",
+    ],
+    legende: { R: "rubis", T: "titane" },
+  },
+  {
+    resultat: "maille-de-forge",
+    forme: [
+      "TKT",
+      "KOK",
+      "TKT",
+    ],
+    legende: { T: "titane", K: "charbon", O: "or" },
+  },
+  {
+    resultat: "plate-onyx",
+    forme: [
+      "XIX",
+      "IXI",
+      "XIX",
+    ],
+    legende: { X: "onyx", I: "mithril" },
+  },
+  {
+    resultat: "bottes-usees",
+    forme: [
+      "W.",
+      "WW",
+    ],
+    legende: { W: "bois" },
+  },
+  {
+    resultat: "bottes-cuir",
+    forme: [
+      "W.",
+      "W.",
+      "WW",
+    ],
+    legende: { W: "bois" },
+  },
+  {
+    resultat: "bottes-voyage",
+    forme: [
+      "C.",
+      "WW",
+    ],
+    legende: { C: "cuivre", W: "bois" },
+  },
+  {
+    resultat: "sandales",
+    forme: [
+      "WW",
+    ],
+    legende: { W: "bois" },
+  },
+  {
+    resultat: "bottes-rapides",
+    forme: [
+      "E.",
+      "AA",
+    ],
+    legende: { E: "emeraude", A: "argent" },
+  },
+  {
+    resultat: "bottes-pierre",
+    forme: [
+      "S.",
+      "SA",
+    ],
+    legende: { S: "pierre-taillee", A: "argent" },
+  },
+  {
+    resultat: "bottes-braise",
+    forme: [
+      "R.",
+      "AK",
+    ],
+    legende: { R: "rubis", A: "argent", K: "charbon" },
+  },
+  {
+    resultat: "bottes-stone-age",
+    forme: [
+      "SS",
+      "S.",
+    ],
+    legende: { S: "pierre-taillee" },
+  },
+  {
+    resultat: "bottes-vives",
+    forme: [
+      "AE",
+      "A.",
+    ],
+    legende: { A: "argent", E: "emeraude" },
+  },
+  {
+    resultat: "bottes-de-maille",
+    forme: [
+      "TT",
+      "T.",
+      "A.",
+    ],
+    legende: { T: "titane", A: "argent" },
+  },
+  {
+    resultat: "bottes-croise",
+    forme: [
+      "OT",
+      "T.",
+      "T.",
+    ],
+    legende: { O: "or", T: "titane" },
+  },
+  {
+    resultat: "bottes-sang",
+    forme: [
+      "RT",
+      "T.",
+      "T.",
+    ],
+    legende: { R: "rubis", T: "titane" },
+  },
+  {
+    resultat: "bottes-onyx",
+    forme: [
+      "XI",
+      "X.",
+      "I.",
+    ],
+    legende: { X: "onyx", I: "mithril" },
+  },
+  {
+    resultat: "gants-tissu",
+    forme: [
+      "WW",
+      ".W",
+    ],
+    legende: { W: "bois" },
+  },
+  {
+    resultat: "gants-travail",
+    forme: [
+      "WF",
+      "F.",
+    ],
+    legende: { W: "bois", F: "fer" },
+  },
+  {
+    resultat: "gants-cuir",
+    forme: [
+      "FW",
+      ".W",
+    ],
+    legende: { F: "fer", W: "bois" },
+  },
+  {
+    resultat: "gants-cloutes",
+    forme: [
+      "FF",
+      "K.",
+    ],
+    legende: { F: "fer", K: "charbon" },
+  },
+  {
+    resultat: "gants-de-mineur",
+    forme: [
+      "FF",
+      ".W",
+    ],
+    legende: { F: "fer", W: "bois" },
+  },
+  {
+    resultat: "gants-voleur",
+    forme: [
+      "AA",
+      "A.",
+    ],
+    legende: { A: "argent" },
+  },
+  {
+    resultat: "gantelets",
+    forme: [
+      "AF",
+      "FF",
+    ],
+    legende: { A: "argent", F: "fer" },
+  },
+  {
+    resultat: "gants-venin",
+    forme: [
+      "EA",
+      "A.",
+    ],
+    legende: { E: "emeraude", A: "argent" },
+  },
+  {
+    resultat: "gants-stone-age",
+    forme: [
+      "SS",
+      "SS",
+    ],
+    legende: { S: "pierre-taillee" },
+  },
+  {
+    resultat: "gants-chance",
+    forme: [
+      "OA",
+      ".A",
+    ],
+    legende: { O: "or", A: "argent" },
+  },
+  {
+    resultat: "gants-de-maille",
+    forme: [
+      "TT",
+      "A.",
+    ],
+    legende: { T: "titane", A: "argent" },
+  },
+  {
+    resultat: "gants-croise",
+    forme: [
+      "OT",
+      "TT",
+    ],
+    legende: { O: "or", T: "titane" },
+  },
+  {
+    resultat: "gants-sang",
+    forme: [
+      "RT",
+      "TT",
+    ],
+    legende: { R: "rubis", T: "titane" },
+  },
+  {
+    resultat: "gants-onyx",
+    forme: [
+      "XX",
+      "I.",
+    ],
+    legende: { X: "onyx", I: "mithril" },
+  },
+  {
+    resultat: "anneau-etincelle",
+    forme: [
+      "CL",
+    ],
+    legende: { C: "cuivre", L: "lapis" },
+  },
+  {
+    resultat: "anneau-venin",
+    forme: [
+      "EC",
+    ],
+    legende: { E: "emeraude", C: "cuivre" },
+  },
+  {
+    resultat: "anneau-braise",
+    forme: [
+      "C",
+      "R",
+    ],
+    legende: { C: "cuivre", R: "rubis" },
+  },
+  {
+    resultat: "anneau-frimas",
+    forme: [
+      "L",
+      "C",
+    ],
+    legende: { L: "lapis", C: "cuivre" },
+  },
+  {
+    resultat: "anneau-saignant",
+    forme: [
+      "RC",
+    ],
+    legende: { R: "rubis", C: "cuivre" },
+  },
+  {
+    resultat: "anneau-force",
+    forme: [
+      "CF",
+    ],
+    legende: { C: "cuivre", F: "fer" },
+  },
+  {
+    resultat: "anneau-pierre",
+    forme: [
+      "SC",
+    ],
+    legende: { S: "pierre-taillee", C: "cuivre" },
+  },
+  {
+    resultat: "anneau-agile",
+    forme: [
+      "C",
+      "E",
+    ],
+    legende: { C: "cuivre", E: "emeraude" },
+  },
+  {
+    resultat: "anneau-vigueur",
+    forme: [
+      "MC",
+    ],
+    legende: { M: "malachite", C: "cuivre" },
+  },
+  {
+    resultat: "anneau-de-fer",
+    forme: [
+      "FA",
+      "A.",
+    ],
+    legende: { F: "fer", A: "argent" },
+  },
+  {
+    resultat: "bague-de-sang",
+    forme: [
+      "RA",
+      "A.",
+    ],
+    legende: { R: "rubis", A: "argent" },
+  },
+  {
+    resultat: "anneau-de-givre",
+    forme: [
+      "A",
+      "L",
+      "A",
+    ],
+    legende: { A: "argent", L: "lapis" },
+  },
+  {
+    resultat: "anneau-toxique",
+    forme: [
+      "A",
+      "E",
+      "A",
+    ],
+    legende: { A: "argent", E: "emeraude" },
+  },
+  {
+    resultat: "anneau-puissance",
+    forme: [
+      "TA",
+      "A.",
+    ],
+    legende: { T: "titane", A: "argent" },
+  },
+  {
+    resultat: "sceau-givre",
+    forme: [
+      "AL",
+      ".A",
+    ],
+    legende: { A: "argent", L: "lapis" },
+  },
+  {
+    resultat: "anneau-soif-sang",
+    forme: [
+      "AR",
+      ".A",
+    ],
+    legende: { A: "argent", R: "rubis" },
+  },
+  {
+    resultat: "anneau-forge",
+    forme: [
+      "OA",
+      "K.",
+    ],
+    legende: { O: "or", A: "argent", K: "charbon" },
+  },
+  {
+    resultat: "anneau-de-givre-parfait",
+    forme: [
+      "LO",
+      "OL",
+    ],
+    legende: { L: "lapis", O: "or" },
+  },
+  {
+    resultat: "collier-cuivre",
+    forme: [
+      "CCC",
+      ".L.",
+    ],
+    legende: { C: "cuivre", L: "lapis" },
+  },
+  {
+    resultat: "pendentif-quartz",
+    forme: [
+      "CC",
+      ".S",
+    ],
+    legende: { C: "cuivre", S: "pierre-taillee" },
+  },
+  {
+    resultat: "charme-os",
+    forme: [
+      "CC",
+      "K.",
+    ],
+    legende: { C: "cuivre", K: "charbon" },
+  },
+  {
+    resultat: "pendentif-chaud",
+    forme: [
+      "C",
+      "C",
+      "R",
+    ],
+    legende: { C: "cuivre", R: "rubis" },
+  },
+  {
+    resultat: "porte-bonheur",
+    forme: [
+      "COC",
+    ],
+    legende: { C: "cuivre", O: "or" },
+  },
+  {
+    resultat: "pendentif-energie",
+    forme: [
+      "AAA",
+      ".L.",
+    ],
+    legende: { A: "argent", L: "lapis" },
+  },
+  {
+    resultat: "collier-concentration",
+    forme: [
+      "AA",
+      ".Y",
+    ],
+    legende: { A: "argent", Y: "amethyste" },
+  },
+  {
+    resultat: "pendentif-vampire",
+    forme: [
+      "A",
+      "R",
+      "A",
+    ],
+    legende: { A: "argent", R: "rubis" },
+  },
+  {
+    resultat: "collier-de-saphir",
+    forme: [
+      "APA",
+    ],
+    legende: { A: "argent", P: "saphir" },
+  },
+  {
+    resultat: "collier-de-saphir-fin",
+    forme: [
+      "POP",
+    ],
+    legende: { P: "saphir", O: "or" },
+  },
+  {
+    resultat: "collier-de-saphir-parfait",
+    forme: [
+      "PDP",
+      ".P.",
+    ],
+    legende: { P: "saphir", D: "diamant" },
+  },
+  {
+    resultat: "bouclier-bois",
+    forme: [
+      "WW",
+      "FF",
+      "WW",
+    ],
+    legende: { W: "bois", F: "fer" },
+  },
+  {
+    resultat: "targe",
+    forme: [
+      "CF",
+      "FC",
+    ],
+    legende: { C: "cuivre", F: "fer" },
+  },
+  {
+    resultat: "grimoire",
+    forme: [
+      "WW",
+      "WL",
+    ],
+    legende: { W: "bois", L: "lapis" },
+  },
+  {
+    resultat: "fanal",
+    forme: [
+      "K",
+      "F",
+      "W",
+    ],
+    legende: { K: "charbon", F: "fer", W: "bois" },
+  },
+  {
+    resultat: "sceptre-apprenti",
+    forme: [
+      "C",
+      "W",
+      "W",
+    ],
+    legende: { C: "cuivre", W: "bois" },
+  },
+  {
+    resultat: "grimoire-soin",
+    forme: [
+      "WW",
+      "MW",
+    ],
+    legende: { W: "bois", M: "malachite" },
+  },
+  {
+    resultat: "bouclier-renforce",
+    forme: [
+      "FF",
+      "AA",
+      "FF",
+    ],
+    legende: { F: "fer", A: "argent" },
+  },
+  {
+    resultat: "grimoire-flammes",
+    forme: [
+      "WR",
+      "RW",
+    ],
+    legende: { W: "bois", R: "rubis" },
+  },
+  {
+    resultat: "sceptre-commandement",
+    forme: [
+      "O",
+      "A",
+      "A",
+    ],
+    legende: { O: "or", A: "argent" },
+  },
+  {
+    resultat: "bouclier-protecteur",
+    forme: [
+      "LA",
+      "AA",
+      "AL",
+    ],
+    legende: { L: "lapis", A: "argent" },
+  },
+  {
+    resultat: "grimoire-puissance",
+    forme: [
+      "YW",
+      "WY",
+    ],
+    legende: { Y: "amethyste", W: "bois" },
+  },
+  {
+    resultat: "bouclier-tour",
+    forme: [
+      "TT",
+      "TT",
+      "AA",
+    ],
+    legende: { T: "titane", A: "argent" },
+  },
 ];
 // <<FIN-RECETTES-AUTO>>
