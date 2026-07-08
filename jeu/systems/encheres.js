@@ -45,6 +45,15 @@ const OBSTINE_FACTEUR = [1.15, 1.50]; // un obstiné multiplie son budget par [m
 // Plus c'est rare, plus la salle s'enflamme (décision Brioche n°2).
 const OBSTINE_PAR_RANG = [0.10, 0.15, 0.25, 0.40, 0.60];
 
+// PRIME DE RARETÉ À L'ENCHÈRE (décision Brioche 08/07/2026) : les pièces
+// d'exception doivent être VRAIMENT chères ici — bien au-delà de leur simple
+// prix marchand. On multiplie la valeur du lot (donc mise à prix, incrément ET
+// budgets des rivaux) par ce facteur selon la rareté de l'objet. Un ÉPIQUE
+// devient un achat de prestige (≈ ×2,5 sa valeur HV) ; un légendaire, une folie.
+// N'affecte QUE l'enchère — le prix marchand/HV normal ne bouge pas.
+const PRIME_RARETE = { commun: 1, uncommon: 1, rare: 1.3, epique: 2.5, legendaire: 4 };
+const primeRarete = (id) => PRIME_RARETE[itemDef(id)?.rarete] ?? 1;
+
 // Paquets de ressources : minerais chers uniquement (rang de minerai ≥ 6).
 const PAQUET_RANG_MIN = 6;
 const PAQUET_QTE = [8, 18];
@@ -90,7 +99,7 @@ export function acheterTicket(enc, inv, jour) {
 // La valeur d'un lot : objets → valeur réelle (HV) ; paquets → n × prix de base.
 function valeurLot(lot) {
   if (lot.type === "paquet") return lot.quantite * prixBaseRessource(lot.id);
-  return valeurReelle(lot.id);
+  return Math.round(valeurReelle(lot.id) * primeRarete(lot.id));
 }
 
 // Rang de rareté (0..4) d'un lot, pour l'agressivité de la salle.
@@ -145,7 +154,7 @@ function finaliserLot(lot, rng) {
 // vente ne descend jamais en dessous), salle plus chaude que pour les lots de
 // la maison (cf. BUDGET_DEPOT).
 export function lotDepot(depot) {
-  const valeur = valeurReelle(depot.id);
+  const valeur = Math.round(valeurReelle(depot.id) * primeRarete(depot.id));
   return {
     type: "objet", id: depot.id, qualite: depot.qualite ?? null, duJoueur: true,
     valeur,
