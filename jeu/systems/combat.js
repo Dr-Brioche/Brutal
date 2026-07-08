@@ -602,11 +602,12 @@ function appliquerEffet(combat, effet, ennemi) {
     const nbVivants = combat.ennemis.filter(ennemiVivant).length;
     for (let i = 0; i < nbVivants; i++) ajouterCarteMain(combat, piocherUne(combat));
   } else if (effet.type === "refaire-main") {
-    // Forge from Ashes : défausse TOUTE la main restante et repioche autant de cartes.
+    // Forge from Ashes : défausse TOUTE la main restante et repioche `facteur` fois
+    // autant de cartes (facteur 1 = échange sec ; facteur 2 = on pioche le DOUBLE).
     // On MÉMORISE l'échange (cartes jetées + cartes piochées) pour que l'UI anime la
     // DÉFAUSSE puis la PIOCHE, dans cet ordre — sinon les deux arrivent en même temps.
     const aDefausser = combat.main.slice();
-    const n = combat.main.length;
+    const n = combat.main.length * (effet.facteur ?? 1);
     combat.defausse.push(...combat.main);
     combat.main = [];
     const piochees = [];

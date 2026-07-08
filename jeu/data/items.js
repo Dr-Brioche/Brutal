@@ -192,13 +192,13 @@ export const ITEMS = {
   "epee-large": {
     id: "epee-large", nom: "Claymore", categorie: "arme", rarete: "uncommon", revueArmes2H: true,
     taille: { l: 1, h: 3 }, icone: "#aeb4bc", degats: 7, mains: 2,
-    cartes: ["taillade-large", "taillade-large", "volee-d-acier", "volee-d-acier", "elan-du-guerrier", "frappe-decisive"],
+    cartes: ["taillade-large", "taillade-large", "volee-d-acier", "volee-d-acier", "elan-du-guerrier", "frappe-decisive", "prendre-l-avance"],
   },
-  // Halberd (Uncommon) : allonge (transperce + AOE) + contrôle (gel) (7 cartes).
+  // Halberd (Uncommon) : allonge (transperce + AOE) + contrôle (gel) + saignement (8 cartes).
   "hallebarde": {
     id: "hallebarde", nom: "Halberd", categorie: "arme", rarete: "uncommon", revueArmes2H: true,
     taille: { l: 1, h: 3 }, icone: "#9a8f7a", degats: 6, mains: 2,
-    cartes: ["estoc", "estoc", "estoc", "balayage-large", "balayage-large", "coup-de-croc", "coup-de-croc", "position-de-garde"],
+    cartes: ["estoc", "estoc", "ouvrir-les-plaies", "balayage-large", "balayage-large", "coup-de-croc", "coup-de-croc", "position-de-garde"],
   },
   // Siege Maul (Rare) : tank Pierre → la Pierre devient dégâts et contrôle (7 cartes).
   "marteau-de-siege": {

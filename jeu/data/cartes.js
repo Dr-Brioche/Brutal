@@ -635,10 +635,10 @@ export const CARTES = {
   "forge-des-cendres": {
     id: "forge-des-cendres",
     nom: "Forge from Ashes",
-    cout: 2,
+    cout: 1,
     type: "buff",
-    texte: "Discard your hand and draw that many cards.",
-    effets: [{ type: "refaire-main" }],
+    texte: "Discard your hand and draw double the discarded cards.",
+    effets: [{ type: "refaire-main", facteur: 2 }],
   },
 
   // ---- Swift Boots (bottes) : conversion vitesse → énergie --------------------
@@ -1092,6 +1092,11 @@ export const CARTES = {
   "frappe-decisive": { id: "frappe-decisive", nom: "Decisive Strike", cout: 2, type: "attaque", revueArmes2H: true,
     texte: "Deal 18 damage. Doubled if you have 6+ Strength.",
     effets: [{ type: "degats-si-force", valeur: 18, seuil: 6 }] },
+  // Get ahead : on prend l'avance — Hâte pour soi + on cloue l'ennemi visé.
+  // Buff, mais le stun VISE un ennemi (cf. carteVise) → ciblage si plusieurs.
+  "prendre-l-avance": { id: "prendre-l-avance", nom: "Get ahead", cout: 2, type: "buff", revueArmes2H: true,
+    texte: "Gain 3 Haste. Stun the target for 3 turns.",
+    effets: [{ type: "celerite", valeur: 3 }, { type: "stun", valeur: 3 }] },
 
   // ---- Halberd (Uncommon) : allonge (transperce) + contrôle (gel) ----
   // Combo : Hooking Strike gèle → Pike Thrust transperce la cible ET celui derrière
@@ -1108,6 +1113,10 @@ export const CARTES = {
   "position-de-garde": { id: "position-de-garde", nom: "Bracing Stance", cout: 1, type: "defense", revueArmes2H: true,
     texte: "Gain 12 Stone.",
     effets: [{ type: "pierre", valeur: 12 }] },
+  // Opening Wounds : coup profond qui ouvre la chair (gros dégât + saignement).
+  "ouvrir-les-plaies": { id: "ouvrir-les-plaies", nom: "Opening Wounds", cout: 2, type: "attaque", revueArmes2H: true,
+    texte: "Deal 15 damage. Apply 4 Bleed.",
+    effets: [{ type: "degats", valeur: 15 }, { type: "sang", valeur: 4 }] },
 
   // ---- Siege Maul (Rare) : tank Pierre → la Pierre devient dégâts et contrôle ----
   // Combo : empiler la Pierre (Bulwark, Stonestrike) → Stonestrike frappe = ta Pierre
