@@ -18,17 +18,17 @@ régulièrement, sinon la production s'arrête.
    `.eco-zone`, cf. l'HV — prête à recevoir un visuel de fond) qui explique
    **tout** avant l'achat : prix, revenu par heure, bonus en nature, plafond
    de la trésorerie et règle d'arrêt de production. Aucune surprise.
-   **Particularité unique : le temps de jeu CONTINUE de s'écouler tant que cet
-   écran est ouvert** (contrairement aux autres écrans qui figent l'horloge) —
-   on peut regarder la jauge du prochain versement se remplir en direct. Pas
-   d'abus AFK possible : le plafond de trésorerie arrête la production seul.
+   Comme partout, **le temps continue de s'écouler tant que cet écran est
+   ouvert** — on peut regarder la jauge du prochain versement se remplir en
+   direct. Pas d'abus AFK possible : le plafond de trésorerie arrête la
+   production seul.
 2. **L'achat** : une somme conséquente, payée une fois. Refusé proprement si
    l'or manque (le dialogue rappelle combien on a).
-3. **Le revenu** : toutes les **1 h de JEU ACTIF**, le bâtiment verse son
+3. **Le revenu** : toutes les **1 h de temps de jeu**, le bâtiment verse son
    revenu dans **sa trésorerie** (pas directement dans la poche du joueur).
-   - Temps de jeu ACTIF = exploration + combat. Les menus, dialogues, la
-     Forge et l'HV **figent l'horloge** (la même que le marché) → impossible
-     de laisser tourner le jeu dans un menu pour farmer.
+   - L'horloge (la même que le marché) tourne **en permanence** ; **seul le
+     menu pause** (Échap) la fige. Laisser tourner le jeu ne rapporte jamais
+     plus que le plafond → aucun intérêt à farmer en AFK.
 4. **Le plafond** : la trésorerie a un **maximum**. Pleine → **la production
    s'arrête** et le rendement est **perdu** tant qu'on ne vide pas la caisse.
    C'est LA règle qui force à repasser en ville (et rend le tour de ville
@@ -56,7 +56,8 @@ l'équilibrage se règle à UN endroit.
 
 ### Anti-abus (pourquoi ce n'est pas cassé)
 
-- L'horloge ne tourne **qu'en jeu actif** : pas de farm AFK dans un menu.
+- L'horloge tourne **en permanence** (seul le menu pause la fige) ; le plafond
+  borne de toute façon ce qu'une absence peut rapporter.
 - Le **plafond** borne ce qu'une absence peut rapporter (480 🪙 maxi en stock).
 - Le remboursement en ~10 h de jeu fait de l'achat un **choix** (s'équiper
   maintenant vs revenu plus tard), pas une évidence.

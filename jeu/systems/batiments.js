@@ -8,10 +8,9 @@
 // RÉCOLTER régulièrement — même philosophie que les annonces de l'HV :
 // l'investissement est passif, la récompense se va chercher.
 //
-// ⏱ LE TEMPS DES BÂTIMENTS = temps de jeu ACTIF uniquement (exploration +
-// combat), la même horloge que le marché. Les menus, dialogues, la Forge et
-// l'HV le FIGENT (c'est principal.js qui décide quand appeler tickBatiments).
-// → Impossible de laisser tourner le jeu dans un menu pour farmer de l'or.
+// ⏱ LE TEMPS DES BÂTIMENTS tourne EN PERMANENCE (même horloge que le marché) ;
+// SEUL le menu pause (Échap) le fige. Pas d'abus d'AFK : la trésorerie est
+// PLAFONNÉE — laisser tourner le jeu ne rapporte jamais plus que le plafond.
 //
 // ÉQUILIBRAGE (tout est ICI, dans BATIMENTS) : la scierie coûte 1200 🪙 et
 // rapporte 120 🪙/h de jeu actif → remboursée en ~10 h de jeu. Le plafond de

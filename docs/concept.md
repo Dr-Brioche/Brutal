@@ -904,7 +904,7 @@ Le **marché** est jouable (détail complet dans **`docs/marche.md`**) ; résum�
   ~10-15 min de jeu ; plus on est gourmand, plus c'est long (exponentiel, +30 % ≈
   1-3 h). L'or tombe **pendant qu'on joue** (« investissement passif »). Toujours
   plus rentable que le marchand, jamais instantané.
-- **L'horloge du marché ne tourne qu'en jeu actif** — les menus/écrans la figent.
+- **L'horloge du marché tourne en permanence** — seul le menu pause (Échap) la fige.
 
 ### Pistes de gameplay proposées (en attente de décision)
 
@@ -925,12 +925,13 @@ Deuxième jambe du pilier économie après l'HV : **investir dans la pierre**
 
 - Certains bâtiments de la ville sont **à vendre**. Un **panneau** planté devant
   ouvre l'**écran bâtiment** (*[Space] Read*) : une fiche claire (prix, revenu,
-  plafond, jauges vivantes). **Le temps de jeu continue de s'écouler sur cet
-  écran** (seule exception à la règle « les écrans figent l'horloge ») — on y
-  regarde sa production avancer en direct, sans abus possible (plafond).
+  plafond, jauges vivantes). **Le temps continue de s'écouler sur cet écran**
+  (comme partout hors menu pause) — on y regarde sa production avancer en
+  direct, sans abus possible (plafond).
 - **Achat une fois, revenu passif ensuite** : le bâtiment verse de l'or dans sa
-  **trésorerie** à chaque **heure de JEU ACTIF** (même horloge que le marché —
-  les menus/écrans la figent, impossible de farmer en laissant tourner le jeu).
+  **trésorerie** à chaque **heure de temps de jeu** (même horloge que le
+  marché — elle tourne en permanence, seul le menu pause la fige ; pas d'abus
+  d'AFK car la trésorerie est plafonnée).
 - **La trésorerie a un PLAFOND** : pleine, la **production S'ARRÊTE** (rendement
   perdu). Il faut revenir **à pied** au panneau pour **récolter** — même
   philosophie que les annonces de l'HV : l'investissement est passif, la

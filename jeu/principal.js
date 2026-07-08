@@ -42,7 +42,7 @@ import {
   BATIMENTS, creerBatiments, possede, etatBatiment,
   tickBatiments, etatBatiments, chargerBatiments,
 } from "./systems/batiments.js";
-import { installerBatiment, ouvrirBatiment, batimentActif } from "./ui/batiment.js";
+import { installerBatiment, ouvrirBatiment } from "./ui/batiment.js";
 import {
   creerTemps, tickTemps, phase, numeroJour, positionCycle, tempsAvantSoir,
   enFenetreInscription, DUREE_JOUR, etatTemps, chargerTemps,
@@ -432,9 +432,8 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // Lire le PANNEAU de la scierie : ouvre l'ÉCRAN BÂTIMENT (ui/batiment.js) —
   // la fiche claire du bâtiment (à vendre / possédé) avec ses jauges. Le MONDE
-  // se fige (le héros ne bouge plus) mais l'HORLOGE DE JEU CONTINUE de tourner
-  // tant que l'écran est ouvert (cf. le tick : batimentActif() la maintient) —
-  // on peut regarder la production avancer en direct.
+  // se fige (le héros ne bouge plus) mais l'horloge économie continue (comme
+  // partout hors menu pause) — on regarde la production avancer en direct.
   function lirePanneauScierie() {
     if (dialogueActif() || combatEnCours || enPause) return;
     enPause = true;
@@ -1346,15 +1345,14 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   lancerBoucle({
     mettreAJour(dt) {
-      // L'HORLOGE DU MARCHÉ n'avance qu'en JEU ACTIF : exploration et combat
-      // comptent ; les menus, dialogues, la Forge et l'HV (enPause / menu pause)
-      // la FIGENT. Une annonce qui s'écoule ne PAIE PAS automatiquement — on
-      // prévient juste le joueur ; il doit aller la RÉCOLTER lui-même à l'HV
-      // (cf. ui/hv.js), qui affiche alors le résumé de la plus-value réalisée.
-      // SEULE EXCEPTION : l'écran BÂTIMENT (batimentActif) laisse le temps
-      // s'écouler — on y regarde la production avancer en direct ; le plafond
-      // de trésorerie borne ce que l'AFK peut rapporter (aucun abus possible).
-      if ((!enPause || batimentActif()) && !menuPauseOuvert) {
+      // L'HORLOGE ÉCONOMIE (marché + bâtiments + cycle jour/nuit) tourne EN
+      // PERMANENCE — le temps de Brütàl s'écoule toujours. SEULE la mise en PAUSE
+      // (menu Échap) la fige : c'est LE bouton « stop » quand on s'absente.
+      // Dialogues, inventaire, Forge, HV, enchères, écran bâtiment : le temps y
+      // continue d'avancer. Pas d'abus d'AFK possible : la trésorerie des
+      // bâtiments est PLAFONNÉE, le marché est anti-exploit AU MOMENT de l'échange,
+      // et une annonce vendue ne PAIE PAS toute seule (on va la récolter à l'HV).
+      if (!menuPauseOuvert) {
         for (const v of tickMarche(marche, dt)) {
           afficherMessage(`📈 ${itemDef(v.id)?.nom ?? v.id} sold at the Exchange — go collect your ${v.prix} 🪙!`);
         }

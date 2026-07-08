@@ -1,7 +1,7 @@
 // LE CYCLE JOUR / NUIT de Brütàl — logique pure, aucune UI ici.
 //
-// Le temps de la cité avance sur l'horloge de JEU ACTIF (exploration + combat),
-// la même que le marché et les bâtiments : les menus et écrans la figent.
+// Le temps de la cité avance EN PERMANENCE (comme le marché et les bâtiments) ;
+// SEULE la mise en pause (menu Échap) le fige — cf. principal.js.
 // (Seule exception : l'écran bâtiment, cf. principal.js.)
 //
 // Décision Brioche (07/07/2026) :

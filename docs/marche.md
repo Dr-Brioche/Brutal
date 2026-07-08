@@ -13,10 +13,12 @@
 - **Objets** (armes, armures, bijoux…) : **valeur réelle fixe** ; on les met en
   **annonce** au prix qu'on veut — plus on est gourmand, plus la vente est lente.
 
-⏱ **L'horloge du marché ne tourne qu'en JEU ACTIF** (exploration + combat). Les
-menus, dialogues, la Forge et l'HV lui-même la **figent** — les prix n'évoluent
-jamais « sous nos yeux » dans l'écran, et les annonces n'avancent pas quand on
-n'y joue pas.
+⏱ **L'horloge du marché tourne EN PERMANENCE** — le temps de Brütàl s'écoule
+toujours. **Seul le menu pause** (Échap) la fige : c'est le bouton « stop »
+quand on s'absente. Le reste du temps (exploration, combat, dialogues, écrans…)
+les prix vivent et les annonces s'écoulent. Pas d'abus d'AFK : le marché est
+anti-exploit au moment de l'échange et une annonce vendue ne paie pas toute
+seule (on va la récolter à l'HV).
 
 ## Les prix des ressources
 

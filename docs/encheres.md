@@ -13,10 +13,10 @@ quelques lots de valeur. On peut y faire de **bonnes affaires** ou se faire
 
 ## Le cycle jour / nuit (nouveau socle)
 
-`systems/temps.js` fait avancer le temps de la cité sur l'horloge de **jeu
-actif** (exploration + combat ; menus/écrans figés — sauf l'écran bâtiment).
+`systems/temps.js` fait avancer le temps de la cité **en permanence** (même
+horloge que le marché) ; **seul le menu pause** (Échap) le fige.
 
-| Phase | Durée (jeu actif) |
+| Phase | Durée (temps de jeu) |
 |---|---|
 | Journée | **1 h** (3600 s) |
 | Nuit | **30 min** (1800 s) |

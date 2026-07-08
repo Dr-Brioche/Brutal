@@ -21,9 +21,8 @@
 //     veut : plus la marge dépasse la valeur réelle, plus la vente prend du temps
 //     (formule exponentielle, cf. delaiVente). Prix conseillé = valeur +10 %.
 //
-// ⏱ LE TEMPS DU MARCHÉ = temps de jeu ACTIF uniquement (exploration + combat).
-// Les menus, dialogues, la Forge et l'HV lui-même FIGENT l'horloge (c'est
-// principal.js qui décide quand appeler tickMarche).
+// ⏱ LE TEMPS DU MARCHÉ tourne EN PERMANENCE ; SEUL le menu pause (Échap) le
+// fige (c'est principal.js qui décide quand appeler tickMarche).
 
 import { MINERAIS, itemDef, prixVente } from "../data/items.js";
 
