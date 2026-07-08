@@ -52,6 +52,7 @@ import {
   lotDepot, resoudreHorsEcran, depotAcceptable, etatEncheres, chargerEncheres,
 } from "./systems/encheres.js";
 import { installerEncheres, ouvrirEncheres, enchereActive } from "./ui/encheres.js";
+import { installerHorloge, dessinerHorloge, montrerHorloge } from "./ui/horloge.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
 import { getPreference } from "./systems/preferences.js";
@@ -990,6 +991,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   installerHV();       // l'hôtel des ventes plein écran (ouvert via le courtier)
   installerBatiment(); // l'écran bâtiment (ouvert via le panneau de la scierie)
   installerEncheres(); // la salle des ventes du soir (ouverte via Magnar)
+  installerHorloge();  // le cadran jour/nuit (HUD haut-droite)
 
   // Échap : ferme d'abord l'écran ouvert (inventaire, deck, talents, menu pause) ;
   // si rien n'est ouvert, ouvre le menu pause (sauvegarder / quitter).
@@ -1393,6 +1395,11 @@ export async function demarrerJeu(donneesInitiales = null) {
       // pas quand un écran/menu est ouvert).
       barreMenu.hidden = Boolean(combatEnCours) || enPause;
       hudInfo.hidden = Boolean(combatEnCours) || enPause || !Array.isArray(zoneCourante.niveauMobs);
+      // Le cadran jour/nuit : visible en exploration libre (comme la barre de menu),
+      // redessiné à l'heure courante (le cycle avance en jeu actif).
+      const horlogeVisible = !combatEnCours && !enPause;
+      montrerHorloge(horlogeVisible);
+      if (horlogeVisible) dessinerHorloge(temps);
       const enMine = Boolean(zoneCourante.estMine);
       hudEtage.hidden = Boolean(combatEnCours) || enPause || !enMine;
       if (enMine) hudEtage.textContent = `⛏ Floor ${zoneCourante.niveau ?? 1}`;

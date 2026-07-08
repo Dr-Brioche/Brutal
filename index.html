@@ -142,11 +142,33 @@
       --zh: calc(var(--zl) * 9 / 16);
       position: fixed; z-index: 6;
       right: calc(50vw - var(--zl) / 2 + var(--zl) * 0.045 + 6px); /* dans l'ouverture du cadre */
-      top:   calc(50vh - var(--zh) / 2 + var(--zh) * 0.05 + 6px);
+      top:   calc(50vh - var(--zh) / 2 + var(--zh) * 0.05 + 84px); /* SOUS le cadran jour/nuit */
       font: 600 clamp(11px, calc(var(--zl) * 0.0085), 18px) system-ui, sans-serif;
       color: #f3efe7; user-select: none;
       background: rgba(10, 8, 6, 0.66); border: 1px solid #3a2f26;
       border-radius: 6px; padding: 3px 8px;
+    }
+    /* Cadran JOUR/NUIT (haut-droite de la zone de jeu, dans l'ouverture du cadre). */
+    #hud-horloge {
+      --zl: min(100vw, calc(100vh * 16 / 9));
+      --zh: calc(var(--zl) * 9 / 16);
+      position: fixed; z-index: 6;
+      right: calc(50vw - var(--zl) / 2 + var(--zl) * 0.045 + 6px);
+      top:   calc(50vh - var(--zh) / 2 + var(--zh) * 0.05 + 6px);
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      user-select: none; pointer-events: none;
+    }
+    .horloge-cadran-wrap { position: relative; width: 48px; height: 48px; }
+    #horloge-cadran { width: 48px; height: 48px; display: block; }
+    #horloge-icone {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 17px; line-height: 1;
+    }
+    #horloge-txt {
+      font: 600 clamp(9px, calc(var(--zl) * 0.0072), 14px) system-ui, sans-serif;
+      color: #f3efe7; white-space: nowrap;
+      background: rgba(10, 8, 6, 0.66); border: 1px solid #3a2f26;
+      border-radius: 6px; padding: 2px 7px;
     }
     #veine-label {
       position: fixed; z-index: 7; pointer-events: none; user-select: none;
@@ -2259,7 +2281,15 @@
   <div id="cadre-jeu" hidden></div>
   <!-- HUD d'exploration (haut-gauche) : niveau des mobs + minerais de l'étage -->
   <div id="hud-info" hidden></div>
-  <!-- HUD étage (haut-droite) : numéro d'étage en mine -->
+  <!-- Cadran JOUR/NUIT (haut-droite) : avancée du cycle de la cité -->
+  <div id="hud-horloge" hidden>
+    <div class="horloge-cadran-wrap">
+      <canvas id="horloge-cadran"></canvas>
+      <span id="horloge-icone"></span>
+    </div>
+    <span id="horloge-txt"></span>
+  </div>
+  <!-- HUD étage (haut-droite) : numéro d'étage en mine (sous le cadran) -->
   <div id="hud-etage" hidden></div>
   <!-- Bulle flottante : nom du minerai à portée de minage -->
   <div id="veine-label" hidden></div>

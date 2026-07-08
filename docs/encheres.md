@@ -24,7 +24,10 @@ actif** (exploration + combat ; menus/écrans figés — sauf l'écran bâtiment
 
 La **vente a lieu à la tombée du soir** (fin de journée) → **une vente toutes
 les 1 h 30** de jeu. À l'aube, un nouveau jour commence (compteur de jours).
-*(Le jour/nuit n'est pas encore visuel — teinte d'écran à venir ; la mécanique
+Un **cadran jour/nuit** (HUD, en haut à droite : arc doré = jour, bleu = nuit,
+aiguille + ☀/🌙 + compte à rebours vers le soir, `jeu/ui/horloge.js`) montre
+l'avancée du cycle — sans toucher à l'éclairage (on est sous terre).
+*(Une éventuelle teinte d'écran reste à voir plus tard ; la mécanique
 est déjà là et s'y branchera.)*
 
 ## Les règles (décisions Brioche du 07/07/2026)

@@ -951,7 +951,9 @@ Troisième volet du pilier économie (après l'HV et les bâtiments) : un
 
 - **Nouveau socle : cycle jour/nuit** (`systems/temps.js`) sur l'horloge de jeu
   actif — **journée = 1 h, nuit = 30 min** → une vente **toutes les 1 h 30**,
-  à la tombée du soir. *(Pas encore visuel ; la mécanique est là.)*
+  à la tombée du soir. Un **cadran jour/nuit** (HUD, haut-droite) montre
+  l'avancée du cycle (arc doré = jour, bleu = nuit, aiguille + ☀/🌙, compte à
+  rebours vers le soir). *(Pas d'effet d'éclairage : on est sous terre.)*
 - **Magnar le commissaire-priseur** : nouveau PNJ. Contenu **tardif** — il faut
   le talent **« Title of Nobility »** (branche économie de l'arbre) pour entrer,
   plus un **ticket** acheté un peu avant la cloche (raté = prochaine vente).
