@@ -1,34 +1,36 @@
-// LE CADRAN JOUR / NUIT (HUD, en haut à droite de la zone de jeu).
+// LA BARRE JOUR / NUIT (HUD, en haut à droite de la zone de jeu).
 //
-// Un petit disque qui montre l'avancée du cycle de Brütàl (cf. systems/temps.js) :
-//   - l'arc DORÉ = la journée (2/3 du tour), l'arc BLEU NUIT = la nuit (1/3) ;
-//   - une encoche marque la TOMBÉE DU SOIR (le moment des enchères) ;
-//   - une aiguille tourne selon l'heure courante ; au centre, ☀ le jour / 🌙 la nuit.
-// AUCUN effet sur l'éclairage du jeu (on est sous terre) : c'est un simple
-// indicateur. Le texte dessous donne le n° de jour + un compte à rebours.
+// Une barre horizontale qui DÉFILE : un repère FIXE au centre = « maintenant ».
+// Derrière lui glisse une bande JAUNE (la journée) / NOIRE (la nuit) au rythme
+// du cycle de Brütàl (cf. systems/temps.js). Quand le repère est dans le jaune,
+// c'est le jour ; dans le noir, la nuit. La fenêtre affiche exactement UN cycle
+// (jour = 2/3, nuit = 1/3) → on voit TOUJOURS une part de jour ET de nuit, ce
+// qui donne l'échelle. Au-dessus : ☀/🌙 + « Day N · … » (compte à rebours).
+// AUCUN effet sur l'éclairage du jeu (on est sous terre) : simple indicateur.
 //
 // Le canvas est rendu à 2× sa taille affichée (net comme le reste du HUD).
 
 import { positionCycle, phase, numeroJour, tempsAvantSoir, DUREE_JOUR, DUREE_CYCLE } from "../systems/temps.js";
+import { cheminArrondi } from "../core/style.js";
 
-const TAU = Math.PI * 2;
-const HAUT = -Math.PI / 2;          // midi = en haut du cadran
-const FRAC_JOUR = DUREE_JOUR / DUREE_CYCLE; // part de la journée sur le tour
+// Couleurs de la bande. La nuit reste SOMBRE mais assez bleutée pour se
+// distinguer du fond (sinon, quasi-noir = « trou » invisible dans la barre).
+const JOUR = "#e2b23c";     // jaune journée
+const NUIT = "#222a44";     // bleu nuit sombre
+const REPERE = "#ffffff";   // le trait « maintenant » au centre
 
-let conteneur, canvas, ctx, icone, texte, R = 0, cx = 0, cy = 0;
+let conteneur, canvas, ctx, texte, L = 0, H = 0;
 
 export function installerHorloge() {
   conteneur = document.getElementById("hud-horloge");
-  canvas = document.getElementById("horloge-cadran");
-  icone = document.getElementById("horloge-icone");
+  canvas = document.getElementById("horloge-barre");
   texte = document.getElementById("horloge-txt");
   ctx = canvas.getContext("2d");
-  // Résolution interne 2× la taille CSS (48 px → 96 px) : cadran net.
-  const cote = 48;
-  canvas.width = cote * 2;
-  canvas.height = cote * 2;
-  R = cote - 4;            // rayon en unités « rendues » (2×) : ~44
-  cx = cote; cy = cote;
+  // Résolution interne 2× la taille CSS : barre nette.
+  L = 132; H = 15;                 // taille logique (px)
+  canvas.width = L * 2;
+  canvas.height = H * 2;
+  ctx.scale(2, 2);                 // on dessine dans le repère logique L×H
 }
 
 // Compte à rebours lisible (« 12m », « 45s »).
@@ -36,53 +38,57 @@ function court(s) {
   return s < 60 ? `${Math.max(1, Math.round(s))}s` : `${Math.ceil(s / 60)}m`;
 }
 
-// Dessine le cadran à l'heure courante. Appelé chaque frame quand le HUD est visible.
+// Dessine la barre à l'heure courante. Appelée chaque frame quand le HUD est visible.
 export function dessinerHorloge(temps) {
   const pos = positionCycle(temps);
   const nuit = phase(temps) === "nuit";
-  const w = canvas.width;
-  ctx.clearRect(0, 0, w, w);
+  ctx.clearRect(0, 0, L, H);
 
-  // Piste de fond.
-  ctx.lineWidth = 7;
-  ctx.lineCap = "butt";
-  ctx.strokeStyle = "#1d1913";
-  ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
+  // Cadre arrondi : on clippe tout le dessin à l'intérieur de la « pilule ».
+  ctx.save();
+  cheminArrondi(ctx, 0, 0, L, H);
+  ctx.clip();
 
-  // Arc JOUR (doré) puis arc NUIT (bleu profond).
-  const finJour = HAUT + TAU * FRAC_JOUR;
-  ctx.strokeStyle = "#e2b23c";
-  ctx.beginPath(); ctx.arc(cx, cy, R, HAUT, finJour); ctx.stroke();
-  ctx.strokeStyle = "#2c3e73";
-  ctx.beginPath(); ctx.arc(cx, cy, R, finJour, HAUT + TAU); ctx.stroke();
+  // Fond = NUIT (noir) ; on peindra les plages de JOUR (jaune) par-dessus.
+  ctx.fillStyle = NUIT;
+  ctx.fillRect(0, 0, L, H);
 
-  // Encoche « tombée du soir » (les enchères) : un petit trait clair à la frontière.
-  const encx = cx + Math.cos(finJour) * R, ency = cy + Math.sin(finJour) * R;
-  ctx.strokeStyle = "#ffe9b0"; ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(cx + Math.cos(finJour) * (R - 7), cy + Math.sin(finJour) * (R - 7));
-  ctx.lineTo(cx + Math.cos(finJour) * (R + 5), cy + Math.sin(finJour) * (R + 5));
-  ctx.stroke();
+  // Fenêtre visible = UN cycle, centrée sur « maintenant » (le repère est au milieu).
+  const echelle = L / DUREE_CYCLE;      // px par seconde de jeu
+  const centre = L / 2;
+  const maintenant = temps.total;       // temps absolu (le cycle se déduit par modulo)
+  const tGauche = maintenant - DUREE_CYCLE / 2;
+  const tDroite = maintenant + DUREE_CYCLE / 2;
+  const versX = (t) => centre + (t - maintenant) * echelle;
 
-  // Aiguille : de l'heure courante, du centre vers le bord.
-  const ang = HAUT + TAU * (pos / DUREE_CYCLE);
-  ctx.strokeStyle = "#f3efe7"; ctx.lineWidth = 3; ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(cx + Math.cos(ang) * (R - 5), cy + Math.sin(ang) * (R - 5));
-  ctx.stroke();
-  // Pastille au bout de l'aiguille.
-  ctx.fillStyle = nuit ? "#9fb4ff" : "#ffd873";
-  ctx.beginPath(); ctx.arc(cx + Math.cos(ang) * (R - 5), cy + Math.sin(ang) * (R - 5), 4, 0, TAU); ctx.fill();
-  // Moyeu central.
-  ctx.fillStyle = "#2a231b";
-  ctx.beginPath(); ctx.arc(cx, cy, 5, 0, TAU); ctx.fill();
+  // Plages de JOUR (jaune) des cycles qui croisent la fenêtre. Chaque cycle k a
+  // sa journée sur [k·CYCLE, k·CYCLE + DUREE_JOUR).
+  ctx.fillStyle = JOUR;
+  const kMin = Math.floor(tGauche / DUREE_CYCLE);
+  const kMax = Math.floor(tDroite / DUREE_CYCLE);
+  for (let k = kMin; k <= kMax; k++) {
+    const debut = Math.max(k * DUREE_CYCLE, tGauche);
+    const fin = Math.min(k * DUREE_CYCLE + DUREE_JOUR, tDroite);
+    if (fin > debut) ctx.fillRect(versX(debut), 0, versX(fin) - versX(debut), H);
+  }
 
-  // Icône centrale (DOM) + texte : jour n° + phase / compte à rebours vers le soir.
-  icone.textContent = nuit ? "🌙" : "☀";
+  ctx.restore();
+
+  // Contour de la pilule (par-dessus, non clippé).
+  cheminArrondi(ctx, 0.5, 0.5, L - 1, H - 1);
+  ctx.strokeStyle = "#3a2f26"; ctx.lineWidth = 1; ctx.stroke();
+
+  // Le REPÈRE « maintenant » : un trait vertical net au centre + un petit chevron.
+  ctx.fillStyle = REPERE;
+  ctx.fillRect(centre - 1, 0, 2, H);
+  ctx.beginPath();                       // chevron en haut (pointe vers le bas)
+  ctx.moveTo(centre - 3, 0); ctx.lineTo(centre + 3, 0); ctx.lineTo(centre, 3);
+  ctx.closePath(); ctx.fill();
+
+  // Texte + icône AU-DESSUS de la barre.
   texte.textContent = nuit
-    ? `Day ${numeroJour(temps)} · night`
-    : `Day ${numeroJour(temps)} · dusk in ${court(tempsAvantSoir(temps))}`;
+    ? `🌙 Day ${numeroJour(temps)} · night`
+    : `☀ Day ${numeroJour(temps)} · dusk in ${court(tempsAvantSoir(temps))}`;
 }
 
 export function montrerHorloge(visible) {
