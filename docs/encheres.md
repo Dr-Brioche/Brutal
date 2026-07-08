@@ -100,7 +100,7 @@ enchère (annonces « once/twice » à 1,4 s / 2,8 s), les rivaux réfléchissen
 - **Son dialogue** s'adapte : refus si pas noble ; compte à rebours vers la
   vente ; vente du ticket en fenêtre d'inscription ; dépôt d'un objet en
   journée ; « entrez ! » quand la salle est ouverte ; collecte des gains dus.
-- **L'écran d'enchères** (temps réel, **fenêtre pleine** qui masque le jeu —
+- **L'écran d'enchères** (temps réel, **plein écran aéré** comme la Forge/HV —
   socle commun `.eco-zone`, prête à recevoir un visuel de salle des ventes) :
   lot présenté (valeur de marché rappelée), prix courant, rivaux nommés,
   jauge-marteau « once/twice/SOLD », bouton **Bid** (souris) / **[Space]**

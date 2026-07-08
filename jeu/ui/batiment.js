@@ -130,8 +130,8 @@ function rafraichir() {
         ligne("Income", `+${def.revenu} 🪙${def.bonus ? ` and +${def.bonus.parVersement} ${bonusNom}` : ""} <small>every hour of play</small>`) +
         ligne("Treasury cap", `${def.tresorerieMax} 🪙 <small>(≈ ${Math.round(def.tresorerieMax / def.revenu)} h of income)</small>`) +
         `<div class="bat-note">⚠ When the treasury is FULL, production <b>stops</b> — nothing more is earned.
-         Walk back to the sign and <b>collect regularly</b>. Income only counts time spent playing
-         (menus don't count).</div>`;
+         Walk back to the sign and <b>collect regularly</b>. Time keeps flowing while you play
+         (only the pause menu stops the clock).</div>`;
       elBoutons.innerHTML =
         `<button class="bat-btn bat-btn--or" id="bat-acheter">🪙 Buy — ${def.prix} 🪙</button>` +
         `<button class="bat-btn bat-btn--gris" id="bat-quitter">Leave</button>`;

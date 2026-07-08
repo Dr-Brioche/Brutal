@@ -14,8 +14,9 @@ régulièrement, sinon la production s'arrête.
 
 1. **Le panneau** : chaque bâtiment à vendre a un panneau planté devant lui.
    S'en approcher affiche *[Space] Read* ; le lire ouvre l'**écran bâtiment**
-   (`jeu/ui/batiment.js`, **fenêtre pleine** qui masque le jeu — socle commun
-   `.eco-zone`, cf. l'HV — prête à recevoir un visuel de fond) qui explique
+   (`jeu/ui/batiment.js`, **écran plein — contenu aéré sur toute la surface**,
+   comme la Forge/HV ; socle commun `.eco-zone`, prêt à recevoir un visuel de
+   fond) qui explique
    **tout** avant l'achat : prix, revenu par heure, bonus en nature, plafond
    de la trésorerie et règle d'arrêt de production. Aucune surprise.
    Comme partout, **le temps continue de s'écouler tant que cet écran est
