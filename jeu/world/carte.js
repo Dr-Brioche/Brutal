@@ -210,6 +210,48 @@ function dessinerRoche(ctx, carte, c, l, x, y, k) {
   if (!solideEn(carte, c + 1, l)) { ctx.fillStyle = "rgba(0,0,0,0.24)"; ctx.fillRect(x + TUILE - 2, y, 2, TUILE); }
 }
 
+// PIERRE TAILLÉE (murs de ville) : maçonnerie de blocs réguliers en appareil
+// « à joints croisés » (running bond). Le motif est calculé en coordonnées MONDE
+// → les blocs traversent les tuiles sans coupure (masonry continue). On peint le
+// mortier en fond, puis les faces de blocs par-dessus (les 1 px laissés révèlent
+// les joints). Bloc éclairé en haut, ombré en bas → pierre bien taillée.
+const P_BW = 21, P_BH = 11; // taille d'un bloc (px, repère monde)
+function dessinerPierreTaillee(ctx, carte, c, l, x, y, k) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, TUILE, TUILE);
+  ctx.clip();
+  ctx.fillStyle = k.joint; // mortier de fond
+  ctx.fillRect(x, y, TUILE, TUILE);
+  const r0 = Math.floor(y / P_BH), r1 = Math.floor((y + TUILE - 1) / P_BH);
+  for (let r = r0; r <= r1; r++) {
+    const ry = r * P_BH;
+    const off = (r & 1) ? (P_BW >> 1) : 0; // rangée décalée d'un demi-bloc
+    const cc0 = Math.floor((x - off) / P_BW) - 1;
+    const cc1 = Math.floor((x + TUILE - off) / P_BW) + 1;
+    for (let cc = cc0; cc <= cc1; cc++) {
+      const bx = cc * P_BW + off;
+      ctx.fillStyle = k.fond;
+      ctx.fillRect(bx + 1, ry + 1, P_BW - 2, P_BH - 2); // face du bloc (joint 1 px autour)
+      const t = alea(cc, r, 5); // teinte du bloc, stable
+      if (t > 0.68) { ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fillRect(bx + 1, ry + 1, P_BW - 2, P_BH - 2); }
+      else if (t < 0.32) { ctx.fillStyle = "rgba(0,0,0,0.07)"; ctx.fillRect(bx + 1, ry + 1, P_BW - 2, P_BH - 2); }
+      ctx.fillStyle = "rgba(255,255,255,0.13)"; ctx.fillRect(bx + 1, ry + 1, P_BW - 2, 1);       // rebord clair
+      ctx.fillStyle = "rgba(0,0,0,0.20)"; ctx.fillRect(bx + 1, ry + P_BH - 2, P_BW - 2, 1);      // ombre basse
+      if (alea(cc, r, 6) < 0.28) { // petit éclat de taille, discret
+        ctx.fillStyle = "rgba(0,0,0,0.10)";
+        ctx.fillRect(bx + 3 + Math.floor(alea(cc, r, 7) * (P_BW - 8)), ry + 3 + Math.floor(alea(cc, r, 8) * (P_BH - 6)), 2, 2);
+      }
+    }
+  }
+  ctx.restore();
+  // Bords selon les voisins (relief là où le mur borde le sol) : lumière haut/gauche.
+  if (!solideEn(carte, c, l - 1)) { ctx.fillStyle = "rgba(255,255,255,0.16)"; ctx.fillRect(x, y, TUILE, 2); }
+  if (!solideEn(carte, c - 1, l)) { ctx.fillStyle = "rgba(255,255,255,0.09)"; ctx.fillRect(x, y, 2, TUILE); }
+  if (!solideEn(carte, c, l + 1)) { ctx.fillStyle = "rgba(0,0,0,0.34)"; ctx.fillRect(x, y + TUILE - 3, TUILE, 3); }
+  if (!solideEn(carte, c + 1, l)) { ctx.fillStyle = "rgba(0,0,0,0.20)"; ctx.fillRect(x + TUILE - 2, y, 2, TUILE); }
+}
+
 // Petit rocher / caillou de DÉCOR sur le sol (cavernes seulement). Purement visuel,
 // non bloquant : au pied des murs (case sol avec roche au-dessus) ou isolé, rare.
 function decorSol(ctx, carte, c, l, x, y) {
@@ -272,6 +314,7 @@ function dessinerTuile(ctx, carte, c, l) {
   const k = def.couleurs;
 
   if (def.style === "mur") { dessinerRoche(ctx, carte, c, l, x, y, k); return; }
+  if (def.style === "pierre-taillee") { dessinerPierreTaillee(ctx, carte, c, l, x, y, k); return; }
 
   if (def.style === "porte") {
     ctx.fillStyle = k.fond;

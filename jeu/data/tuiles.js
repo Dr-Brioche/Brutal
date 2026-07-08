@@ -22,11 +22,17 @@
 export const TUILES = {
   "#": {
     id: "mur", nom: "Stone wall", solide: true,
-    // Pierre naine chaude (grise-brune) : cohérente en ville ET en grotte. Le
-    // rendu (jeu/world/carte.js) ajoute texture + bords éclairés/ombrés selon les
-    // voisins. `joint` n'est plus dessiné (remplacé par les biseaux) mais gardé
-    // pour un usage futur / le style d'origine.
+    // ROCHE BRUTE (mines / souterrains) : pierre naine chaude (grise-brune). Le
+    // rendu (jeu/world/carte.js) ajoute texture crayeuse + crevasses + bords
+    // éclairés/ombrés selon les voisins.
     style: "mur", couleurs: { fond: "#4a453d", joint: "#2a251f" },
+  },
+  "H": {
+    id: "mur-taille", nom: "Cut stone wall", solide: true,
+    // PIERRE TAILLÉE grise claire (murs de la VILLE) : blocs d'appareil réguliers
+    // (façon maçonnerie), joints de mortier, biseau taillé. Distincte de la roche
+    // brute des mines. `fond` = face du bloc, `joint` = mortier (entre les blocs).
+    style: "pierre-taillee", couleurs: { fond: "#9ba0a6", joint: "#585c62" },
   },
   ".": {
     id: "sol-ville", nom: "City floor", solide: false,
