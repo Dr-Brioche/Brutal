@@ -27,7 +27,35 @@ rend la forge **plus intéressante que le loot** (un loot est toujours « Normal
   toléré. Reconnaissance : `trouverRecette()` dans **`jeu/systems/craft.js`**.
 - **Recettes NON montrées** au joueur : il les découvre. Des **indices** en jeu guideront vers
   les objets rares (à faire). L'aperçu du résultat n'apparaît que si le motif est juste.
-- 1re recette : **Miner's Pick** = `FFF / .B. / .B.` (3 fer en ligne + 2 bois sous le centre).
+
+### Les 37 armes ont toutes une recette (source = le classeur Excel)
+
+> **La SOURCE, c'est `docs/BRUTAL-items-et-cartes.xlsx`, onglet « Recettes ».**
+> On édite les grilles là-bas (cases colorées, lisibles), puis on régénère le jeu :
+> `python3 outils/importer_recettes.py`. Le script réécrit **seulement** le bloc
+> balisé `// <<RECETTES-AUTO>> … // <<FIN-RECETTES-AUTO>>` de `recettes.js` (les
+> `QUALITES` de forge ne sont jamais touchées). Il **vérifie** au passage que
+> chaque ingrédient existe et qu'**aucune** recette n'a le même motif qu'une autre
+> (sinon la forge ne saurait laquelle fabriquer).
+
+Trois règles guident le design des patterns :
+
+1. **La rareté fixe le coût.** Plus l'arme est rare, plus il faut de matière *et* de
+   matière rare :
+   - **Commun** → uniquement des ressources communes (fer, cuivre, charbon, pierre taillée, bois), 3 à 6 pièces.
+   - **Uncommon** → base **argent/or**, + **au plus UNE** gemme rare comme cœur élémentaire, 4 à 7 pièces.
+   - **Rare** → **gemmes rares obligatoires** au cœur (malachite, lapis, améthyste, titane, émeraude, rubis), 5 à 9 pièces.
+   - **Épique** → **minerai épique obligatoire** (saphir, diamant, mithril, onyx, sunstone), 7 à 9 pièces.
+2. **Le minerai colle au thème de l'arme.** Sang/saignement → **rubis** ; poison →
+   **émeraude/malachite** ; glace → **lapis/saphir** ; feu → **charbon + rubis** ;
+   pierre → **pierre taillée + titane** ; brute → **fer/titane** ; arcane →
+   **améthyste + diamant** ; sacré → **or/sunstone/diamant** ; onyx → **onyx**.
+3. **Les formes VARIENT.** Deux armes du même thème n'ont pas la même silhouette
+   (ex. Frostbrand et Emberblade sont toutes deux élémentaires mais ont des motifs
+   différents) : impossible de deviner tout le catalogue en testant un seul patron
+   avec chaque minerai.
+
+- 1re recette historique : **Miner's Pick** = `FFF / .W. / .W.` (3 fer en ligne + 2 bois sous le centre).
 
 ## Parchemins de craft — `jeu/ui/parchemin.js` (ajout du 08/07/2026)
 
@@ -76,7 +104,9 @@ Jauge orange horizontale ; un curseur fait des va-et-vient (aller-retour ~1,3 s)
 ## Fichiers
 
 ```
-jeu/data/recettes.js    ← QUALITES + RECETTES (données pures)
+docs/BRUTAL-items-et-cartes.xlsx  ← onglet « Recettes » : LA SOURCE éditable des patterns
+outils/importer_recettes.py       ← régénère RECETTES depuis le classeur (+ contrôle d'unicité)
+jeu/data/recettes.js    ← QUALITES + RECETTES (données pures ; bloc RECETTES auto-généré)
 jeu/systems/craft.js    ← reconnaissance de motif + géométrie du mini-jeu (logique pure)
 jeu/ui/forge.js         ← table 5×5 + mini-jeu (UI)
 jeu/systems/inventaire.js ← qualité par exemplaire (sac + inv.qualites, save/load)
