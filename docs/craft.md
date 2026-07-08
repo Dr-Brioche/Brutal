@@ -29,6 +29,18 @@ rend la forge **plus intéressante que le loot** (un loot est toujours « Normal
   les objets rares (à faire). L'aperçu du résultat n'apparaît que si le motif est juste.
 - 1re recette : **Miner's Pick** = `FFF / .B. / .B.` (3 fer en ligne + 2 bois sous le centre).
 
+## Parchemins de craft — `jeu/ui/parchemin.js` (ajout du 08/07/2026)
+
+Un moyen de **découvrir une recette** en jeu : un objet **parchemin** (catégorie
+`parchemin`, non équipable) qu'on **ouvre** depuis l'inventaire (clic droit →
+« 📜 Read »). Une fenêtre façon vieux parchemin montre alors : le **motif** de la
+recette (ingrédients + résultat, tiré de `RECETTES` via le champ `revele`) et un
+petit **texte de lore** (champ `lore` du parchemin). Champ `illustration`
+optionnel pour un dessin de parchemin (à venir). 1er exemple : **Recipe: Miner's
+Pick** (`parchemin-pioche`), récupérable via l'onglet « Scrolls » du marchand de
+test. But futur : ces parchemins tombent en butin et guident la découverte des
+recettes cachées.
+
 ## Table (UI) — `jeu/ui/forge.js`
 
 - **Palette** (gauche) : ressources du sac, cliquables, avec le « restant » (possédé − posé).

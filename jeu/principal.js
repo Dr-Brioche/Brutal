@@ -53,6 +53,7 @@ import {
 } from "./systems/encheres.js";
 import { installerEncheres, ouvrirEncheres, enchereActive } from "./ui/encheres.js";
 import { installerHorloge, dessinerHorloge, montrerHorloge } from "./ui/horloge.js";
+import { installerParchemin, ouvrirParchemin } from "./ui/parchemin.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
 import { getPreference } from "./systems/preferences.js";
@@ -610,6 +611,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     ]},
     // Trésors : objets non-utilisables, juste à revendre (marchand / HV / test).
     { nom: "Valuables", icone: "💎", cats: ["tresor"] },
+    // Parchemins de craft : à ouvrir (« Read ») pour découvrir une recette.
+    { nom: "Scrolls", icone: "📜", cats: ["parchemin"] },
   ];
 
   function parlerAuMarchand() {
@@ -909,6 +912,9 @@ export async function demarrerJeu(donneesInitiales = null) {
         vendre();
       }
     },
+    // Ouvrir un parchemin de craft (« Read ») : sa recette + son lore, par-dessus
+    // l'inventaire (on y revient en fermant ; le monde reste figé).
+    surLire: (objet) => ouvrirParchemin(objet.id),
   });
   let inventaireOuvert = false;
   function basculerInventaire() {
@@ -991,6 +997,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   installerBatiment(); // l'écran bâtiment (ouvert via le panneau de la scierie)
   installerEncheres(); // la salle des ventes du soir (ouverte via Magnar)
   installerHorloge();  // le cadran jour/nuit (HUD haut-droite)
+  installerParchemin(); // l'écran de lecture des parchemins de craft
 
   // Échap : ferme d'abord l'écran ouvert (inventaire, deck, talents, menu pause) ;
   // si rien n'est ouvert, ouvre le menu pause (sauvegarder / quitter).

@@ -2064,6 +2064,58 @@
     .ench-fin--ok { border-left: 0.4cqw solid #7fdc8f; }
     .ench-fin--perte { border-left: 0.4cqw solid #ff7a66; }
 
+    /* ---- L'écran PARCHEMIN (recette + lore, cf. ui/parchemin.js) ----
+       Ambiance « vieux parchemin » : fond crème, encre brune, bordure usée. */
+    .parch {
+      position: fixed; inset: 0; z-index: 41;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5, 4, 2, 0.66);
+    }
+    .parch-feuille {
+      position: relative; width: min(420px, 92vw); padding: 26px 30px 20px;
+      color: #3a2c1a; text-align: center;
+      background:
+        radial-gradient(120% 90% at 50% 0%, rgba(0,0,0,0.05), rgba(0,0,0,0) 60%),
+        linear-gradient(180deg, #efe2c4 0%, #e6d5b0 60%, #dcc79c 100%);
+      border: 2px solid #b79b6a; border-radius: 12px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6), inset 0 0 40px rgba(120,90,40,0.18);
+      font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    }
+    .parch-fermer {
+      position: absolute; top: 8px; right: 10px;
+      width: 26px; height: 26px; font-size: 0.85rem; font-weight: 800;
+      color: #6a4f2a; background: rgba(120,90,40,0.12); border: 1px solid #b79b6a;
+      border-radius: 6px; cursor: pointer;
+    }
+    .parch-fermer:hover { background: rgba(120,90,40,0.25); }
+    .parch-titre {
+      font-size: 1.3rem; font-weight: 800; color: #5a3d1a; letter-spacing: 0.02em;
+      border-bottom: 1px solid rgba(120,90,40,0.35); padding-bottom: 8px; margin-bottom: 12px;
+    }
+    .parch-illu { max-width: 100%; border-radius: 8px; margin-bottom: 12px; }
+    /* La recette : motif à gauche, flèche + résultat à droite. */
+    .parch-recette { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 10px; }
+    .parch-grille { display: grid; gap: 4px; padding: 8px; background: rgba(120,90,40,0.10); border-radius: 8px; }
+    .parch-case {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      background: rgba(90,60,25,0.10); border: 1px solid rgba(120,90,40,0.30); border-radius: 5px;
+    }
+    .parch-case--vide { background: transparent; border-style: dashed; }
+    .parch-past { display: inline-block; border-radius: 4px; border: 1.5px solid #000; }
+    .parch-resultat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .parch-fleche { font-size: 1.4rem; color: #8a6a34; }
+    .parch-res-visuel .parch-past { border-radius: 6px; }
+    .parch-res-nom { font-weight: 800; font-size: 0.95rem; display: flex; flex-direction: column; }
+    .parch-res-rar { font-weight: 600; font-size: 0.72rem; color: #7a6a4a; }
+    .parch-legende { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; font-size: 0.86rem; font-weight: 700; color: #4a3720; margin-bottom: 12px; }
+    .parch-ingr { display: inline-flex; align-items: center; gap: 6px; }
+    .parch-lore {
+      font-size: 0.9rem; font-style: italic; line-height: 1.55; color: #4a3a24;
+      text-align: left; margin: 0 0 10px; padding: 10px 12px;
+      background: rgba(120,90,40,0.08); border-left: 3px solid #b79b6a; border-radius: 4px;
+    }
+    .parch-aide { margin: 0; font-size: 0.7rem; color: #8a7550; }
+
     /* ---- Fenêtre de confirmation oui/non (jeter un objet rare, etc.) ---- */
     .confirm {
       position: fixed; inset: 0; z-index: 40;
@@ -2580,6 +2632,22 @@
         <div class="ench-log" id="ench-log"></div>
       </div>
       <p class="forge-aide" id="ench-aide"></p>
+    </div>
+  </div>
+
+  <!-- L'écran PARCHEMIN : recette + lore d'un objet à fabriquer (cf. ui/parchemin.js). -->
+  <div class="parch" id="parchemin" hidden>
+    <div class="parch-feuille panneau-ui">
+      <button class="parch-fermer" id="parch-fermer" title="Close (Esc)">✕</button>
+      <div class="parch-titre" id="parch-titre"></div>
+      <img class="parch-illu" id="parch-illu" hidden alt="">
+      <div class="parch-recette">
+        <div class="parch-grille" id="parch-grille"></div>
+        <div class="parch-resultat" id="parch-resultat"></div>
+      </div>
+      <div class="parch-legende" id="parch-legende"></div>
+      <p class="parch-lore" id="parch-lore"></p>
+      <p class="parch-aide">[Space] / [Esc] to close</p>
     </div>
   </div>
 

@@ -152,6 +152,22 @@ export const ITEMS = {
   "calice-cristal": { id: "calice-cristal", nom: "Crystal Chalice", categorie: "tresor", rarete: "rare", valeurVente: 160, taille: { l: 1, h: 2 }, icone: "#bfe6f0" },
   "chevaliere-ancienne": { id: "chevaliere-ancienne", nom: "Ancient Signet", categorie: "tresor", rarete: "rare", valeurVente: 120, taille: { l: 1, h: 1 }, icone: "#c8862f" },
 
+  // ---- Parchemins de craft : objets qu'on OUVRE (« Read ») pour DÉCOUVRIR une
+  // recette + un texte de lore. Catégorie "parchemin" hors de tout slot → non
+  // équipable ; le menu d'inventaire propose « Read » (+ Discard). Champs :
+  //   revele : id du RÉSULTAT dont on montre la recette (cf. data/recettes.js)
+  //   lore   : petit texte d'ambiance sur l'objet fabriqué
+  //   illustration : (optionnel) image du parchemin, dessinée plus tard
+  "parchemin-pioche": {
+    id: "parchemin-pioche", nom: "Recipe: Miner's Pick", categorie: "parchemin",
+    rarete: "commun", taille: { l: 1, h: 2 }, icone: "#c9b079",
+    revele: "pioche-de-mineur",
+    lore: "The first tool any dwarfling forges. Three bars of honest iron laid " +
+      "flat, two shafts of surface-wood beneath — simple as stone, stubborn as the " +
+      "mountain. Master this, and the veins of the Deep will not stay hidden long.",
+    // illustration: "images/parchemins/pioche.webp",  // dessin à venir
+  },
+
   // Croc de basilic : arme à poison (moteur de stacks). 6× Venom Stab + 2× Poison
   // Dance (AOE) + 1× Weakness Exploitation + 1× Explosion Of Poison (détonateur répétable).
   "croc-de-basilic": {
@@ -774,7 +790,7 @@ export function setDeItem(id) {
 const NOM_CATEGORIE = {
   arme: "Weapon", bouclier: "Off-hand", armure: "Armor", gant: "Gloves",
   botte: "Boots", collier: "Amulet", bague: "Ring", sac: "Bag",
-  ressource: "Resource", tresor: "Valuable",
+  ressource: "Resource", tresor: "Valuable", parchemin: "Scroll",
 };
 
 // Libellé court de catégorie (« Ring », « Weapon »…) pour l'en-tête d'une bulle.
@@ -792,6 +808,7 @@ export function statsLisibles(id) {
   if (!d) return [];
   const lignes = [];
   if (d.categorie === "tresor") lignes.push("A valuable — no use but to sell for gold.");
+  if (d.categorie === "parchemin") lignes.push("A recipe scroll — right-click to Read it.");
   if (d.mains === 2) lignes.push("Two-handed");
   if (d.rangsBonus) lignes.push(`+${d.rangsBonus} bag rows`);
   if (d.armureDepart) lignes.push(`+${d.armureDepart} Stone at combat start`);

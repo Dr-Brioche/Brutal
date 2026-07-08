@@ -67,7 +67,7 @@ function essayerEquiper(inventaire, heros, objet, surChangement, rendre, slotFor
   }
 }
 
-export function installerInventaire({ inventaire, heros, surChangement, surFermer, surJeter, surVendre }) {
+export function installerInventaire({ inventaire, heros, surChangement, surFermer, surJeter, surVendre, surLire }) {
   const overlay = document.getElementById("inventaire");
   const elGauche = document.getElementById("inv-gauche");
   const elDroite = document.getElementById("inv-droite");
@@ -309,6 +309,10 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const actions = estEquipable(o.id)
       ? [{ label: "Equip", fn: () => essayerEquiper(inventaire, heros, o, surChangement, rendre) }]
       : [];
+    // « Read » pour un parchemin : ouvre la recette + le lore.
+    if (surLire && itemDef(o.id)?.categorie === "parchemin") {
+      actions.push({ label: "📜 Read", fn: () => surLire(o) });
+    }
     if (surVendre && document.body.classList.contains("en-boutique")) {
       actions.push({ label: `Sell — ${prixVente(o.id) * (o.quantite ?? 1)} 🪙`, fn: () => surVendre(o) });
     }
