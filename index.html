@@ -613,6 +613,30 @@
     .forge-forger:disabled { opacity: 0.4; cursor: default; filter: grayscale(0.5); }
     .forge-forger:not(:disabled):hover { filter: brightness(1.1); }
 
+    /* Bouton « Livre d'artisanat » (choisir une recette-modèle). */
+    .forge-livre-btn {
+      padding: 0.7cqw 1.4cqw; font-size: 1.5cqw; font-weight: 700; color: #f3e3c4;
+      background: linear-gradient(180deg,#5a3a1c,#3a2410); border: 0.18cqw solid #c98a3a;
+      border-radius: var(--rayon); cursor: pointer; letter-spacing: 0.03em;
+    }
+    .forge-livre-btn:hover { border-color: #ffcf57; filter: brightness(1.1); }
+    /* Panneau de référence : la recette choisie, en petit, à recopier. */
+    .forge-ref {
+      width: 17cqw; padding: 1cqw; border: 0.18cqw dashed #a6803e; border-radius: var(--rayon);
+      background: rgba(30,20,10,0.5); display: flex; flex-direction: column; align-items: center; gap: 0.7cqw;
+    }
+    .forge-ref-nom { font-size: 1.4cqw; font-weight: 700; line-height: 1.1; text-align: center; }
+    .forge-ref-grille { display: grid; gap: 0.25cqw; }
+    .forge-ref-case {
+      width: 2.6cqw; height: 2.6cqw; border-radius: 0.35cqw;
+      background: rgba(0,0,0,0.35); border: 0.12cqw solid rgba(140,110,70,0.35);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .forge-ref-case--vide { opacity: 0.4; }
+    .forge-ref-past { display: block; width: 2cqw; height: 2cqw; border-radius: 0.3cqw; border: 0.12cqw solid #000; }
+    .forge-ref-legende { display: flex; flex-wrap: wrap; gap: 0.6cqw; justify-content: center; font-size: 1.2cqw; }
+    .forge-ref-ingr { display: inline-flex; align-items: center; gap: 0.2cqw; }
+
     /* --- Mini-jeu de forge (par-dessus la table) --- */
     .forge-minijeu {
       position: absolute; inset: 0; z-index: 5; border-radius: var(--rayon);
@@ -2072,6 +2096,58 @@
 
     /* ---- L'écran PARCHEMIN (recette + lore, cf. ui/parchemin.js) ----
        Ambiance « vieux parchemin » : fond crème, encre brune, bordure usée. */
+    /* ---- Le LIVRE D'ARTISANAT (recettes apprises) ---- */
+    .livre {
+      position: fixed; inset: 0; z-index: 42;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5, 4, 2, 0.7);
+    }
+    .livre-panneau {
+      width: min(760px, 94vw); max-height: calc(var(--zh) - 2 * var(--ouv-y));
+      display: flex; flex-direction: column;
+      padding: 14px 16px 12px; color: #e8dfce;
+      background: #1a140e; border: 1px solid #6a4f2c; border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    }
+    .livre-entete { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .livre-titre { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.06em; }
+    .livre-compte { color: #c8a86a; font-weight: 600; font-size: 0.72rem; margin-left: 8px; }
+    .livre-fermer {
+      background: none; border: 0; color: #c9bfa8; font-size: 1.1rem; cursor: pointer;
+      width: 30px; height: 30px; border-radius: 8px;
+    }
+    .livre-fermer:hover { background: rgba(255,255,255,0.08); }
+    .livre-corps { margin: 10px 0 6px; overflow-y: auto; flex: 1; min-height: 0; }
+    .livre-vide { text-align: center; color: #a89a80; padding: 40px 20px; line-height: 1.7; }
+    .livre-section { margin-bottom: 14px; }
+    .livre-section-tete {
+      font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
+      font-size: 0.72rem; color: #e0a84a; border-bottom: 1px solid #4a3826;
+      padding-bottom: 3px; margin-bottom: 8px;
+    }
+    .livre-section-tete small { color: #8a7452; font-weight: 600; }
+    .livre-cartes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+    .livre-carte {
+      background: #241a11; border: 1px solid #3f2f1c; border-radius: 10px; padding: 8px;
+    }
+    .livre-carte--choisir { cursor: pointer; }
+    .livre-carte--choisir:hover { border-color: #e0a84a; background: #2c2013; }
+    .livre-carte-tete { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+    .livre-carte-txt { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+    .livre-carte-nom { font-weight: 700; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .livre-carte-rar { color: #9a8a6a; font-size: 0.64rem; }
+    .livre-past { display: inline-block; border-radius: 4px; border: 1px solid #000; object-fit: cover; vertical-align: middle; }
+    .livre-motif { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .livre-grille { display: grid; gap: 2px; }
+    .livre-case {
+      width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+      background: #14100a;
+    }
+    .livre-case--vide { background: transparent; box-shadow: inset 0 0 0 1px #2e2418; }
+    .livre-legende { display: flex; flex-wrap: wrap; gap: 5px; font-size: 0.66rem; color: #cdbf9f; }
+    .livre-ingr { display: inline-flex; align-items: center; gap: 2px; }
+    .livre-aide { text-align: center; color: #8a7c60; font-size: 0.66rem; margin: 2px 0 0; }
+
     .parch {
       position: fixed; inset: 0; z-index: 41;
       display: flex; align-items: center; justify-content: center;
@@ -2417,6 +2493,11 @@
         <div class="forge-resultat">
           <div class="forge-sortie" id="forge-sortie"></div>
           <button class="forge-forger" id="forge-forger" disabled>⚒ Forger</button>
+          <!-- Ouvre le Livre d'artisanat en mode « choisir » : la recette
+               sélectionnée s'affiche en petit ci-dessous, comme modèle à recopier. -->
+          <button class="forge-livre-btn" id="forge-livre" title="Ouvrir le Livre d'artisanat (L)">📖 Livre d'artisanat</button>
+          <!-- Référence : la recette choisie dans le livre, en petit. -->
+          <div class="forge-ref" id="forge-ref" hidden></div>
         </div>
       </div>
       <div class="forge-aide" id="forge-aide">Assemble des ingrédients sur la table — l'objet apparaît à droite quand le motif est juste. [Échap] Quitter</div>
@@ -2657,6 +2738,18 @@
     </div>
   </div>
 
+  <!-- Le LIVRE D'ARTISANAT : les recettes apprises, rangées par catégorie -->
+  <div class="livre" id="livre" hidden>
+    <div class="livre-panneau panneau-ui">
+      <div class="livre-entete">
+        <span class="livre-titre" id="livre-titre">📖 Craftsman's Book</span>
+        <button class="livre-fermer" id="livre-fermer" title="Close (Esc)">✕</button>
+      </div>
+      <div class="livre-corps" id="livre-corps"></div>
+      <p class="livre-aide" id="livre-aide">[L] / [Esc] close</p>
+    </div>
+  </div>
+
   <!-- Fenêtre de confirmation oui/non (jeter un objet rare, quitter le butin…) -->
   <div class="confirm" id="confirmation" hidden>
     <div class="confirm-panneau panneau-ui">
@@ -2682,6 +2775,9 @@
     </button>
     <button class="barre-btn" id="barre-deck" title="Deck (N)">
       <span class="barre-ico">🃏</span><span class="barre-lbl">Deck</span>
+    </button>
+    <button class="barre-btn" id="barre-livre" title="Craftsman's Book (L)">
+      <span class="barre-ico">📖</span><span class="barre-lbl">Book</span>
     </button>
     <button class="barre-btn" id="barre-menu-pause" title="Menu (Esc)">
       <span class="barre-ico">☰</span><span class="barre-lbl">Menu</span>

@@ -54,6 +54,10 @@ import {
 import { installerEncheres, ouvrirEncheres, enchereActive } from "./ui/encheres.js";
 import { installerHorloge, dessinerHorloge, montrerHorloge } from "./ui/horloge.js";
 import { installerParchemin, ouvrirParchemin } from "./ui/parchemin.js";
+import {
+  creerBibliotheque, decouvrir, etatBibliotheque, chargerBibliotheque,
+} from "./systems/bibliotheque.js";
+import { installerLivre, ouvrirLivre, livreActif } from "./ui/livre.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
 import { getPreference } from "./systems/preferences.js";
@@ -134,6 +138,9 @@ export async function demarrerJeu(donneesInitiales = null) {
   const temps = creerTemps();
   // La VENTE AUX ENCHÈRES du soir (ticket, dépôt, gains en attente).
   const encheres = creerEncheres();
+  // Le LIVRE D'ARTISANAT : les recettes DÉCOUVERTES (parchemin lu ou objet forgé
+  // par hasard). S'alimente tout seul ; consultable à la touche L.
+  const bibliotheque = creerBibliotheque();
   // La bulle d'info lit l'équipement courant pour colorer les pièces d'un set.
   definirSourceEquipement(() => inventaire.slots);
   inventaire.slots.armure = "tenue-de-voyageur"; // habits de base (corps)
@@ -143,6 +150,15 @@ export async function demarrerJeu(donneesInitiales = null) {
   appliquerEquipement(heros, inventaire, planches);
   appliquerTalents(heros); // vie max / vitesse selon les talents (aucun au départ)
   const maitrise = creerMaitrise();
+
+  // Apprendre une recette (parchemin lu ou objet forgé par hasard) : on l'ajoute
+  // au livre et, si c'est une VRAIE nouveauté, on prévient le joueur.
+  function apprendreRecette(resultatId) {
+    if (decouvrir(bibliotheque, resultatId)) {
+      const nom = itemDef(resultatId)?.nom ?? resultatId;
+      afficherMessage(`✨ Recette apprise : ${nom} — voir le Livre d'artisanat (L).`);
+    }
+  }
 
   let enPause = false;
   let enTransition = false;
@@ -413,7 +429,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         "Apporte-moi minerai et volonté — ensemble, on façonnera ton acier.",
       ],
       choix: [
-        { texte: "⚒  Forger", action: () => ouvrirForge(inventaire, heros, () => { enPause = false; }) },
+        { texte: "⚒  Forger", action: () => ouvrirForge(inventaire, heros, () => { enPause = false; }, { surDecouverte: apprendreRecette, bibliotheque }) },
         { texte: "Plus tard", action: () => {} },
       ],
     }, () => { if (!forgeActive()) enPause = false; });
@@ -840,6 +856,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       batiments: etatBatiments(batiments),
       temps: etatTemps(temps),
       encheres: etatEncheres(encheres),
+      bibliotheque: etatBibliotheque(bibliotheque),
       armeNom: armeEquipee(inventaire)?.nom ?? "Unarmed",
       armureNom: armureEquipee(inventaire).nom,
     };
@@ -881,6 +898,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (donnees.batiments) chargerBatiments(batiments, donnees.batiments); // scierie & co
     if (donnees.temps) chargerTemps(temps, donnees.temps);                 // cycle jour/nuit
     if (donnees.encheres) chargerEncheres(encheres, donnees.encheres);     // ticket, dépôt, dus
+    if (donnees.bibliotheque) chargerBibliotheque(bibliotheque, donnees.bibliotheque); // recettes apprises
     appliquerEquipement(heros, inventaire, planches);
     mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
   }
@@ -960,7 +978,10 @@ export async function demarrerJeu(donneesInitiales = null) {
     },
     // Ouvrir un parchemin de craft (« Read ») : sa recette + son lore, par-dessus
     // l'inventaire (on y revient en fermant ; le monde reste figé).
-    surLire: (objet) => ouvrirParchemin(objet.id),
+    surLire: (objet) => {
+      ouvrirParchemin(objet.id);
+      apprendreRecette(itemDef(objet.id)?.revele); // lire un parchemin apprend sa recette
+    },
   });
   let inventaireOuvert = false;
   function basculerInventaire() {
@@ -1044,6 +1065,21 @@ export async function demarrerJeu(donneesInitiales = null) {
   installerEncheres(); // la salle des ventes du soir (ouverte via Magnar)
   installerHorloge();  // le cadran jour/nuit (HUD haut-droite)
   installerParchemin(); // l'écran de lecture des parchemins de craft
+  installerLivre();     // le Livre d'artisanat (recettes apprises, touche L)
+
+  // Le LIVRE D'ARTISANAT (touche L + bouton 📖 de la barre). Le livre gère sa
+  // propre fermeture (L / Esc, en capture) ; on ne fait qu'ouvrir ici.
+  function basculerLivre() {
+    if (livreActif()) return;
+    if (combatEnCours || dialogueActif() || enTransition) return;
+    if (enPause) return; // un autre écran est déjà ouvert
+    enPause = true; invite.hidden = true;
+    ouvrirLivre(bibliotheque, { surFermer: () => { enPause = false; } });
+  }
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "KeyL" && !e.repeat) { e.preventDefault(); basculerLivre(); }
+  });
+  document.getElementById("barre-livre").addEventListener("click", basculerLivre);
 
   // Échap : ferme d'abord l'écran ouvert (inventaire, deck, talents, menu pause) ;
   // si rien n'est ouvert, ouvre le menu pause (sauvegarder / quitter).

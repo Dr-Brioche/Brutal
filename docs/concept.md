@@ -856,6 +856,12 @@ complet dans **`docs/craft.md`** ; résumé :
 - **La Forge = écran plein écran dédié** (comme le combat). On assemble des
   **ressources** sur une **table 5×5** selon un **motif** (façon Minecraft) ; le bon
   motif fait apparaître l'objet à créer. **Recettes cachées** (le joueur les découvre).
+- **Livre d'artisanat** (bouton 📖 / touche `L`) : une **bibliothèque des recettes
+  APPRISES**, qui s'alimente toute seule. Une recette n'y entre **que** si on l'a
+  découverte — soit en **lisant un parchemin**, soit en **forgeant l'objet par
+  hasard** (motif trouvé à la main). Rangée par catégorie, consultable à tout
+  moment, sauvegardée. Depuis la forge, on peut ouvrir le livre et **choisir une
+  recette-modèle** affichée en petit pour la **recopier** sur la table.
 - **Mini-jeu de forge** : jauge orange + curseur ; on frappe sur un **marqueur** à 3
   bandes (Artisan/Master/Exceptional), la zone orange = Normal, les **zones rouges** aux
   bouts = ratage **extrême** (composants perdus). Le **bonus de Force dépend de la RARETÉ**

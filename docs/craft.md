@@ -93,7 +93,34 @@ petit **texte de lore** (champ `lore` du parchemin). Champ `illustration`
 optionnel pour un dessin de parchemin (à venir). 1er exemple : **Recipe: Miner's
 Pick** (`parchemin-pioche`), récupérable via l'onglet « Scrolls » du marchand de
 test. But futur : ces parchemins tombent en butin et guident la découverte des
-recettes cachées.
+recettes cachées. **Lire un parchemin ENREGISTRE sa recette dans le Livre
+d'artisanat** (cf. ci-dessous) — même si le motif est déjà connu, il reste acquis.
+
+## Livre d'artisanat — `jeu/ui/livre.js` + `jeu/systems/bibliotheque.js` (09/07/2026)
+
+Une **bibliothèque des recettes DÉCOUVERTES**, qui s'alimente toute seule. Une
+recette n'y apparaît **que si on l'a APPRISE**, par l'un des deux seuls chemins :
+
+1. **Lire un parchemin** de craft (on gagne le savoir, même sans les matériaux) ;
+2. **Forger l'objet « par hasard »** à la forge (en trouvant le bon motif à la main).
+
+À chaque nouvelle découverte, un message le signale (« ✨ Recette apprise : … »).
+Le reste des recettes reste **caché** : le livre est un savoir qui **s'accumule**.
+
+- **Logique pure** (`systems/bibliotheque.js`) : un `Set` d'ids de résultat.
+  `decouvrir(biblio, id)` renvoie `true` seulement pour une **vraie nouveauté**
+  (id qui correspond à une recette existante et pas encore connue). Rangé **par
+  catégorie** (colonne A de l'Excel : Arme / Arme à deux mains / Main seconde /
+  Armure / Gant / Botte / Bague / Collier), dérivée du résultat. **Sauvegardé**
+  (`etatBibliotheque` / `chargerBibliotheque`, champ `bibliotheque` de la save).
+- **Écran** (`ui/livre.js`) : ouvert par le **bouton 📖 de la barre** (bas-droite)
+  ou la **touche `L`** (fermeture `L`/`Échap`). Consultable **à tout moment**.
+  Chaque recette = une carte : résultat (nom coloré + rareté) + **motif en petite
+  grille** + légende (×N par ingrédient). Compteur « X / 118 apprises ».
+- **Depuis la forge** : le bouton **« 📖 Livre d'artisanat »** ouvre le livre en
+  **mode CHOISIR**. On clique une recette → elle s'affiche **en petit**, comme
+  **modèle à recopier** sur la table (panneau de référence à droite). Pratique
+  pour reproduire un motif compliqué sans tout retenir.
 
 ## Table (UI) — `jeu/ui/forge.js`
 
@@ -157,7 +184,9 @@ docs/BRUTAL-items-et-cartes.xlsx  ← onglet « Recettes » : LA SOURCE éditabl
 outils/importer_recettes.py       ← régénère RECETTES depuis le classeur (+ contrôle d'unicité)
 jeu/data/recettes.js    ← QUALITES + RECETTES (données pures ; bloc RECETTES auto-généré)
 jeu/systems/craft.js    ← reconnaissance de motif + géométrie du mini-jeu (logique pure)
-jeu/ui/forge.js         ← table 5×5 + mini-jeu (UI)
+jeu/systems/bibliotheque.js ← Livre d'artisanat : recettes découvertes (logique pure, save/load)
+jeu/ui/livre.js         ← écran du Livre d'artisanat (feuilleter + choisir un modèle)
+jeu/ui/forge.js         ← table 5×5 + mini-jeu + bouton/panneau de référence du livre (UI)
 jeu/systems/inventaire.js ← qualité par exemplaire (sac + inv.qualites, save/load)
 jeu/ui/combat.js        ← Force de qualité en combat
 jeu/ui/infobulle.js     ← ligne de qualité dans la bulle

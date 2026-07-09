@@ -14,20 +14,25 @@
 //
 // API alignée sur le combat : ouvrirForge(inv, surFermer) / fermerForge() / forgeActive().
 
-import { itemDef } from "../data/items.js";
+import { itemDef, couleurRarete } from "../data/items.js";
 import { QUALITES, forceQualite } from "../data/recettes.js";
 import {
   trouverRecette, ingredientsPoses,
   centreMarqueur, outcomeFrappe, QUALITE_PAR_MARQUEUR, MJ, periodeMiniJeu,
 } from "../systems/craft.js";
 import { compterRessource, retirerRessource, ajouterObjet } from "../systems/inventaire.js";
+import { ouvrirLivre } from "./livre.js";
 
 const TAILLE = 5;         // table 5×5
 
 let overlay, boutonFermer, elPalette, elTable, elSortie, elForger;
 let elMiniJeu, elCurseur, elMGrand, elMMoyen, elMPetit, elMJTitre, elMJAide;
+let elLivreBtn, elRef;
 let actif = false;
 let surFermerActif = null;
+let surDecouverteActif = null;  // prévenir principal.js d'une recette forgée par hasard
+let biblioRef = null;           // le livre (pour le mode « choisir une recette-modèle »)
+let refCourante = null;         // la recette choisie comme référence à recopier
 let inv = null;
 let heros = null;         // pour lire le rang du talent « Master Craftsman »
 let grille = [];          // 5×5 d'ids de ressource (ou null)
@@ -50,17 +55,27 @@ export function installerForge() {
   elMPetit = document.getElementById("forge-mj-petit");
   elMJTitre = document.getElementById("forge-mj-titre");
   elMJAide = document.getElementById("forge-mj-aide");
+  elLivreBtn = document.getElementById("forge-livre");
+  elRef = document.getElementById("forge-ref");
   boutonFermer.addEventListener("click", fermerForge);
   elForger.addEventListener("click", forger);
   elMiniJeu.addEventListener("click", () => { if (miniActif) validerFrappe(); });
+  elLivreBtn.addEventListener("click", ouvrirLivrePick);
 }
 
-export function ouvrirForge(inventaire, herosRef = null, surFermer = null) {
+// `opts` : { surDecouverte(resultatId), bibliotheque } — pour apprendre les
+// recettes forgées « par hasard » et ouvrir le livre en mode « choisir ».
+export function ouvrirForge(inventaire, herosRef = null, surFermer = null, opts = {}) {
   if (actif) return;
   actif = true;
   inv = inventaire;
   heros = herosRef;
   surFermerActif = surFermer;
+  surDecouverteActif = opts.surDecouverte ?? null;
+  biblioRef = opts.bibliotheque ?? null;
+  refCourante = null;
+  elRef.hidden = true;
+  elLivreBtn.hidden = !biblioRef;    // pas de livre → pas de bouton
   grille = Array.from({ length: TAILLE }, () => Array(TAILLE).fill(null));
   ressourceSel = null;
   miniActif = false;                 // sécurité : jamais de mini-jeu « collé » d'une session précédente
@@ -169,6 +184,57 @@ function rafraichir() {
   }
 }
 
+// ----- Livre d'artisanat : choisir une recette-modèle -----------------------
+
+// Ouvre le livre en mode « choisir ». Pendant ce temps, on retire le clavier de
+// la forge (le livre gère Esc/L lui-même) puis on le rebranche à la fermeture.
+function ouvrirLivrePick() {
+  if (!biblioRef || miniActif) return;
+  window.removeEventListener("keydown", surTouche, true);
+  ouvrirLivre(biblioRef, {
+    surChoix: (rec) => { refCourante = rec; rendreReference(); },
+    surFermer: () => { if (actif) window.addEventListener("keydown", surTouche, true); },
+  });
+}
+
+// Pastille d'un ingrédient (image si dispo, sinon carré de couleur).
+function pastilleRef(id) {
+  const d = itemDef(id);
+  if (!d) return "";
+  const bord = couleurRarete(id);
+  if (d.image) return `<img class="forge-ref-past" style="border-color:${bord}" src="${d.image}" alt="">`;
+  return `<span class="forge-ref-past" style="background:${d.icone};border-color:${bord}"></span>`;
+}
+
+// Affiche la recette choisie en petit (motif + légende), comme modèle à recopier.
+function rendreReference() {
+  if (!refCourante) { elRef.hidden = true; return; }
+  const d = itemDef(refCourante.resultat);
+  const forme = refCourante.forme;
+  const cols = Math.max(...forme.map((r) => r.length));
+  const compte = {};
+  let cells = "";
+  for (const ligne of forme) {
+    for (let c = 0; c < cols; c++) {
+      const car = ligne[c] ?? ".";
+      if (car === "." || !refCourante.legende[car]) {
+        cells += `<span class="forge-ref-case forge-ref-case--vide"></span>`;
+      } else {
+        const id = refCourante.legende[car];
+        compte[id] = (compte[id] ?? 0) + 1;
+        cells += `<span class="forge-ref-case">${pastilleRef(id)}</span>`;
+      }
+    }
+  }
+  const legende = Object.entries(compte)
+    .map(([id, n]) => `<span class="forge-ref-ingr">${pastilleRef(id)}×${n}</span>`).join("");
+  elRef.innerHTML =
+    `<div class="forge-ref-nom" style="color:${couleurRarete(refCourante.resultat)}">${d?.nom ?? refCourante.resultat}</div>` +
+    `<div class="forge-ref-grille" style="grid-template-columns:repeat(${cols},1fr)">${cells}</div>` +
+    `<div class="forge-ref-legende">${legende}</div>`;
+  elRef.hidden = false;
+}
+
 // ----- Mini-jeu de forge ---------------------------------------------------
 
 function forger() {
@@ -228,6 +294,8 @@ function resoudreCraft(marqueur) {
       const q = QUALITES[qualite];
       const force = forceQualite(d.rarete, qualite);
       elMJTitre.textContent = `${d.nom} — ${q.nom}${force > 0 ? ` (+${force} Force)` : ""} !`;
+      // Forger un objet « par hasard » APPREND sa recette (livre d'artisanat).
+      if (surDecouverteActif) surDecouverteActif(recetteCourante.resultat);
     } else {
       // Sac plein : impossible de placer l'objet forgé. On REND les ingrédients
       // (leurs cases viennent d'être libérées, la place ne manquera pas) plutôt
@@ -280,6 +348,9 @@ export function fermerForge() {
   window.removeEventListener("keydown", surTouche, true);
   const cb = surFermerActif;
   surFermerActif = null;
+  surDecouverteActif = null;
+  biblioRef = null;
+  refCourante = null;
   inv = null;
   if (cb) cb();
 }
