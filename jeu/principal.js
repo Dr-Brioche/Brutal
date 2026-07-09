@@ -173,16 +173,17 @@ export async function demarrerJeu(donneesInitiales = null) {
   let combatEnCours = null;        // non-null = on est en combat
   let menuPauseOuvert = false;     // le menu pause (Échap) est-il ouvert ?
 
-  // Luc l'hérétique : arpente le couloir devant la porte de sortie (rangée 13).
-  // Sprite 104×88 → offsets pour le centrer sur la tuile (−36) et poser ses pieds
-  // au même endroit qu'avant (pieds à rangée 13,5 → −72).
+  // Luc l'hérétique : IMMOBILE, garé JUSTE SOUS la porte de sortie (colonne 42,
+  // rangée 15) pour ne plus gêner les déplacements de test. (Avant, il arpentait la
+  // rangée 13 et bloquait le chemin vers le marchand/la mine.) Stationnaire =
+  // xMin = xMax = x (comme le marchand). Sprite 104×88 → offset −36 pour le centrer.
   const fanatique = creerPnj({
     modele: FANATIQUE,
     planche: planches.get(FANATIQUE.planche),
-    x: 37 * TUILE - 36,
-    y: 13 * TUILE - 72,
-    xMin: 34 * TUILE - 36,
-    xMax: 40 * TUILE - 36,
+    x: 42 * TUILE - 36,
+    y: 15 * TUILE - 72,
+    xMin: 42 * TUILE - 36,
+    xMax: 42 * TUILE - 36,
   });
   // Renaud (marchand de TEST), STATIONNAIRE près de la sortie (rangée 11).
   // Sprite 104×88 → offsets pour le centrer sur la tuile (−36) et poser ses pieds
