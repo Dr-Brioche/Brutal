@@ -1021,6 +1021,12 @@ Deuxième jambe du pilier économie après l'HV : **investir dans la pierre**
   affiche une **pastille dorée** quand il y a de l'or à récolter (rouge
   clignotante si la caisse est pleine). *Visuel du bâtiment : façade
   placeholder (planches + lame de scie), en attendant le vrai sprite.*
+- **Talent légendaire « Tax Collector » (Commerce, 09/07/2026)** : une fois
+  débloqué, l'**OR** des bâtiments est **encaissé automatiquement** dès que le
+  coffre est plein (plus de tournée à pied, la production ne gèle jamais). Les
+  **ressources en nature** (bois…), elles, continuent de s'accumuler mais
+  **plafonnées à 3 stacks de 10 = 30** et **restent à récolter à pied**. Réservé
+  aux gros investisseurs (légendaire, coût 3, bout de la branche Commerce).
 
 ## La vente aux enchères du soir (pilier économie) — 1er jet (07/07/2026)
 
@@ -1070,9 +1076,10 @@ thématiques depuis un **tronc commun** (*Dwarf's Resolve*, en haut) :
   (*Thick Hide*/*Ironheart*), vitesse & agilité, pioche, et les **légendaires**
   d'armes (*Giant's Grip*, *Ambidexterity*, *Ancestral Mastery*).
 - **🪙 Commerce** (droite) : sac (*Extra Pouch*), exploration efficace (*Tunnel
-  Sense*), l'accès aux **enchères** (*Title of Nobility*) et la **licence de
+  Sense*), l'accès aux **enchères** (*Title of Nobility*), la **licence de
   consignation** (*Consignment License*, 2 rangs : +1 objet déposable à l'enchère
-  par rang).
+  par rang) et le **légendaire *Tax Collector*** (collecte auto de l'or des
+  bâtiments).
 Données dans `data/talents.js` (`branche` + `BRANCHES`) ; l'écran teinte chaque
 colonne et l'intitule. *(1er jet : XP/niveau/points sauvegardés, rangs multiples
 supportés — cf. Master Craftsman ×3. À venir : plus de nœuds Forge/Commerce.)*

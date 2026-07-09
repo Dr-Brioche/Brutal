@@ -67,29 +67,52 @@ export function acheterBatiment(bats, inv, id) {
 
 // ----- Production ------------------------------------------------------------
 
+// Plafond du STOCK EN NATURE quand le « Collecteur d'impôt » tourne (la
+// production ne gèle plus, donc les ressources s'accumuleraient sans fin) :
+// 3 stacks de 10 = 30 (décision Brioche 09/07/2026). Au-delà, on ne perd rien,
+// ça n'accumule juste plus (à venir récolter à pied).
+const STOCK_MAX_IMPOT = 30;
+
 // Avance tous les bâtiments possédés de `dt` secondes de JEU ACTIF (l'appelant
-// garantit qu'on n'est ni en pause, ni dans un menu/écran). Renvoie les
-// événements notables de ce tick, pour que l'UI prévienne le joueur :
+// garantit qu'on n'est ni en pause, ni dans un menu/écran).
+//
+// `opts.collecteurImpot` (talent légendaire) + `opts.inv` : quand le coffre est
+// PLEIN, l'OR est versé AUTOMATIQUEMENT au joueur (plus besoin d'aller au
+// panneau) et la production continue ; les RESSOURCES, elles, s'accumulent
+// quand même (plafond 30) et restent à récolter à pied.
+//
+// Renvoie les événements notables du tick :
 //   { id, type: "versement", montant }  → un versement vient de tomber
-//   { id, type: "plein" }               → la trésorerie vient d'atteindre le
-//                                         plafond (production À L'ARRÊT)
-export function tickBatiments(bats, dt) {
+//   { id, type: "plein" }               → coffre plein, production À L'ARRÊT (mode normal)
+//   { id, type: "impot", montant }      → l'or a été collecté automatiquement
+export function tickBatiments(bats, dt, opts = {}) {
+  const { collecteurImpot = false, inv = null } = opts;
+  const auto = collecteurImpot && inv;
   const evts = [];
   for (const [id, b] of Object.entries(bats.possedes)) {
     const def = batimentDef(id);
     if (!def) continue;
-    if (b.tresorerie >= def.tresorerieMax) continue; // pleine : production gelée
+    if (!auto && b.tresorerie >= def.tresorerieMax) continue; // pleine : production gelée (mode normal)
+    const stockMax = def.bonus ? (auto ? STOCK_MAX_IMPOT : def.bonus.max) : 0;
     b.progres += dt;
-    while (b.progres >= def.periode && b.tresorerie < def.tresorerieMax) {
+    while (b.progres >= def.periode) {
+      if (!auto && b.tresorerie >= def.tresorerieMax) break;
       b.progres -= def.periode;
-      const gain = Math.min(def.revenu, def.tresorerieMax - b.tresorerie);
+      const gain = auto ? def.revenu : Math.min(def.revenu, def.tresorerieMax - b.tresorerie);
       b.tresorerie += gain;
-      // Le bonus EN NATURE tombe avec le versement (plafonné lui aussi).
-      if (def.bonus) b.stock = Math.min(def.bonus.max, (b.stock ?? 0) + def.bonus.parVersement);
+      // Le bonus EN NATURE tombe avec le versement (plafonné).
+      if (def.bonus) b.stock = Math.min(stockMax, (b.stock ?? 0) + def.bonus.parVersement);
       evts.push({ id, type: "versement", montant: gain });
       if (b.tresorerie >= def.tresorerieMax) {
-        b.progres = 0; // la scie s'arrête : le temps ne s'accumule plus
-        evts.push({ id, type: "plein" });
+        if (auto) {
+          // Collecteur d'impôt : l'or file directement dans la bourse du joueur.
+          inv.or += b.tresorerie;
+          evts.push({ id, type: "impot", montant: b.tresorerie });
+          b.tresorerie = 0; // le coffre repart de zéro, la production continue
+        } else {
+          b.progres = 0; // la scie s'arrête : le temps ne s'accumule plus
+          evts.push({ id, type: "plein" });
+        }
       }
     }
   }
@@ -142,7 +165,9 @@ export function chargerBatiments(bats, etat) {
     bats.possedes[id] = {
       tresorerie: Number.isFinite(v?.tresorerie) ? Math.max(0, Math.min(def.tresorerieMax, Math.round(v.tresorerie))) : 0,
       progres: Number.isFinite(v?.progres) ? Math.max(0, Math.min(def.periode, v.progres)) : 0,
-      stock: Number.isFinite(v?.stock) && def.bonus ? Math.max(0, Math.min(def.bonus.max, Math.round(v.stock))) : 0,
+      // Plafond de chargement = STOCK_MAX_IMPOT (30) : avec le Collecteur d'impôt
+      // le stock peut monter au-delà du max « normal » (def.bonus.max).
+      stock: Number.isFinite(v?.stock) && def.bonus ? Math.max(0, Math.min(STOCK_MAX_IMPOT, Math.round(v.stock))) : 0,
     };
   }
 }

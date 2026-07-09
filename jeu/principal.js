@@ -1378,9 +1378,11 @@ export async function demarrerJeu(donneesInitiales = null) {
           afficherMessage(`📈 ${itemDef(v.id)?.nom ?? v.id} sold at the Exchange — go collect your ${v.prix} 🪙!`);
         }
         // Les BÂTIMENTS produisent sur la MÊME horloge de jeu actif que le marché.
-        for (const e of tickBatiments(batiments, dt)) {
+        // Le talent « Tax Collector » encaisse l'or automatiquement (coffre plein).
+        for (const e of tickBatiments(batiments, dt, { collecteurImpot: heros.collecteurImpot, inv: inventaire })) {
           const nom = BATIMENTS[e.id]?.nom ?? e.id;
-          if (e.type === "versement") afficherMessage(`🪚 ${nom}: +${e.montant} 🪙 in its treasury — collect at its sign.`);
+          if (e.type === "impot") afficherMessage(`🪙 ${nom}: +${e.montant} 🪙 auto-collected by your Tax Collector.`);
+          else if (e.type === "versement" && !heros.collecteurImpot) afficherMessage(`🪚 ${nom}: +${e.montant} 🪙 in its treasury — collect at its sign.`);
           else if (e.type === "plein") afficherMessage(`⚠ ${nom}: treasury FULL — production STOPPED until you collect!`);
         }
         // Le CYCLE JOUR/NUIT avance aussi en jeu actif. À la tombée du soir, la

@@ -113,6 +113,15 @@ export const TALENTS = {
     effet: { depotEnchere: 1 },
     description: "Consign one more item per rank at the evening auction (2 ranks → up to 3 items at once).",
   },
+  // Légendaire commerce : le Collecteur d'impôt. L'OR des bâtiments est encaissé
+  // AUTOMATIQUEMENT quand leur coffre est plein (plus de tournée). Les
+  // RESSOURCES en nature (bois…) restent à récolter à pied (plafond 3×10=30).
+  collecteurImpot: {
+    id: "collecteurImpot", nom: "Tax Collector", branche: "commerce",
+    x: 4, y: 5, cout: 3, requis: ["encheresDepot"], legendaire: true,
+    effet: { collecteurImpot: 1 },
+    description: "Buildings' GOLD is banked automatically whenever their treasury fills — no more walking the rounds. Raw materials (wood…) still pile up (cap 3 stacks of 10) and must be fetched on foot.",
+  },
 
   // ⚠ TODO EXPORT FINAL : talent de TEST à RETIRER avant le build Steam.
   // Gratuit, ON/OFF (toggle), désactivé par défaut : annule TOUTE rencontre.
@@ -147,6 +156,7 @@ const NOM_EFFET = {
   sacSecondaire: "Second bag slot",
   noblesse: "Auction access",
   depotEnchere: "Auction consignment slot",
+  collecteurImpot: "Auto-collect building gold",
   maitrise: "Ancestral Mastery",
   slots: "Mastery slots",
   ambidextrie: "Ambidexterity",
