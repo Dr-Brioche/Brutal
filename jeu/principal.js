@@ -454,6 +454,18 @@ export async function demarrerJeu(donneesInitiales = null) {
     regarderHeros(courtier, heros); // il se tourne vers le héros PENDANT qu'on lui parle
     enPause = true;
     invite.hidden = true;
+    // Sans le titre de CITOYEN, le courtier refuse l'accès à l'Hôtel des ventes.
+    if (!heros.citoyen) {
+      ouvrirDialogue({
+        nom: "Baldrik the Broker",
+        texte: [
+          "“The Deep-Market Exchange trades with CITIZENS of Brütàl, friend — not with drifters.”",
+          "“Earn your Citizenship — see the talent masters — and my ledgers are yours.”",
+        ],
+        choix: [{ texte: "Leave", action: () => {} }],
+      }, () => { enPause = false; });
+      return;
+    }
     ouvrirDialogue({
       nom: "Baldrik the Broker",
       texte: phraseCourtier(marche),
@@ -1091,6 +1103,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (combatEnCours || dialogueActif() || enPause) return;
     e.preventDefault();
     heros.talents = heros.talents || {};
+    heros.talents.citoyen = 1;    // titre de citoyen (accès à l'HV) — pour tester
     heros.talents.noblesse = 1;   // titre de noblesse (accès aux enchères)
     appliquerTalents(heros);
     // Avance jusqu'au prochain soir dont la vente n'a pas encore été jouée.

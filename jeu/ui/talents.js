@@ -8,7 +8,8 @@ import { TALENTS, TALENT_GRILLE, BRANCHES, descEffet } from "../data/talents.js"
 import { etatNoeud, debloquer, activerOuBasculer } from "../systems/talents.js";
 import { xpPourNiveau } from "../systems/progression.js";
 
-const COL_W = 92, ROW_H = 78, NODE = 46; // pas de la grille + taille d'un nœud
+const COL_W = 92, ROW_H = 60, NODE = 40; // pas de la grille + taille d'un nœud
+// (ROW_H resserré depuis l'ajout d'une 7e rangée en commerce → tient sans scroll)
 const HEADER_H = 30;                      // bande d'en-têtes des branches (en haut)
 
 // Une petite icône selon le 1er effet du nœud.
@@ -20,7 +21,7 @@ function iconeNoeud(n) {
     pvMax: "❤", vitesse: "👟", pioche: "🃏", agilite: "⚡", evasion: "🐾",
     chaleurSeuil: "🔥", chaleurMax: "🔥", chaleurDepart: "🔥", chaleurRecharge: "🔥",
     artisanat: "⚒", sacSecondaire: "🎒", noblesse: "👑", sansRencontre: "🚫",
-    choixProfondeur: "⛏",
+    choixProfondeur: "⛏", citoyen: "🪪",
   }[k] || "★";
 }
 

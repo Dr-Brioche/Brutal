@@ -91,10 +91,18 @@ export const TALENTS = {
     description: "Two more Ancestral Mastery slots (5 total) to carry even more mastered cards.",
   },
 
-  // ---- BRANCHE COMMERCE (col 4) : sac, exploration, enchères -----------------
+  // ---- BRANCHE COMMERCE (col 4) : citoyenneté, sac, exploration, enchères -----
+  // Titre de CITOYEN : l'entrée de la branche ET la clé de l'HÔTEL DES VENTES.
+  // Sans lui, Baldrik le courtier refuse de traiter (pas d'accès au marché).
+  citoyen: {
+    id: "citoyen", nom: "Citizenship", branche: "commerce",
+    x: 4, y: 1, cout: 1, requis: ["racine"],
+    effet: { citoyen: 1 },
+    description: "A Brütàl citizen's title — opens the Deep-Market Exchange to you. No trading at the Exchange without it.",
+  },
   sacBonus: {
     id: "sacBonus", nom: "Extra Pouch", branche: "commerce",
-    x: 4, y: 1, cout: 1, requis: ["racine"],
+    x: 4, y: 2, cout: 1, requis: ["citoyen"],
     effet: { sacSecondaire: 1 },
     description: "Unlock a second bag slot — equip two bags at once for more carrying capacity.",
   },
@@ -102,14 +110,14 @@ export const TALENTS = {
   // miner/farmer (efficacité économique).
   evasion1: {
     id: "evasion1", nom: "Tunnel Sense", branche: "commerce",
-    x: 4, y: 2, cout: 1, requis: ["sacBonus"],
+    x: 4, y: 3, cout: 1, requis: ["sacBonus"],
     effet: { evasion: 35 },
     description: "Hostile tiles stay quieter: -35% chance of random encounters.",
   },
-  // Titre de noblesse : la clé des VENTES AUX ENCHÈRES du soir (fin de branche).
+  // Titre de noblesse : la clé des VENTES AUX ENCHÈRES du soir.
   noblesse: {
     id: "noblesse", nom: "Title of Nobility", branche: "commerce",
-    x: 4, y: 3, cout: 2, requis: ["evasion1"],
+    x: 4, y: 4, cout: 2, requis: ["evasion1"],
     effet: { noblesse: 1 },
     description: "A minor title of Brütàl nobility — grants entry to the exclusive evening auctions (entry ticket still required).",
   },
@@ -117,7 +125,7 @@ export const TALENTS = {
   // vente du soir (base 1 → jusqu'à 3 avec les 2 rangs). 2 rangs, 1 point chacun.
   encheresDepot: {
     id: "encheresDepot", nom: "Consignment License", branche: "commerce",
-    x: 4, y: 4, cout: 1, rangMax: 2, requis: ["noblesse"],
+    x: 4, y: 5, cout: 1, rangMax: 2, requis: ["noblesse"],
     effet: { depotEnchere: 1 },
     description: "Consign one more item per rank at the evening auction (2 ranks → up to 3 items at once).",
   },
@@ -126,7 +134,7 @@ export const TALENTS = {
   // RESSOURCES en nature (bois…) restent à récolter à pied (plafond 3×10=30).
   collecteurImpot: {
     id: "collecteurImpot", nom: "Tax Collector", branche: "commerce",
-    x: 4, y: 5, cout: 3, requis: ["encheresDepot"], legendaire: true,
+    x: 4, y: 6, cout: 3, requis: ["encheresDepot"], legendaire: true,
     effet: { collecteurImpot: 1 },
     description: "Buildings' GOLD is banked automatically whenever their treasury fills — no more walking the rounds. Raw materials (wood…) still pile up (cap 3 stacks of 10) and must be fetched on foot.",
   },
@@ -153,8 +161,9 @@ export const TALENTS = {
   },
 };
 
-// Taille de la grille (pour dimensionner l'écran) : 5 colonnes, 6 rangées.
-export const TALENT_GRILLE = { cols: 5, lignes: 6 };
+// Taille de la grille (pour dimensionner l'écran) : 5 colonnes, 7 rangées
+// (la branche commerce descend d'un cran depuis l'ajout de « Citizenship »).
+export const TALENT_GRILLE = { cols: 5, lignes: 7 };
 
 export function talentDef(id) {
   return TALENTS[id] ?? null;
@@ -173,6 +182,7 @@ const NOM_EFFET = {
   evasion: "Fewer encounters",
   sansRencontre: "Cancel all encounters (TEST)",
   sacSecondaire: "Second bag slot",
+  citoyen: "Exchange access",
   noblesse: "Auction access",
   depotEnchere: "Auction consignment slot",
   collecteurImpot: "Auto-collect building gold",

@@ -46,6 +46,7 @@ export function appliquerTalents(heros) {
   // Réduction des rencontres (0..0.8), alimentée par les talents type « Tunnel Sense ».
   heros.evasionRencontre = Math.min(0.8, (b.evasion || 0) / 100);
   heros.sansRencontre = (b.sansRencontre || 0) > 0; // talent de TEST : annule TOUTE rencontre
+  heros.citoyen = (b.citoyen || 0) > 0; // titre de citoyen : accès à l'Hôtel des ventes
   heros.noblesse = (b.noblesse || 0) > 0; // titre de noblesse : accès aux enchères du soir
   // Nombre d'objets qu'on peut CONFIER à la vente du soir : 1 de base + 1 par
   // rang de « Consignment License » (jusqu'à 3).
