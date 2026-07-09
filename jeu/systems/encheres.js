@@ -50,16 +50,16 @@ const OBSTINE_PAR_RANG = [0.10, 0.15, 0.25, 0.40, 0.60];
 // simple prix marchand. On multiplie la valeur du lot (donc mise à prix,
 // incrément ET budgets des rivaux) par ce facteur selon la rareté de l'objet.
 // N'affecte QUE l'enchère — le prix marchand/HV normal ne bouge pas.
-const PRIME_RARETE = { commun: 1, uncommon: 1, rare: 1.3, epique: 400, legendaire: 450 };
+const PRIME_RARETE = { commun: 1, uncommon: 55, rare: 125, epique: 400, legendaire: 450 };
 const primeRarete = (id) => PRIME_RARETE[itemDef(id)?.rarete] ?? 1;
 
-// PLANCHER D'ENCHÈRE (mise à prix minimum GARANTIE, pas juste une moyenne) pour
-// les raretés d'élite : l'ÉPIQUE est « le meilleur stuff du jeu actuellement »
-// (Brioche) → même dans le pire des cas (aucun rival ne pousse), la mise à prix
-// ne descend JAMAIS sous 80 000 🪙. Un achat de prestige, pas une bonne affaire.
-// Seuls les ÉQUIPEMENTS sont concernés (pas les paquets de minerai brut, même
-// épique — cf. `valeurLot`/`finaliserLot`).
-const PLANCHER_RARETE = { epique: 80000, legendaire: 250000 };
+// PLANCHER D'ENCHÈRE (mise à prix minimum GARANTIE, pas juste une moyenne) : une
+// échelle qui fluidifie la progression entre paliers (Brioche, 09/07/2026) —
+// même dans le pire des cas (aucun rival ne pousse), la mise à prix ne descend
+// JAMAIS sous ce seuil. L'ÉPIQUE reste « le meilleur stuff du jeu actuellement »,
+// un achat de prestige. Seuls les ÉQUIPEMENTS sont concernés (pas les paquets de
+// minerai brut, même épique — cf. `valeurLot`/`finaliserLot`).
+const PLANCHER_RARETE = { uncommon: 2000, rare: 10000, epique: 80000, legendaire: 250000 };
 const plancherRarete = (id) => PLANCHER_RARETE[itemDef(id)?.rarete] ?? 0;
 
 // Paquets de ressources : minerais chers uniquement (rang de minerai ≥ 6).
