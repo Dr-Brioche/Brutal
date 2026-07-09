@@ -4,11 +4,12 @@
 // Les nœuds sont des boutons ronds posés sur une grille, reliés par des traits
 // (SVG) de prérequis à nœud. Couleur : débloqué / disponible / bloqué.
 
-import { TALENTS, TALENT_GRILLE, descEffet } from "../data/talents.js";
+import { TALENTS, TALENT_GRILLE, BRANCHES, descEffet } from "../data/talents.js";
 import { etatNoeud, debloquer, activerOuBasculer } from "../systems/talents.js";
 import { xpPourNiveau } from "../systems/progression.js";
 
 const COL_W = 92, ROW_H = 78, NODE = 46; // pas de la grille + taille d'un nœud
+const HEADER_H = 30;                      // bande d'en-têtes des branches (en haut)
 
 // Une petite icône selon le 1er effet du nœud.
 function iconeNoeud(n) {
@@ -17,7 +18,7 @@ function iconeNoeud(n) {
   return {
     pvMax: "❤", vitesse: "👟", pioche: "🃏", agilite: "⚡", evasion: "🐾",
     chaleurSeuil: "🔥", chaleurMax: "🔥", chaleurDepart: "🔥", chaleurRecharge: "🔥",
-    sansRencontre: "🚫",
+    artisanat: "⚒", sacSecondaire: "🎒", noblesse: "👑", sansRencontre: "🚫",
   }[k] || "★";
 }
 
@@ -32,12 +33,30 @@ export function installerTalents({ heros, surChangement, surFermer }) {
   const elDesc = document.getElementById("tal-desc");
   document.getElementById("tal-fermer").onclick = () => surFermer();
 
-  const W = TALENT_GRILLE.cols * COL_W, H = TALENT_GRILLE.lignes * ROW_H;
+  const W = TALENT_GRILLE.cols * COL_W, H = TALENT_GRILLE.lignes * ROW_H + HEADER_H;
   elArbre.style.width = W + "px";
   elArbre.style.height = H + "px";
   elLiens.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
-  const centre = (n) => ({ x: n.x * COL_W + COL_W / 2, y: n.y * ROW_H + ROW_H / 2 });
+  // Fonds + en-têtes des 3 branches (une seule fois). Posés SOUS les liens/nœuds.
+  for (const b of Object.values(BRANCHES)) {
+    const [c0, c1] = b.cols;
+    const x = c0 * COL_W, w = (c1 - c0 + 1) * COL_W;
+    const fond = document.createElement("div");
+    fond.className = "tal-branche-fond";
+    fond.style.cssText =
+      `left:${x + 3}px;top:${HEADER_H}px;width:${w - 6}px;height:${H - HEADER_H - 4}px;` +
+      `background:${b.couleur}12;border:1px solid ${b.couleur}33;`;
+    elArbre.insertBefore(fond, elArbre.firstChild);
+    const tete = document.createElement("div");
+    tete.className = "tal-branche-tete";
+    tete.textContent = `${b.icone} ${b.nom}`;
+    tete.style.cssText = `left:${x}px;top:4px;width:${w}px;color:${b.couleur};`;
+    elArbre.appendChild(tete);
+  }
+
+  // y décalé de HEADER_H pour laisser la bande d'en-têtes en haut.
+  const centre = (n) => ({ x: n.x * COL_W + COL_W / 2, y: n.y * ROW_H + ROW_H / 2 + HEADER_H });
 
   let selection = null; // nœud sélectionné au clavier
 

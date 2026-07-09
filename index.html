@@ -1810,11 +1810,17 @@
       font-size: 0.66rem; color: #e9e0f5; font-family: ui-monospace, monospace;
     }
     .tal-arbre { position: relative; margin: 8px auto 10px; }
-    .tal-liens { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    /* Les 3 branches : fond teinté par colonne(s) + en-tête. */
+    .tal-branche-fond { position: absolute; border-radius: 12px; pointer-events: none; z-index: 0; }
+    .tal-branche-tete {
+      position: absolute; text-align: center; font-weight: 800; font-size: 0.7rem;
+      letter-spacing: 0.1em; text-transform: uppercase; pointer-events: none; z-index: 1;
+    }
+    .tal-liens { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
     .tal-lien { stroke: #3a3550; stroke-width: 3; }
     .tal-lien--actif { stroke: #b07be0; }
     .tal-noeud {
-      position: absolute; border-radius: 50%;
+      position: absolute; border-radius: 50%; z-index: 2;
       display: flex; align-items: center; justify-content: center;
       font-size: 1.2rem; cursor: pointer;
       border: 2px solid #45424f; background: #1d1b25; color: #e5e7eb;

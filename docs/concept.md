@@ -1061,8 +1061,19 @@ du héros (soins complets automatiques au passage de niveau). On dépense ces po
 l'**arbre** (écran touche **T**) : des nœuds reliés en arborescence, débloqués
 selon leurs prérequis. La montée d'XP est **rejouée en animation** sur la fenêtre
 de fin de combat (barre qui se remplit, halo doré + éclats au passage de niveau).
-*(1er jet implémenté : XP/niveau/points sauvegardés, écran de l'arbre, effets
-appliqués. À venir : plus de nœuds, rangs multiples.)*
+
+**Trois branches distinctes (09/07/2026)** — l'arbre est organisé en colonnes
+thématiques depuis un **tronc commun** (*Dwarf's Resolve*, en haut) :
+- **⚒ Forge** (gauche) : la **Chaleur de Forge** (énergie de combat, thème forge)
+  + *Master Craftsman* (qualité au craft).
+- **⚔ Combat** (centre) : PV (*Thick Hide*/*Ironheart*), vitesse & agilité, pioche,
+  et les **légendaires** d'armes (*Giant's Grip*, *Ambidexterity*, *Ancestral
+  Mastery*).
+- **🪙 Commerce** (droite) : sac (*Extra Pouch*), exploration efficace (*Tunnel
+  Sense*), et l'accès aux **enchères** (*Title of Nobility*).
+Données dans `data/talents.js` (`branche` + `BRANCHES`) ; l'écran teinte chaque
+colonne et l'intitule. *(1er jet : XP/niveau/points sauvegardés, rangs multiples
+supportés — cf. Master Craftsman ×3. À venir : plus de nœuds Forge/Commerce.)*
 
 **Courbe de progression (validée 17/06/2026)** : les 3 premiers niveaux sont
 rapides (récompense dès les premiers combats) ; à partir du niveau 4, la courbe
