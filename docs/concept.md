@@ -1064,11 +1064,11 @@ de fin de combat (barre qui se remplit, halo doré + éclats au passage de nivea
 
 **Trois branches distinctes (09/07/2026)** — l'arbre est organisé en colonnes
 thématiques depuis un **tronc commun** (*Dwarf's Resolve*, en haut) :
-- **⚒ Forge** (gauche) : la **Chaleur de Forge** (énergie de combat, thème forge)
-  + *Master Craftsman* (qualité au craft).
-- **⚔ Combat** (centre) : PV (*Thick Hide*/*Ironheart*), vitesse & agilité, pioche,
-  et les **légendaires** d'armes (*Giant's Grip*, *Ambidexterity*, *Ancestral
-  Mastery*).
+- **⚒ Forge** (gauche) : la **maîtrise d'artisan** (*Master Craftsman*, qualité au
+  craft). Branche courte pour l'instant (d'autres talents de forge à venir).
+- **⚔ Combat** (centre) : la **Chaleur de Forge** (énergie de combat), PV
+  (*Thick Hide*/*Ironheart*), vitesse & agilité, pioche, et les **légendaires**
+  d'armes (*Giant's Grip*, *Ambidexterity*, *Ancestral Mastery*).
 - **🪙 Commerce** (droite) : sac (*Extra Pouch*), exploration efficace (*Tunnel
   Sense*), et l'accès aux **enchères** (*Title of Nobility*).
 Données dans `data/talents.js` (`branche` + `BRANCHES`) ; l'écran teinte chaque

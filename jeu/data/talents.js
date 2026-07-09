@@ -17,41 +17,45 @@
 
 // L'arbre est organisé en TROIS BRANCHES distinctes (décision Brioche 09/07/2026),
 // chacune sur sa (ses) colonne(s) — cf. `branche` sur chaque nœud et `BRANCHES` :
-//   • FORGE (col 0-1)    : la Chaleur de Forge (énergie de combat, thème forge) +
-//                          l'artisanat (qualité au craft).
-//   • COMBAT (col 2-3)   : corps (PV), vitesse/agilité, pioche, armes légendaires.
-//   • COMMERCE (col 4)   : sac, exploration efficace, accès aux enchères.
+//   • FORGE (col 0)     : l'artisanat (qualité au craft). Branche courte pour
+//                         l'instant (d'autres talents de forge à venir).
+//   • COMBAT (col 1-3)  : la Chaleur de Forge (énergie de combat, col 1) + corps
+//                         (PV), vitesse/agilité, pioche, armes légendaires (col 2-3).
+//   • COMMERCE (col 4)  : sac, exploration efficace, accès aux enchères.
 // La `racine` est le TRONC commun (haut, centre) : point d'entrée des 3 branches.
 export const BRANCHES = {
-  forge:    { nom: "Forge",    cols: [0, 1], couleur: "#e0842a", icone: "⚒" },
-  combat:   { nom: "Combat",   cols: [2, 3], couleur: "#d0574a", icone: "⚔" },
+  forge:    { nom: "Forge",    cols: [0, 0], couleur: "#e0842a", icone: "⚒" },
+  combat:   { nom: "Combat",   cols: [1, 3], couleur: "#d0574a", icone: "⚔" },
   commerce: { nom: "Commerce", cols: [4, 4], couleur: "#4a9d72", icone: "🪙" },
 };
 
 export const TALENTS = {
   racine:  { id: "racine",  nom: "Dwarf's Resolve", branche: "tronc", x: 2, y: 0, cout: 1, requis: [], effet: { pvMax: 5 } },
 
-  // ---- BRANCHE FORGE (col 0-1) : Chaleur de Forge + artisanat ----------------
-  forge1:  { id: "forge1",  nom: "Stoked Coals",  branche: "forge", x: 0, y: 1, cout: 1, requis: ["racine"], effet: { chaleurSeuil: 1 } },
-  forge3:  { id: "forge3",  nom: "Ready Forge",   branche: "forge", x: 1, y: 1, cout: 1, requis: ["racine"], effet: { chaleurDepart: 1 } },
-  forge2:  { id: "forge2",  nom: "Deep Reserves", branche: "forge", x: 0, y: 2, cout: 1, requis: ["forge1"], effet: { chaleurMax: 2 } },
-  esprit2: { id: "esprit2", nom: "Bellows Lungs", branche: "forge", x: 1, y: 2, cout: 1, requis: ["forge3"], effet: { chaleurRecharge: 1 } },
-  forge4:  { id: "forge4",  nom: "Molten Veins",  branche: "forge", x: 0, y: 3, cout: 1, requis: ["forge2"], effet: { chaleurMax: 2 } },
+  // ---- BRANCHE FORGE (col 0) : artisanat (qualité au craft) ------------------
   // Maîtrise d'artisan → la barre du mini-jeu de forge défile plus LENTEMENT
   // (plus facile d'atteindre Master/Exceptional). 3 rangs, −15 % de vitesse chacun.
   artisanat: {
     id: "artisanat", nom: "Master Craftsman", branche: "forge",
-    x: 1, y: 3, cout: 1, rangMax: 3, requis: ["forge3"],
+    x: 0, y: 1, cout: 1, rangMax: 3, requis: ["racine"],
     effet: { artisanat: 1 },
     description: "Craft mastery: the forge quality bar sweeps 15% slower per rank (3 ranks) — landing high quality gets easier, above all on rare and epic gear.",
   },
 
-  // ---- BRANCHE COMBAT (col 2-3) : corps, vitesse, pioche, armes --------------
+  // ---- BRANCHE COMBAT (col 1-3) ---------------------------------------------
+  // Chaleur de Forge = ÉNERGIE DE COMBAT (colonne 1, chaîne verticale).
+  forge1:  { id: "forge1",  nom: "Stoked Coals",  branche: "combat", x: 1, y: 1, cout: 1, requis: ["racine"], effet: { chaleurSeuil: 1 } },
+  forge2:  { id: "forge2",  nom: "Deep Reserves", branche: "combat", x: 1, y: 2, cout: 1, requis: ["forge1"], effet: { chaleurMax: 2 } },
+  forge4:  { id: "forge4",  nom: "Molten Veins",  branche: "combat", x: 1, y: 3, cout: 1, requis: ["forge2"], effet: { chaleurMax: 2 } },
+  forge3:  { id: "forge3",  nom: "Ready Forge",   branche: "combat", x: 1, y: 4, cout: 1, requis: ["forge4"], effet: { chaleurDepart: 1 } },
+  esprit2: { id: "esprit2", nom: "Bellows Lungs", branche: "combat", x: 1, y: 5, cout: 1, requis: ["forge3"], effet: { chaleurRecharge: 1 } },
+
+  // Corps (PV), vitesse, pioche, agilité (colonnes 2-3).
   corps1:  { id: "corps1",  nom: "Thick Hide",   branche: "combat", x: 2, y: 1, cout: 1, requis: ["racine"], effet: { pvMax: 10 } },
   esprit1: { id: "esprit1", nom: "Quick Wit",    branche: "combat", x: 3, y: 1, cout: 1, requis: ["racine"], effet: { pioche: 1 } },
   corps2:  { id: "corps2",  nom: "Ironheart",    branche: "combat", x: 2, y: 2, cout: 1, requis: ["corps1"], effet: { pvMax: 15 } },
   corps3:  { id: "corps3",  nom: "Light Step",   branche: "combat", x: 3, y: 2, cout: 1, requis: ["corps1"], effet: { vitesse: 30 } },
-  agile1:  { id: "agile1",  nom: "Fleet Strikes", branche: "combat", x: 3, y: 3, cout: 1, requis: ["corps3"], effet: { agilite: 5 } },
+  agile1:  { id: "agile1",  nom: "Fleet Strikes", branche: "combat", x: 2, y: 3, cout: 1, requis: ["corps3"], effet: { agilite: 5 } },
 
   // Légendaires combat (armes avancées) — forkent depuis Fleet Strikes.
   deuxMains: {
@@ -66,8 +70,6 @@ export const TALENTS = {
     effet: { ambidextrie: 1 },
     description: "Wield a one-handed weapon in each hand — both weapons' cards are added to your deck.",
   },
-  // Légendaire hybride : demande le bout de la branche FORGE (Molten Veins) ET
-  // du combat (Fleet Strikes) — d'où sa place en bas, entre les deux.
   maitrise1: {
     id: "maitrise1", nom: "Ancestral Mastery", branche: "combat",
     x: 2, y: 5, cout: 3, requis: ["forge4", "agile1"], legendaire: true,
