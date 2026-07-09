@@ -26,6 +26,9 @@ import { ajouterObjet, compterRessource } from "./inventaire.js";
 
 // ----- Catalogue -------------------------------------------------------------
 
+// `bonus` = liste de PRODUCTIONS EN NATURE possibles à chaque versement. Chaque
+// entrée : { id, parVersement, chance (0..1, défaut 1), max }. Le 1er est le
+// produit de base (toujours), les suivants sont des drops PLUS RARES (chance <1).
 export const BATIMENTS = {
   scierie: {
     id: "scierie",
@@ -36,19 +39,44 @@ export const BATIMENTS = {
     revenu: 1200,                   // 🪙 versés dans la trésorerie à chaque période
     periode: 3600,                  // s de jeu ACTIF entre deux versements (1 h)
     tresorerieMax: 4800,            // plafond de la trésorerie (4 versements)
-    // Le bonus spécial de la scierie : du bois avec chaque versement.
-    bonus: { id: "bois", parVersement: 2, max: 8 }, // max = 4 versements aussi
+    // Bois à chaque versement, + une CHANCE de bois plus rare (Brioche 09/07/2026).
+    bonus: [
+      { id: "bois",          parVersement: 2, chance: 1,    max: 8 },
+      { id: "bois-sombre",   parVersement: 1, chance: 0.10, max: 8 },
+      { id: "bois-enchante", parVersement: 1, chance: 0.01, max: 8 },
+    ],
+  },
+  tannerie: {
+    id: "tannerie",
+    nom: "Tannery",
+    icone: "🥾",
+    description: "Cures hides into leather — the same steady trade, on the other side of the square.",
+    prix: 12000,
+    revenu: 1200,
+    periode: 3600,
+    tresorerieMax: 4800,
+    // Cuir à chaque versement, + une chance de cuir plus rare.
+    bonus: [
+      { id: "cuir",         parVersement: 2, chance: 1,    max: 8 },
+      { id: "cuir-epais",   parVersement: 1, chance: 0.10, max: 8 },
+      { id: "cuir-etrange", parVersement: 1, chance: 0.01, max: 8 },
+    ],
   },
 };
 
 export function batimentDef(id) { return BATIMENTS[id] ?? null; }
+
+// Total des ressources EN NATURE stockées dans un bâtiment (toutes confondues).
+export function stockTotal(b) {
+  return Object.values(b?.stock ?? {}).reduce((s, n) => s + (n || 0), 0);
+}
 
 // ----- État ------------------------------------------------------------------
 
 export function creerBatiments() {
   // possedes : id → { tresorerie, progres, stock } — progres = s de jeu actif
   // écoulées vers le PROCHAIN versement (gelé quand la trésorerie est pleine) ;
-  // stock = bonus EN NATURE accumulé (ex. bois de la scierie), à récolter aussi.
+  // stock = { ressourceId → quantité } accumulé en nature, à récolter.
   return { possedes: {} };
 }
 
@@ -61,7 +89,7 @@ export function acheterBatiment(bats, inv, id) {
   const def = batimentDef(id);
   if (!def || possede(bats, id) || inv.or < def.prix) return false;
   inv.or -= def.prix;
-  bats.possedes[id] = { tresorerie: 0, progres: 0, stock: 0 };
+  bats.possedes[id] = { tresorerie: 0, progres: 0, stock: {} };
   return true;
 }
 
@@ -93,15 +121,22 @@ export function tickBatiments(bats, dt, opts = {}) {
     const def = batimentDef(id);
     if (!def) continue;
     if (!auto && b.tresorerie >= def.tresorerieMax) continue; // pleine : production gelée (mode normal)
-    const stockMax = def.bonus ? (auto ? STOCK_MAX_IMPOT : def.bonus.max) : 0;
+    b.stock ??= {};
     b.progres += dt;
     while (b.progres >= def.periode) {
       if (!auto && b.tresorerie >= def.tresorerieMax) break;
       b.progres -= def.periode;
       const gain = auto ? def.revenu : Math.min(def.revenu, def.tresorerieMax - b.tresorerie);
       b.tresorerie += gain;
-      // Le bonus EN NATURE tombe avec le versement (plafonné).
-      if (def.bonus) b.stock = Math.min(stockMax, (b.stock ?? 0) + def.bonus.parVersement);
+      // Les bonus EN NATURE tombent avec le versement : le produit de base
+      // (chance 1) + une CHANCE des paliers plus rares. Plafond par ressource
+      // (avec Collecteur d'impôt : 3 stacks de 10).
+      for (const d of def.bonus ?? []) {
+        if (Math.random() < (d.chance ?? 1)) {
+          const cap = auto ? STOCK_MAX_IMPOT : d.max;
+          b.stock[d.id] = Math.min(cap, (b.stock[d.id] ?? 0) + d.parVersement);
+        }
+      }
       evts.push({ id, type: "versement", montant: gain });
       if (b.tresorerie >= def.tresorerieMax) {
         if (auto) {
@@ -127,32 +162,51 @@ export function tempsAvantVersement(bats, id) {
 }
 
 // Récolte : vide la trésorerie dans l'or de l'inventaire (et la production
-// repart si elle était gelée), et range le bonus EN NATURE (bois…) dans le sac.
-// Si le sac ne peut pas tout prendre, le RESTE ATTEND au bâtiment (rien n'est
-// perdu). Renvoie { or, bonusId, bonusPris, bonusReste } — ou null si rien à
-// prendre du tout.
+// repart si elle était gelée), et range les bonus EN NATURE (bois, cuir…) dans
+// le sac. Si le sac ne peut pas tout prendre, le RESTE ATTEND au bâtiment (rien
+// n'est perdu). Renvoie { or, bonus: [{ id, pris }], reste } — ou null si rien.
 export function collecterTresorerie(bats, inv, id) {
   const b = bats.possedes[id], def = batimentDef(id);
-  if (!b || !def || (b.tresorerie <= 0 && !(b.stock > 0))) return null;
+  b.stock ??= {};
+  if (!b || !def || (b.tresorerie <= 0 && stockTotal(b) <= 0)) return null;
   const or = b.tresorerie;
   b.tresorerie = 0; // progres reprend de là où il était (0 si la scie était gelée)
   inv.or += or;
-  // Bonus en nature : on range ce qui TIENT dans le sac (ajouterObjet remplit
-  // partiellement puis renvoie false si plein — on mesure le vrai pris).
-  let bonusPris = 0;
-  if (def.bonus && b.stock > 0) {
-    const avant = compterRessource(inv, def.bonus.id);
-    ajouterObjet(inv, def.bonus.id, b.stock);
-    bonusPris = compterRessource(inv, def.bonus.id) - avant;
-    b.stock -= bonusPris;
+  // Chaque ressource stockée : on range ce qui TIENT dans le sac (ajouterObjet
+  // remplit partiellement puis renvoie false si plein — on mesure le vrai pris).
+  const bonus = [];
+  for (const [rid, n] of Object.entries(b.stock)) {
+    if (n <= 0) continue;
+    const avant = compterRessource(inv, rid);
+    ajouterObjet(inv, rid, n);
+    const pris = compterRessource(inv, rid) - avant;
+    b.stock[rid] = n - pris;
+    if (pris > 0) bonus.push({ id: rid, pris });
   }
-  return { or, bonusId: def.bonus?.id ?? null, bonusPris, bonusReste: b.stock ?? 0 };
+  return { or, bonus, reste: stockTotal(b) };
 }
 
 // ----- Sauvegarde --------------------------------------------------------------
 
 export function etatBatiments(bats) {
-  return { possedes: Object.fromEntries(Object.entries(bats.possedes).map(([k, v]) => [k, { ...v }])) };
+  return { possedes: Object.fromEntries(Object.entries(bats.possedes)
+    .map(([k, v]) => [k, { ...v, stock: { ...(v.stock ?? {}) } }])) };
+}
+
+// Nettoie le `stock` lu d'une sauvegarde → map { id → qté }. Compat ascendante :
+// l'ancien format était un simple nombre (= le produit de base).
+function stockCharge(def, raw) {
+  const out = {};
+  const clamp = (n) => Math.max(0, Math.min(STOCK_MAX_IMPOT, Math.round(n)));
+  if (typeof raw === "number") {           // ancien format
+    const base = def.bonus?.[0]?.id;
+    if (base && raw > 0) out[base] = clamp(raw);
+  } else if (raw && typeof raw === "object") {
+    for (const [rid, n] of Object.entries(raw)) {
+      if (Number.isFinite(n) && n > 0) out[rid] = clamp(n);
+    }
+  }
+  return out;
 }
 
 export function chargerBatiments(bats, etat) {
@@ -165,9 +219,7 @@ export function chargerBatiments(bats, etat) {
     bats.possedes[id] = {
       tresorerie: Number.isFinite(v?.tresorerie) ? Math.max(0, Math.min(def.tresorerieMax, Math.round(v.tresorerie))) : 0,
       progres: Number.isFinite(v?.progres) ? Math.max(0, Math.min(def.periode, v.progres)) : 0,
-      // Plafond de chargement = STOCK_MAX_IMPOT (30) : avec le Collecteur d'impôt
-      // le stock peut monter au-delà du max « normal » (def.bonus.max).
-      stock: Number.isFinite(v?.stock) && def.bonus ? Math.max(0, Math.min(STOCK_MAX_IMPOT, Math.round(v.stock))) : 0,
+      stock: stockCharge(def, v?.stock),
     };
   }
 }

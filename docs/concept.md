@@ -1015,12 +1015,17 @@ Deuxième jambe du pilier économie après l'HV : **investir dans la pierre**
   récompense se va chercher.
 - **Bonus spécial par bâtiment** : chaque bâtiment produit aussi un petit
   quelque chose **en nature**, récolté avec le bénéfice.
-- **1er bâtiment (test) : la SCIERIE**, qui débite du bois importé de la
-  surface — 12 000 🪙 à l'achat, 1 200 🪙 + 2 bois par heure de jeu, trésorerie
-  plafonnée à 4 800 🪙 (≈ 4 h) → remboursée en ~10 h de jeu actif. Le panneau
-  affiche une **pastille dorée** quand il y a de l'or à récolter (rouge
-  clignotante si la caisse est pleine). *Visuel du bâtiment : façade
-  placeholder (planches + lame de scie), en attendant le vrai sprite.*
+- **Deux bâtiments (test) : la SCIERIE et la TANNERIE**, de part et d'autre de la
+  place. Mêmes réglages : 12 000 🪙 à l'achat, 1 200 🪙 + 2 ressources par heure
+  de jeu, trésorerie plafonnée à 4 800 🪙 (≈ 4 h) → remboursée en ~10 h. Le
+  panneau affiche une **pastille dorée** quand il y a de l'or à récolter (rouge
+  clignotante si la caisse est pleine). *Façades placeholder : lame de scie pour
+  la scierie, peau tendue sur cadre pour la tannerie.*
+- **Drops en nature à plusieurs paliers** (`bonus` = liste, `stock` = map) :
+  chaque versement donne le matériau de base **+ une CHANCE d'un palier plus
+  rare** (Brioche 09/07/2026). La SCIERIE : Wood (toujours) · **10 % Dark Wood** ·
+  **1 % Enchanted Wood**. La TANNERIE : Leather · **10 % Thick Leather** ·
+  **1 % Strange Leather**. On récolte tout à pied au panneau.
 - **Talent légendaire « Tax Collector » (Commerce, 09/07/2026)** : une fois
   débloqué, l'**OR** des bâtiments est **encaissé automatiquement** dès que le
   coffre est plein (plus de tournée à pied, la production ne gèle jamais). Les

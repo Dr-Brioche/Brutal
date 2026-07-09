@@ -12,9 +12,14 @@
 
 import {
   BATIMENTS, possede, etatBatiment, acheterBatiment,
-  tempsAvantVersement, collecterTresorerie,
+  tempsAvantVersement, collecterTresorerie, stockTotal,
 } from "../systems/batiments.js";
 import { itemDef } from "../data/items.js";
+
+// Nom lisible d'une ressource ; « stock » (map) → « 3 Wood + 1 Dark Wood ».
+const resNom = (rid) => itemDef(rid)?.nom ?? rid;
+const stockTexte = (stock) => Object.entries(stock ?? {})
+  .filter(([, n]) => n > 0).map(([rid, n]) => `${n} ${resNom(rid)}`).join(" + ");
 import { afficherMessage } from "./effets.js";
 
 let actif = false;
@@ -83,8 +88,9 @@ function collecter() {
   const r = collecterTresorerie(bats, inv, batId);
   if (!r) return;
   let msg = `💰 +${r.or} 🪙 from the ${def.nom}`;
-  if (r.bonusPris > 0) msg += `, +${r.bonusPris} ${itemDef(r.bonusId)?.nom ?? r.bonusId}`;
-  if (r.bonusReste > 0) msg += ` — bag full: ${r.bonusReste} left at the building`;
+  const pris = r.bonus.map((x) => `+${x.pris} ${resNom(x.id)}`).join(", ");
+  if (pris) msg += `, ${pris}`;
+  if (r.reste > 0) msg += ` — bag full: ${r.reste} left at the building`;
   afficherMessage(msg + ".");
   rafraichir();
 }
@@ -117,17 +123,22 @@ function rafraichir() {
   const def = BATIMENTS[batId];
   const aNous = possede(bats, batId);
   const mode = aNous ? "possede" : "vente";
-  const bonusNom = def.bonus ? (itemDef(def.bonus.id)?.nom ?? def.bonus.id) : null;
+  // Le produit de base = 1er bonus (chance 1) ; les suivants sont des drops rares.
+  const base = def.bonus?.[0] ?? null;
+  const baseNom = base ? resNom(base.id) : null;
+  const rares = (def.bonus ?? []).slice(1);
 
   if (mode !== modeAffiche) {
     modeAffiche = mode;
     elTitre.textContent = `${def.icone ?? "🏠"} ${def.nom}`;
     elSous.textContent = def.description ?? "";
     if (mode === "vente") {
+      const raresTexte = rares.map((d) => `${Math.round(d.chance * 100)}% ${resNom(d.id)}`).join(", ");
       elLignes.innerHTML =
         ligne("Price (one-time)", `<b class="bat-or">${def.prix} 🪙</b>`) +
         ligne("Your gold", `<span id="bat-v-or"></span>`) +
-        ligne("Income", `+${def.revenu} 🪙${def.bonus ? ` and +${def.bonus.parVersement} ${bonusNom}` : ""} <small>every hour of play</small>`) +
+        ligne("Income", `+${def.revenu} 🪙${base ? ` and +${base.parVersement} ${baseNom}` : ""} <small>every hour of play</small>`) +
+        (raresTexte ? ligne("Rare finds", `<small>chance each hour: ${raresTexte}</small>`) : "") +
         ligne("Treasury cap", `${def.tresorerieMax} 🪙 <small>(≈ ${Math.round(def.tresorerieMax / def.revenu)} h of income)</small>`) +
         `<div class="bat-note">⚠ When the treasury is FULL, production <b>stops</b> — nothing more is earned.
          Walk back to the sign and <b>collect regularly</b>. Time keeps flowing while you play
@@ -141,7 +152,7 @@ function rafraichir() {
         ligne("Treasury", jauge("bat-j-treso", "bat-jauge--or")) +
         ligne("Next payout", `<span id="bat-v-prochain"></span>`) +
         ligne("", jauge("bat-j-prochain")) +
-        (def.bonus ? ligne(`${bonusNom} stored`, `<span id="bat-v-stock"></span>`) : "") +
+        (def.bonus ? ligne("Materials stored", `<span id="bat-v-stock"></span>`) : "") +
         `<div class="bat-note">The saw keeps working while you play — even with this window open.
          ⚠ Full treasury = production <b>stops</b>. Collect regularly!</div>`;
       elBoutons.innerHTML =
@@ -182,19 +193,21 @@ function rafraichir() {
   const attente = tempsAvantVersement(bats, batId);
   document.getElementById("bat-v-prochain").innerHTML = plein
     ? `<b class="bat-manque">halted</b>`
-    : `+${def.revenu} 🪙${def.bonus ? ` and +${def.bonus.parVersement} ${bonusNom}` : ""} <small>in ${fmtMin(attente)} of play</small>`;
+    : `+${def.revenu} 🪙${base ? ` and +${base.parVersement} ${baseNom}` : ""} <small>in ${fmtMin(attente)} of play</small>`;
   const jp = document.getElementById("bat-j-prochain");
   jp.style.width = plein ? "0%" : Math.round((1 - attente / def.periode) * 100) + "%";
   document.getElementById("bat-j-prochain-txt").textContent = "";
 
   if (def.bonus) {
-    document.getElementById("bat-v-stock").innerHTML = `<b>${b.stock ?? 0} / ${def.bonus.max}</b>`;
+    const txt = stockTexte(b.stock);
+    document.getElementById("bat-v-stock").innerHTML = `<b>${txt || "—"}</b>`;
   }
 
   const btn = document.getElementById("bat-collecter");
-  const rien = b.tresorerie <= 0 && !(b.stock > 0);
+  const stockTxt = stockTexte(b.stock);
+  const rien = b.tresorerie <= 0 && stockTotal(b) <= 0;
   btn.disabled = rien;
   btn.textContent = rien
     ? "💰 Nothing to collect yet"
-    : `💰 Collect ${b.tresorerie} 🪙${b.stock > 0 ? ` + ${b.stock} ${bonusNom}` : ""}`;
+    : `💰 Collect ${b.tresorerie} 🪙${stockTxt ? ` + ${stockTxt}` : ""}`;
 }

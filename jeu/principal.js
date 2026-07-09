@@ -40,7 +40,7 @@ import { installerHV, ouvrirHV, hvActive, phraseCourtier } from "./ui/hv.js";
 import { creerMarche, tickMarche, etatMarche, chargerMarche, valeurReelle } from "./systems/marche.js";
 import {
   BATIMENTS, creerBatiments, possede, etatBatiment,
-  tickBatiments, etatBatiments, chargerBatiments,
+  tickBatiments, etatBatiments, chargerBatiments, stockTotal,
 } from "./systems/batiments.js";
 import { installerBatiment, ouvrirBatiment } from "./ui/batiment.js";
 import {
@@ -222,6 +222,9 @@ export async function demarrerJeu(donneesInitiales = null) {
     proche: false,
     t: 0,                       // anime la pastille « or à récolter »
   };
+  // La TANNERIE : même principe, bloc de murs symétrique de l'autre côté de la place.
+  const TANNERIE_BLOC = { x: 28 * TUILE, y: 9 * TUILE, l: 2 * TUILE, h: 2 * TUILE };
+  const panneauTannerie = { cx: 29 * TUILE, solY: 11 * TUILE + 14, proche: false, t: 0 };
 
   // Obstacles PLEINS de la ville : on ne traverse pas les PNJ ni la fontaine.
   // Chaque boîte est au niveau des PIEDS (on peut donc chevaucher les têtes en
@@ -239,6 +242,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       { x: fontaine.cx - 20, y: fontaine.solY - 16, w: 40, h: 22 },
       // Le panneau de la scierie : petit poteau planté au sol, on ne le traverse pas.
       { x: panneauScierie.cx - 12, y: panneauScierie.solY - 8, w: 24, h: 10 },
+      { x: panneauTannerie.cx - 12, y: panneauTannerie.solY - 8, w: 24, h: 10 },
     ];
   }
   function dessinerFontaine(ctx, f) {
@@ -298,11 +302,39 @@ export async function demarrerJeu(donneesInitiales = null) {
     ctx.beginPath(); ctx.arc(sx, sy, 3, 0, Math.PI * 2); ctx.fill();
   }
 
+  // Façade PLACEHOLDER de la tannerie : mur de torchis + porte + une PEAU tendue
+  // sur un cadre (l'enseigne du tanneur), en attendant le vrai visuel.
+  function dessinerTannerie(ctx) {
+    const { x, y, l, h } = TANNERIE_BLOC;
+    ctx.fillStyle = "#5a4632";                  // mur (torchis brun)
+    ctx.fillRect(x, y, l, h);
+    ctx.fillStyle = "#463525";                  // colombages
+    ctx.fillRect(x, y + h * 0.5, l, 2);
+    ctx.fillRect(x + l / 2 - 1, y, 2, h);
+    ctx.fillStyle = "#2a1d10";                  // auvent
+    ctx.fillRect(x - 3, y - 4, l + 6, 8);
+    ctx.fillStyle = "#241708";                  // porte
+    ctx.fillRect(x + l / 2 - 8, y + h - 24, 16, 24);
+    // Peau tendue sur un cadre (côté gauche) : losange de cuir + lanières.
+    const sx = x + 16, sy = y + 18;
+    ctx.strokeStyle = "#7a5230"; ctx.lineWidth = 2;    // cadre
+    ctx.strokeRect(sx - 9, sy - 9, 18, 18);
+    ctx.fillStyle = "#9a6a3a";                          // la peau (cuir clair)
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - 8); ctx.lineTo(sx + 8, sy); ctx.lineTo(sx, sy + 8); ctx.lineTo(sx - 8, sy);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "#6a4020"; ctx.lineWidth = 1;    // lanières
+    for (let i = -1; i <= 1; i++) {
+      ctx.beginPath(); ctx.moveTo(sx - 9, sy + i * 4); ctx.lineTo(sx - 8, sy + i * 4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sx + 8, sy + i * 4); ctx.lineTo(sx + 9, sy + i * 4); ctx.stroke();
+    }
+  }
+
   // Le PANNEAU devant la scierie : écriteau sur poteau. Avant l'achat il affiche
   // « FOR SALE » ; après, « SAWMILL » + une pastille dorée qui pulse quand la
   // trésorerie a de l'or à récolter (rouge clignotant si elle est PLEINE :
   // production à l'arrêt — viens vider la caisse !).
-  function dessinerPanneauScierie(ctx, p) {
+  function dessinerPanneauBatiment(ctx, p, batId, label) {
     const cx = p.cx, by = p.solY;
     ctx.fillStyle = "rgba(0, 0, 0, 0.28)";      // ombre au sol
     ctx.beginPath(); ctx.ellipse(cx, by, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
@@ -316,15 +348,15 @@ export async function demarrerJeu(donneesInitiales = null) {
     ctx.font = police(9);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    if (!possede(batiments, "scierie")) {
+    if (!possede(batiments, batId)) {
       ctx.fillStyle = "#ffe9b0";
       ctx.fillText("FOR SALE", cx, by - 34);
     } else {
       ctx.fillStyle = "#e8d9b0";
-      ctx.fillText("SAWMILL", cx, by - 34);
-      const b = etatBatiment(batiments, "scierie");
-      const plein = b && b.tresorerie >= BATIMENTS.scierie.tresorerieMax;
-      if (b && (b.tresorerie > 0 || b.stock > 0)) {
+      ctx.fillText(label, cx, by - 34);
+      const b = etatBatiment(batiments, batId);
+      const plein = b && b.tresorerie >= BATIMENTS[batId].tresorerieMax;
+      if (b && (b.tresorerie > 0 || stockTotal(b) > 0)) {
         // Pastille au-dessus du panneau : or à récolter (dorée) / caisse pleine (rouge).
         const pulse = 0.6 + 0.4 * Math.sin(p.t * (plein ? 9 : 4));
         ctx.fillStyle = plein ? `rgba(255, 90, 70, ${pulse})` : `rgba(255, 207, 87, ${pulse})`;
@@ -435,11 +467,11 @@ export async function demarrerJeu(donneesInitiales = null) {
   // la fiche claire du bâtiment (à vendre / possédé) avec ses jauges. Le MONDE
   // se fige (le héros ne bouge plus) mais l'horloge économie continue (comme
   // partout hors menu pause) — on regarde la production avancer en direct.
-  function lirePanneauScierie() {
+  function lirePanneauBatiment(batId) {
     if (dialogueActif() || combatEnCours || enPause) return;
     enPause = true;
     invite.hidden = true;
-    ouvrirBatiment("scierie", batiments, inventaire, () => { enPause = false; });
+    ouvrirBatiment(batId, batiments, inventaire, () => { enPause = false; });
   }
 
   // ----- Magnar le commissaire-priseur (vente aux enchères du soir) ---------
@@ -1043,7 +1075,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     else if (courtier.proche) { e.preventDefault(); parlerAuCourtier(); }
     else if (commissaire.proche) { e.preventDefault(); parlerAuCommissaire(); }
     else if (fontaine.proche) { e.preventDefault(); parlerALaFontaine(); }
-    else if (panneauScierie.proche) { e.preventDefault(); lirePanneauScierie(); }
+    else if (panneauScierie.proche) { e.preventDefault(); lirePanneauBatiment("scierie"); }
+    else if (panneauTannerie.proche) { e.preventDefault(); lirePanneauBatiment("tannerie"); }
   });
 
   // Les points d'intérêt : le message vient du catalogue (champ `interet`),
@@ -1463,13 +1496,17 @@ export async function demarrerJeu(donneesInitiales = null) {
         panneauScierie.proche =
           Math.abs((heros.x + 32) - panneauScierie.cx) < 46 &&
           Math.abs((heros.y + 54) - panneauScierie.solY) < 46;
+        panneauTannerie.t += dt;
+        panneauTannerie.proche =
+          Math.abs((heros.x + 32) - panneauTannerie.cx) < 46 &&
+          Math.abs((heros.y + 54) - panneauTannerie.solY) < 46;
       }
       // Veine minable la plus proche (en mine) → surbrillée en doré (dessinerVeine).
       veineProche = (zoneCourante.estMine && !minage) ? veineLaPlusProche() : null;
       // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la
       // fontaine / du panneau de la scierie (où « Read » remplace « Talk »).
       const presPnj = fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || commissaire.proche || fontaine.proche;
-      invite.hidden = !(zoneActuelle === "city" && (presPnj || panneauScierie.proche));
+      invite.hidden = !(zoneActuelle === "city" && (presPnj || panneauScierie.proche || panneauTannerie.proche));
       if (!invite.hidden) invite.textContent = presPnj ? "[Space] Talk" : "[Space] Read";
       mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
       // Bulle flottante du minerai : positionnée en CSS au-dessus de la veine
@@ -1501,9 +1538,11 @@ export async function demarrerJeu(donneesInitiales = null) {
       // PNJ du plus « haut » (pieds les plus en arrière) au plus « bas ».
       if (zoneActuelle === "city") {
         const acteurs = [
-          // La façade de la scierie couvre son bloc de murs ; le panneau est devant.
+          // Les façades couvrent leur bloc de murs ; le panneau est devant.
           { pieds: SCIERIE_BLOC.y + SCIERIE_BLOC.h, dessiner: () => dessinerScierie(ctx) },
-          { pieds: panneauScierie.solY, dessiner: () => dessinerPanneauScierie(ctx, panneauScierie) },
+          { pieds: panneauScierie.solY, dessiner: () => dessinerPanneauBatiment(ctx, panneauScierie, "scierie", "SAWMILL") },
+          { pieds: TANNERIE_BLOC.y + TANNERIE_BLOC.h, dessiner: () => dessinerTannerie(ctx) },
+          { pieds: panneauTannerie.solY, dessiner: () => dessinerPanneauBatiment(ctx, panneauTannerie, "tannerie", "TANNERY") },
           { pieds: fontaine.solY, dessiner: () => dessinerFontaine(ctx, fontaine) },
           { pieds: piedsPnj(fanatique), dessiner: () => dessinerPnj(ctx, fanatique) },
           { pieds: piedsPnj(marchand), dessiner: () => dessinerPnj(ctx, marchand) },
