@@ -56,6 +56,14 @@ export const TALENTS = {
   corps2:  { id: "corps2",  nom: "Ironheart",    branche: "combat", x: 2, y: 2, cout: 1, requis: ["corps1"], effet: { pvMax: 15 } },
   corps3:  { id: "corps3",  nom: "Light Step",   branche: "combat", x: 3, y: 2, cout: 1, requis: ["corps1"], effet: { vitesse: 30 } },
   agile1:  { id: "agile1",  nom: "Fleet Strikes", branche: "combat", x: 2, y: 3, cout: 1, requis: ["corps3"], effet: { agilite: 5 } },
+  // Prospecteur des profondeurs : +1 CHOIX de butin de run à chaque étage de mine
+  // (base 2 → jusqu'à 4 avec les 2 rangs). Cf. systems/profondeur.js.
+  prospecteur: {
+    id: "prospecteur", nom: "Deep Prospector", branche: "combat",
+    x: 3, y: 3, cout: 1, rangMax: 2, requis: ["corps3"],
+    effet: { choixProfondeur: 1 },
+    description: "Delve smarter: +1 boon choice per rank on each depth floor (base 2 → up to 4). More options each floor = better runs.",
+  },
 
   // Légendaires combat (armes avancées) — forkent depuis Fleet Strikes.
   deuxMains: {
@@ -173,6 +181,7 @@ const NOM_EFFET = {
   ambidextrie: "Ambidexterity",
   deuxMains: "Two-handed weapons",
   artisanat: "Slower forge bar",
+  choixProfondeur: "Depth boon choices",
 };
 
 // Décrit l'effet d'un nœud, ex. "+10 Max HP".

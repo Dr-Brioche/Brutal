@@ -192,12 +192,41 @@ la MÊME logique de voisinage, sans toucher au reste.
   taux de passage par étage, boot/runtime). À TESTER EN JEU : descendre via `>`
   (confirmation), miner plus profond pour voir des minerais plus rares, ressortir
   (confirmation). Reste la **Phase 4** (décor / rendu galerie) et les mobs rares.
+- [x] **Buffs de « run »** (09/07/2026) — cf. section 7 ci-dessous.
 - [ ] **Phase 4** — décor & variété (rendu galerie, profils de salles, décor)
 
   **Reprise (Phase 2)** : codée + boot/runtime vérifiés en lançant une partie.
   À TESTER EN JEU : entrer en mine → s'approcher d'une veine (liseré doré) → Espace
   pour miner → « ⛏ +1 Iron (×N) », épuisement après 2–5 coups. Le slot **Tool**
   apparaît dans l'inventaire (touche B) avec la pioche.
+
+## 7. Les profondeurs comme un « RUN » (buffs par étage) — 09/07/2026
+
+Pour donner un **sentiment de run** (façon roguelite), chaque **passage d'étage**
+offre un **butin de run** : on choisit **UN** buff parmi **2** cartes (± rares,
+tirées au hasard). Les buffs **s'accumulent** toute la descente (chaque étage
+ajoute au précédent) et sont **jetés en ressortant** — le run est éphémère.
+
+- **Quand** : à l'**entrée** de la mine (1er étage) ET à chaque **descente** `>`.
+  Modale **obligatoire** (on doit choisir) ; le monde reste figé.
+- **Loots** (SOURCE = Excel, onglet **« Profondeurs »**, régénéré par
+  `outils/importer_profondeur.py` → `jeu/data/profondeur.js`) :
+  - **Strength Stone** : +Force en combat (normale +1 / rare +2 / épique +3)
+  - **Gold Hoard** : or versé **seulement si on ressort VIVANT** (+100 / +200 / +500)
+  - **Celerity Stone** : +% vitesse de combat (+10 / +20 / +40)
+  - **Reinforcement Plate** : +armure au début du combat (+10 / +20 / +50)
+  - *(Brioche ajoute des loots au fil du temps — juste éditer l'Excel.)*
+- **Rareté par choix** (éditable, onglet « Profondeurs-chances ») : **normale 70 %,
+  rare 25 %, épique 5 %**. Un même loot peut sortir sur les deux cartes.
+- **Application** : les buffs `force`/`celerite`/`armure` se branchent dans
+  `demarrerCombat` (`forcePerm`/`celeritePct`/`armureDepart`) ; le `gold` est
+  versé à la sortie (porte) si vivant. **Mort en mine = tout perdu** (or compris).
+- **Talent « Deep Prospector »** (branche Combat, 2 rangs) : **+1 choix** par rang
+  → **3 puis 4** cartes par étage (`heros.choixLootProfondeur`).
+- **HUD** (haut-gauche, en mine) : bandeau des buffs actifs (💪 ⚡ 🛡 🪙).
+- **Fichiers** : `jeu/systems/profondeur.js` (logique pure : tirages + accumulation
+  + bonus combat), `jeu/ui/profondeur.js` (+ markup/CSS `#choix-profondeur`),
+  `jeu/data/profondeur.js` (auto), câblage dans `jeu/principal.js`.
 
 ## 6. Risques connus (à surveiller)
 

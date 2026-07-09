@@ -58,6 +58,11 @@ import {
   creerBibliotheque, decouvrir, etatBibliotheque, chargerBibliotheque,
 } from "./systems/bibliotheque.js";
 import { installerLivre, ouvrirLivre, livreActif } from "./ui/livre.js";
+import {
+  creerRunProfondeur, tirerChoix, appliquerLoot, etageSuivant,
+  bonusCombatRun, runActif, resumeRun,
+} from "./systems/profondeur.js";
+import { installerChoixProfondeur, ouvrirChoixProfondeur } from "./ui/profondeur.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
 import { getPreference } from "./systems/preferences.js";
@@ -141,6 +146,9 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Le LIVRE D'ARTISANAT : les recettes DÉCOUVERTES (parchemin lu ou objet forgé
   // par hasard). S'alimente tout seul ; consultable à la touche L.
   const bibliotheque = creerBibliotheque();
+  // Le RUN de profondeur : buffs accumulés pendant une descente en mine (null hors
+  // mine). Créé à l'entrée, jeté à la sortie/mort. Non sauvegardé (comme la mine).
+  let runProfondeur = null;
   // La bulle d'info lit l'équipement courant pour colorer les pièces d'un set.
   definirSourceEquipement(() => inventaire.slots);
   inventaire.slots.armure = "tenue-de-voyageur"; // habits de base (corps)
@@ -1100,6 +1108,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   installerHorloge();  // le cadran jour/nuit (HUD haut-droite)
   installerParchemin(); // l'écran de lecture des parchemins de craft
   installerLivre();     // le Livre d'artisanat (recettes apprises, touche L)
+  installerChoixProfondeur(); // l'écran de choix de buff à chaque étage de mine
 
   // Le LIVRE D'ARTISANAT (touche L + bouton 📖 de la barre). Le livre gère sa
   // propre fermeture (L / Esc, en capture) ; on ne fait qu'ouvrir ici.
@@ -1172,6 +1181,12 @@ export async function demarrerJeu(donneesInitiales = null) {
         const d = itemDef(e.id);
         return `<div class="hud-min"><i class="hud-icone" style="background:${d.icone}"></i>${d.nom}<span class="hud-pct">${e.pct}%</span></div>`;
       }).join("");
+      // Bandeau des buffs de RUN actifs (accumulés en descendant).
+      if (runActif(runProfondeur)) {
+        html += `<div class="hud-run">` + resumeRun(runProfondeur)
+          .map(b => `<span class="hud-run-buff" data-tooltip="${b.tip}">${b.icone}${b.texte}</span>`)
+          .join("") + `</div>`;
+      }
     }
     hudInfo.innerHTML = html;
   }
@@ -1188,8 +1203,8 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (portail && zoneCourante.estMine) {
         // Sortie d'une mine : confirmation (l'étage courant n'est pas conservé).
         confirmerEnExploration(
-          { titre: "Leave the mine?", message: "You'll head back up to the surface — this level won't be kept.", texteOui: "Leave", texteNon: "Stay" },
-          () => allerVersZone(portail.vers, portail.entree),
+          { titre: "Leave the mine?", message: "You'll head back up to the surface — this level won't be kept. Any depth boons fade (gold is banked).", texteOui: "Leave", texteNon: "Stay" },
+          () => { finRunProfondeur({ vivant: true }); allerVersZone(portail.vers, portail.entree); },
         );
       } else if (portail) {
         allerVersZone(portail.vers, portail.entree);
@@ -1240,7 +1255,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     }
     surEntreeMine = tuile.caractere === "M";
   }
-  function entrerEnMine(tuile) {
+  async function entrerEnMine(tuile) {
     const mine = genererMine({
       monstres: zoneCourante.monstres ?? ["gobelin", "gobelin-vif", "gobelin-chaman"],
       musique: zoneCourante.musique,   // ambiance d'explo réutilisée (Phase 1)
@@ -1249,7 +1264,9 @@ export async function demarrerJeu(donneesInitiales = null) {
       // l'arrivée évite de re-rentrer aussitôt, comme pour les portes).
       retour: { vers: zoneActuelle, entree: { colonne: tuile.colonne, ligne: tuile.ligne } },
     });
-    allerVersZone(mine, mine.depart);
+    runProfondeur = creerRunProfondeur(); // nouveau run : les buffs repartent de zéro
+    await allerVersZone(mine, mine.depart);
+    offrirChoixProfondeur();              // 1er étage : un premier butin de run
   }
 
   // Confirmation EN EXPLORATION : fige le monde le temps de répondre (sinon on
@@ -1274,7 +1291,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     }
     surDescente = tuile.caractere === ">";
   }
-  function descendre() {
+  async function descendre() {
     const mine = genererMine({
       niveau: (zoneCourante.niveau ?? 1) + 1,
       monstres: zoneCourante.monstres,
@@ -1283,7 +1300,49 @@ export async function demarrerJeu(donneesInitiales = null) {
       retour: zoneCourante.retour,        // la sortie ramène toujours à l'ENTRÉE DU MONDE
       materiaux: zoneCourante.materiaux,  // même table de drop (même grotte)
     });
-    allerVersZone(mine, mine.depart);
+    if (!runProfondeur) runProfondeur = creerRunProfondeur(); // filet (ne devrait pas arriver)
+    await allerVersZone(mine, mine.depart);
+    offrirChoixProfondeur();              // étage plus profond : encore un butin de run
+  }
+
+  // Propose le choix de buff à l'arrivée sur un étage. Modale OBLIGATOIRE : le
+  // monde reste figé tant qu'on n'a pas choisi. Le nombre de choix = 2 de base,
+  // +1 par rang du talent « Deep Prospector » (jusqu'à 4).
+  function offrirChoixProfondeur() {
+    if (!runProfondeur) return;
+    const nbChoix = heros.choixLootProfondeur ?? 2;
+    const choix = tirerChoix(nbChoix);
+    enPause = true; invite.hidden = true;
+    ouvrirChoixProfondeur(choix, {
+      surChoisir: (loot) => {
+        appliquerLoot(runProfondeur, loot);
+        etageSuivant(runProfondeur);
+        majHudInfo();                     // le bandeau des buffs actifs se met à jour
+        enPause = false;
+        afficherMessage(`⛏ Depth boon: ${loot.nom} — ${etiquetteLoot(loot)}.`);
+      },
+    });
+  }
+
+  // Petite étiquette lisible de l'effet d'un loot (pour le message).
+  function etiquetteLoot(loot) {
+    const t = {
+      force: `+${loot.valeur} Force`, gold: `+${loot.valeur} gold on exit`,
+      celerite: `+${loot.valeur}% combat speed`, armure: `+${loot.valeur} start armor`,
+    };
+    return t[loot.effet] ?? `+${loot.valeur}`;
+  }
+
+  // Fin d'un run de profondeur : verse l'or accumulé SI on sort vivant, puis
+  // jette les buffs. Appelé à la sortie volontaire (porte) et — sans or — à la mort.
+  function finRunProfondeur({ vivant }) {
+    if (!runProfondeur) return;
+    if (vivant && runProfondeur.gold > 0) {
+      ajouterOr(inventaire, runProfondeur.gold);
+      afficherMessage(`🪙 You resurface with ${runProfondeur.gold} gold from the depths!`);
+    }
+    runProfondeur = null;
+    majHudInfo();
   }
 
   // --- Minage des veines (en mine) -----------------------------------------
@@ -1393,6 +1452,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     await flashCombat();
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis, maitrise,
+      bonusRun: bonusCombatRun(runProfondeur), // buffs de run (force/célérité/armure)
       fond: fondCombat(zoneActuelle), // un fond tiré dans la bibliothèque de la zone
       // Échap en combat : ouvre le menu pause (réglages son), SANS Save/Load.
       surPause: () => menu.ouvrir({ sansSauvegarde: true }),
@@ -1401,6 +1461,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         if (resultat === "defaite") {
           // Pas encore mort : on se réveille en ville, à 1 PV (à soigner).
           heros.pv = 1;
+          finRunProfondeur({ vivant: false }); // on n'est pas sorti vivant : buffs + or PERDUS
           afficherMessage("💀 You collapse... and wake up back in Brütàl.");
           allerVersZone("city", CITY.depart); // retour sûr (gère le fondu + la musique)
         } else if (resultat === "fuite") {

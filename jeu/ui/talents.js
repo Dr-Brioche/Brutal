@@ -20,6 +20,7 @@ function iconeNoeud(n) {
     pvMax: "❤", vitesse: "👟", pioche: "🃏", agilite: "⚡", evasion: "🐾",
     chaleurSeuil: "🔥", chaleurMax: "🔥", chaleurDepart: "🔥", chaleurRecharge: "🔥",
     artisanat: "⚒", sacSecondaire: "🎒", noblesse: "👑", sansRencontre: "🚫",
+    choixProfondeur: "⛏",
   }[k] || "★";
 }
 

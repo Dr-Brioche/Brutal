@@ -72,7 +72,10 @@ const PORTRAIT_HEROS = { sx: 17, sy: 4, sw: 30, sh: 30 };
 // ---------------------------------------------------------------------------
 
 // `ennemis` : tableau de définitions d'ennemis (data/ennemis.js).
-export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, maitrise, fond, surFin, surPause }) {
+export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, maitrise, fond, surFin, surPause, bonusRun }) {
+  // Buffs de RUN de profondeur (accumulés en descendant, cf. systems/profondeur.js) :
+  // s'ajoutent à l'équipement pour ce combat. Nuls hors mine.
+  const run = bonusRun ?? { forcePerm: 0, celeritePct: 0, armureDepart: 0 };
   const fondCombat = document.getElementById("fond-combat");
   // Fond de la zone (tiré dans sa bibliothèque) ; sinon dégradé de secours (none).
   fondCombat.style.setProperty("--fond-url", fond ? `url("${fond}")` : "none");
@@ -80,15 +83,16 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // Items équipés (slots armure, bottes, gants… + armes, bijoux).
   const itemsEquipes = Object.values(inventaire.slots ?? {}).filter(Boolean).map(itemDef).filter(Boolean);
-  // Armure de départ : somme des armureDepart de tous les items équipés.
-  const armureDepart = itemsEquipes.reduce((s, d) => s + (d.armureDepart ?? 0), 0);
-  // Célérité passive (% d'initiative de combat) des items. Le « move speed » des
-  // bottes, lui, agit en EXPLORATION (cf. appliquerEquipement), pas en combat.
-  const celeritePct = itemsEquipes.reduce((s, d) => s + (d.celeritePct ?? 0), 0);
+  // Armure de départ : somme des armureDepart de tous les items équipés (+ run).
+  const armureDepart = itemsEquipes.reduce((s, d) => s + (d.armureDepart ?? 0), 0) + (run.armureDepart ?? 0);
+  // Célérité passive (% d'initiative de combat) des items (+ run). Le « move speed »
+  // des bottes, lui, agit en EXPLORATION (cf. appliquerEquipement), pas en combat.
+  const celeritePct = itemsEquipes.reduce((s, d) => s + (d.celeritePct ?? 0), 0) + (run.celeritePct ?? 0);
   // Force permanente : bonus de dégâts fixe pour TOUT le combat (déclaré par items),
   // + le combo d'arme actif (ex. Twin Daggers en double, Basilisk Fang + dague off-hand).
   const forcePerm = itemsEquipes.reduce((s, d) => s + (d.forcePerm ?? 0), 0)
-    + (comboArmeActif(inventaire.slots)?.forcePerm ?? 0);
+    + (comboArmeActif(inventaire.slots)?.forcePerm ?? 0)
+    + (run.forcePerm ?? 0); // buff de run « Pierre de force »
   // Force de QUALITÉ de forge : chaque équipement FORGÉ ajoute la Force de sa
   // qualité, MODULÉE par la rareté de l'objet (cf. FORCE_QUALITE) — un épique
   // Master rapporte bien plus qu'un commun. Les loots = normale (0).

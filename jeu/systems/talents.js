@@ -52,6 +52,8 @@ export function appliquerTalents(heros) {
   heros.depotsEncheresMax = 1 + (b.depotEnchere || 0);
   // Collecteur d'impôt (légendaire) : l'or des bâtiments s'encaisse tout seul.
   heros.collecteurImpot = (b.collecteurImpot || 0) > 0;
+  // Choix de butin par étage de profondeur : 2 de base + 1 par rang de « Deep Prospector ».
+  heros.choixLootProfondeur = 2 + (b.choixProfondeur || 0);
   // Emplacements de Maîtrise débloqués (0, 3, ou 5), plafonnés au maximum absolu.
   heros.slotsMaitrise = Math.min(5, b.slots || 0);
   if (heros.pv > heros.pvMax) heros.pv = heros.pvMax;

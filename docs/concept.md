@@ -67,6 +67,10 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   farm/craft) — plus de rares **méga-gisements** (piliers) au centre des salles — et
   on combat ; à la sortie on revient au monde, et **re-entrer régénère** une mine
   neuve. La rareté des trouvailles monte avec la profondeur (et la difficulté aussi).
+  **La descente est un « RUN »** : à chaque étage (entrée + descente `>`) on choisit
+  **1 buff parmi 2** (Force, Célérité, Armure de départ, ou Or à la sortie) qui
+  **s'accumulent** toute la visite et **disparaissent en ressortant** (l'or n'est
+  versé que si on sort vivant). Le talent **Deep Prospector** monte à 3-4 choix.
   **→ Design complet + journal d'avancement : [`docs/mines.md`](mines.md).**
   *(en cours d'implémentation)*
 - **Monstres invisibles sur la carte** : pas de sprite d'ennemi en exploration.

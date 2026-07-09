@@ -1957,6 +1957,59 @@
     .butin-btn--laisser { background: #2f2d3a; border: 1px solid #45424f; color: #cbd0d6; }
     .butin-aide { margin-top: 10px; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
+    /* ==== CHOIX DE PROFONDEUR (buff de « run » à chaque étage) ================= */
+    .cprof {
+      position: fixed; inset: 0; z-index: 40;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(4, 6, 10, 0.72);
+    }
+    .cprof-panneau {
+      width: min(560px, 94vw); padding: 20px 24px 18px;
+      background: #14110d; border: 1px solid #6a4a22; border-radius: 16px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7); text-align: center;
+    }
+    .cprof-titre {
+      font-size: 1.5rem; font-weight: 900; letter-spacing: 0.06em;
+      color: #ffcf57; text-shadow: 0 0 22px rgba(255, 200, 80, 0.35);
+    }
+    .cprof-sous { margin: 4px 0 16px; font-size: 0.82rem; color: #b7a98a; }
+    .cprof-cartes { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .cprof-carte {
+      flex: 1 1 0; min-width: 116px; max-width: 160px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      padding: 16px 12px 14px; background: #1d1710;
+      border: 2px solid #3a2c18; border-radius: 12px;
+      transition: transform 0.08s, border-color 0.08s, background 0.08s;
+    }
+    .cprof-carte:hover { background: #26200f; }
+    .cprof-carte--sel {
+      border-color: #ffcf57; background: #2a2210;
+      transform: translateY(-3px); box-shadow: 0 0 0 1px #ffcf57, 0 10px 24px rgba(0, 0, 0, 0.5);
+    }
+    .cprof-past {
+      width: 46px; height: 46px; border-radius: 10px; border: 2px solid #000;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+    .cprof-rarete {
+      font-size: 0.64rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .cprof-nom { font-size: 0.9rem; font-weight: 700; color: #efe6d2; line-height: 1.15; }
+    .cprof-effet {
+      font-size: 0.98rem; font-weight: 800; color: #ffe1a6;
+      background: #3a2c18; border-radius: 999px; padding: 3px 12px;
+    }
+    .cprof-num {
+      font-size: 0.62rem; color: #8a7c60; font-family: ui-monospace, monospace;
+    }
+    .cprof-aide { margin-top: 14px; font-size: 0.72rem; color: #8a7c60; }
+
+    /* Bandeau des buffs de run actifs (dans le HUD info, en mine). */
+    .hud-run { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .hud-run-buff {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 0.82rem; font-weight: 700; color: #ffe1a6;
+    }
+
     /* ==== SOCLE COMMUN des écrans ÉCONOMIE (HV, bâtiment, enchères) ============
        Une FENÊTRE PLEINE qui masque le jeu : `.eco-ecran` centre, `.eco-zone`
        remplit toute la zone 16:9 avec un fond OPAQUE — la surface prête à
@@ -2685,6 +2738,17 @@
         <button class="butin-btn butin-btn--laisser" id="butin-laisser">Discard rest</button>
       </div>
       <p class="butin-aide" id="butin-aide">Click or ↑↓+Enter: take item &nbsp;·&nbsp; Space: take all &nbsp;·&nbsp; Esc: leave</p>
+    </div>
+  </div>
+
+  <!-- CHOIX DE PROFONDEUR : à chaque étage on choisit UN buff de « run » parmi 2+.
+       Rempli par ui/profondeur.js. Modale OBLIGATOIRE (on doit choisir). -->
+  <div class="cprof" id="choix-profondeur" hidden>
+    <div class="cprof-panneau panneau-ui">
+      <div class="cprof-titre">⛏ A boon from the depths</div>
+      <p class="cprof-sous">Pick one — it lasts your whole delve, then fades when you leave.</p>
+      <div class="cprof-cartes" id="cprof-cartes"></div>
+      <p class="cprof-aide" id="cprof-aide">← → choose &nbsp;·&nbsp; Enter pick &nbsp;·&nbsp; 1-4 quick pick</p>
     </div>
   </div>
 
