@@ -196,6 +196,9 @@ export function creerCombat(ennemisDefs, opts = {}) {
     // Chaleur de Forge + surchauffe (réglages modifiés par l'équipement)
     chaleur: chaleurDepart,
     chaleurRecharge,
+    // Part BONUS de la recharge (talents « Bellows Lungs » / futurs items), au-delà
+    // de la recharge de base. Appliquée DÈS le 1er tour (la base, elle, reste froide).
+    chaleurRechargeBonus: chaleurRecharge - CHALEUR_RECHARGE,
     chaleurSeuil,
     chaleurMax,
     derniereBrulure: 0,
@@ -1259,6 +1262,12 @@ export function commencerTourHeros(combat) {
   combat.gelExplosionHeros = 0;
   if (combat.premierTourHeros) {
     combat.premierTourHeros = false;
+    // Forge FROIDE au 1er tour : la recharge de BASE ne s'applique pas. MAIS les
+    // BONUS de recharge (talents/items « +Chaleur par tour ») comptent DÈS ce tour,
+    // sinon leur 1er tour serait perdu (avant : Chaleur = 1 fixe au 1er tour).
+    if (combat.chaleurRechargeBonus > 0) {
+      combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + combat.chaleurRechargeBonus);
+    }
     combat.derniereBrulure = combat.dernierPoisonHeros = combat.dernierFeuHeros = 0;
   } else {
     // Surchauffe : on vérifie/applique les dégâts AVANT la recharge, sur la Chaleur
