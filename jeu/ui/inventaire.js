@@ -314,7 +314,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       actions.push({ label: "📜 Read", fn: () => surLire(o) });
     }
     if (surVendre && document.body.classList.contains("en-boutique")) {
-      actions.push({ label: `Sell — ${prixVente(o.id) * (o.quantite ?? 1)} 🪙`, fn: () => surVendre(o) });
+      actions.push({ label: `Sell — ${prixVente(o.id, o.qualite ?? null) * (o.quantite ?? 1)} 🪙`, fn: () => surVendre(o) });
     }
     actions.push({ label: "Discard", danger: true, fn: () => surJeter && surJeter({ objet: o }) });
     return actions;

@@ -114,7 +114,7 @@ export function acheterTicket(enc, inv, jour) {
 function valeurLot(lot) {
   if (lot.type === "paquet") return lot.quantite * prixBaseRessource(lot.id);
   if (estCamelote(lot.id)) return CAMELOTE_VALEUR_LOT;
-  return valeurReelle(lot.id);
+  return valeurReelle(lot.id, lot.qualite ?? null);
 }
 
 // Rang de rareté (0..4) d'un lot, pour l'agressivité de la salle.
@@ -171,12 +171,13 @@ function finaliserLot(lot, rng) {
 // CAMELOTE_VALEUR_DEPOT), re-refourgue à la salle sous sa fausse rareté.
 export function lotDepot(depot) {
   const camelote = estCamelote(depot.id);
-  const valeur = camelote ? CAMELOTE_VALEUR_DEPOT : valeurReelle(depot.id);
+  const ql = depot.qualite ?? null;
+  const valeur = camelote ? CAMELOTE_VALEUR_DEPOT : valeurReelle(depot.id, ql);
   // Camelote : plancher = mise à prix normale (la salle croit encore à un rare).
   // Sinon : plancher = prix marchand (jamais pire qu'une vente directe).
   const plancher = camelote
     ? Math.round(valeur * MISE_A_PRIX[0])
-    : prixVente(depot.id);
+    : prixVente(depot.id, ql);
   return {
     type: "objet", id: depot.id, qualite: depot.qualite ?? null, duJoueur: true,
     valeur,

@@ -65,9 +65,9 @@ export function prixBaseRessource(id) {
 // Valeur RÉELLE d'un objet = sa VALEUR DE RÉFÉRENCE (data/items.js, fixée dans
 // le classeur). C'est l'ancre partout (HV, enchères) ; le prix de vente en
 // découle plus bas. `it.valeur` peut toujours surcharger un objet précis.
-export function valeurReelle(id) {
+export function valeurReelle(id, qualite = null) {
   const it = itemDef(id);
-  return it?.valeur ?? valeurEstimee(id);
+  return it?.valeur ?? valeurEstimee(id, qualite);
 }
 
 // ----- État ------------------------------------------------------------------
@@ -203,19 +203,19 @@ export function acheterRessource(marche, id, n = 1, rng = Math.random) {
 const HV_BANDE = [0.80, 0.90];
 
 // Prix conseillé à l'HV : milieu de la bande (−15 %).
-export function prixConseille(id) {
-  return Math.max(1, Math.round(valeurReelle(id) * (HV_BANDE[0] + HV_BANDE[1]) / 2));
+export function prixConseille(id, qualite = null) {
+  return Math.max(1, Math.round(valeurReelle(id, qualite) * (HV_BANDE[0] + HV_BANDE[1]) / 2));
 }
 
 // Bornes du curseur de prix : de −20 % (vente rapide) à −10 % (vente patiente).
-export function bornesPrixVente(id) {
-  const v = valeurReelle(id);
+export function bornesPrixVente(id, qualite = null) {
+  const v = valeurReelle(id, qualite);
   return { min: Math.max(1, Math.round(v * HV_BANDE[0])), max: Math.max(2, Math.round(v * HV_BANDE[1])) };
 }
 
 // Position dans la bande HV : 0 au plancher (−20 %), 1 au sommet (−10 %).
-function fracBande(id, prix) {
-  const v = valeurReelle(id);
+function fracBande(id, prix, qualite = null) {
+  const v = valeurReelle(id, qualite);
   if (v <= 0) return 0;
   return Math.min(1, Math.max(0, (prix / v - HV_BANDE[0]) / (HV_BANDE[1] - HV_BANDE[0])));
 }
@@ -223,37 +223,37 @@ function fracBande(id, prix) {
 // Délai MÉDIAN de vente (s de jeu actif) : plus on vise haut dans la bande, plus
 // c'est long. ~2 min au plancher (−20 %) → ~6 h au sommet (−10 %), exponentiel.
 const DELAI_MIN_S = 120, DELAI_MAX_S = 6 * 3600;
-function delaiMedian(id, prix) {
-  const f = fracBande(id, prix);
+function delaiMedian(id, prix, qualite = null) {
+  const f = fracBande(id, prix, qualite);
   const s = DELAI_MIN_S * Math.pow(DELAI_MAX_S / DELAI_MIN_S, f);
   return Math.min(72 * 3600, Math.max(45, s));
 }
 
 // Largeur de la fourchette de hasard : ±2^w autour du médian ; s'élargit quand
 // on vise haut (acheteur patient plus imprévisible).
-function largeurFourchette(id, prix) {
-  return 0.3 + 0.5 * fracBande(id, prix);
+function largeurFourchette(id, prix, qualite = null) {
+  return 0.3 + 0.5 * fracBande(id, prix, qualite);
 }
 
 // Le délai FINAL (médian × hasard) reste borné : 45 s à 72 h de jeu actif.
 const bornerDelai = (s) => Math.min(72 * 3600, Math.max(45, Math.round(s)));
 
 // Fourchette AFFICHÉE au joueur : { min, max } en secondes de jeu actif.
-export function estimerDelaiVente(id, prix) {
-  const T = delaiMedian(id, prix), w = largeurFourchette(id, prix);
+export function estimerDelaiVente(id, prix, qualite = null) {
+  const T = delaiMedian(id, prix, qualite), w = largeurFourchette(id, prix, qualite);
   return { min: bornerDelai(T * Math.pow(2, -w)), max: bornerDelai(T * Math.pow(2, w)) };
 }
 
 // Tirage RÉEL du délai (au moment de la mise en vente) : médian × 2^(u·w).
-export function tirerDelaiVente(id, prix, rng = Math.random) {
-  const T = delaiMedian(id, prix), w = largeurFourchette(id, prix);
+export function tirerDelaiVente(id, prix, qualite = null, rng = Math.random) {
+  const T = delaiMedian(id, prix, qualite), w = largeurFourchette(id, prix, qualite);
   return bornerDelai(T * Math.pow(2, (rng() * 2 - 1) * w));
 }
 
 // Met un objet en annonce. Renvoie l'annonce créée (l'objet doit déjà avoir été
 // retiré du sac par l'appelant).
 export function mettreEnVente(marche, id, prix, qualite = null, rng = Math.random) {
-  const annonce = { id, prix, qualite, reste: tirerDelaiVente(id, prix, rng) };
+  const annonce = { id, prix, qualite, reste: tirerDelaiVente(id, prix, qualite, rng) };
   marche.ventes.push(annonce);
   return annonce;
 }
@@ -335,7 +335,7 @@ export function collecterVente(marche, annonce) {
   const i = marche.ventes.indexOf(annonce);
   if (i < 0 || !annonce.vendu) return null;
   marche.ventes.splice(i, 1);
-  const valeur = valeurReelle(annonce.id);
+  const valeur = valeurReelle(annonce.id, annonce.qualite);
   const profitPct = valeur > 0 ? Math.round((annonce.prix / valeur - 1) * 100) : 0;
   return { prix: annonce.prix, profitPct };
 }

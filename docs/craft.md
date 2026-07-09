@@ -131,6 +131,12 @@ Jauge orange horizontale ; un curseur fait des va-et-vient. On frappe (**[Espace
 - **Effet en combat** : chaque équipement forgé ajoute `forceQualite(rareté, qualité)` en
   **Force permanente** (tout le combat). Calcul dans `demarrerCombat` (`jeu/ui/combat.js`),
   qui croise `inv.slots[slot]` (→ rareté) et `inv.qualites[slot]`.
+- **Bonus de VALEUR** (`MULT_QUALITE` + `multQualite(qualité)`) : un objet forgé vaut
+  **plus cher partout** (marchand, HV, enchère) — **Artisan +15 %**, **Master +30 %**,
+  **Exceptional +60 %** sur sa valeur de base. Appliqué dans `valeurEstimee(id, qualité)` /
+  `prixVente(id, qualité)` (data/items.js) et propagé (marché, HV, enchères prennent la
+  qualité de l'exemplaire vendu/déposé). Forger devient doublement payant : **stats ET
+  revente**.
 - **Affichage** : ligne colorée « ⚒ Master · +8 Force » dans l'infobulle de l'objet.
 
 ## Fichiers

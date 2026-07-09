@@ -404,7 +404,7 @@ function rendreVente() {
       const q = o.qualite && o.qualite !== "normale" ? QUALITES[o.qualite] : null;
       const l = document.createElement("div");
       l.className = "hv-vente-item" + (i === venteSel ? " sel" : "");
-      l.innerHTML = `<span></span><span style="color:#8fa0c8">value ${valeurReelle(o.id)} <span class="icone-piece"></span></span>`;
+      l.innerHTML = `<span></span><span style="color:#8fa0c8">value ${valeurReelle(o.id, o.qualite)} <span class="icone-piece"></span></span>`;
       l.children[0].textContent = d.nom + (q ? ` · ⚒ ${q.nom}` : "");
       l.children[0].style.color = couleurRarete(o.id);
       l.addEventListener("click", () => { venteSel = i; choisirObjetVente(); });
@@ -415,24 +415,25 @@ function rendreVente() {
 
   // Étape prix : montant, estimation de délai, repères (conseillé / marchand).
   const id = venteObjet.id;
-  const b = bornesPrixVente(id);
+  const ql = venteObjet.qualite ?? null;
+  const b = bornesPrixVente(id, ql);
   ventePrix = Math.min(b.max, Math.max(b.min, ventePrix));
   elVenteNom.textContent = itemDef(id).nom;
   elVenteNom.style.color = couleurRarete(id);
   elVenteMontant.innerHTML = `${ventePrix} <span class="icone-piece"></span>`;
-  const e = estimerDelaiVente(id, ventePrix);
-  const remise = Math.round((1 - ventePrix / valeurReelle(id)) * 100);
+  const e = estimerDelaiVente(id, ventePrix, ql);
+  const remise = Math.round((1 - ventePrix / valeurReelle(id, ql)) * 100);
   elVenteNote.innerHTML =
     `Estimated sale time: <b>${fmtEstim(e.min)} – ${fmtEstim(e.max)}</b> of play` +
     ` &nbsp;(${remise}% below value)<br>` +
-    `Recommended: ${prixConseille(id)} <span class="icone-piece"></span> · Merchant would pay: ${prixVente(id)} <span class="icone-piece"></span>`;
+    `Recommended: ${prixConseille(id, ql)} <span class="icone-piece"></span> · Merchant would pay: ${prixVente(id, ql)} <span class="icone-piece"></span>`;
 }
 
 function choisirObjetVente() {
   const objets = objetsVendables();
   venteObjet = objets[venteSel] ?? null;
   if (!venteObjet) return;
-  ventePrix = prixConseille(venteObjet.id);
+  ventePrix = prixConseille(venteObjet.id, venteObjet.qualite ?? null);
   venteEtape = "prix";
   rendreVente();
 }

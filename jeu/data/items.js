@@ -23,6 +23,7 @@
 // « Valeurs »), régénérée dans data/valeurs.js par outils/importer_valeurs.py.
 // Cf. valeurEstimee() / prixVente() plus bas.
 import { VALEUR_OBJET } from "./valeurs.js";
+import { multQualite } from "./recettes.js";
 
 // Raretés, du plus commun au plus précieux. `rang` = ordre (sert à comparer
 // « au moins rare » sans coder en dur les noms — cf. rareteAuMoins).
@@ -693,22 +694,30 @@ export function couleurRarete(id) {
 const VALEUR_RARETE = { commun: 400, uncommon: 2000, rare: 10000, epique: 80000, legendaire: 250000 };
 const MARGE_MARCHAND = 0.75; // le marchand paie 75 % de la valeur (−25 %)
 
-// Valeur de référence d'un objet. `valeurVente` (fixé main : arnaques) court-
-// circuite tout ; sinon la table Excel ; sinon la cible de la rareté (secours).
-export function valeurEstimee(id) {
+// Valeur de RÉFÉRENCE de base (SANS qualité). `valeurVente` (fixé main :
+// arnaques) court-circuite tout ; sinon la table Excel ; sinon la cible de la
+// rareté (secours).
+function valeurBase(id) {
   const it = ITEMS[id];
   if (!it) return 0;
   if (it.valeurVente != null) return it.valeurVente;
   return VALEUR_OBJET[id] ?? VALEUR_RARETE[it.rarete] ?? 1;
 }
 
+// Valeur de référence d'un EXEMPLAIRE : base × bonus de qualité de forge (un
+// objet forgé Artisan/Master/Exceptional vaut +15/+30/+60 %, cf. multQualite).
+// `qualite` optionnel : un objet looté (normale/absent) → ×1.
+export function valeurEstimee(id, qualite = null) {
+  return Math.round(valeurBase(id) * multQualite(qualite));
+}
+
 // Prix de revente au MARCHAND (or). `valeurVente` = prix fixé main (arnaques :
-// on récupère pile ça). Sinon valeur × marge marchand.
-export function prixVente(id) {
+// on récupère pile ça, × qualité). Sinon valeur × marge marchand × qualité.
+export function prixVente(id, qualite = null) {
   const it = ITEMS[id];
   if (!it) return 0;
-  if (it.valeurVente != null) return it.valeurVente;
-  return Math.max(1, Math.round(valeurEstimee(id) * MARGE_MARCHAND));
+  const base = it.valeurVente != null ? it.valeurVente : valeurBase(id) * MARGE_MARCHAND;
+  return Math.max(1, Math.round(base * multQualite(qualite)));
 }
 
 // True si la rareté de l'item atteint AU MOINS le seuil donné (ex. "rare"). Sert

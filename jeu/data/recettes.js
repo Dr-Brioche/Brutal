@@ -39,6 +39,17 @@ export function forceQualite(rarete, qualite) {
   return FORCE_QUALITE[rarete]?.[qualite] ?? 0;
 }
 
+// BONUS DE VALEUR d'un objet forgé (décision Brioche 09/07/2026) : une belle
+// forge vaut plus cher PARTOUT (marchand, HV, enchère). Multiplicateur appliqué
+// à la valeur de base — Artisan +15 %, Master +30 %, Exceptional +60 %.
+// (Un objet LOOTÉ = normale = ×1, aucun bonus.)
+export const MULT_QUALITE = {
+  normale: 1, artisan: 1.15, maitre: 1.30, exceptionnel: 1.60,
+};
+export function multQualite(qualite) {
+  return MULT_QUALITE[qualite] ?? 1;
+}
+
 // <<RECETTES-AUTO>>
 // Bloc GÉNÉRÉ automatiquement par outils/importer_recettes.py — NE PAS
 // éditer à la main : modifier l'onglet « Recettes » du classeur Excel puis
