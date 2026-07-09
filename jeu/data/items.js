@@ -149,6 +149,9 @@ export const ITEMS = {
   // mine pas). Lâché par les monstres pour l'instant (cf. tirerButin dans ennemis.js).
   // Sert à forger (ex. Miner's Pick = 3 fer + 2 bois). Empilable comme les minerais.
   "bois":           { id: "bois",           nom: "Wood",         categorie: "ressource", famille: "bois",   rarete: "commun",   prixBase: 5, taille: { l: 1, h: 1 }, icone: "#7a5230", empilable: true, pileMax: 10 },
+  // Cuir : ressource de CRAFT lâchée par les mobs `famille: "animal"` (cf.
+  // data/butin.js). Comme le bois, hors MINERAIS (jamais dans les veines).
+  "cuir":           { id: "cuir",           nom: "Leather",      categorie: "ressource", famille: "cuir",   rarete: "commun",   prixBase: 7, taille: { l: 1, h: 1 }, icone: "#8a5a34", empilable: true, pileMax: 10 },
 
   // ---- Trésors : objets RARES qui NE S'ÉQUIPENT PAS et NE SERVENT À RIEN, sinon
   // à être REVENDUS. La catégorie "tresor" n'est dans AUCUN slot (SLOT_PAR_CATEGORIE)

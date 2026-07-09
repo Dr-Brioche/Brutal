@@ -65,7 +65,7 @@ est déjà là et s'y branchera.)*
 
 | Constante | Valeur | Rôle |
 |---|---|---|
-| `TICKET` | 50 🪙 | Prix du billet d'entrée du soir |
+| `TICKET` | 500 🪙 | Prix du billet d'entrée du soir (relevé de 50 le 09/07/2026, échelle refondue) |
 | `FENETRE_INSCRIPTION` (temps.js) | 600 s | Durée d'ouverture des inscriptions (avant la cloche) |
 | `FENETRE_ENTREE` | 300 s | Délai pour entrer après la cloche |
 | `NB_LOTS` | 3–4 | Nombre de lots de la maison |

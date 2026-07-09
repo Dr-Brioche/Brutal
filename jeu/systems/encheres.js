@@ -30,7 +30,7 @@ import { valeurReelle, prixBaseRessource } from "./marche.js";
 
 // ----- Réglages (équilibrage) --------------------------------------------------
 
-export const TICKET = 50;          // 🪙 le ticket d'entrée (fenêtre d'inscription)
+export const TICKET = 500;         // 🪙 le ticket d'entrée (fenêtre d'inscription) — petit droit d'entrée sur l'échelle refondue
 export const FENETRE_ENTREE = 300; // s de nuit pendant lesquelles on peut ENTRER (avec ticket)
 
 const NB_LOTS = [3, 4];            // lots par vente (min, max) — hors dépôt du joueur

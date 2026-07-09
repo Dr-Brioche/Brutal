@@ -5,20 +5,26 @@
 //
 // Champs :
 //   id, nom (anglais), pv, attaque (dégâts par tour), xp (donnée à la mort)
+//   niveau  : NIVEAU du monstre → détermine l'OR lâché (cf. data/butin.js)
+//   famille : TYPE du monstre → détermine ses drops de ressources (cf. butin.js,
+//             ex. "gobelin" → bois). Un mob sans famille ne lâche que son `butin`.
 //   planche : la planche de sprites de combat (générée par outils/importer_*.py)
 //   sprite  : comment lire la planche
 //     caseL, caseH : taille d'une case (px)
 //     anims : pour chaque état, les frames à jouer, la vitesse (ips = images/s)
 //             et si l'animation boucle.
-//   butin  : ce qui tombe à la mort
-//     or     : [min, max] pièces d'or
-//     objets : [{ id, chance }] — `chance` (0..1) = rareté du drop
+//   butin  : drops SPÉCIFIQUES à ce mob, EN PLUS de l'or (par niveau) et des
+//            ressources (par famille) :
+//     objets : [{ id, chance }] — `chance` (0..1) = rareté du drop (ex. une bague)
+
+import { tirerOr, tirerButinFamille } from "./butin.js";
 
 export const ENNEMIS = [
   {
     id: "gobelin",
     nom: "Cave Goblin",
     niveau: 1,        // niveau LIÉ AU SKIN (pas de scaling : stats fixes par type)
+    famille: "gobelin",
     pv: 24,
     attaque: 4,
     xp: 6,            // XP donnée au héros à sa mort
@@ -39,7 +45,6 @@ export const ENNEMIS = [
       },
     },
     butin: {
-      or: [2, 3],
       objets: [
         { id: "pioche-de-mineur", chance: 0.45 }, // assez courant
         { id: "bague-de-sang", chance: 0.08 },    // rare (donne la carte Bloodletting)
@@ -51,6 +56,7 @@ export const ENNEMIS = [
   {
     id: "gobelin-vif",
     niveau: 1,
+    famille: "gobelin",
     nom: "Goblin Skirmisher",
     pv: 16,
     attaque: 3,
@@ -73,7 +79,6 @@ export const ENNEMIS = [
       },
     },
     butin: {
-      or: [2, 4],
       objets: [
         { id: "bottes-vives", chance: 0.10 }, // rare (donne la carte Quicken)
       ],
@@ -85,6 +90,7 @@ export const ENNEMIS = [
   {
     id: "gobelin-chaman",
     niveau: 1,
+    famille: "gobelin",
     nom: "Goblin Shaman",
     pv: 14,
     attaque: 2,
@@ -112,7 +118,6 @@ export const ENNEMIS = [
       { type: "attaque",     valeur: 2,  poids: 20 }, // attaque directe (rare)
     ],
     butin: {
-      or: [3, 6],
       objets: [],
     },
   },
@@ -123,25 +128,14 @@ export function ennemiParId(id) {
   return ENNEMIS.find((e) => e.id === id) ?? ENNEMIS[0];
 }
 
-// Bois : ressource de CRAFT lâchée par TOUS les monstres (source temporaire, cf.
-// docs/craft.md). Géré ici plutôt que dans chaque `butin` → vaut aussi pour les
-// futurs monstres, sans rien oublier. Réglage : chance + quantité par kill.
-const BOIS_CHANCE = 0.6;   // ~2 combats sur 3 en lâchent
-const BOIS_QTE = [1, 2];   // 1 ou 2 bûches quand ça tombe
-
 // Tire le butin d'un ennemi : renvoie { or, objets: [ids] }.
+//   • or     = table PAR NIVEAU (data/butin.js).
+//   • objets = ressources PAR FAMILLE (butin.js) + drops SPÉCIFIQUES du mob.
 export function tirerButin(ennemi) {
-  const b = ennemi.butin;
-  const objets = [];
-  if (b) {
-    for (const o of b.objets ?? []) if (Math.random() < o.chance) objets.push(o.id);
-  }
-  const [min, max] = b?.or ?? [0, 0];
-  const or = min + Math.floor(Math.random() * (max - min + 1));
-  // Drop universel de bois (indépendant du butin propre du monstre).
-  if (Math.random() < BOIS_CHANCE) {
-    const n = BOIS_QTE[0] + Math.floor(Math.random() * (BOIS_QTE[1] - BOIS_QTE[0] + 1));
-    for (let i = 0; i < n; i++) objets.push("bois");
+  const or = tirerOr(ennemi.niveau);
+  const objets = tirerButinFamille(ennemi.famille);
+  for (const o of ennemi.butin?.objets ?? []) {
+    if (Math.random() < o.chance) objets.push(o.id);
   }
   return { or, objets };
 }

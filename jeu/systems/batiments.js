@@ -12,9 +12,11 @@
 // SEUL le menu pause (Échap) le fige. Pas d'abus d'AFK : la trésorerie est
 // PLAFONNÉE — laisser tourner le jeu ne rapporte jamais plus que le plafond.
 //
-// ÉQUILIBRAGE (tout est ICI, dans BATIMENTS) : la scierie coûte 1200 🪙 et
-// rapporte 120 🪙/h de jeu actif → remboursée en ~10 h de jeu. Le plafond de
-// 480 🪙 (4 versements) force un passage au panneau toutes les ~4 h de jeu.
+// ÉQUILIBRAGE (tout est ICI, dans BATIMENTS) : la scierie coûte 12 000 🪙 et
+// rapporte 1 200 🪙/h de jeu actif → remboursée en ~10 h de jeu. Le plafond de
+// 4 800 🪙 (4 versements) force un passage au panneau toutes les ~4 h de jeu.
+// (Prix/revenu calés sur les VALEURS d'objets refondues — cf. « Audit économie »
+// dans docs/concept.md : ~2 objets rares à l'achat, revenu = ~1 rare / 6 h.)
 //
 // BONUS SPÉCIAL : chaque bâtiment a (aura) sa petite production EN NATURE en
 // plus de l'or — la scierie donne du BOIS à chaque versement, récupéré en même
@@ -30,10 +32,10 @@ export const BATIMENTS = {
     nom: "Sawmill",                 // les textes du jeu sont en anglais (cf. concept)
     icone: "🪚",
     description: "Mills timber hauled down from the surface — a steady little business.",
-    prix: 1200,                     // 🪙 à l'achat (somme conséquente, une fois)
-    revenu: 120,                    // 🪙 versés dans la trésorerie à chaque période
+    prix: 12000,                    // 🪙 à l'achat (somme conséquente, une fois)
+    revenu: 1200,                   // 🪙 versés dans la trésorerie à chaque période
     periode: 3600,                  // s de jeu ACTIF entre deux versements (1 h)
-    tresorerieMax: 480,             // plafond de la trésorerie (4 versements)
+    tresorerieMax: 4800,            // plafond de la trésorerie (4 versements)
     // Le bonus spécial de la scierie : du bois avec chaque versement.
     bonus: { id: "bois", parVersement: 2, max: 8 }, // max = 4 versements aussi
   },

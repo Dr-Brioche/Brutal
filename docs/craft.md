@@ -14,8 +14,9 @@ rend la forge **plus intéressante que le loot** (un loot est toujours « Normal
 
 - Les ressources sont des objets de sac **empilables** (comme les minerais).
 - **Bois (`bois`)** : nouvelle ressource. **Pas un minerai** (absente de `MINERAIS` → jamais dans
-  les veines de mine). **Lâchée par tous les monstres** pour l'instant (source temporaire, cf.
-  `tirerButin` dans `jeu/data/ennemis.js` : `BOIS_CHANCE` / `BOIS_QTE`).
+  les veines de mine). **Lâchée par les mobs de la famille `gobelin`** (table de butin par
+  famille, cf. `BUTIN_FAMILLE` dans `jeu/data/butin.js`). Le **cuir** suit le même principe
+  pour la famille `animal` (gabarit prêt).
 - Onglet **« Resources »** chez le marchand de test (Renaud) : toutes les ressources **gratuites**,
   pour remplir le sac et tester.
 

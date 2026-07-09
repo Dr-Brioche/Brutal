@@ -908,6 +908,33 @@ achetant, ou vendre au-dessus de la valeur si la salle s'emballe). Un objet
 peut fixer sa valeur **à la main** (`valeurVente` dans `items.js`) hors table —
 utilisé par les **arnaques d'enchère** (cf. Trésors).
 
+### Butin de combat & audit économie (09/07/2026)
+
+En passant les objets à la nouvelle échelle (× ~15-100), il a fallu **remettre
+toutes les sources/puits d'or au diapason**. Deux tables pilotent désormais le
+butin (`jeu/data/butin.js`), pour équilibrer **sans toucher chaque mob** :
+
+- **Or par NIVEAU** (`OR_PAR_NIVEAU`) : tout monstre lâche des pièces selon son
+  `niveau`, pas au cas par cas. Croissance géométrique (~×1,4/niveau) : niv 1 ≈
+  **15-25 🪙**, niv 5 ≈ 60-90, niv 10 ≈ 340-530, niv 15 ≈ ~2 500, niv 20 ≈
+  ~14 000. Au début, l'or est un **appoint** — l'essentiel du gain vient de la
+  **revente du loot**. Éditable ligne par ligne.
+- **Objets par FAMILLE** (`BUTIN_FAMILLE`) : chaque TYPE de mob a sa table de
+  ressources — `gobelin` → **bois**, `animal` → **cuir** (gabarit prêt). En
+  plus, un mob peut garder des drops **spécifiques** (une bague rare) dans son
+  `butin.objets`. Le bois n'est donc plus « universel » : il vient de la famille.
+
+Reste de l'audit (calé sur : commun ~250-360 · rare ~6-9 k · épique ~48-72 k à
+la revente) :
+
+| Poste | Avant | Après | Raison |
+|---|---|---|---|
+| Scierie (achat) | 1 200 | **12 000** | ~2 objets rares, un vrai investissement |
+| Scierie (revenu/h) | 120 | **1 200** | remboursée en ~10 h (ratio inchangé) |
+| Scierie (plafond) | 480 | **4 800** | 4 versements, passage forcé (inchangé) |
+| Ticket d'enchère | 50 | **500** | droit d'entrée qui pèse un peu |
+| **Minerais** (marché) | — | **inchangés** | échelle géométrique déjà cohérente (rang 12 ≈ 1 900) qui alimente le craft ; touchée = risque de casser les marges de forge |
+
 ## Trésors (objets de pure valeur marchande) — ajout du 07/07/2026
 
 Une nouvelle catégorie d'objets `tresor` : **rares, NON utilisables**, ils ne
@@ -988,8 +1015,8 @@ Deuxième jambe du pilier économie après l'HV : **investir dans la pierre**
 - **Bonus spécial par bâtiment** : chaque bâtiment produit aussi un petit
   quelque chose **en nature**, récolté avec le bénéfice.
 - **1er bâtiment (test) : la SCIERIE**, qui débite du bois importé de la
-  surface — 1 200 🪙 à l'achat, 120 🪙 + 2 bois par heure de jeu, trésorerie
-  plafonnée à 480 🪙 (≈ 4 h) → remboursée en ~10 h de jeu actif. Le panneau
+  surface — 12 000 🪙 à l'achat, 1 200 🪙 + 2 bois par heure de jeu, trésorerie
+  plafonnée à 4 800 🪙 (≈ 4 h) → remboursée en ~10 h de jeu actif. Le panneau
   affiche une **pastille dorée** quand il y a de l'or à récolter (rouge
   clignotante si la caisse est pleine). *Visuel du bâtiment : façade
   placeholder (planches + lame de scie), en attendant le vrai sprite.*
