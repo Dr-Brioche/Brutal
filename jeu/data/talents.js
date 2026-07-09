@@ -44,6 +44,15 @@ export const TALENTS = {
     effet: { noblesse: 1 },
     description: "A minor title of Brütàl nobility — grants entry to the exclusive evening auctions (entry ticket still required).",
   },
+  // Branche forge : maîtrise d'artisan → la barre du mini-jeu de forge défile
+  // plus LENTEMENT (plus facile d'atteindre Master/Exceptional), surtout sur le
+  // stuff rare/épique où elle file. 3 rangs (3 points), −15 % de vitesse chacun.
+  artisanat: {
+    id: "artisanat", nom: "Master Craftsman",
+    x: 2, y: 3, cout: 1, rangMax: 3, requis: ["forge3"],
+    effet: { artisanat: 1 },
+    description: "Craft mastery: the forge quality bar sweeps 15% slower per rank (3 ranks) — landing high quality gets easier, above all on rare and epic gear.",
+  },
   // Branche forge : le nain mineur connaît les galeries et évite les bestioles.
   evasion1: {
     id: "evasion1", nom: "Tunnel Sense", x: 1, y: 3, cout: 1, requis: ["forge3"],
@@ -130,6 +139,7 @@ const NOM_EFFET = {
   slots: "Mastery slots",
   ambidextrie: "Ambidexterity",
   deuxMains: "Two-handed weapons",
+  artisanat: "Slower forge bar",
 };
 
 // Décrit l'effet d'un nœud, ex. "+10 Max HP".

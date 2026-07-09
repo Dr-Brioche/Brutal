@@ -9,7 +9,7 @@
 
 import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES, setDeItem, comboArmeActif } from "../data/items.js";
 import { CARTES } from "../data/cartes.js";
-import { QUALITES } from "../data/recettes.js";
+import { QUALITES, forceQualite } from "../data/recettes.js";
 import { cartesSuppleanceSlot } from "../systems/combat.js";
 import { garnirCarte } from "./carte.js";
 
@@ -128,10 +128,11 @@ function construire(id, qualite = null) {
   // Les objets lootés (qualite absente ou "normale") n'en affichent pas.
   const q = qualite && qualite !== "normale" ? QUALITES[qualite] : null;
   if (q) {
+    const force = forceQualite(d?.rarete, qualite);
     const ql = document.createElement("div");
     ql.className = "inv-tip-rarete";
     ql.style.color = q.couleur;
-    ql.textContent = `⚒ ${q.nom}${q.force > 0 ? ` · +${q.force} Force` : ""}`;
+    ql.textContent = `⚒ ${q.nom}${force > 0 ? ` · +${force} Force` : ""}`;
     enfants.push(ql);
   }
   enfants.push(...lignes);

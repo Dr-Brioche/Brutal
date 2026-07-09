@@ -88,7 +88,17 @@ export function installerTalents({ heros, surChangement, surFermer }) {
 
   function decrire(n) {
     const etat = etatNoeud(heros, n.id);
-    const cout = etat === "debloque" ? "owned" : `${n.cout} pt`;
+    const rang = heros.talents?.[n.id] || 0;
+    const rmax = n.rangMax || 1;
+    // Talent à rangs (ex. Master Craftsman ×3) : on montre la progression.
+    let cout;
+    if (rmax > 1) {
+      cout = rang >= rmax ? `maxed · ${rang}/${rmax}`
+        : rang > 0 ? `rank ${rang}/${rmax} · next ${n.cout} pt`
+        : `${n.cout} pt · ${rmax} ranks`;
+    } else {
+      cout = etat === "debloque" ? "owned" : `${n.cout} pt`;
+    }
     const texteEffet = n.description || descEffet(n.effet);
     const badge = n.legendaire ? ' <span class="tal-legendaire">✦ Legendary</span>' : "";
     elDesc.innerHTML = `<b>${n.nom}</b>${badge} — ${texteEffet} <span class="tal-desc-cout">(${cout})</span>`;
@@ -123,6 +133,16 @@ export function installerTalents({ heros, surChangement, surFermer }) {
       b.style.width = NODE + "px";
       b.style.height = NODE + "px";
       b.textContent = iconeNoeud(n);
+      // Talent à rangs : pastille du rang courant en bas à droite (ex. « 2/3 »).
+      const rang = heros.talents?.[n.id] || 0;
+      if ((n.rangMax || 1) > 1 && rang > 0) {
+        const badge = document.createElement("span");
+        badge.textContent = `${rang}/${n.rangMax}`;
+        badge.style.cssText =
+          "position:absolute;right:-4px;bottom:-4px;font-size:10px;font-weight:700;" +
+          "background:#1c1a16;color:#e0b64e;border-radius:8px;padding:0 3px;line-height:14px;";
+        b.appendChild(badge);
+      }
       b.addEventListener("mouseenter", () => decrire(n));
       b.addEventListener("click", () => {
         selection = n.id;

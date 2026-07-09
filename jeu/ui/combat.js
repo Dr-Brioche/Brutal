@@ -21,7 +21,7 @@ import {
 } from "../systems/combat.js";
 import { cartesEquipees, slotsOccupes } from "../systems/inventaire.js";
 import { setsActifs, itemDef, comboArmeActif } from "../data/items.js";
-import { QUALITES } from "../data/recettes.js";
+import { forceQualite } from "../data/recettes.js";
 import { bonusTalents } from "../systems/talents.js";
 import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
@@ -90,9 +90,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const forcePerm = itemsEquipes.reduce((s, d) => s + (d.forcePerm ?? 0), 0)
     + (comboArmeActif(inventaire.slots)?.forcePerm ?? 0);
   // Force de QUALITÉ de forge : chaque équipement FORGÉ ajoute la Force de sa
-  // qualité (Artisan +1 / Master +2 / Exceptional +3). Les loots = normale (0).
-  const forceQualite = Object.values(inventaire.qualites ?? {})
-    .reduce((s, q) => s + (QUALITES[q]?.force ?? 0), 0);
+  // qualité, MODULÉE par la rareté de l'objet (cf. FORCE_QUALITE) — un épique
+  // Master rapporte bien plus qu'un commun. Les loots = normale (0).
+  const forceQualiteTotale = Object.entries(inventaire.qualites ?? {})
+    .reduce((s, [slot, q]) => s + forceQualite(itemDef(inventaire.slots?.[slot])?.rarete, q), 0);
   // Pierre permanente par tour : passif des armures lourdes (Blood/Crusader/Mail/Onyx)
   // et du Siege Maul. +N Pierre au début de CHAQUE tour, tant que l'item est équipé.
   const pierreParTour = itemsEquipes.reduce((s, d) => s + (d.pierreParTour ?? 0), 0);
@@ -117,7 +118,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       agilite:  (bt.agilite  ?? 0) + agiliteItems + (toutesBagues ? 5 : 0),
       armureDepart,
       celeritePct,
-      forcePerm: forcePerm + forceQualite + (toutesBagues ? 4 : 0),
+      forcePerm: forcePerm + forceQualiteTotale + (toutesBagues ? 4 : 0),
       pierreParTour,
       pioche:   (bt.pioche   ?? 0) + (toutesBagues ? 1 : 0),
       infinityGauntlet: toutesBagues,

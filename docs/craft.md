@@ -93,28 +93,45 @@ recettes cachées.
 
 ## Mini-jeu de forge
 
-Jauge orange horizontale ; un curseur fait des va-et-vient (aller-retour ~1,3 s). On frappe
-(**[Espace]** ou **clic**) ; **[Échap]** annule (rien perdu). Géométrie normalisée 0..1 dans
-`MJ` (`jeu/systems/craft.js`), testable via `centreMarqueur()` / `outcomeFrappe()`.
+Jauge orange horizontale ; un curseur fait des va-et-vient. On frappe (**[Espace]** ou
+**clic**) ; **[Échap]** annule (rien perdu). Géométrie normalisée 0..1 dans `MJ`
+(`jeu/systems/craft.js`), testable via `centreMarqueur()` / `outcomeFrappe()`.
 
 - **Marqueur** placé au hasard (toujours hors des zones rouges), **3 bandes concentriques** :
-  - **cœur or** (`HP`, très fin) → **Exceptional** (+3)
-  - **milieu bleu** (`HM`) → **Master** (+2)
-  - **large vert** (`HG`) → **Artisan** (+1)
+  - **cœur or** (`HP`, très fin) → **Exceptional**
+  - **milieu bleu** (`HM`) → **Master**
+  - **large vert** (`HG`) → **Artisan**
 - **Zone orange** (hors marqueur) → **Normal** (objet créé, sans bonus).
 - **Zones rouges** aux extrémités (`ROUGE`) → **ratage EXTRÊME** : composants perdus, **aucun objet**.
 - Les **ingrédients sont toujours consommés** à la frappe (sauf annulation Échap).
+- **VITESSE selon la rareté** (`MJ_PERIODE`, ms/aller-retour) : plus l'objet est rare,
+  plus le curseur file → plus dur d'attraper les petites bandes. Commun 1600 · **uncommon
+  1300 (référence)** · rare 1000 · épique 700 · légendaire 480. Talent **Master Craftsman**
+  (3 rangs) : −15 %/rang sur TOUTES les raretés (`periodeMiniJeu`), ce qui rend chaque
+  palier ~1 cran plus facile.
 
 ## Qualité (axe séparé de la rareté)
 
-- `QUALITES` dans `jeu/data/recettes.js` : `normale`/`artisan`/`maitre`/`exceptionnel` → `force`
-  0/1/2/3, + couleur.
+- **Noms/couleurs** dans `QUALITES` (`jeu/data/recettes.js`) : `normale`/`artisan`/`maitre`/
+  `exceptionnel`. Le **bonus de Force**, lui, dépend de la **RARETÉ** de l'objet forgé
+  (`FORCE_QUALITE` + helper `forceQualite(rarete, qualite)`) — plus c'est rare, plus une
+  belle forge paie :
+
+  | Rareté | Artisan | Master | Exceptional |
+  |---|---|---|---|
+  | Commun *(à confirmer)* | +1 | +1 | +2 |
+  | Uncommon *(référence)* | +1 | +2 | +3 |
+  | Rare | +2 | +3 | +5 |
+  | Épique | +5 | +8 | +10 |
+  | Légendaire | +10 | +15 | +20 |
+
 - Stockée **par exemplaire** : sur l'objet du sac (`objet.qualite`) et, une fois équipé, dans
   **`inv.qualites[slot]`** (parallèle à `inv.slots`, maintenu à l'équipement/déséquipement,
   sauvegardé). Un objet **looté** n'a pas de qualité = **Normale**.
-- **Effet en combat (choix 1a)** : chaque équipement forgé ajoute sa `force` de qualité en
-  **Force permanente** (tout le combat). Calcul dans `demarrerCombat` (`jeu/ui/combat.js`).
-- **Affichage** : ligne colorée « ⚒ Master · +2 Force » dans l'infobulle de l'objet.
+- **Effet en combat** : chaque équipement forgé ajoute `forceQualite(rareté, qualité)` en
+  **Force permanente** (tout le combat). Calcul dans `demarrerCombat` (`jeu/ui/combat.js`),
+  qui croise `inv.slots[slot]` (→ rareté) et `inv.qualites[slot]`.
+- **Affichage** : ligne colorée « ⚒ Master · +8 Force » dans l'infobulle de l'objet.
 
 ## Fichiers
 

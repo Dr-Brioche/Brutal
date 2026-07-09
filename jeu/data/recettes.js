@@ -13,14 +13,31 @@
 
 // Qualité de FORGE — un axe SÉPARÉ de la rareté. Un objet FORGÉ en gagne une selon
 // la réussite du mini-jeu de forge ; un objet LOOTÉ est « normale » (aucun bonus).
-// `force` = bonus de Force accordé à l'arme forgée (cf. la qualité en combat).
 // Les 3 tailles de marqueur du mini-jeu mappent sur artisan / maitre / exceptionnel.
+// (nom + couleur seulement ; le bonus de Force dépend de la RARETÉ → FORCE_QUALITE.)
 export const QUALITES = {
-  normale:      { nom: "Normal",       force: 0, couleur: "#9aa0a6" },
-  artisan:      { nom: "Artisan",      force: 1, couleur: "#8fce7a" }, // marqueur GRAND  → +1
-  maitre:       { nom: "Master",       force: 2, couleur: "#5fb0e8" }, // marqueur MOYEN  → +2
-  exceptionnel: { nom: "Exceptional",  force: 3, couleur: "#e0b64e" }, // marqueur PETIT  → +3
+  normale:      { nom: "Normal",       couleur: "#9aa0a6" },
+  artisan:      { nom: "Artisan",      couleur: "#8fce7a" }, // marqueur GRAND
+  maitre:       { nom: "Master",       couleur: "#5fb0e8" }, // marqueur MOYEN
+  exceptionnel: { nom: "Exceptional",  couleur: "#e0b64e" }, // marqueur PETIT
 };
+
+// BONUS DE FORCE selon la RARETÉ de l'objet forgé × la qualité obtenue (décision
+// Brioche 09/07/2026) : plus l'objet est rare, plus une belle forge paie. Les
+// trois colonnes = les trois marqueurs (Artisan / Master / Exceptional).
+// (Common non précisé par Brioche → pallier doux sous uncommon, à ajuster ici.)
+export const FORCE_QUALITE = {
+  commun:     { artisan: 1,  maitre: 1,  exceptionnel: 2 },
+  uncommon:   { artisan: 1,  maitre: 2,  exceptionnel: 3 },
+  rare:       { artisan: 2,  maitre: 3,  exceptionnel: 5 },
+  epique:     { artisan: 5,  maitre: 8,  exceptionnel: 10 },
+  legendaire: { artisan: 10, maitre: 15, exceptionnel: 20 },
+};
+
+// Bonus de Force d'un objet forgé (0 si looté / normale / rareté inconnue).
+export function forceQualite(rarete, qualite) {
+  return FORCE_QUALITE[rarete]?.[qualite] ?? 0;
+}
 
 // <<RECETTES-AUTO>>
 // Bloc GÉNÉRÉ automatiquement par outils/importer_recettes.py — NE PAS

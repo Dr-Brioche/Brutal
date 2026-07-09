@@ -381,7 +381,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         "Apporte-moi minerai et volonté — ensemble, on façonnera ton acier.",
       ],
       choix: [
-        { texte: "⚒  Forger", action: () => ouvrirForge(inventaire, () => { enPause = false; }) },
+        { texte: "⚒  Forger", action: () => ouvrirForge(inventaire, heros, () => { enPause = false; }) },
         { texte: "Plus tard", action: () => {} },
       ],
     }, () => { if (!forgeActive()) enPause = false; });

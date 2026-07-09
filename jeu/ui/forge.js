@@ -15,26 +15,26 @@
 // API alignée sur le combat : ouvrirForge(inv, surFermer) / fermerForge() / forgeActive().
 
 import { itemDef } from "../data/items.js";
-import { QUALITES } from "../data/recettes.js";
+import { QUALITES, forceQualite } from "../data/recettes.js";
 import {
   trouverRecette, ingredientsPoses,
-  centreMarqueur, outcomeFrappe, QUALITE_PAR_MARQUEUR, MJ,
+  centreMarqueur, outcomeFrappe, QUALITE_PAR_MARQUEUR, MJ, periodeMiniJeu,
 } from "../systems/craft.js";
 import { compterRessource, retirerRessource, ajouterObjet } from "../systems/inventaire.js";
 
 const TAILLE = 5;         // table 5×5
-const MJ_PERIODE = 1300;  // ms pour un aller-retour du curseur (« assez rapidement »)
 
 let overlay, boutonFermer, elPalette, elTable, elSortie, elForger;
 let elMiniJeu, elCurseur, elMGrand, elMMoyen, elMPetit, elMJTitre, elMJAide;
 let actif = false;
 let surFermerActif = null;
 let inv = null;
+let heros = null;         // pour lire le rang du talent « Master Craftsman »
 let grille = [];          // 5×5 d'ids de ressource (ou null)
 let ressourceSel = null;  // id de la ressource « en main » (clic pour poser)
 let recetteCourante = null;
 // État du mini-jeu.
-let miniActif = false, mjRaf = 0, mjCentre = 0.5, mjDebut = 0, mjPos = 0;
+let miniActif = false, mjRaf = 0, mjCentre = 0.5, mjDebut = 0, mjPos = 0, mjPeriode = 1300;
 
 export function installerForge() {
   overlay = document.getElementById("forge");
@@ -55,10 +55,11 @@ export function installerForge() {
   elMiniJeu.addEventListener("click", () => { if (miniActif) validerFrappe(); });
 }
 
-export function ouvrirForge(inventaire, surFermer = null) {
+export function ouvrirForge(inventaire, herosRef = null, surFermer = null) {
   if (actif) return;
   actif = true;
   inv = inventaire;
+  heros = herosRef;
   surFermerActif = surFermer;
   grille = Array.from({ length: TAILLE }, () => Array(TAILLE).fill(null));
   ressourceSel = null;
@@ -182,6 +183,11 @@ function placerBande(el, centre, demi) {
 }
 
 function lancerMiniJeu() {
+  // Vitesse du curseur = selon la RARETÉ de l'objet, ralentie par le talent
+  // « Master Craftsman » (rang lu sur le héros).
+  const rarete = itemDef(recetteCourante.resultat)?.rarete;
+  const rangArtisanat = heros?.talents?.artisanat ?? 0;
+  mjPeriode = periodeMiniJeu(rarete, rangArtisanat);
   mjCentre = centreMarqueur(Math.random());
   placerBande(elMGrand, mjCentre, MJ.HG);
   placerBande(elMMoyen, mjCentre, MJ.HM);
@@ -196,7 +202,7 @@ function lancerMiniJeu() {
 
 function boucleMiniJeu() {
   const t = performance.now() - mjDebut;
-  const phase = (t % MJ_PERIODE) / MJ_PERIODE;      // 0..1
+  const phase = (t % mjPeriode) / mjPeriode;         // 0..1
   mjPos = phase < 0.5 ? phase * 2 : 2 - phase * 2;  // triangle : 0 → 1 → 0
   elCurseur.style.left = mjPos * 100 + "%";
   mjRaf = requestAnimationFrame(boucleMiniJeu);
@@ -220,7 +226,8 @@ function resoudreCraft(marqueur) {
   if (qualite) {
     if (ajouterObjet(inv, recetteCourante.resultat, 1, { qualite })) {
       const q = QUALITES[qualite];
-      elMJTitre.textContent = `${d.nom} — ${q.nom}${q.force > 0 ? ` (+${q.force} Force)` : ""} !`;
+      const force = forceQualite(d.rarete, qualite);
+      elMJTitre.textContent = `${d.nom} — ${q.nom}${force > 0 ? ` (+${force} Force)` : ""} !`;
     } else {
       // Sac plein : impossible de placer l'objet forgé. On REND les ingrédients
       // (leurs cases viennent d'être libérées, la place ne manquera pas) plutôt

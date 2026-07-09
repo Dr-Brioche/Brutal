@@ -857,10 +857,11 @@ complet dans **`docs/craft.md`** ; résumé :
   **ressources** sur une **table 5×5** selon un **motif** (façon Minecraft) ; le bon
   motif fait apparaître l'objet à créer. **Recettes cachées** (le joueur les découvre).
 - **Mini-jeu de forge** : jauge orange + curseur ; on frappe sur un **marqueur** à 3
-  bandes (Artisan/Master/Exceptional → +1/+2/+3 **Force**), la zone orange = Normal,
-  les **zones rouges** aux bouts = ratage **extrême** (composants perdus). La
-  **qualité** ainsi obtenue est un bonus **propre à la forge** → forger devient plus
-  intéressant que looter (les loots sont « Normal »).
+  bandes (Artisan/Master/Exceptional), la zone orange = Normal, les **zones rouges** aux
+  bouts = ratage **extrême** (composants perdus). Le **bonus de Force dépend de la RARETÉ**
+  de l'objet (uncommon +1/+2/+3 → rare +2/+3/+5 → épique +5/+8/+10 → légendaire +10/+15/+20)
+  et la **barre va plus vite** sur le stuff rare (donc plus dur). Le talent **Master
+  Craftsman** (3 rangs, branche forge) ralentit la barre. Détail dans `docs/craft.md`.
 - **Bois** = nouvelle ressource (lâchée par les monstres pour l'instant). Onglet
   **Resources** gratuit chez Renaud pour tester.
 - **PNJ de ville** : les trois (Luc, Renaud, Ferran) ont maintenant de vrais sprites

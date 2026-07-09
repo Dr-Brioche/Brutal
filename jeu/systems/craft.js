@@ -22,6 +22,27 @@ export const QUALITE_PAR_MARQUEUR = {
 // (petit/or, Exceptional) = TRÈS fin. Difficulté croissante vers le centre.
 export const MJ = { ROUGE: 0.10, HG: 0.145, HM: 0.045, HP: 0.008 };
 
+// VITESSE DU CURSEUR selon la RARETÉ de l'objet forgé (ms pour un aller-retour) :
+// plus l'objet est rare, plus le curseur file → plus dur d'attraper les petites
+// bandes (décision Brioche 09/07/2026). Uncommon = la vitesse « historique ».
+export const MJ_PERIODE = {
+  commun: 1600,       // un peu plus lent
+  uncommon: 1300,     // référence
+  rare: 1000,         // plus rapide
+  epique: 700,        // très rapide
+  legendaire: 480,    // vraiment trop rapide
+};
+
+// Talent « Master Craftsman » : chaque rang RALENTIT le curseur de 15 % (période
+// ×(1 + 0,15·rang)), pareil pour TOUTES les raretés. 3 rangs → jusqu'à +45 %.
+export const ARTISANAT_RALENTI = 0.15;
+
+// Période effective du mini-jeu pour une rareté + un rang de talent artisan.
+export function periodeMiniJeu(rarete, rangArtisanat = 0) {
+  const base = MJ_PERIODE[rarete] ?? MJ_PERIODE.uncommon;
+  return Math.round(base * (1 + ARTISANAT_RALENTI * Math.max(0, rangArtisanat)));
+}
+
 // Où est le marqueur (son centre) ? Au hasard, mais assez au centre pour que même
 // sa plus GRANDE bande ne touche pas les zones rouges. `alea` ∈ [0,1[ (injectable
 // pour les tests). Renvoie le centre normalisé.
