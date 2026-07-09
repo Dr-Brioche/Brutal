@@ -51,12 +51,13 @@ est déjà là et s'y branchera.)*
    valeur. **Plus l'objet est rare, plus la salle s'enflamme** (plus d'obstinés).
    Savoir **s'arrêter** est LE skill — d'où l'intérêt d'avoir vérifié les prix
    à l'Hôtel des ventes avant.
-5. **Dépôt d'objets** : on confie **un** objet d'exception (rare+) par jour ;
-   il passe **en dernier** (on le regarde partir, sans pouvoir enchérir dessus).
-   Le prix peut **dépasser** la valeur HV… ou finir **en dessous (perte)** :
-   improbable sur du très rare, **jamais impossible**. **Plancher = prix
-   marchand** (jamais pire que le marchand). Le commissaire encaisse une part
-   implicite (la mise à prix basse fait le travail).
+5. **Dépôt d'objets** : on confie des objets d'exception (rare+) pour la vente
+   du soir. **1 objet au départ**, + 1 par rang du talent **« Consignment
+   License »** (branche Commerce, 2 rangs → **jusqu'à 3**). `héros.depotsEncheresMax`
+   = 1 + rangs ; côté données `enc.depots` est un **tableau**. Chaque dépôt passe
+   sous le marteau (à la suite des lots de la maison). Le prix peut **dépasser**
+   la valeur… ou finir **en dessous (perte)**. **Plancher = prix marchand**
+   (jamais pire que le marchand).
 6. **Pas assisté = vendu hors écran** : si on rate la vente de son propre dépôt,
    il est adjugé automatiquement (même modèle de salle) et **l'or attend chez
    Magnar** (à réclamer).

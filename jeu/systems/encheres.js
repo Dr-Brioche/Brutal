@@ -89,7 +89,7 @@ const entier = (a, b, rng) => a + Math.floor(rng() * (b - a + 1));
 export function creerEncheres() {
   return {
     ticketPour: 0,   // n° de jour pour lequel un ticket est payé (0 = aucun)
-    depot: null,     // { id, qualite, jour } : l'objet confié pour la vente du soir
+    depots: [],      // [{ id, qualite, jour }] : les objets confiés (max = talent, cf. héros.depotsEncheresMax)
     aRecuperer: { or: 0, objets: [] }, // gains hors écran + lots gagnés sac plein
     derniereVenteJouee: 0, // n° du dernier jour dont la vente a été VÉCUE à l'écran
   };
@@ -241,18 +241,25 @@ export function mettreEnAttente(enc, lot) {
 export function etatEncheres(enc) {
   return {
     ticketPour: enc.ticketPour,
-    depot: enc.depot ? { ...enc.depot } : null,
+    depots: enc.depots.map((d) => ({ ...d })),
     aRecuperer: { or: enc.aRecuperer.or, objets: enc.aRecuperer.objets.map((o) => ({ ...o })) },
     derniereVenteJouee: enc.derniereVenteJouee,
   };
 }
 
+// Nettoie une entrée de dépôt lue d'une sauvegarde (ou null si invalide).
+function depotValide(d) {
+  return d && itemDef(d.id) && Number.isFinite(d.jour)
+    ? { id: d.id, qualite: d.qualite ?? null, jour: Math.floor(d.jour) }
+    : null;
+}
+
 export function chargerEncheres(enc, etat) {
   if (!etat) return;
   enc.ticketPour = Number.isFinite(etat.ticketPour) ? Math.max(0, Math.floor(etat.ticketPour)) : 0;
-  enc.depot = etat.depot && itemDef(etat.depot.id) && Number.isFinite(etat.depot.jour)
-    ? { id: etat.depot.id, qualite: etat.depot.qualite ?? null, jour: Math.floor(etat.depot.jour) }
-    : null;
+  // depots = tableau ; compat ascendante avec l'ancien champ `depot` (unique).
+  const brut = Array.isArray(etat.depots) ? etat.depots : (etat.depot ? [etat.depot] : []);
+  enc.depots = brut.map(depotValide).filter(Boolean);
   enc.aRecuperer = {
     or: Number.isFinite(etat.aRecuperer?.or) ? Math.max(0, Math.round(etat.aRecuperer.or)) : 0,
     objets: Array.isArray(etat.aRecuperer?.objets)

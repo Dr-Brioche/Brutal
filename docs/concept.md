@@ -1070,7 +1070,9 @@ thématiques depuis un **tronc commun** (*Dwarf's Resolve*, en haut) :
   (*Thick Hide*/*Ironheart*), vitesse & agilité, pioche, et les **légendaires**
   d'armes (*Giant's Grip*, *Ambidexterity*, *Ancestral Mastery*).
 - **🪙 Commerce** (droite) : sac (*Extra Pouch*), exploration efficace (*Tunnel
-  Sense*), et l'accès aux **enchères** (*Title of Nobility*).
+  Sense*), l'accès aux **enchères** (*Title of Nobility*) et la **licence de
+  consignation** (*Consignment License*, 2 rangs : +1 objet déposable à l'enchère
+  par rang).
 Données dans `data/talents.js` (`branche` + `BRANCHES`) ; l'écran teinte chaque
 colonne et l'intitule. *(1er jet : XP/niveau/points sauvegardés, rangs multiples
 supportés — cf. Master Craftsman ×3. À venir : plus de nœuds Forge/Commerce.)*

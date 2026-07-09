@@ -47,6 +47,9 @@ export function appliquerTalents(heros) {
   heros.evasionRencontre = Math.min(0.8, (b.evasion || 0) / 100);
   heros.sansRencontre = (b.sansRencontre || 0) > 0; // talent de TEST : annule TOUTE rencontre
   heros.noblesse = (b.noblesse || 0) > 0; // titre de noblesse : accès aux enchères du soir
+  // Nombre d'objets qu'on peut CONFIER à la vente du soir : 1 de base + 1 par
+  // rang de « Consignment License » (jusqu'à 3).
+  heros.depotsEncheresMax = 1 + (b.depotEnchere || 0);
   // Emplacements de Maîtrise débloqués (0, 3, ou 5), plafonnés au maximum absolu.
   heros.slotsMaitrise = Math.min(5, b.slots || 0);
   if (heros.pv > heros.pvMax) heros.pv = heros.pvMax;

@@ -105,6 +105,14 @@ export const TALENTS = {
     effet: { noblesse: 1 },
     description: "A minor title of Brütàl nobility — grants entry to the exclusive evening auctions (entry ticket still required).",
   },
+  // Licence de consignation : chaque rang permet de DÉPOSER 1 objet de plus à la
+  // vente du soir (base 1 → jusqu'à 3 avec les 2 rangs). 2 rangs, 1 point chacun.
+  encheresDepot: {
+    id: "encheresDepot", nom: "Consignment License", branche: "commerce",
+    x: 4, y: 4, cout: 1, rangMax: 2, requis: ["noblesse"],
+    effet: { depotEnchere: 1 },
+    description: "Consign one more item per rank at the evening auction (2 ranks → up to 3 items at once).",
+  },
 
   // ⚠ TODO EXPORT FINAL : talent de TEST à RETIRER avant le build Steam.
   // Gratuit, ON/OFF (toggle), désactivé par défaut : annule TOUTE rencontre.
@@ -138,6 +146,7 @@ const NOM_EFFET = {
   sansRencontre: "Cancel all encounters (TEST)",
   sacSecondaire: "Second bag slot",
   noblesse: "Auction access",
+  depotEnchere: "Auction consignment slot",
   maitrise: "Ancestral Mastery",
   slots: "Mastery slots",
   ambidextrie: "Ambidexterity",

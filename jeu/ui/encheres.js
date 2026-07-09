@@ -154,7 +154,9 @@ function adjuger() {
     // ce chiffre interne, juger le prix obtenu fait partie du jeu.
     const prix = etat.prix;
     ctx.inv.or += prix;
-    ctx.enc.depot = null;
+    // Retire CE dépôt de la liste (celui vendu), via sa référence portée sur le lot.
+    const i = lot.depotRef ? ctx.enc.depots.indexOf(lot.depotRef) : -1;
+    if (i >= 0) ctx.enc.depots.splice(i, 1);
     journal(`🔨 SOLD! Your ${nomLot} goes for ${prix} 🪙.`, "ench-log--vendu");
     resultats.push({ texte: `Your ${nomLot} sold for ${prix} 🪙.`, classe: "ok" });
   } else if (etat.tenant === "vous") {

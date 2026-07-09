@@ -493,7 +493,10 @@ export async function demarrerJeu(donneesInitiales = null) {
     } else {
       texte.push(`“Next auction at dusk, in ${fmtTempsJeu(attente)} of play. Registrations open shortly before — don't be late.”`);
     }
-    if (encheres.depot) texte.push(`“Your ${ITEMS[encheres.depot.id].nom} is consigned for the next sale. The room will decide its fate.”`);
+    if (encheres.depots.length) {
+      const noms = encheres.depots.map((d) => ITEMS[d.id].nom).join(", ");
+      texte.push(`“Consigned for the next sale: ${noms}. The room will decide their fate.”`);
+    }
 
     const choix = [];
     // Gains / lots en attente (vente hors écran, sac plein…).
@@ -515,8 +518,9 @@ export async function demarrerJeu(donneesInitiales = null) {
         },
       });
     }
-    if (!nuit && !encheres.depot) {
-      choix.push({ texte: "📦  Consign an item for tonight…", action: () => menuDepotEnchere() });
+    if (!nuit && encheres.depots.length < (heros.depotsEncheresMax ?? 1)) {
+      const reste = (heros.depotsEncheresMax ?? 1) - encheres.depots.length;
+      choix.push({ texte: `📦  Consign an item for tonight…  (${reste} slot${reste > 1 ? "s" : ""} left)`, action: () => menuDepotEnchere() });
     }
     choix.push({ texte: "Leave", action: () => {} });
     ouvrirDialogue({ nom: "Magnar the Auctioneer", texte, choix }, finCommissaire);
@@ -538,9 +542,13 @@ export async function demarrerJeu(donneesInitiales = null) {
       itemId: o.id,
       action: () => {
         jeterObjet(inventaire, o); // il quitte le sac (il est chez Magnar désormais)
-        encheres.depot = { id: o.id, qualite: o.qualite ?? null, jour: numeroJour(temps) };
+        encheres.depots.push({ id: o.id, qualite: o.qualite ?? null, jour: numeroJour(temps) });
         afficherMessage(`📦 ${ITEMS[o.id].nom} consigned — it goes under the hammer at dusk.`);
         inventaireUI.rendre();
+        // S'il reste des emplacements de dépôt, on rouvre le menu pour en confier
+        // un autre ; sinon retour au commissaire.
+        if (encheres.depots.length < (heros.depotsEncheresMax ?? 1)) menuDepotEnchere();
+        else menuCommissaire();
       },
     }));
     choix.push({ texte: "←  Back", action: () => menuCommissaire() });
@@ -573,8 +581,14 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Entrer dans la salle : lots de la maison + (en dernier) le dépôt du joueur.
   function entrerEnchere(jour) {
     const lots = genererLots();
-    if (encheres.depot && encheres.depot.jour <= jour) {
-      lots.push(lotDepot(encheres.depot));
+    // Tous les dépôts du joueur mûrs pour ce soir passent sous le marteau. On
+    // garde une référence au dépôt sur le lot pour le retirer une fois vendu.
+    for (const d of encheres.depots) {
+      if (d.jour <= jour) {
+        const lot = lotDepot(d);
+        lot.depotRef = d;
+        lots.push(lot);
+      }
     }
     encheres.derniereVenteJouee = jour;
     ouvrirEncheres({
@@ -1383,17 +1397,21 @@ export async function demarrerJeu(donneesInitiales = null) {
         // Dépôt du joueur non assisté : quand la fenêtre d'entrée de SA vente est
         // passée sans qu'il soit venu, l'objet est vendu HORS ÉCRAN (même modèle
         // de salle) et l'or attend chez Magnar.
-        if (encheres.depot && !enchereActive()) {
+        if (encheres.depots.length && !enchereActive()) {
           const jour = numeroJour(temps);
-          const d = encheres.depot;
-          const rate = jour > d.jour ||
-            (jour === d.jour && positionCycle(temps) >= DUREE_JOUR + FENETRE_ENTREE && encheres.derniereVenteJouee < jour);
-          if (rate) {
-            const resultat = resoudreHorsEcran(lotDepot(d));
-            encheres.aRecuperer.or += resultat.prix;
-            encheres.depot = null;
-            afficherMessage(`🔨 Your ${itemDef(d.id)?.nom ?? d.id} sold at auction for ${resultat.prix} 🪙 — collect from Magnar.`);
+          const restants = [];
+          for (const d of encheres.depots) {
+            const rate = jour > d.jour ||
+              (jour === d.jour && positionCycle(temps) >= DUREE_JOUR + FENETRE_ENTREE && encheres.derniereVenteJouee < jour);
+            if (rate) {
+              const resultat = resoudreHorsEcran(lotDepot(d));
+              encheres.aRecuperer.or += resultat.prix;
+              afficherMessage(`🔨 Your ${itemDef(d.id)?.nom ?? d.id} sold at auction for ${resultat.prix} 🪙 — collect from Magnar.`);
+            } else {
+              restants.push(d);
+            }
           }
+          encheres.depots = restants;
         }
       }
       // La barre de menu n'est visible qu'en exploration libre (pas en combat,
