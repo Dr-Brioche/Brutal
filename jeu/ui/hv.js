@@ -449,9 +449,13 @@ function choisirObjetVente() {
   rendreVente();
 }
 
-function bougerPrix(pas) {
+// Ajuste le prix par CRAN de ~1 % du prix courant (min 1 pièce) : un clic bouge
+// autant en proportion sur un petit objet que sur un gros (fini le +1 pièce qui
+// prend une éternité sur les grosses sommes). `mult` accélère (Maj au clavier).
+function bougerPrix(sens, mult = 1) {
   if (venteEtape !== "prix") return;
-  ventePrix += pas;
+  const pas = Math.max(1, Math.round(ventePrix * 0.01)) * mult;
+  ventePrix += Math.sign(sens) * pas;
   rendreVente(); // borné dans rendreVente
 }
 
@@ -483,9 +487,9 @@ function surTouche(e) {
       if (e.code === "ArrowDown" && n) { venteSel = (venteSel + 1) % n; rendreVente(); }
       if ((e.code === "Enter" || e.code === "Space") && n) choisirObjetVente();
     } else if (venteEtape === "prix") {
-      const pas = e.shiftKey ? 5 : 1;
-      if (e.code === "ArrowLeft")  bougerPrix(-pas);
-      if (e.code === "ArrowRight") bougerPrix(+pas);
+      const mult = e.shiftKey ? 10 : 1; // Maj = pas ×10 (~10 %) pour aller vite
+      if (e.code === "ArrowLeft")  bougerPrix(-1, mult);
+      if (e.code === "ArrowRight") bougerPrix(+1, mult);
       if (e.code === "Enter" || e.code === "Space") confirmerVente();
     }
     return;
