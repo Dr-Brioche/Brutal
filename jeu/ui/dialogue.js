@@ -163,6 +163,11 @@ export function ouvrirDialogue(dialogue, surFin) {
   function surTouche(e) {
     if (confirmationActive()) return; // une confirmation modale est ouverte par-dessus : on lui cède le clavier
     if (!TOUCHES.has(e.code)) return; // on laisse passer le reste
+    // En boutique, quand l'INVENTAIRE a le focus clavier (Tab), c'est LUI qui gère
+    // la navigation et la prise d'objet : le menu marchand ne doit pas bouger/valider
+    // en même temps. On lui cède donc toutes les touches SAUF Échap (qui reste le
+    // moyen de quitter la boutique). Sans ça, un ↑/↓ déplaçait les DEUX à la fois.
+    if (e.code !== "Escape" && document.querySelector(".inv-panneau.inv-panneau--focus")) return;
     e.preventDefault();
     e.stopPropagation();              // bloque menu pause / déplacement pendant le dialogue
     if (e.code === "Escape") {
