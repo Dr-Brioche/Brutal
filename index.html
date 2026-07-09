@@ -637,6 +637,36 @@
     .forge-ref-legende { display: flex; flex-wrap: wrap; gap: 0.6cqw; justify-content: center; font-size: 1.2cqw; }
     .forge-ref-ingr { display: inline-flex; align-items: center; gap: 0.2cqw; }
 
+    /* --- Le FEU (carburant charbon/bois) --- */
+    .forge-feu {
+      width: 17cqw; display: flex; flex-direction: column; gap: 0.6cqw;
+      padding: 0.9cqw 1cqw; border: 0.15cqw solid #6a4a22; border-radius: var(--rayon);
+      background: rgba(40,22,10,0.5);
+    }
+    .forge-feu-tete { display: flex; justify-content: space-between; align-items: center; font-size: 1.5cqw; font-weight: 700; color: #f3e3c4; }
+    .forge-feu-jauge { font-family: ui-monospace, monospace; font-weight: 800; color: #c9b48a; }
+    .forge-feu-jauge--ok { color: #8fce7a; }
+    .forge-feu-jauge--faible { color: #e0842a; }
+    .forge-feu-barre { height: 0.9cqw; border-radius: 999px; background: #1a1109; overflow: hidden; border: 0.1cqw solid #3a2814; }
+    .forge-feu-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#d9542a,#e0b64e); transition: width 0.12s; }
+    .forge-feu-fill--ok { background: linear-gradient(90deg,#8fce7a,#e0b64e); }
+    .forge-feu-tuiles { display: flex; gap: 0.6cqw; }
+    .forge-feu-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; line-height: 1.1;
+      padding: 0.6cqw 0.3cqw; font-size: 1.35cqw; font-weight: 700; color: #f3e3c4;
+      background: linear-gradient(180deg,#5a3a1c,#3a2410); border: 0.15cqw solid #c98a3a;
+      border-radius: var(--rayon); cursor: pointer;
+    }
+    .forge-feu-btn:hover { border-color: #ffcf57; filter: brightness(1.1); }
+    .forge-feu-btn b { font-size: 2cqw; color: #ffe1a6; }
+    .forge-feu-btn small { font-size: 1.05cqw; color: #b7a98a; }
+    .forge-feu-btn--vide { opacity: 0.45; cursor: default; filter: grayscale(0.6); }
+    .forge-feu-vider {
+      align-self: center; padding: 0.3cqw 1.2cqw; font-size: 1.2cqw; color: #cbb48a;
+      background: transparent; border: 0.12cqw solid #6a4a22; border-radius: var(--rayon); cursor: pointer;
+    }
+    .forge-feu-vider:hover { color: #f3e3c4; border-color: #c98a3a; }
+
     /* --- Mini-jeu de forge (par-dessus la table) --- */
     .forge-minijeu {
       position: absolute; inset: 0; z-index: 5; border-radius: var(--rayon);
@@ -2545,6 +2575,18 @@
         <!-- Résultat : l'objet créé (aperçu + infobulle) + bouton Forger. -->
         <div class="forge-resultat">
           <div class="forge-sortie" id="forge-sortie"></div>
+          <!-- Le FEU : on nourrit la forge avec du charbon/bois (case auxiliaire).
+               Plus l'objet est rare, plus il en faut (1 charbon = 2 bois).
+               Clic = +1 (depuis le sac), clic droit = −1. -->
+          <div class="forge-feu" id="forge-feu" title="Nourris le feu avec du charbon ou du bois. Plus l'objet est rare, plus il en faut (1 charbon = 2 bois). Clic : +1 · Clic droit : −1">
+            <div class="forge-feu-tete">🔥 Feu <span class="forge-feu-jauge" id="forge-feu-jauge">0 / 0</span></div>
+            <div class="forge-feu-barre"><div class="forge-feu-fill" id="forge-feu-fill"></div></div>
+            <div class="forge-feu-tuiles">
+              <button class="forge-feu-btn" id="forge-feu-charbon"></button>
+              <button class="forge-feu-btn" id="forge-feu-bois"></button>
+            </div>
+            <button class="forge-feu-vider" id="forge-feu-vider">Vider</button>
+          </div>
           <button class="forge-forger" id="forge-forger" disabled>⚒ Forger</button>
           <!-- Ouvre le Livre d'artisanat en mode « choisir » : la recette
                sélectionnée s'affiche en petit ci-dessous, comme modèle à recopier. -->

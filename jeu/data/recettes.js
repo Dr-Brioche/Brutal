@@ -39,6 +39,24 @@ export function forceQualite(rarete, qualite) {
   return FORCE_QUALITE[rarete]?.[qualite] ?? 0;
 }
 
+// CARBURANT DE FORGE (décision Brioche 09/07/2026) : pour forger, il faut NOURRIR
+// le feu avec du CHARBON et/ou du BOIS dans une case auxiliaire. Le besoin monte
+// avec la RARETÉ de l'objet. Exprimé en unités de CHARBON (ÉDITABLE ici).
+export const CARBURANT_REQUIS = {
+  commun: 5, uncommon: 15, rare: 40, epique: 100, legendaire: 250,
+};
+// Efficacité de feu d'une ressource, en unités de charbon : 1 charbon = 2 bois.
+export const VALEUR_CARBURANT = { charbon: 1, bois: 0.5 };
+
+// Carburant (en charbon) requis pour forger un objet de cette rareté.
+export function carburantRequis(rarete) {
+  return CARBURANT_REQUIS[rarete] ?? 0;
+}
+// Valeur de feu d'une ressource (0 si elle ne brûle pas).
+export function valeurCarburant(id) {
+  return VALEUR_CARBURANT[id] ?? 0;
+}
+
 // BONUS DE VALEUR d'un objet forgé (décision Brioche 09/07/2026) : une belle
 // forge vaut plus cher PARTOUT (marchand, HV, enchère). Multiplicateur appliqué
 // à la valeur de base — Artisan +15 %, Master +30 %, Exceptional +60 %.

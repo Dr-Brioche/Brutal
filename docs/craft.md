@@ -122,9 +122,34 @@ Le reste des recettes reste **caché** : le livre est un savoir qui **s'accumule
   **modèle à recopier** sur la table (panneau de référence à droite). Pratique
   pour reproduire un motif compliqué sans tout retenir.
 
+## Le FEU — carburant à fournir (ajout du 09/07/2026)
+
+Forger demande de **NOURRIR LE FEU** : on charge du **charbon** et/ou du **bois**
+dans une **case auxiliaire** de la forge (panneau « 🔥 Feu », à droite). **Efficacité :
+1 charbon = 2 bois.** Le besoin monte avec la **rareté** de l'objet (en charbon) :
+
+| Rareté | Charbon requis | (ou en bois) |
+|---|---|---|
+| Commun | 5 | 10 |
+| Uncommon | 15 | 30 |
+| Rare | 40 | 80 |
+| Épique | 100 | 200 |
+| Légendaire | 250 | 500 |
+
+- **Source ÉDITABLE** : `CARBURANT_REQUIS` + `VALEUR_CARBURANT` dans
+  **`jeu/data/recettes.js`** (`carburantRequis(rarete)` / `valeurCarburant(id)`).
+- **UI** (`ui/forge.js` + panneau `#forge-feu`) : jauge « chargé / requis » (verte
+  quand c'est bon), deux tuiles **Coal / Wood** (clic = **+1** depuis le sac, clic
+  droit = **−1**), bouton **Vider**. Le charbon/bois chargé est **réservé** du sac
+  (il compte dans le « restant » de la palette, comme les ingrédients posés).
+- **Au clic sur Forger** : si le feu est trop faible → message, **rien n'est
+  consommé**, pas de mini-jeu. Sinon, ingrédients **et** carburant sont consommés à
+  la frappe (le feu a brûlé, même en cas de ratage). Le contrôle « sac plein »
+  prend aussi le carburant en compte (les cases libérées comptent).
+
 ## Table (UI) — `jeu/ui/forge.js`
 
-- **Palette** (gauche) : ressources du sac, cliquables, avec le « restant » (possédé − posé).
+- **Palette** (gauche) : ressources du sac, cliquables, avec le « restant » (possédé − réservé table+feu).
 - **Table 5×5** (centre) : clic sur une ressource = on la prend ; clic sur une case = on pose ;
   clic sur une case pleine = on retire. *(Clic-pour-poser ; le drag pourra venir plus tard.)*
 - **Résultat** (droite) : aperçu de l'objet + bouton **Forger** (actif si motif reconnu).
