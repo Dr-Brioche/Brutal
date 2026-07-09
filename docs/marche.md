@@ -85,9 +85,12 @@ d'œil ce qui grimpe vite (vendre) ou s'effondre (acheter).
 - L'objet **quitte le sac** à la mise en annonce. Quand le délai s'écoule (en
   jouant), l'annonce passe en état **VENDUE** (bord doré, bouton « 💰 Collect ») —
   **rien n'est payé automatiquement**. Un message prévient sans créditer d'or.
-  Il faut retourner à l'HV et **cliquer dessus** (ou **[C]**) pour toucher l'or ;
-  un résumé (« X % below value ») s'affiche. La **qualité de forge** voyage avec
-  l'annonce.
+  Il faut retourner à l'HV et **cliquer dessus** (ou **[C]**) pour toucher l'or.
+  La **case Collect affiche DÈS AVANT le clic la PLUS-VALUE** en % (vert) : le gain
+  réalisé par la patience **par rapport à la vente immédiate au marchand**
+  (`prixVente`) — pour bien voir le bonus d'avoir attendu (rouge si on a fixé un
+  prix SOUS celui du marchand). Le message de récolte rappelle ce même %. La
+  **qualité de forge** voyage avec l'annonce.
 - Des **talents de marchand** pourront plus tard réduire ces délais (prévu).
 
 **Échelle des valeurs** (cible par rareté, semée ± 20 %, éditable dans l'onglet

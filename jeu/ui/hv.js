@@ -332,13 +332,23 @@ function rendreAnnonces() {
     l.className = "hv-annonce" + (v.vendu ? " hv-annonce--vendue" : "");
     l.innerHTML = `<span>${d?.nom ?? v.id} · ${v.prix} <span class="icone-piece"></span></span>`;
     if (v.vendu) {
-      // Vendue : on vient la RÉCOLTER soi-même (clic), le résumé de plus-value
-      // s'affiche à ce moment-là — pas de paiement automatique.
+      // Vendue : on vient la RÉCOLTER soi-même (clic). On affiche DÈS ICI (avant de
+      // cliquer) la PLUS-VALUE réalisée par la patience : % gagné par rapport à ce
+      // que le marchand aurait payé pour le même objet (prixVente). Vert = bonus.
+      const prixMarchand = prixVente(v.id, v.qualite ?? null);
+      const pvPct = prixMarchand > 0 ? Math.round((v.prix - prixMarchand) / prixMarchand * 100) : 0;
+      const actions = document.createElement("div");
+      actions.className = "hv-annonce-actions";
+      const pv = document.createElement("span");
+      pv.className = "hv-annonce-pv " + (pvPct >= 0 ? "hv-annonce-pv--gain" : "hv-annonce-pv--perte");
+      pv.textContent = `${pvPct >= 0 ? "+" : ""}${pvPct}%`;
+      pv.title = "Plus-value vs. selling this item straight to the merchant";
       const btn = document.createElement("button");
       btn.className = "hv-btn hv-btn--or";
       btn.textContent = "💰 Collect";
       btn.addEventListener("click", () => collecter(v));
-      l.append(btn);
+      actions.append(pv, btn);
+      l.append(actions);
     } else {
       const reste = document.createElement("span");
       reste.className = "hv-annonce-reste";
@@ -349,15 +359,16 @@ function rendreAnnonces() {
   }
 }
 
-// Récolte une annonce vendue : crédite l'or et affiche un résumé de la
-// plus-value réalisée (prix de vente vs valeur réelle de l'objet).
+// Récolte une annonce vendue : crédite l'or et rappelle la PLUS-VALUE réalisée
+// par la patience (prix obtenu vs ce que le marchand aurait payé).
 function collecter(v) {
   const d = itemDef(v.id);
+  const prixMarchand = prixVente(v.id, v.qualite ?? null);
   const res = collecterVente(marche, v);
   if (!res) return; // déjà récoltée entre-temps (ne devrait pas arriver, sécurité)
   inv.or += res.prix;
-  const remise = Math.max(0, -res.profitPct);
-  noter(`💰 Collected ${res.prix} 🪙 for ${d?.nom ?? v.id} — ${remise}% below value.`, 3500);
+  const pvPct = prixMarchand > 0 ? Math.round((res.prix - prixMarchand) / prixMarchand * 100) : 0;
+  noter(`💰 Collected ${res.prix} 🪙 for ${d?.nom ?? v.id} — ${pvPct >= 0 ? "+" : ""}${pvPct}% vs. the merchant.`, 3500);
   rendre();
 }
 

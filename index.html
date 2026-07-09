@@ -825,6 +825,12 @@
       background: rgba(20,24,38,0.7); border: 0.14cqw solid #232b44; font-size: 1.45cqw;
     }
     .hv-annonce-reste { color: #8fa0c8; font-family: ui-monospace, monospace; }
+    /* Plus-value affichée dans la case « Collect » (avant de cliquer) : le % gagné
+       grâce à la patience, par rapport à la vente immédiate au marchand. */
+    .hv-annonce-actions { display: flex; align-items: center; gap: 0.7cqw; }
+    .hv-annonce-pv { font-weight: 800; font-size: 1.35cqw; font-family: ui-monospace, monospace; }
+    .hv-annonce-pv--gain { color: #6ee787; }
+    .hv-annonce-pv--perte { color: #e0705a; }
     /* Annonce VENDUE, prête à récolter : bord doré + léger halo, pour qu'elle
        ressorte clairement de la liste (on doit avoir envie d'aller cliquer). */
     .hv-annonce--vendue { border-color: #ffcf57; box-shadow: 0 0 1.4cqw rgba(255, 207, 87, 0.3); }
