@@ -109,9 +109,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   const bt = bonusTalents(heros);
   // Infinity Gauntlet : 5 slots de bague remplis ET tous différents (pas de doublon).
+  // Les slots contiennent des IDS (chaînes), pas des objets → on déduplique les ids
+  // directement (avant, `.map(b => b.id)` donnait 5× undefined → jamais activé).
   const _bagues5 = ["bague1","bague2","bague3","bague4","bague5"]
     .map(s => inventaire.slots?.[s]).filter(Boolean);
-  const toutesBagues = _bagues5.length === 5 && new Set(_bagues5.map(b => b.id)).size === 5;
+  const toutesBagues = _bagues5.length === 5 && new Set(_bagues5).size === 5;
   const combat = creerCombat(ennemis, {
     pv: heros.pv, pvMax: heros.pvMax,
     cartes: cartesEquipees(inventaire),

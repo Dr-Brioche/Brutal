@@ -538,8 +538,10 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function rendreBagues() {
     const pleins = COL_DROITE.map((s) => Boolean(inventaire.slots[s]));
     const n = pleins.filter(Boolean).length;
+    // `slots[s]` = un ID (chaîne), pas un objet → on déduplique les ids directement
+    // (avant, `.map(b => b.id)` donnait 5× undefined → jamais « toutes uniques »).
     const baguesItems = COL_DROITE.map(s => inventaire.slots[s]).filter(Boolean);
-    const toutesUniques = baguesItems.length === 5 && new Set(baguesItems.map(b => b.id)).size === 5;
+    const toutesUniques = baguesItems.length === 5 && new Set(baguesItems).size === 5;
     const complet = toutesUniques;
     const enfants = [];
     COL_DROITE.forEach((slot, i) => {
