@@ -150,20 +150,19 @@ function adjuger() {
   const nomLot = lot.type === "paquet" ? `${d.nom} ×${lot.quantite}` : d.nom;
   if (lot.duJoueur) {
     // Le lot du joueur : l'or lui revient (plancher garanti par la mise à prix).
+    // Pas de comparaison à une « valeur » affichée : le joueur ne voit jamais
+    // ce chiffre interne, juger le prix obtenu fait partie du jeu.
     const prix = etat.prix;
     ctx.inv.or += prix;
     ctx.enc.depot = null;
-    const delta = prix - lot.valeur;
-    const verdict = delta >= 0 ? `+${delta} vs. its value` : `${delta} vs. its value — a loss`;
-    journal(`🔨 SOLD! Your ${nomLot} goes for ${prix} 🪙 (${verdict}).`, "ench-log--vendu");
-    resultats.push({ texte: `Your ${nomLot} sold for ${prix} 🪙 (${verdict}).`, classe: delta >= 0 ? "ok" : "perte" });
+    journal(`🔨 SOLD! Your ${nomLot} goes for ${prix} 🪙.`, "ench-log--vendu");
+    resultats.push({ texte: `Your ${nomLot} sold for ${prix} 🪙.`, classe: "ok" });
   } else if (etat.tenant === "vous") {
     ctx.inv.or -= etat.prix;
     const ok = ajouterObjet(ctx.inv, lot.id, lot.quantite ?? 1, lot.qualite ? { qualite: lot.qualite } : null);
     if (!ok) mettreEnAttente(ctx.enc, lot);
     journal(`🔨 SOLD to YOU! ${nomLot} for ${etat.prix} 🪙.${ok ? "" : " (Bag full — claim it from Magnar.)"}`, "ench-log--vendu");
-    const affaire = etat.prix <= lot.valeur * 0.8 ? " A bargain!" : etat.prix > lot.valeur ? " You overpaid…" : "";
-    resultats.push({ texte: `Won ${nomLot} for ${etat.prix} 🪙 (value ~${lot.valeur}).${affaire}`, classe: etat.prix <= lot.valeur ? "ok" : "perte" });
+    resultats.push({ texte: `Won ${nomLot} for ${etat.prix} 🪙.`, classe: "ok" });
   } else if (etat.tenant) {
     journal(`🔨 SOLD to ${etat.tenant} for ${etat.prix} 🪙.`, "ench-log--vendu");
   } else {
@@ -235,7 +234,7 @@ function rendre() {
       <span class="ench-lot-pastille" id="ench-pastille" style="background:${d.icone ?? "#888"}"></span>
       <div class="ench-lot-txt">
         <div class="ench-lot-nom" style="color:${couleur}">${nomLot}</div>
-        <div class="ench-lot-sous">${lot.duJoueur ? "Your item — the room bids, you watch." : rarete} · market value ~${lot.valeur} 🪙</div>
+        <div class="ench-lot-sous">${lot.duJoueur ? "Your item — the room bids, you watch." : rarete}</div>
       </div>
     </div>` +
     (entracte

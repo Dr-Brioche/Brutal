@@ -42,8 +42,10 @@ est déjà là et s'y branchera.)*
    cloche, on **entre** (fenêtre d'entrée : les 5 premières minutes de nuit).
    Vente ratée = **tant pis**, prochaine au cycle suivant.
 3. **Lots sérieux, pas de remplissage** : équipement **rare et au-delà**, et
-   souvent un **gros paquet de minerai cher**. Mise à prix **basse** (30-50 %
-   de la valeur) → les bonnes affaires existent…
+   souvent un **gros paquet de minerai cher**. Mise à prix **proche de la
+   vraie valeur** (~85 %, relevé 09/07/2026 — **aucun prix de référence n'est
+   affiché à l'écran** : juger « est-ce une affaire ? » à l'œil fait partie du
+   jeu) → les bonnes affaires existent, mais restent modestes et crédibles…
 4. **…mais la salle a un budget secret** : chaque rival PNJ tire un budget.
    La plupart sont **frileux** ; les **obstinés** poussent au-delà de la
    valeur. **Plus l'objet est rare, plus la salle s'enflamme** (plus d'obstinés).
@@ -67,7 +69,7 @@ est déjà là et s'y branchera.)*
 | `FENETRE_INSCRIPTION` (temps.js) | 600 s | Durée d'ouverture des inscriptions (avant la cloche) |
 | `FENETRE_ENTREE` | 300 s | Délai pour entrer après la cloche |
 | `NB_LOTS` | 3–4 | Nombre de lots de la maison |
-| `MISE_A_PRIX` | 30–50 % | Mise à prix = valeur × ce facteur |
+| `MISE_A_PRIX` | 80–90 % | Mise à prix = valeur × ce facteur (relevé du 30-50 % initial le 09/07/2026 — aucun prix n'est affiché au joueur, les bonnes affaires doivent rester crédibles) |
 | `INCREMENT_PCT` | 6 % | Un cran d'enchère = valeur × ceci |
 | `NB_RIVAUX` | 2–4 | Rivaux PNJ par lot |
 | `BUDGET_ACHAT` | 55–105 % | Budgets sur les lots de la maison (frileux) |
@@ -110,20 +112,33 @@ enchère (annonces « once/twice » à 1,4 s / 2,8 s), les rivaux réfléchissen
   rapporte gros dès l'uncommon (même plancher garanti). Le prix marchand
   normal, lui, ne bouge pas.
 
-### Arnaques d'enchère (09/07/2026)
+### Aucun prix affiché à l'écran (09/07/2026)
 
-Le plancher garanti se retourne aussi en PIÈGE : deux trésors "rare"
-(**Floating Pebble**, **Elixir of Youth**, `data/items.js`) ont un
-`valeurVente` de **1 🪙** (quasi rien, au marchand comme à l'HV) mais restent
-de rareté "rare" comme n'importe quel autre trésor → ils peuvent sortir en
-**lot de la maison**, et le plancher de 10 000 🪙 s'applique pareil. Comme leur
-vraie valeur est ridicule, AUCUN rival ne peut suivre jusque-là (leurs budgets
-sont calculés sur la vraie valeur) : ces lots se vendent systématiquement
-**exactement au prix d'ouverture**, sans surenchère — silence inquiétant de la
-salle, pour qui y prête attention. Vérifié : 10 000 🪙 pile à chaque tirage
-(house lot ET dépôt), puis **1 🪙** à la revente. L'indice reste visible sur
-l'écran (« market value ~125 🪙 » à côté d'un prix de départ à 10 000) — pas de
-triche cachée, juste un joueur pressé qui ne regarde pas.
+La ligne « market value ~X 🪙 » (sur le lot en cours) et le rappel « (value
+~X) » dans le résumé de fin de soirée ont été **retirés** : le joueur ne voit
+JAMAIS un prix de référence calculé par le jeu, seulement le prix courant de
+l'enchère. Juger si un lot vaut le coup redevient un vrai pari (comparé à ce
+qu'on sait déjà des prix du marché/marchand), pas une lecture de chiffres.
+
+### Arnaques d'enchère (09/07/2026, redesign le même jour)
+
+Deux trésors "rare" truqués (**Floating Pebble**, **Elixir of Youth**,
+`data/items.js`, `camelote: true`) — l'indice est dans le nom, pas dans un
+chiffre caché. Contrairement aux autres trésors "rare", leur prix d'enchère
+est **totalement déconnecté** de leur rareté affichée (pas le plancher de
+10 000 🪙 — ça les rendrait suspects : personne ne pourrait jamais enchérir
+dessus). Trois prix, ancrés sur la référence d'un objet rare normal
+(`VALEUR_RARE_REF = 100`, cf. `PRIX_VENTE.rare`) :
+
+| Moment | Prix | Détail |
+|---|---|---|
+| 1er tour (lot de la maison) | ~3 600–4 800 🪙 | Même formule ~85 % que n'importe quel lot, sur une valeur interne de 4 500 : « plusieurs milliers », mais moins qu'un vrai rare. **De vraies enchères** (~40 % des ventes sans surenchère, ~60 % avec un peu de compétition, jusqu'à ~6 400) — ni silence suspect, ni bagarre |
+| Revente au marchand/HV | **10 🪙** | `valeurVente: 10` — ça ne vaut presque rien, mais pas littéralement 1 pièce |
+| Remis en DÉPÔT par le joueur | ~40–70 🪙 | Le bouche-à-oreille a fait son effet : ça ne retrompe plus personne à ce prix-là |
+
+Vérifié par simulation (code réel) : lot de la maison à 3 780-4 048 🪙 de mise
+à prix, vente moyenne ~4 200 (jusqu'à ~6 400) ; dépôt à 40 de mise à prix,
+vente moyenne ~48-49 ; revente marchand à 10 pile.
 
 ## Côté ville
 

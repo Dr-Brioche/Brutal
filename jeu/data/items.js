@@ -155,14 +155,14 @@ export const ITEMS = {
   "idole-doree":    { id: "idole-doree",    nom: "Gilded Idol",     categorie: "tresor", rarete: "rare", valeurVente: 200, taille: { l: 2, h: 2 }, icone: "#e8c54f" },
   "calice-cristal": { id: "calice-cristal", nom: "Crystal Chalice", categorie: "tresor", rarete: "rare", valeurVente: 160, taille: { l: 1, h: 2 }, icone: "#bfe6f0" },
   "chevaliere-ancienne": { id: "chevaliere-ancienne", nom: "Ancient Signet", categorie: "tresor", rarete: "rare", valeurVente: 120, taille: { l: 1, h: 1 }, icone: "#c8862f" },
-  // ARNAQUES D'ENCHÈRE (09/07/2026) : rareté "rare" comme les autres trésors —
-  // donc éligibles aux lots de la MAISON et au plancher d'enchère (10 000+, cf.
-  // systems/encheres.js) — mais `valeurVente` volontairement ridicule (1 🪙) :
-  // au marchand ET à l'HV (valeurReelle en découle), ça ne vaut RIEN. Le joueur
-  // qui remporte l'enchère avant de vérifier apprend la leçon en essayant de
-  // revendre.
-  "caillou-flottant": { id: "caillou-flottant", nom: "Floating Pebble", categorie: "tresor", rarete: "rare", valeurVente: 1, taille: { l: 1, h: 1 }, icone: "#a8b0b8" },
-  "remede-vieillesse": { id: "remede-vieillesse", nom: "Elixir of Youth", categorie: "tresor", rarete: "rare", valeurVente: 1, taille: { l: 1, h: 1 }, icone: "#d97ab0" },
+  // ARNAQUES D'ENCHÈRE (09/07/2026, revu le même jour) : rareté "rare" comme
+  // les autres trésors, mais marquées `camelote: true` → systems/encheres.js
+  // leur donne un prix d'enchère et de revente À PART, DÉCONNECTÉ de leur
+  // rareté normale (pas le plancher 10 000 du rare). `valeurVente` (10 🪙) fixe
+  // ce qu'elles valent au marchand/HV une fois qu'on cherche à les revendre —
+  // "ça ne vaut rien", mais pas littéralement 1 pièce. L'indice est dans le nom.
+  "caillou-flottant": { id: "caillou-flottant", nom: "Floating Pebble", categorie: "tresor", rarete: "rare", camelote: true, valeurVente: 10, taille: { l: 1, h: 1 }, icone: "#a8b0b8" },
+  "remede-vieillesse": { id: "remede-vieillesse", nom: "Elixir of Youth", categorie: "tresor", rarete: "rare", camelote: true, valeurVente: 10, taille: { l: 1, h: 1 }, icone: "#d97ab0" },
 
   // ---- Parchemins de craft : objets qu'on OUVRE (« Read ») pour DÉCOUVRIR une
   // recette + un texte de lore. Catégorie "parchemin" hors de tout slot → non
