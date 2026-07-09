@@ -72,7 +72,10 @@ const PAQUET_QTE = [8, 18];
 // Lots : rare et au-delà uniquement (pas de remplissage). Équipement JOUABLE +
 // « tresor » (bibelots sans usage — leur seule fonction est d'être vendus, donc
 // aussi bienvenus ici qu'au marchand).
-const LOT_RARETES = { rare: 60, epique: 30, legendaire: 10 }; // poids de tirage
+// Distribution de rareté des lots qui PASSENT à l'enchère (décision Brioche
+// 09/07/2026, en %). L'épique et le légendaire sont devenus très rares : tomber
+// sur un gros lot est un événement. Somme = 100.
+const LOT_RARETES = { commun: 40, uncommon: 36.8, rare: 20, epique: 3, legendaire: 0.2 };
 const CATEGORIES_LOT = ["arme", "bouclier", "armure", "gant", "botte", "bague", "collier", "sac", "tresor"];
 
 // Dépôt du joueur : rare minimum.
