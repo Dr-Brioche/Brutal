@@ -873,6 +873,27 @@ complet dans **`docs/craft.md`** ; résumé :
   Et on ne les **traverse plus** : chaque PNJ — ainsi que la **fontaine** — est un
   obstacle à hauteur des pieds.
 
+## Valeur des objets (ajout du 09/07/2026)
+
+Le prix de revente d'un objet (marchand, HV, base des enchères) part d'une
+**valeur MOYENNE CIBLE par rareté** (`PRIX_VENTE`, `jeu/data/items.js`) :
+
+| Rareté | Valeur moyenne cible |
+|---|---|
+| Commun | 20 🪙 |
+| Uncommon | 45 🪙 |
+| Rare | 100 🪙 |
+| Épique | 250 🪙 |
+| Légendaire | 700 🪙 |
+
+**Ce n'est pas un prix fixe par objet** : deux épées communes ne valent pas
+pile le même prix — le prix **fluctue de ± 20 %** autour de la moyenne de la
+rareté (hash déterministe sur l'id de l'objet → toujours le même prix pour un
+item donné, stable d'une partie à l'autre, mais différent d'un item à
+l'autre). Un objet peut aussi avoir un prix **fixé à la main** (`valeurVente`)
+qui ignore complètement la fluctuation — utilisé pour les trésors et les
+arnaques d'enchère (cf. plus bas), pensés objet par objet.
+
 ## Trésors (objets de pure valeur marchande) — ajout du 07/07/2026
 
 Une nouvelle catégorie d'objets `tresor` : **rares, NON utilisables**, ils ne

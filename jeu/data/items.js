@@ -677,12 +677,32 @@ export function couleurRarete(id) {
 // Prix de revente d'un item au marchand (or), selon sa rareté. Échelle
 // (commun = 20 or, ×~2,3 par palier) : assez haute pour que les marges de l'HV
 // (cf. valeurReelle, systems/marche.js) restent lisibles après arrondi.
+// `PRIX_VENTE` = la valeur MOYENNE CIBLE de la rareté (cf. docs/concept.md,
+// section « Valeur des objets ») — PAS le prix de chaque objet un par un : deux
+// épées communes ne valent pas pile le même prix (cf. FLUCTUATION ci-dessous).
 const PRIX_VENTE = { commun: 20, uncommon: 45, rare: 100, epique: 250, legendaire: 700 };
+
+// Fait FLUCTUER le prix d'un objet autour de la moyenne de sa rareté (± 20 %,
+// décision Brioche 09/07/2026) : sans ça, TOUS les objets rares valent
+// exactement pareil, ce qui les rend interchangeables et prévisibles. Hash
+// déterministe sur l'id (FNV-1a) → toujours le MÊME prix pour un même item
+// (stable d'une partie à l'autre), mais différent d'un item à l'autre.
+const FLUCTUATION_RARETE = 0.20;
+function hashId(id) {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0) / 4294967296; // [0, 1)
+}
 export function prixVente(id) {
   const it = ITEMS[id];
   if (!it) return 0;
-  // `valeurVente` : prix fixé PAR item (les trésors), sinon le barème par rareté.
-  return it.valeurVente ?? PRIX_VENTE[it.rarete] ?? 1;
+  // `valeurVente` : prix fixé À LA MAIN par item (trésors, arnaques…) — pas de
+  // fluctuation dessus, il est déjà pensé objet par objet.
+  if (it.valeurVente != null) return it.valeurVente;
+  const base = PRIX_VENTE[it.rarete];
+  if (base == null) return 1;
+  const mult = 1 - FLUCTUATION_RARETE + hashId(id) * (2 * FLUCTUATION_RARETE);
+  return Math.max(1, Math.round(base * mult));
 }
 
 // True si la rareté de l'item atteint AU MOINS le seuil donné (ex. "rare"). Sert
