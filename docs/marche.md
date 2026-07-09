@@ -22,9 +22,14 @@ seule (on va la récolter à l'HV).
 
 ## Les prix des ressources
 
-Prix affiché = **prix de base** (selon le `rang` 1→12, ~×1,8 par rang — formule
-`PRIX_RANG1 × RATIO_RANG^(rang-1)` dans marche.js ; bois = 5)
-× **multiplicateur vivant** × **facteur d'événement**. Le multiplicateur bouge avec :
+Prix affiché = **prix de base** × **multiplicateur vivant** × **facteur
+d'événement**. Le **prix de base** est une **donnée éditable** : onglet
+**« Ressources »** du classeur Excel → `data/valeurs.js` (`VALEUR_RESSOURCE`),
+régénéré par `outils/importer_valeurs.py` (même workflow que la valeur des
+objets). En secours (ressource absente de la table), l'ancien barème par `rang`
+1→12 (~×1,8/rang, `PRIX_RANG1 × RATIO_RANG^(rang-1)`) s'applique. Les valeurs
+semées **reprennent exactement** l'ancien barème → aucun changement de balance
+tant que Brioche n'édite pas. Le multiplicateur bouge avec :
 
 1. **Les échanges du joueur** — vendre fait **baisser**, acheter fait **monter**,
    au même taux. Mouvement **asymptotique** vers un plancher (−60 %) / plafond

@@ -52,75 +52,82 @@ def ids_items_connus():
     return set(re.findall(r'"([a-z0-9-]+)":\s*\{\s*id:', txt))
 
 
-def lire_valeurs():
-    wb = load_workbook(XLSX, data_only=True)
-    if "Valeurs" not in wb.sheetnames:
-        raise SystemExit("L'onglet « Valeurs » est introuvable dans le classeur.")
-    ws = wb["Valeurs"]
-    lignes = list(ws.iter_rows(values_only=True))
+def lire_onglet(wb, nom, obligatoire=True):
+    """Lit un onglet id|…|…|valeur → liste [(id, valeur)]. Colonne A = id
+    (minuscules/chiffres/tirets), colonne D = valeur. Titres/en-têtes ignorés."""
+    if nom not in wb.sheetnames:
+        if obligatoire:
+            raise SystemExit(f"L'onglet « {nom} » est introuvable dans le classeur.")
+        return []
+    ws = wb[nom]
     valeurs = []
-    for i, ligne in enumerate(lignes):
+    for i, ligne in enumerate(ws.iter_rows(values_only=True)):
         if not ligne:
             continue
         iid = str(ligne[0]).strip() if ligne[0] else ""
-        # On ne retient QUE les lignes dont la colonne A est un id valide
-        # (minuscules/chiffres/tirets) — ça saute titres, lignes vides. La
-        # ligne d'en-tête (« id ») est aussi écartée.
         if iid == "id" or not re.fullmatch(r"[a-z0-9-]+", iid):
-            continue
+            continue  # titre / en-tête / ligne vide
         brut = ligne[3] if len(ligne) > 3 else None  # colonne D
         if brut is None or str(brut).strip() == "":
-            raise SystemExit(f"Ligne {i + 1} : « {iid} » n'a pas de valeur (colonne D).")
+            raise SystemExit(f"« {nom} » ligne {i + 1} : « {iid} » n'a pas de valeur (colonne D).")
         try:
             val = int(round(float(brut)))
         except (TypeError, ValueError):
-            raise SystemExit(f"Ligne {i + 1} : valeur illisible pour « {iid} » : {brut!r}.")
+            raise SystemExit(f"« {nom} » ligne {i + 1} : valeur illisible pour « {iid} » : {brut!r}.")
         if val < 1:
-            raise SystemExit(f"Ligne {i + 1} : valeur < 1 pour « {iid} ».")
+            raise SystemExit(f"« {nom} » ligne {i + 1} : valeur < 1 pour « {iid} ».")
         valeurs.append((iid, val))
     return valeurs
 
 
-def main():
-    connus = ids_items_connus()
-    valeurs = lire_valeurs()
-    if not valeurs:
-        raise SystemExit("Aucune valeur trouvée dans l'onglet « Valeurs ».")
-
+def bloc_js(nom_const, valeurs, connus, nom_onglet):
+    """Construit `export const <nom_const> = { … };` en validant ids + doublons."""
     vus = set()
-    lignes_js = []
+    lignes = []
     for iid, val in valeurs:
         if iid in vus:
-            raise SystemExit(f"Doublon d'id dans l'onglet « Valeurs » : « {iid} ».")
+            raise SystemExit(f"Doublon d'id dans l'onglet « {nom_onglet} » : « {iid} ».")
         vus.add(iid)
         if iid not in connus:
             print(f"  ! Attention : « {iid} » n'existe pas dans items.js (faute de frappe ?)",
                   file=sys.stderr)
-        lignes_js.append(f'  "{iid}": {val},')
+        lignes.append(f'  "{iid}": {val},')
+    return f"export const {nom_const} = {{\n" + "\n".join(lignes) + "\n};\n"
+
+
+def main():
+    connus = ids_items_connus()
+    wb = load_workbook(XLSX, data_only=True)
+    objets = lire_onglet(wb, "Valeurs", obligatoire=True)
+    ressources = lire_onglet(wb, "Ressources", obligatoire=False)
+    if not objets:
+        raise SystemExit("Aucune valeur trouvée dans l'onglet « Valeurs ».")
+
+    corps = bloc_js("VALEUR_OBJET", objets, connus, "Valeurs")
+    if ressources:
+        corps += "\n// Valeur de BASE (prix marché) des RESSOURCES — onglet « Ressources ».\n"
+        corps += bloc_js("VALEUR_RESSOURCE", ressources, connus, "Ressources")
+    else:
+        corps += "\nexport const VALEUR_RESSOURCE = {};\n"
 
     contenu = VALEURS_JS.read_text(encoding="utf-8") if VALEURS_JS.exists() else ""
     if DEBUT not in contenu or FIN not in contenu:
-        # (Re)crée le fichier de zéro avec l'entête + les balises.
         contenu = (
-            "// Valeur de RÉFÉRENCE de chaque objet (≈ prix d'achat / valeur « trouvée »).\n"
-            "// SOURCE ÉDITABLE : onglet « Valeurs » du classeur Excel — régénéré par\n"
-            "// outils/importer_valeurs.py. NE PAS éditer le bloc auto à la main.\n"
-            "// Le PRIX DE VENTE (marchand/HV) en découle dans le jeu (cf. data/items.js\n"
-            "// et systems/marche.js) : −20 à −30 % de cette valeur.\n\n"
+            "// Valeurs ÉDITABLES régénérées par outils/importer_valeurs.py depuis le\n"
+            "// classeur Excel (onglets « Valeurs » = objets, « Ressources » = minerais/\n"
+            "// bois/cuir). NE PAS éditer le bloc auto à la main.\n"
+            "//  • VALEUR_OBJET    : valeur de référence d'un objet (cf. data/items.js) ;\n"
+            "//    le prix de vente en découle (−20 à −30 %).\n"
+            "//  • VALEUR_RESSOURCE : prix de base marché d'une ressource (cf. marche.js).\n\n"
             f"{DEBUT}\n{FIN}\n"
         )
 
-    genere = (
-        f"{DEBUT}\n"
-        "export const VALEUR_OBJET = {\n"
-        + "\n".join(lignes_js)
-        + "\n};\n"
-        f"{FIN}"
-    )
+    genere = f"{DEBUT}\n" + corps + FIN
     avant = contenu.split(DEBUT)[0]
     apres = contenu.split(FIN)[1]
     VALEURS_JS.write_text(avant + genere + apres, encoding="utf-8")
-    print(f"OK — {len(lignes_js)} valeurs écrites dans {VALEURS_JS.relative_to(RACINE)}.")
+    print(f"OK — {len(objets)} objets" + (f" + {len(ressources)} ressources" if ressources else "")
+          + f" écrits dans {VALEURS_JS.relative_to(RACINE)}.")
 
 
 if __name__ == "__main__":

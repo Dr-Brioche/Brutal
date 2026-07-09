@@ -933,7 +933,7 @@ la revente) :
 | Scierie (revenu/h) | 120 | **1 200** | remboursée en ~10 h (ratio inchangé) |
 | Scierie (plafond) | 480 | **4 800** | 4 versements, passage forcé (inchangé) |
 | Ticket d'enchère | 50 | **500** | droit d'entrée qui pèse un peu |
-| **Minerais** (marché) | — | **inchangés** | échelle géométrique déjà cohérente (rang 12 ≈ 1 900) qui alimente le craft ; touchée = risque de casser les marges de forge |
+| **Minerais** (marché) | — | **inchangés** (mais éditables) | échelle géométrique déjà cohérente (rang 12 ≈ 1 900) qui alimente le craft. Désormais dans une **table éditable** (onglet « Ressources » du classeur → `VALEUR_RESSOURCE`), semée aux valeurs actuelles → aucun changement, mais Brioche peut les ajuster une par une |
 
 ## Trésors (objets de pure valeur marchande) — ajout du 07/07/2026
 

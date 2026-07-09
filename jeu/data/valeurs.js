@@ -131,4 +131,27 @@ export const VALEUR_OBJET = {
   "sac-sans-fond": 94000,
   "sac-maitre-mineur": 290000,
 };
+
+// Valeur de BASE (prix marché) des RESSOURCES — onglet « Ressources ».
+export const VALEUR_RESSOURCE = {
+  "pierre-taillee": 3,
+  "charbon": 5,
+  "cuivre": 10,
+  "fer": 17,
+  "argent": 31,
+  "or": 57,
+  "malachite": 102,
+  "lapis": 102,
+  "amethyste": 102,
+  "titane": 184,
+  "emeraude": 331,
+  "rubis": 331,
+  "saphir": 595,
+  "diamant": 1071,
+  "mithril": 1071,
+  "onyx": 1928,
+  "pierre-solaire": 1928,
+  "bois": 5,
+  "cuir": 7,
+};
 // <<FIN-VALEURS-AUTO>>
