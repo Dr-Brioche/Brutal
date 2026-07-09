@@ -587,9 +587,18 @@ export async function demarrerJeu(donneesInitiales = null) {
         },
       });
     }
-    if (!nuit && encheres.depots.length < (heros.depotsEncheresMax ?? 1)) {
+    // Dépôt d'objet : possible À TOUT MOMENT (jour, soir juste avant d'entrer =
+    // « dernière minute », ou même après la vente pour la PROCHAINE) — jamais bloqué
+    // par la nuit. Le lot rejoint la prochaine vente (cf. entrerEnchere : d.jour<=jour).
+    if (encheres.depots.length < (heros.depotsEncheresMax ?? 1)) {
       const reste = (heros.depotsEncheresMax ?? 1) - encheres.depots.length;
-      choix.push({ texte: `📦  Consign an item for tonight…  (${reste} slot${reste > 1 ? "s" : ""} left)`, action: () => menuDepotEnchere() });
+      const slots = `(${reste} slot${reste > 1 ? "s" : ""} left)`;
+      choix.push({
+        texte: porteOuverte
+          ? `📦  Last-minute consignment…  ${slots}`
+          : `📦  Consign an item to sell…  ${slots}`,
+        action: () => menuDepotEnchere(),
+      });
     }
     choix.push({ texte: "Leave", action: () => {} });
     ouvrirDialogue({ nom: "Magnar the Auctioneer", texte, choix }, finCommissaire);
@@ -612,7 +621,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       action: () => {
         jeterObjet(inventaire, o); // il quitte le sac (il est chez Magnar désormais)
         encheres.depots.push({ id: o.id, qualite: o.qualite ?? null, jour: numeroJour(temps) });
-        afficherMessage(`📦 ${ITEMS[o.id].nom} consigned — it goes under the hammer at dusk.`);
+        afficherMessage(`📦 ${ITEMS[o.id].nom} consigned — it goes under the hammer at the next sale.`);
         inventaireUI.rendre();
         // S'il reste des emplacements de dépôt, on rouvre le menu pour en confier
         // un autre ; sinon retour au commissaire.
