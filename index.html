@@ -2075,30 +2075,31 @@
 
     /* ==== ÉCRAN BÂTIMENT — PLEIN ÉCRAN (cf. ui/batiment.js) =====================
        Réutilise l'en-tête/pied .forge-* (comme l'HV) ; contenu aéré en cqw. */
-    .bat { z-index: 38; }
+    .bat { z-index: 15; } /* sous le cadre doré (comme l'HV) : il ne déborde plus dessus */
     .bat-zone {
       background:
         radial-gradient(120% 80% at 50% 0%, rgba(150,110,60,0.14) 0%, rgba(60,45,25,0.08) 40%, rgba(0,0,0,0) 70%),
         linear-gradient(180deg, #17130d 0%, #100c08 55%, #0a0805 100%);
     }
-    /* Corps : centré verticalement, large marge latérale pour respirer. */
+    /* Corps : centré verticalement, large marge latérale pour respirer. Tout doit
+       tenir SANS scroll (overflow hidden) → footprint vertical resserré. */
     .bat-corps {
-      flex: 1; min-height: 0; overflow: auto;
+      flex: 1; min-height: 0; overflow: hidden;
       display: flex; flex-direction: column; justify-content: center;
-      gap: 0.9cqw; padding: 0.6cqw 13cqw;
+      gap: 0.6cqw; padding: 0.4cqw 13cqw;
     }
-    .bat-sous { font-size: 1.6cqw; color: #a8b0c6; font-style: italic; text-align: center; }
+    .bat-sous { font-size: 1.55cqw; color: #a8b0c6; font-style: italic; text-align: center; }
     .bat-etat {
-      font-size: 1.9cqw; font-weight: 800; text-align: center;
-      padding: 1cqw; border-radius: var(--rayon);
+      font-size: 1.85cqw; font-weight: 800; text-align: center;
+      padding: 0.8cqw; border-radius: var(--rayon);
     }
     .bat-etat--vente { background: rgba(255, 207, 87, 0.12); color: #ffcf57; border: 0.14cqw dashed #8a6b28; }
     .bat-etat--ok    { background: rgba(80, 200, 120, 0.10); color: #7fdc8f; border: 0.14cqw solid #2c5236; }
     .bat-etat--stop  { background: rgba(255, 90, 70, 0.12);  color: #ff7a66; border: 0.14cqw solid #6b2a20; }
-    .bat-lignes { display: flex; flex-direction: column; gap: 0.8cqw; }
+    .bat-lignes { display: flex; flex-direction: column; gap: 0.5cqw; }
     .bat-ligne {
       display: flex; align-items: center; justify-content: space-between; gap: 2cqw;
-      padding: 0.95cqw 2cqw;
+      padding: 0.7cqw 2cqw;
       background: rgba(255, 255, 255, 0.035); border: 0.1cqw solid rgba(255,255,255,0.06);
       border-radius: var(--rayon);
     }
@@ -2122,10 +2123,10 @@
       font-size: 1.5cqw; font-weight: 800; color: #fff; text-shadow: 0 1px 2px #000;
     }
     .bat-note {
-      margin-top: 0.2cqw; padding: 1.1cqw 2cqw; font-size: 1.4cqw; color: #cbd0d6;
-      background: rgba(20, 16, 26, 0.55); border-radius: var(--rayon); line-height: 1.45;
+      margin-top: 0.2cqw; padding: 0.8cqw 2cqw; font-size: 1.3cqw; color: #cbd0d6;
+      background: rgba(20, 16, 26, 0.55); border-radius: var(--rayon); line-height: 1.4;
     }
-    .bat-boutons { display: flex; gap: 1.6cqw; margin-top: 0.8cqw; }
+    .bat-boutons { display: flex; gap: 1.6cqw; margin-top: 0.5cqw; }
     .bat-btn { flex: 1; padding: 1.3cqw; font-weight: 800; font-size: 1.9cqw; border: none; border-radius: var(--rayon); cursor: pointer; }
     .bat-btn--or { background: linear-gradient(135deg, #b45309, #7c2d12); color: #fff; }
     .bat-btn--or:disabled { background: #2f2d3a; color: #6b7280; cursor: not-allowed; }
@@ -2133,7 +2134,7 @@
 
     /* ==== ÉCRAN ENCHÈRES — PLEIN ÉCRAN (cf. ui/encheres.js) =====================
        La salle des ventes occupe tout l'écran : lot en grand, prix géant, marteau. */
-    .ench { z-index: 39; }
+    .ench { z-index: 15; } /* sous le cadre doré (comme l'HV) : il ne déborde plus dessus */
     .ench-zone {
       background:
         radial-gradient(120% 80% at 50% 0%, rgba(150,90,60,0.16) 0%, rgba(70,35,55,0.10) 40%, rgba(0,0,0,0) 70%),
