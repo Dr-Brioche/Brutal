@@ -143,6 +143,17 @@ function peutAjouter(inv, id) {
   return false;
 }
 
+// Y aura-t-il la place pour l'objet FORGÉ `resultatId` une fois les ingrédients
+// `besoin` ({ id: quantité }) consommés ? On simule sur une COPIE du sac (aucune
+// mutation) : on retire d'abord les ingrédients (ça peut LIBÉRER des cases), puis
+// on teste le placement du résultat. Sert au contrôle « sac plein » AVANT le
+// mini-jeu de forge, sans bloquer à tort un craft qui libère la place qu'il occupe.
+export function placePourFabrication(inv, resultatId, besoin) {
+  const copie = { ...inv, objets: inv.objets.map((o) => ({ ...o })) };
+  for (const id of Object.keys(besoin || {})) retirerRessource(copie, id, besoin[id]);
+  return peutAjouter(copie, resultatId);
+}
+
 // L'objet posé sous la case (cx, cy), ou null.
 export function objetSousCase(inv, cx, cy) {
   for (const o of inv.objets) {

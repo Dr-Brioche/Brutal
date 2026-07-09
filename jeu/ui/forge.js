@@ -20,8 +20,9 @@ import {
   trouverRecette, ingredientsPoses,
   centreMarqueur, outcomeFrappe, QUALITE_PAR_MARQUEUR, MJ, periodeMiniJeu,
 } from "../systems/craft.js";
-import { compterRessource, retirerRessource, ajouterObjet } from "../systems/inventaire.js";
+import { compterRessource, retirerRessource, ajouterObjet, placePourFabrication } from "../systems/inventaire.js";
 import { ouvrirLivre } from "./livre.js";
+import { afficherMessage } from "./effets.js";
 
 const TAILLE = 5;         // table 5×5
 
@@ -239,6 +240,15 @@ function rendreReference() {
 
 function forger() {
   if (!recetteCourante || miniActif) return;
+  // Contrôle « sac plein » AVANT le mini-jeu : on vérifie qu'il y aura la place
+  // pour l'objet forgé (une fois les ingrédients consommés). Sinon on ne lance PAS
+  // le mini-jeu et on demande de faire de la place — rien n'est consommé.
+  const besoin = {};
+  for (const id of ingredientsPoses(grille)) besoin[id] = (besoin[id] ?? 0) + 1;
+  if (!placePourFabrication(inv, recetteCourante.resultat, besoin)) {
+    afficherMessage("🎒 Sac plein — fais de la place avant de forger (rien n'est consommé).");
+    return;
+  }
   lancerMiniJeu();
 }
 
