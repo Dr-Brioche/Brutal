@@ -74,7 +74,8 @@ est déjà là et s'y branchera.)*
 | `BUDGET_DEPOT` | 85–135 % | Budgets sur le lot du joueur (salle plus chaude) |
 | `OBSTINE_FACTEUR` | ×1,15–1,50 | Un obstiné gonfle son budget d'autant |
 | `OBSTINE_PAR_RANG` | 10/15/25/40/60 % | Proba d'obstiné selon la rareté (commun→légendaire) |
-| `PRIME_RARETE` | ×1 / ×1 / ×1,3 / ×2,5 / ×4 | **Prime d'enchère** par rareté (commun→légendaire) : gonfle la valeur du lot (mise à prix, cran ET budgets). N'affecte QUE l'enchère, pas le marchand |
+| `PRIME_RARETE` | ×1 / ×1 / ×1,3 / ×400 / ×450 | **Prime d'enchère** par rareté (commun→légendaire) : gonfle la valeur du lot (mise à prix, cran ET budgets). N'affecte QUE l'enchère, pas le marchand |
+| `PLANCHER_RARETE` | épique 80 000 / légendaire 250 000 | **Plancher GARANTI** : la mise à prix d'un équipement épique+ ne descend jamais sous ce seuil, quoi qu'il arrive (paquets de minerai brut non concernés) |
 | `PAQUET_RANG_MIN` | 6 | Minerai « paquet » : rang minimum (métaux/gemmes chers) |
 | `PAQUET_QTE` | 8–18 | Taille d'un paquet de ressources |
 | `LOT_RARETES` | 60/30/10 | Poids de tirage rare/épique/légendaire |
@@ -92,12 +93,15 @@ enchère (annonces « once/twice » à 1,4 s / 2,8 s), les rivaux réfléchissen
   **~9 %** de ventes en dessous de la valeur, **0 %** sous le plancher. ✓
   (« bénéfice le plus souvent, perte possible mais rare, jamais sous le
   marchand »)
-- **Prime de rareté (08/07/2026)** : avec `PRIME_RARETE`, une pièce **épique**
-  passe d'une valeur d'enchère de ~275 à **~690 🪙** → à l'achat elle revient à
-  **~600–1000 🪙** (jusqu'à ~1300 quand la salle s'emballe), contre ~170 pour du
-  rare et ~60 pour de l'uncommon. Les épiques deviennent des achats de prestige,
-  et les revendre au dépôt rapporte gros. Le prix marchand normal, lui, ne bouge
-  pas.
+- **Prime de rareté (08/07/2026, relevée 09/07/2026)** : l'épique est « le
+  meilleur stuff du jeu actuellement » (Brioche) → sa mise à prix ne descend
+  JAMAIS sous **80 000 🪙** (`PLANCHER_RARETE`, vérifié : 172 lots épiques
+  générés sur 200 ventes, tous à misePrix = 80 000 pile). Le prix de vente réel
+  tourne en moyenne autour de **~139 000 🪙** (jusqu'à ~205 000 si la salle
+  s'emballe), contre ~174 pour du rare et ~60 pour de l'uncommon — un gouffre
+  volontaire : l'épique doit se mériter (temps de jeu + économie), pas
+  s'acheter en passant. Idem au dépôt : revendre un épique rapporte gros (même
+  plancher garanti). Le prix marchand normal, lui, ne bouge pas.
 
 ## Côté ville
 

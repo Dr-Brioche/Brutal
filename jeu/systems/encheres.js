@@ -45,14 +45,22 @@ const OBSTINE_FACTEUR = [1.15, 1.50]; // un obstiné multiplie son budget par [m
 // Plus c'est rare, plus la salle s'enflamme (décision Brioche n°2).
 const OBSTINE_PAR_RANG = [0.10, 0.15, 0.25, 0.40, 0.60];
 
-// PRIME DE RARETÉ À L'ENCHÈRE (décision Brioche 08/07/2026) : les pièces
-// d'exception doivent être VRAIMENT chères ici — bien au-delà de leur simple
-// prix marchand. On multiplie la valeur du lot (donc mise à prix, incrément ET
-// budgets des rivaux) par ce facteur selon la rareté de l'objet. Un ÉPIQUE
-// devient un achat de prestige (≈ ×2,5 sa valeur HV) ; un légendaire, une folie.
+// PRIME DE RARETÉ À L'ENCHÈRE (décision Brioche 08/07/2026, relevée 09/07/2026) :
+// les pièces d'exception doivent être VRAIMENT chères ici — bien au-delà de leur
+// simple prix marchand. On multiplie la valeur du lot (donc mise à prix,
+// incrément ET budgets des rivaux) par ce facteur selon la rareté de l'objet.
 // N'affecte QUE l'enchère — le prix marchand/HV normal ne bouge pas.
-const PRIME_RARETE = { commun: 1, uncommon: 1, rare: 1.3, epique: 2.5, legendaire: 4 };
+const PRIME_RARETE = { commun: 1, uncommon: 1, rare: 1.3, epique: 400, legendaire: 450 };
 const primeRarete = (id) => PRIME_RARETE[itemDef(id)?.rarete] ?? 1;
+
+// PLANCHER D'ENCHÈRE (mise à prix minimum GARANTIE, pas juste une moyenne) pour
+// les raretés d'élite : l'ÉPIQUE est « le meilleur stuff du jeu actuellement »
+// (Brioche) → même dans le pire des cas (aucun rival ne pousse), la mise à prix
+// ne descend JAMAIS sous 80 000 🪙. Un achat de prestige, pas une bonne affaire.
+// Seuls les ÉQUIPEMENTS sont concernés (pas les paquets de minerai brut, même
+// épique — cf. `valeurLot`/`finaliserLot`).
+const PLANCHER_RARETE = { epique: 80000, legendaire: 250000 };
+const plancherRarete = (id) => PLANCHER_RARETE[itemDef(id)?.rarete] ?? 0;
 
 // Paquets de ressources : minerais chers uniquement (rang de minerai ≥ 6).
 const PAQUET_RANG_MIN = 6;
@@ -145,7 +153,9 @@ export function genererLots(rng = Math.random) {
 
 function finaliserLot(lot, rng) {
   lot.valeur = valeurLot(lot);
-  lot.misePrix = Math.max(1, Math.round(lot.valeur * entre(MISE_A_PRIX[0], MISE_A_PRIX[1], rng)));
+  const mise = Math.round(lot.valeur * entre(MISE_A_PRIX[0], MISE_A_PRIX[1], rng));
+  const plancher = lot.type === "objet" ? plancherRarete(lot.id) : 0;
+  lot.misePrix = Math.max(1, mise, plancher);
   lot.increment = Math.max(1, Math.round(lot.valeur * INCREMENT_PCT));
   return lot;
 }
@@ -158,7 +168,7 @@ export function lotDepot(depot) {
   return {
     type: "objet", id: depot.id, qualite: depot.qualite ?? null, duJoueur: true,
     valeur,
-    misePrix: Math.max(1, prixVente(depot.id)),
+    misePrix: Math.max(1, prixVente(depot.id), plancherRarete(depot.id)),
     increment: Math.max(1, Math.round(valeur * INCREMENT_PCT)),
   };
 }
