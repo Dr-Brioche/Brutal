@@ -193,6 +193,13 @@ la MÊME logique de voisinage, sans toucher au reste.
   (confirmation), miner plus profond pour voir des minerais plus rares, ressortir
   (confirmation). Reste la **Phase 4** (décor / rendu galerie) et les mobs rares.
 - [x] **Buffs de « run »** (09/07/2026) — cf. section 7 ci-dessous.
+- [x] **Étages À THÈME** dès l'étage 3 (09/07/2026) : ~40 % de chance (réglable
+      `CHANCE_THEME` dans `world/mine.js`) de tomber sur un étage à thème —
+      **Crystal Depths** (cristal, mine ABONDANTE : +3/+4 veines), **Frozen Depths**
+      (glace), **Molten Depths** (lave, rivières de lave). `tirerTheme(niveau)` pose
+      `zone.theme` ; le rendu (teinte + accents : cristaux, givre, coulées de lave)
+      est dans `world/carte.js` (`peindreTheme`, déterministe, sur le rendu de base).
+      Jamais avant l'étage 3.
 - [ ] **Phase 4** — décor & variété (rendu galerie, profils de salles, décor)
 
   **Reprise (Phase 2)** : codée + boot/runtime vérifiés en lançant une partie.

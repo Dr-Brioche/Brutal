@@ -41,6 +41,27 @@ const PROFIL_DEFAUT = {
 
 function entier(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
 
+// ÉTAGES À THÈME (décision Brioche 09/07/2026) : dès l'étage 3, une CHANCE de
+// tomber sur un étage à thème (cristal / glace / lave) — design + palette à part.
+// Réglable : la chance et la liste. Le rendu de la teinte/décor est dans carte.js.
+const CHANCE_THEME = 0.4;                 // % d'étages à thème dès l'étage 3
+const ETAGE_THEME_MIN = 3;
+const THEMES_MINE = ["cristal", "glace", "lave"];
+export function tirerTheme(niveau) {
+  if ((niveau ?? 1) < ETAGE_THEME_MIN) return null;
+  if (Math.random() >= CHANCE_THEME) return null;
+  return THEMES_MINE[Math.floor(Math.random() * THEMES_MINE.length)];
+}
+// Nom + réglages propres à un thème (la mine de cristal est ABONDANTE : + de veines).
+const THEME_NOM = { cristal: "Crystal Depths", glace: "Frozen Depths", lave: "Molten Depths" };
+function appliquerThemeCfg(cfg) {
+  cfg.nom = THEME_NOM[cfg.theme] ?? cfg.nom;
+  if (cfg.theme === "cristal") {
+    const [a, b] = cfg.nbVeines; // « mine abondante » : beaucoup plus de filons
+    cfg.nbVeines = [a + 3, b + 4];
+  }
+}
+
 // Chance (%) de trouver un passage vers l'ÉTAGE SUIVANT, selon la profondeur (1..10),
 // puis 1 % plancher au-delà (ne descend jamais à 0). Réglable.
 const CHANCE_DESCENTE = [70, 50, 40, 30, 20, 10, 5, 3, 2, 1];
@@ -62,6 +83,9 @@ const DIST_MIN_ENTREE = 7;
 // échoue (trop peu de salles / non connexe) ; en dernier recours on force.
 export function genererMine(profil = {}) {
   const cfg = { ...PROFIL_DEFAUT, ...profil };
+  // Thème d'étage : tiré une seule fois (constant sur les 40 essais de construction).
+  cfg.theme = cfg.theme ?? tirerTheme(cfg.niveau);
+  if (cfg.theme) appliquerThemeCfg(cfg);
   for (let essai = 0; essai < 40; essai++) {
     const mine = construire(cfg, false);
     if (mine) return mine;
@@ -222,6 +246,7 @@ function finaliser(g, salles, cfg) {
 
   return {
     nom: cfg.nom,
+    theme: cfg.theme ?? null, // thème d'étage (cristal/glace/lave) → recolore le rendu
     estMine: true,            // marqueur : on est dans une mine (sauvegarde interdite…)
     niveau: cfg.niveau,       // PROFONDEUR (étage) courante
     niveauMobs: niveauMobsEtage(cfg.niveau), // fourchette de niveau des monstres

@@ -18,6 +18,7 @@ export function creerCarte(zone) {
   const brouillard = Boolean(zone.estMine);
   return {
     nom: zone.nom,
+    theme: zone.theme ?? null, // thème d'étage de mine (cristal/glace/lave) — recolore le rendu
     lignes,
     largeur,
     hauteur,
@@ -322,13 +323,78 @@ function dessinerSol(ctx, carte, c, l, x, y, k) {
   coin(1, 1, x + TUILE - 5, y + TUILE - 5);
 }
 
+// ---- Thèmes d'étage de mine (cf. world/mine.js) -----------------------------
+// À partir de l'étage 3, un étage peut être à THÈME : on garde le rendu de base
+// (roche/sol procédural) et on POSE PAR-DESSUS une teinte + des accents (cristaux,
+// givre, lave). Déterministe (alea sur c,l) → aucun scintillement.
+const THEMES_MINE = {
+  cristal: { teinte: "rgba(120,80,210,0.15)", accent: "#8ad6ff", eclat: "#e8c8ff" },
+  glace:   { teinte: "rgba(120,175,225,0.17)", accent: "#eaf6ff", eclat: "#a9dcff" },
+  lave:    { teinte: "rgba(205,55,15,0.15)",  accent: "#ff7a1a", eclat: "#ffd24a" },
+};
+
+// Petit cristal (losange) qui pointe depuis une paroi / le sol.
+function cristal(ctx, x, y, taille, coul, tip) {
+  ctx.fillStyle = coul;
+  ctx.beginPath();
+  ctx.moveTo(x, y - taille); ctx.lineTo(x + taille * 0.45, y); ctx.lineTo(x, y + taille * 0.5);
+  ctx.lineTo(x - taille * 0.45, y); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = tip; ctx.fillRect(x - 1, y - taille, 2, Math.max(2, taille * 0.4)); // arête éclairée
+}
+
+// Pose la teinte + les accents du thème sur une case déjà peinte.
+function peindreTheme(ctx, carte, c, l, x, y, style) {
+  const t = THEMES_MINE[carte.theme];
+  if (!t) return;
+  // 1) Teinte générale (roche un peu plus dense que le sol).
+  ctx.fillStyle = t.teinte;
+  ctx.fillRect(x, y, TUILE, TUILE);
+  if (style === "mur") ctx.fillRect(x, y, TUILE, TUILE); // 2× sur la roche → plus saturée
+
+  const r = alea(c, l, 71);
+  if (carte.theme === "cristal") {
+    // Cristaux qui poussent depuis les parois (sur le sol bordant la roche) et amas.
+    if (style === "sol" && solideEn(carte, c, l - 1) && r > 0.45) {
+      cristal(ctx, x + 8 + alea(c, l, 3) * 16, y + 10, 6 + r * 5, t.accent, t.eclat);
+    } else if (style === "sol" && r > 0.9) {
+      cristal(ctx, x + 6 + alea(c, l, 5) * 20, y + 18, 4 + r * 3, t.accent, t.eclat);
+    } else if (style === "mur" && r > 0.8) {
+      ctx.fillStyle = t.accent; ctx.globalAlpha = 0.5;
+      ctx.fillRect(x + 6 + r * 14, y + 8 + alea(c, l, 9) * 14, 3, 3); ctx.globalAlpha = 1;
+    }
+  } else if (carte.theme === "glace") {
+    // Givre : traits clairs sur la roche, léger vernis + micro-fissures sur le sol.
+    if (style === "mur" && r > 0.5) {
+      ctx.strokeStyle = t.accent; ctx.globalAlpha = 0.35; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x + 4, y + 6 + r * 18); ctx.lineTo(x + 4 + r * 20, y + 4);
+      ctx.stroke(); ctx.globalAlpha = 1;
+    } else if (style === "sol" && r > 0.7) {
+      ctx.fillStyle = t.eclat; ctx.globalAlpha = 0.18;
+      ctx.fillRect(x + 3, y + 3, TUILE - 6, TUILE - 6); ctx.globalAlpha = 1;
+    }
+  } else if (carte.theme === "lave") {
+    // Rivières/fissures de lave incandescente sur le sol + roche chauffée au pied.
+    if (style === "sol" && r > 0.55) {
+      const gx = x + 2 + alea(c, l, 2) * 6;
+      ctx.fillStyle = t.accent; ctx.globalAlpha = 0.85;
+      ctx.fillRect(gx, y + 4, 3 + r * 3, TUILE - 8);                 // coulée verticale
+      ctx.fillStyle = t.eclat; ctx.fillRect(gx + 1, y + 4, 1, TUILE - 8); // cœur brillant
+      ctx.globalAlpha = 1;
+      if (r > 0.85) { ctx.fillStyle = t.accent; ctx.fillRect(x + 12, y + 10 + r * 8, TUILE - 18, 3); } // veine horizontale
+    } else if (style === "mur" && r > 0.7) {
+      ctx.fillStyle = t.accent; ctx.globalAlpha = 0.16;
+      ctx.fillRect(x, y + TUILE - 8, TUILE, 8); ctx.globalAlpha = 1; // lueur chaude au pied du mur
+    }
+  }
+}
+
 // Peint UNE tuile d'après sa définition (style + couleurs) et ses voisins.
 function dessinerTuile(ctx, carte, c, l) {
   const def = tuileDef(tuile(carte, c, l));
   const x = c * TUILE, y = l * TUILE;
   const k = def.couleurs;
 
-  if (def.style === "mur") { dessinerRoche(ctx, carte, c, l, x, y, k); return; }
+  if (def.style === "mur") { dessinerRoche(ctx, carte, c, l, x, y, k); peindreTheme(ctx, carte, c, l, x, y, "mur"); return; }
   if (def.style === "pierre-taillee") { dessinerPierreTaillee(ctx, carte, c, l, x, y, k); return; }
 
   if (def.style === "porte") {
@@ -354,4 +420,5 @@ function dessinerTuile(ctx, carte, c, l) {
   }
 
   dessinerSol(ctx, carte, c, l, x, y, k); // style "sol"
+  peindreTheme(ctx, carte, c, l, x, y, "sol");
 }
