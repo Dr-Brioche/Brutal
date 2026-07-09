@@ -110,6 +110,21 @@ enchère (annonces « once/twice » à 1,4 s / 2,8 s), les rivaux réfléchissen
   rapporte gros dès l'uncommon (même plancher garanti). Le prix marchand
   normal, lui, ne bouge pas.
 
+### Arnaques d'enchère (09/07/2026)
+
+Le plancher garanti se retourne aussi en PIÈGE : deux trésors "rare"
+(**Floating Pebble**, **Elixir of Youth**, `data/items.js`) ont un
+`valeurVente` de **1 🪙** (quasi rien, au marchand comme à l'HV) mais restent
+de rareté "rare" comme n'importe quel autre trésor → ils peuvent sortir en
+**lot de la maison**, et le plancher de 10 000 🪙 s'applique pareil. Comme leur
+vraie valeur est ridicule, AUCUN rival ne peut suivre jusque-là (leurs budgets
+sont calculés sur la vraie valeur) : ces lots se vendent systématiquement
+**exactement au prix d'ouverture**, sans surenchère — silence inquiétant de la
+salle, pour qui y prête attention. Vérifié : 10 000 🪙 pile à chaque tirage
+(house lot ET dépôt), puis **1 🪙** à la revente. L'indice reste visible sur
+l'écran (« market value ~125 🪙 » à côté d'un prix de départ à 10 000) — pas de
+triche cachée, juste un joueur pressé qui ne regarde pas.
+
 ## Côté ville
 
 - **Magnar le commissaire-priseur** : nouveau PNJ (place du marché, à gauche de

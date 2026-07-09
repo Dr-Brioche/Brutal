@@ -887,6 +887,17 @@ l'instant on les récupère via l'onglet **« Valuables »** du marchand de test
   et l'inventaire ne propose que **Sell / Discard** (pas d'« Equip »). Vendables
   au marchand (`valeurVente`) comme à l'HV (`valeurReelle` = +10 %).
 
+**Arnaques d'enchère (ajout du 09/07/2026)** : deux trésors « rare » de plus,
+mais truqués — **Floating Pebble** et **Elixir of Youth**, `valeurVente: 1`
+(quasi rien, au marchand comme à l'HV). Comme n'importe quel trésor rare, ils
+peuvent sortir en **lot de la maison** à la vente aux enchères du soir, où le
+**plancher garanti** (10 000 🪙, cf. section enchères) les fait passer pour un
+bon coup. Le joueur qui les remporte sans vérifier apprend la leçon en
+essayant de les revendre. Repérable pour l'œil attentif : l'écran d'enchère
+affiche aussi la « market value » du lot (calculée sur `valeurVente`), qui
+reste ridiculement basse à côté du prix demandé — l'indice est LÀ, visible,
+pas caché (cohérent avec « savoir s'arrêter est LE skill » de ce pilier).
+
 ## L'Hôtel des ventes (pilier économie) — 1er jet (03/07/2026)
 
 Le **marché** est jouable (détail complet dans **`docs/marche.md`**) ; résumé :
