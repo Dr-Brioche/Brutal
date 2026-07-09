@@ -55,6 +55,9 @@ CODE_MINERAI = {
     "La": "lapis",     "Am": "amethyste", "Ti": "titane",  "Em": "emeraude",
     "Ru": "rubis",     "Sa": "saphir",   "Di": "diamant",  "Mi": "mithril",
     "On": "onyx",      "Su": "pierre-solaire",
+    # Paliers de bois et de cuir (uncommon / rare) :
+    "Ws": "bois-sombre",   "We": "bois-enchante",
+    "Cr": "cuir",          "Ce": "cuir-epais",   "Cx": "cuir-etrange",
 }
 
 # id de ressource -> lettre unique utilisée comme clé de légende dans recettes.js
@@ -63,6 +66,8 @@ ID_CARACTERE = {
     "argent": "A", "or": "O", "malachite": "M", "lapis": "L", "amethyste": "Y",
     "titane": "T", "emeraude": "E", "rubis": "R", "saphir": "P", "diamant": "D",
     "mithril": "I", "onyx": "X", "pierre-solaire": "U",
+    "bois-sombre": "B", "bois-enchante": "N",
+    "cuir": "H", "cuir-epais": "J", "cuir-etrange": "Q",
 }
 
 DEBUT = "// <<RECETTES-AUTO>>"
@@ -82,26 +87,30 @@ def lire_recettes(chemin):
     ws = wb["Recettes"]
     lignes = list(ws.iter_rows(values_only=True))
 
+    # Une ligne est un EN-TÊTE de recette si : colonne A = catégorie (non vide,
+    # ex. « Arme », « Armure »…) ET colonne B = un id valide (minuscules/tirets).
+    # → la colonne A range chaque objet dans sa catégorie sans casser la lecture.
+    def est_entete(lg):
+        colA = str(lg[0]).strip() if lg and lg[0] else ""
+        colB = str(lg[1]).strip() if lg and len(lg) > 1 and lg[1] else ""
+        return bool(colA) and bool(re.fullmatch(r"[a-z0-9-]+", colB))
+
     recettes = []
     i = 0
     while i < len(lignes):
         ligne = lignes[i]
-        marqueur = (ligne[0] or "") if ligne else ""
-        if str(marqueur).strip().upper() != "ARME":
+        if not est_entete(ligne):
             i += 1
             continue
+        resultat = str(ligne[1]).strip()
 
-        resultat = str(ligne[1]).strip() if len(ligne) > 1 and ligne[1] else ""
-        if not resultat:
-            raise SystemExit(f"Ligne {i + 1} : « ARME » sans id de résultat en colonne B.")
-
-        # Lire la grille : lignes suivantes, colonnes B..F, jusqu'à ligne vide / ARME.
+        # Lire la grille : lignes suivantes (cols B..F), jusqu'à la prochaine
+        # en-tête de recette ou une ligne vide.
         grille = []
         j = i + 1
         while j < len(lignes):
             lg = lignes[j]
-            tete = str(lg[0]).strip().upper() if lg and lg[0] else ""
-            if tete == "ARME":
+            if est_entete(lg):
                 break
             cases = [lg[c] if lg and len(lg) > c else None for c in range(1, 6)]  # B..F
             if all(v is None or str(v).strip() == "" for v in cases):

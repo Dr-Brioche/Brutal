@@ -42,6 +42,17 @@ rend la forge **plus intéressante que le loot** (un loot est toujours « Normal
 > `QUALITES` de forge ne sont jamais touchées). Il **vérifie** au passage que
 > chaque ingrédient existe et qu'**aucune** recette n'a le même motif qu'une autre
 > (sinon la forge ne saurait laquelle fabriquer).
+>
+> **Colonne A = CATÉGORIE** de l'objet (« Arme », « Arme à deux mains »,
+> « Armure », « Main seconde », « Gant », « Botte », « Bague », « Collier ») :
+> elle range chaque recette ET sert de repère de bloc à l'import (une en-tête =
+> colonne A non vide + colonne B = un id valide).
+>
+> **Matériaux souples adaptés** (09/07/2026) : le **cuir** pour les armures /
+> bottes / gants (fini le bois « bizarre » sur les armures), le **bois** pour les
+> armes / mains secondes ; et ils **montent en gamme avec la rareté** — commun =
+> Wood / Leather, uncommon = Dark Wood / Thick Leather, rare & épique = Enchanted
+> Wood / Strange Leather.
 
 Trois règles guident le design des patterns :
 
