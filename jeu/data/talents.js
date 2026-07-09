@@ -123,7 +123,7 @@ export const TALENTS = {
     description: "Buildings' GOLD is banked automatically whenever their treasury fills — no more walking the rounds. Raw materials (wood…) still pile up (cap 3 stacks of 10) and must be fetched on foot.",
   },
 
-  // ⚠ TODO EXPORT FINAL : talent de TEST à RETIRER avant le build Steam.
+  // ⚠ TODO EXPORT FINAL : talents de TEST à RETIRER avant le build Steam.
   // Gratuit, ON/OFF (toggle), désactivé par défaut : annule TOUTE rencontre.
   noRencontre: {
     id: "noRencontre", nom: "No Encounters (TEST)", branche: "test",
@@ -131,6 +131,17 @@ export const TALENTS = {
     toggle: true, test: true,
     effet: { sansRencontre: 1 },
     description: "TEST ONLY — toggle to cancel all monster encounters (free, off by default).",
+  },
+  // God Mode : ce n'est PAS un effet permanent mais une ACTION à usage immédiat
+  // (`action: true`). Un clic : on s'équipe du set croisé + holy sword + warding
+  // shield + amulette + 5 bagues + backpack, +1 000 000 🪙, niveau 30 et 30 points
+  // de talent à dépenser. Gratuit, ré-cliquable. Câblé dans principal.js (surAction).
+  godmode: {
+    id: "godmode", nom: "God Mode (TEST)", branche: "test",
+    x: 0, y: 4, cout: 0, requis: [],
+    test: true, action: true,
+    effet: {},
+    description: "TEST ONLY — instantly equip the full Crusader kit (set + Holy Sword + Warding Shield + Nice Sapphire Amulet + 5 rings + Backpack), grant 1,000,000 gold, and jump to level 30 with 30 talent points to spend.",
   },
 };
 

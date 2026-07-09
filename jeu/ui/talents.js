@@ -13,6 +13,7 @@ const HEADER_H = 30;                      // bande d'en-têtes des branches (en 
 
 // Une petite icône selon le 1er effet du nœud.
 function iconeNoeud(n) {
+  if (n.action) return "😇";     // talent de TEST « action » (God Mode)
   if (n.legendaire) return "✦";
   const k = Object.keys(n.effet || {})[0];
   return {
@@ -22,7 +23,7 @@ function iconeNoeud(n) {
   }[k] || "★";
 }
 
-export function installerTalents({ heros, surChangement, surFermer }) {
+export function installerTalents({ heros, surChangement, surFermer, surAction }) {
   const overlay = document.getElementById("talents");
   const elNiveau = document.getElementById("tal-niveau");
   const elPoints = document.getElementById("tal-points");
@@ -94,13 +95,22 @@ export function installerTalents({ heros, surChangement, surFermer }) {
     ArrowUp: "haut", KeyW: "haut", KeyZ: "haut",
     ArrowDown: "bas", KeyS: "bas",
   };
+  // Active un nœud : soit une ACTION de test (God Mode → surAction), soit un
+  // déblocage/bascule normal (dépense de points ou toggle).
+  function activer(id) {
+    const n = TALENTS[id];
+    if (!n) return;
+    if (n.action) { surAction?.(id); surChangement(); rendre(); decrire(n); return; }
+    if (activerOuBasculer(heros, id)) { surChangement(); rendre(); decrire(n); }
+  }
+
   function surTouche(e) {
     if (DIRS[e.code]) {
       e.preventDefault(); e.stopPropagation();
       voisin(DIRS[e.code]);
     } else if (e.code === "Space" || e.code === "Enter") {
       e.preventDefault(); e.stopPropagation();
-      if (activerOuBasculer(heros, selection)) { surChangement(); rendre(); }
+      activer(selection);
     }
     // Échap : laissé au reste du jeu (ferme l'écran)
   }
@@ -165,8 +175,7 @@ export function installerTalents({ heros, surChangement, surFermer }) {
       b.addEventListener("mouseenter", () => decrire(n));
       b.addEventListener("click", () => {
         selection = n.id;
-        if (activerOuBasculer(heros, n.id)) surChangement();
-        rendre(); decrire(n);
+        activer(n.id);
       });
       elArbre.append(b);
     }

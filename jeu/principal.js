@@ -1021,11 +1021,45 @@ export async function demarrerJeu(donneesInitiales = null) {
   });
   document.getElementById("inv-deck").addEventListener("click", basculerDeck);
 
+  // ⚠ TODO EXPORT FINAL — TALENT DE TEST « God Mode » à RETIRER avant le build Steam.
+  // Action immédiate : on s'équipe du kit croisé complet (chaque pièce sur son slot),
+  // +1 000 000 🪙, niveau 30 et 30 points de talent à dépenser. Ré-cliquable.
+  const GODMODE_STUFF = {
+    arme1: "epee-sacree",              // Holy Sword
+    arme2: "bouclier-protecteur",      // Warding Shield (main seconde)
+    armure: "plate-croise",            // Crusader Plate
+    gant: "gants-croise",              // Crusader Gauntlets
+    botte: "bottes-croise",            // Crusader Greaves
+    collier: "collier-de-saphir-fin",  // Nice Sapphire Amulet
+    bague1: "anneau-vigueur",          // Vigor Ring
+    bague2: "anneau-force",            // Power Ring
+    bague3: "bague-de-sang",           // Blood Ring
+    bague4: "anneau-forge",            // Forge Ring
+    bague5: "anneau-de-givre-parfait", // Perfect Frost Ring
+    sac: "sac-a-dos",                  // Backpack
+  };
+  function activerGodmode() {
+    for (const [slot, id] of Object.entries(GODMODE_STUFF)) {
+      inventaire.slots[slot] = id;
+      inventaire.qualites[slot] = null; // objets « lootés » : qualité normale
+    }
+    inventaire.or += 1_000_000;
+    heros.niveau = 30;
+    heros.xp = 0;
+    heros.pointsTalent = 30;
+    appliquerTalents(heros);
+    appliquerEquipement(heros, inventaire, planches);
+    heros.pv = heros.pvMax; // soigné à fond
+    majHudInfo();
+    afficherMessage("🧪 GOD MODE : kit croisé équipé, +1 000 000 🪙, niveau 30 (+30 points de talent).");
+  }
+
   // L'arbre de talents (touche T) : on y dépense les points gagnés en niveau.
   const talentsUI = installerTalents({
     heros,
     surChangement: () => {}, // debloquer() met le héros à jour ; l'écran se rafraîchit seul
     surFermer: () => basculerTalents(),
+    surAction: (id) => { if (id === "godmode") activerGodmode(); },
   });
   let talentsOuvert = false;
   function basculerTalents() {

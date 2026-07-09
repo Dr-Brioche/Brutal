@@ -1162,8 +1162,11 @@ devient exponentielle — chaque level up est un vrai événement.
 - **Deck** : les cartes des deux armes s'empilent normalement dans la composition
   du deck (`cartesEquipees` lit tous les slots sans distinction).
 
-> **Outil de TEST (à retirer)** : une **fontaine** au centre de la ville donne
-> **+1 niveau** quand on lui parle, pour essayer les talents sans farmer.
+> **Outils de TEST (à retirer avant l'export Steam)** : une **fontaine** au centre
+> de la ville donne **+1 niveau** quand on lui parle ; et l'arbre de talents porte
+> deux nœuds de test gratuits en bas de la colonne de gauche —
+> **No Encounters** (toggle : annule toutes les rencontres) et **God Mode** (action :
+> s'équipe du kit croisé complet + 1 000 000 🪙 + niveau 30 avec 30 points de talent).
 
 ## La grande boucle (le moteur d'addiction)
 
