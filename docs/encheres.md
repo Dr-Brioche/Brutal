@@ -80,6 +80,7 @@ est déjà là et s'y branchera.)*
 | `PAQUET_QTE` | 8–18 | Taille d'un paquet de ressources |
 | `LOT_RARETES` | 60/30/10 | Poids de tirage rare/épique/légendaire |
 | `DEPOT_RARETE_MIN` | rare | Rareté minimale pour confier un objet |
+| `CATEGORIES_LOT` | équipement + `tresor` | Catégories éligibles (lots maison ET dépôt joueur). Les **trésors** (Gilded Idol, Crystal Chalice, Ancient Signet…) y sont depuis le 09/07/2026 — bibelots sans usage, leur seule fonction est d'être vendus |
 
 Rythme de l'écran (temps réel, `ui/encheres.js`) : marteau à **4,2 s** sans
 enchère (annonces « once/twice » à 1,4 s / 2,8 s), les rivaux réfléchissent

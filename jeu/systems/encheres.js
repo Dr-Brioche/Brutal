@@ -66,9 +66,11 @@ const plancherRarete = (id) => PLANCHER_RARETE[itemDef(id)?.rarete] ?? 0;
 const PAQUET_RANG_MIN = 6;
 const PAQUET_QTE = [8, 18];
 
-// Lots d'équipement : rare et au-delà uniquement (pas de remplissage).
+// Lots : rare et au-delà uniquement (pas de remplissage). Équipement JOUABLE +
+// « tresor » (bibelots sans usage — leur seule fonction est d'être vendus, donc
+// aussi bienvenus ici qu'au marchand).
 const LOT_RARETES = { rare: 60, epique: 30, legendaire: 10 }; // poids de tirage
-const CATEGORIES_EQUIP = ["arme", "bouclier", "armure", "gant", "botte", "bague", "collier", "sac"];
+const CATEGORIES_LOT = ["arme", "bouclier", "armure", "gant", "botte", "bague", "collier", "sac", "tresor"];
 
 // Dépôt du joueur : rare minimum.
 export const DEPOT_RARETE_MIN = "rare";
@@ -133,7 +135,7 @@ export function genererLots(rng = Math.random) {
   const lots = [];
   const nb = entier(NB_LOTS[0], NB_LOTS[1], rng);
   const nbPaquets = rng() < 0.75 ? 1 : 0; // presque toujours un paquet, jamais deux
-  const equipables = Object.values(ITEMS).filter((it) => CATEGORIES_EQUIP.includes(it.categorie));
+  const equipables = Object.values(ITEMS).filter((it) => CATEGORIES_LOT.includes(it.categorie));
   for (let i = 0; i < nb - nbPaquets; i++) {
     const rarete = tirerRarete(rng);
     const choix = equipables.filter((it) => it.rarete === rarete);
@@ -209,10 +211,10 @@ export function resoudreHorsEcran(lot, rng = Math.random) {
 
 // ----- Dépôt d'un objet ---------------------------------------------------------------
 
-// L'objet du sac est-il acceptable en dépôt ? (équipement rare et au-delà)
+// L'objet du sac est-il acceptable en dépôt ? (équipement OU trésor, rare et au-delà)
 export function depotAcceptable(id) {
   const it = itemDef(id);
-  if (!it || !CATEGORIES_EQUIP.includes(it.categorie)) return false;
+  if (!it || !CATEGORIES_LOT.includes(it.categorie)) return false;
   return (RARETES[it.rarete]?.rang ?? 0) >= (RARETES[DEPOT_RARETE_MIN]?.rang ?? 2);
 }
 
