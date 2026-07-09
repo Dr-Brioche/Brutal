@@ -152,7 +152,13 @@ export const ITEMS = {
   "bois":           { id: "bois",           nom: "Wood",         categorie: "ressource", famille: "bois",   rarete: "commun",   prixBase: 5, taille: { l: 1, h: 1 }, icone: "#7a5230", empilable: true, pileMax: 10 },
   // Cuir : ressource de CRAFT lâchée par les mobs `famille: "animal"` (cf.
   // data/butin.js). Comme le bois, hors MINERAIS (jamais dans les veines).
-  "cuir":           { id: "cuir",           nom: "Leather",      categorie: "ressource", famille: "cuir",   rarete: "commun",   prixBase: 7, taille: { l: 1, h: 1 }, icone: "#8a5a34", empilable: true, pileMax: 10 },
+  // TROIS PALIERS de qualité (commun → uncommon → rare) pour bois ET cuir, à
+  // utiliser dans les recettes/butins selon la rareté de l'objet.
+  "cuir":           { id: "cuir",           nom: "Leather",         categorie: "ressource", famille: "cuir", rarete: "commun",   prixBase: 7,   taille: { l: 1, h: 1 }, icone: "#8a5a34", empilable: true, pileMax: 10 },
+  "cuir-epais":     { id: "cuir-epais",     nom: "Thick Leather",   categorie: "ressource", famille: "cuir", rarete: "uncommon", prixBase: 40,  taille: { l: 1, h: 1 }, icone: "#6a4020", empilable: true, pileMax: 10 },
+  "cuir-etrange":   { id: "cuir-etrange",   nom: "Strange Leather", categorie: "ressource", famille: "cuir", rarete: "rare",     prixBase: 130, taille: { l: 1, h: 1 }, icone: "#7a5a86", empilable: true, pileMax: 10 },
+  "bois-sombre":    { id: "bois-sombre",    nom: "Dark Wood",       categorie: "ressource", famille: "bois", rarete: "uncommon", prixBase: 35,  taille: { l: 1, h: 1 }, icone: "#4a3520", empilable: true, pileMax: 10 },
+  "bois-enchante":  { id: "bois-enchante",  nom: "Enchanted Wood",  categorie: "ressource", famille: "bois", rarete: "rare",     prixBase: 120, taille: { l: 1, h: 1 }, icone: "#4a8a7a", empilable: true, pileMax: 10 },
 
   // ---- Trésors : objets RARES qui NE S'ÉQUIPENT PAS et NE SERVENT À RIEN, sinon
   // à être REVENDUS. La catégorie "tresor" n'est dans AUCUN slot (SLOT_PAR_CATEGORIE)

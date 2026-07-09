@@ -153,5 +153,9 @@ export const VALEUR_RESSOURCE = {
   "pierre-solaire": 1928,
   "bois": 5,
   "cuir": 7,
+  "cuir-epais": 40,
+  "cuir-etrange": 130,
+  "bois-sombre": 35,
+  "bois-enchante": 120,
 };
 // <<FIN-VALEURS-AUTO>>
