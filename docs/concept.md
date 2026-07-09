@@ -873,26 +873,40 @@ complet dans **`docs/craft.md`** ; résumé :
   Et on ne les **traverse plus** : chaque PNJ — ainsi que la **fontaine** — est un
   obstacle à hauteur des pieds.
 
-## Valeur des objets (ajout du 09/07/2026)
+## Valeur des objets (ajout du 09/07/2026, refonte le même jour)
 
-Le prix de revente d'un objet (marchand, HV, base des enchères) part d'une
-**valeur MOYENNE CIBLE par rareté** (`PRIX_VENTE`, `jeu/data/items.js`) :
+Chaque objet a **UNE valeur de référence** (≈ ce qu'il coûterait à l'achat /
+sa valeur « trouvé chez un marchand »). Tout le reste en découle.
 
-| Rareté | Valeur moyenne cible |
+**La valeur est une DONNÉE éditable** : elle vit dans le classeur Excel
+(`docs/BRUTAL-items-et-cartes.xlsx`, onglet **« Valeurs »**), régénérée dans
+`jeu/data/valeurs.js` par `outils/importer_valeurs.py` (même principe que les
+recettes). Brioche peut donc **ajuster le prix d'un objet précis à la main**.
+Les valeurs ont été **semées** autour d'une cible par rareté, avec ± 20 % de
+variation pour que deux objets ne vaillent jamais pile pareil :
+
+| Rareté | Valeur cible (± 20 % semé) |
 |---|---|
-| Commun | 20 🪙 |
-| Uncommon | 45 🪙 |
-| Rare | 100 🪙 |
-| Épique | 250 🪙 |
-| Légendaire | 700 🪙 |
+| Commun | 400 🪙 |
+| Uncommon | 2 000 🪙 |
+| Rare | 10 000 🪙 |
+| Épique | 80 000 🪙 |
+| Légendaire | 250 000 🪙 |
 
-**Ce n'est pas un prix fixe par objet** : deux épées communes ne valent pas
-pile le même prix — le prix **fluctue de ± 20 %** autour de la moyenne de la
-rareté (hash déterministe sur l'id de l'objet → toujours le même prix pour un
-item donné, stable d'une partie à l'autre, mais différent d'un item à
-l'autre). Un objet peut aussi avoir un prix **fixé à la main** (`valeurVente`)
-qui ignore complètement la fluctuation — utilisé pour les trésors et les
-arnaques d'enchère (cf. plus bas), pensés objet par objet.
+**Vendre coûte toujours** (la maison prend sa marge) — le prix de vente est
+**toujours en dessous de la valeur**, partout :
+
+| Où | Ce qu'on récupère en vendant | Vitesse |
+|---|---|---|
+| **Marchand** | valeur **− 25 %** | immédiat |
+| **Hôtel des ventes** | valeur **− 20 % à − 10 %** (patient = un peu plus) | on attend |
+| **Enchères** | *règle à part* : c'est la **Luck** qui décide (départ à 70 % de la valeur, puis la salle enchérit) | le soir |
+
+Donc : le marchand = liquidité immédiate mais la pire reprise ; l'HV = un peu
+mieux si on patiente ; l'enchère = le pari (on peut faire une affaire en
+achetant, ou vendre au-dessus de la valeur si la salle s'emballe). Un objet
+peut fixer sa valeur **à la main** (`valeurVente` dans `items.js`) hors table —
+utilisé par les **arnaques d'enchère** (cf. Trésors).
 
 ## Trésors (objets de pure valeur marchande) — ajout du 07/07/2026
 
@@ -901,26 +915,26 @@ s'équipent pas et ne font rien — leur seul intérêt est d'être **revendus**
 (marchand ou Hôtel des ventes). Butin de coffres / monstres à venir ; pour
 l'instant on les récupère via l'onglet **« Valuables »** du marchand de test.
 
-- Trois premiers : **Gilded Idol** (200 🪙), **Crystal Chalice** (160 🪙),
-  **Ancient Signet** (120 🪙). Prix fixé **par item** (champ `valeurVente`,
-  au lieu du barème par rareté) → trois valeurs distinctes.
+- Trois premiers : **Gilded Idol**, **Crystal Chalice**, **Ancient Signet** —
+  rareté « rare », donc valeur ~10 000 🪙 (± semé, cf. table de valeurs),
+  revendus comme tout objet (−20 à −30 %).
 - Techniquement : catégorie hors `SLOT_PAR_CATEGORIE` → `equiper()` les refuse,
-  et l'inventaire ne propose que **Sell / Discard** (pas d'« Equip »). Vendables
-  au marchand (`valeurVente`) comme à l'HV (`valeurReelle` = +10 %).
+  et l'inventaire ne propose que **Sell / Discard** (pas d'« Equip »).
 
-**Arnaques d'enchère (ajout du 09/07/2026, redesign le même jour)** : deux
+**Arnaques d'enchère (ajout du 09/07/2026, refonte le même jour)** : deux
 trésors « rare » de plus, mais truqués — **Floating Pebble** et **Elixir of
-Youth**, `camelote: true`. L'écran d'enchère n'affiche **plus aucun prix de
-référence** (le « market value » a été retiré, cf. section enchères) : le seul
-indice, c'est le NOM — qui voudrait d'un vulgaire caillou flottant ou d'un
-élixir de jouvence miracle ? Leur prix suit un cycle en trois temps,
-totalement déconnecté du plancher « rare » normal (sinon plus personne ne
-pourrait jamais enchérir dessus, ce qui serait louche) :
-1. **Lot de la maison** : « plusieurs milliers » (~3 600-4 800 🪙), avec de
-   vraies enchères modestes (pas un silence suspect).
-2. **Revente au marchand/HV** : **10 🪙** — ça ne vaut presque rien.
-3. **Remis en dépôt** par le joueur : ~40-70 🪙 — le bouche-à-oreille a fait
-   son effet, plus personne ne se fait avoir deux fois.
+Youth**, `camelote: true`. L'écran d'enchère n'affiche **aucun prix de
+référence** : le seul indice, c'est le NOM — qui voudrait d'un vulgaire caillou
+flottant ou d'un élixir de jouvence miracle ? Ça pue l'arnaque. Leur prix est
+ancré sur la valeur d'un VRAI rare (10 000 🪙) mais totalement truqué :
+1. **Lot de la maison** : présenté comme un rare un peu « bon marché »
+   (~9 000 🪙 de valeur affichée à la salle) → tentant, et la salle enchérit
+   dessus comme sur un vrai rare (on paie plusieurs milliers).
+2. **Revente au marchand/HV** : **1 000 🪙** (10 % d'un vrai rare) — on s'est
+   fait avoir.
+3. **Re-refourgue en dépôt** par le joueur : ~4 000 🪙 (40 % d'un rare) — la
+   salle a un doute, ça part moins cher, mais on récupère plus qu'au marchand.
+   On repasse l'arnaque au suivant. 🤷
 
 ## L'Hôtel des ventes (pilier économie) — 1er jet (03/07/2026)
 

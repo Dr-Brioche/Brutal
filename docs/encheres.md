@@ -69,15 +69,13 @@ est déjà là et s'y branchera.)*
 | `FENETRE_INSCRIPTION` (temps.js) | 600 s | Durée d'ouverture des inscriptions (avant la cloche) |
 | `FENETRE_ENTREE` | 300 s | Délai pour entrer après la cloche |
 | `NB_LOTS` | 3–4 | Nombre de lots de la maison |
-| `MISE_A_PRIX` | 80–90 % | Mise à prix = valeur × ce facteur (relevé du 30-50 % initial le 09/07/2026 — aucun prix n'est affiché au joueur, les bonnes affaires doivent rester crédibles) |
+| `MISE_A_PRIX` | 65–75 % | Mise à prix = valeur × ce facteur (~70 %, abaissé du 85 % le 09/07/2026). La valeur du lot est déjà celle, élevée, de l'objet (`data/valeurs.js`) — plus besoin de prime ni de plancher : l'enchère démarre sous la valeur pour laisser une VRAIE chance de bonne affaire |
 | `INCREMENT_PCT` | 6 % | Un cran d'enchère = valeur × ceci |
 | `NB_RIVAUX` | 2–4 | Rivaux PNJ par lot |
 | `BUDGET_ACHAT` | 55–105 % | Budgets sur les lots de la maison (frileux) |
 | `BUDGET_DEPOT` | 85–135 % | Budgets sur le lot du joueur (salle plus chaude) |
 | `OBSTINE_FACTEUR` | ×1,15–1,50 | Un obstiné gonfle son budget d'autant |
 | `OBSTINE_PAR_RANG` | 10/15/25/40/60 % | Proba d'obstiné selon la rareté (commun→légendaire) |
-| `PRIME_RARETE` | ×1 / ×55 / ×125 / ×400 / ×450 | **Prime d'enchère** par rareté (commun→légendaire) : gonfle la valeur du lot (mise à prix, cran ET budgets). N'affecte QUE l'enchère, pas le marchand |
-| `PLANCHER_RARETE` | uncommon 2 000 / rare 10 000 / épique 80 000 / légendaire 250 000 | **Plancher GARANTI** : la mise à prix d'un équipement uncommon+ ne descend jamais sous ce seuil, quoi qu'il arrive (paquets de minerai brut non concernés) |
 | `PAQUET_RANG_MIN` | 6 | Minerai « paquet » : rang minimum (métaux/gemmes chers) |
 | `PAQUET_QTE` | 8–18 | Taille d'un paquet de ressources |
 | `LOT_RARETES` | 60/30/10 | Poids de tirage rare/épique/légendaire |
@@ -88,57 +86,40 @@ Rythme de l'écran (temps réel, `ui/encheres.js`) : marteau à **4,2 s** sans
 enchère (annonces « once/twice » à 1,4 s / 2,8 s), les rivaux réfléchissent
 0,5–2,2 s, 2,6 s d'entracte entre deux lots.
 
-### Chiffres observés aux tests (à ajuster après jeu réel)
+### Le modèle « valeur unique » (refonte 09/07/2026)
 
-- Salle qui chauffe avec la rareté : **~25 %** d'obstinés sur du *rare*,
-  **~61 %** sur du *légendaire*. ✓ (l'objectif « plus rare = plus haut »)
-- Dépôt d'un objet *rare* (valeur ~110, plancher 100) : prix moyen **~134 🪙**,
-  **~9 %** de ventes en dessous de la valeur, **0 %** sous le plancher. ✓
-  (« bénéfice le plus souvent, perte possible mais rare, jamais sous le
-  marchand »)
-- **Prime de rareté (08/07/2026, relevée 09/07/2026 ×2)** : chaque palier a
-  maintenant un plancher GARANTI (`PLANCHER_RARETE`) qui fluidifie la
-  progression entre raretés — vérifié par simulation (2000 ventes/rareté) :
+Plus de prime ni de plancher d'enchère : chaque objet a maintenant **UNE valeur
+de référence élevée**, fixée dans le classeur (`data/valeurs.js`, cible par
+rareté : rare 10 000, épique 80 000…). L'enchère part à **70 % de cette valeur**
+et la salle enchérit dessus. Vérifié par simulation (code réel, 2000 ventes) :
 
-  | Rareté | Plancher garanti | Prix de vente moyen | Jusqu'à |
-  |---|---|---|---|
-  | Uncommon | 2 000 🪙 | ~3 300 🪙 | ~4 800 🪙 |
-  | Rare | 10 000 🪙 | ~16 700 🪙 | ~24 800 🪙 |
-  | Épique | 80 000 🪙 | ~139 000 🪙 | ~206 000 🪙 |
+| Rareté (valeur ex.) | Mise à prix (~70 %) | Prix de vente moyen | Jusqu'à |
+|---|---|---|---|
+| Uncommon (~1 900) | ~1 300 | ~2 300 🪙 | ~3 300 🪙 |
+| Rare (~8 100) | ~5 700 | ~9 800 🪙 | ~14 600 🪙 |
+| Épique (~64 000) | ~45 000 | ~81 000 🪙 | ~120 000 🪙 |
 
-  L'épique reste « le meilleur stuff du jeu actuellement » (Brioche) : un
-  gouffre volontaire au-dessus du rare, ça doit se mériter (temps de jeu +
-  économie), pas s'acheter en passant. Idem au dépôt : revendre un objet
-  rapporte gros dès l'uncommon (même plancher garanti). Le prix marchand
-  normal, lui, ne bouge pas.
+À l'ACHAT (lot de la maison, rivaux frileux) on peut faire une **affaire** (payer
+sous la valeur) ; au DÉPÔT (le joueur vend, salle plus chaude) on tourne **au-
+dessus de la valeur** en moyenne — le pari peut payer. Aucun prix de référence
+n'est affiché à l'écran : juger si c'est une bonne affaire fait tout le sel
+(la ligne « market value » a été retirée).
 
-### Aucun prix affiché à l'écran (09/07/2026)
-
-La ligne « market value ~X 🪙 » (sur le lot en cours) et le rappel « (value
-~X) » dans le résumé de fin de soirée ont été **retirés** : le joueur ne voit
-JAMAIS un prix de référence calculé par le jeu, seulement le prix courant de
-l'enchère. Juger si un lot vaut le coup redevient un vrai pari (comparé à ce
-qu'on sait déjà des prix du marché/marchand), pas une lecture de chiffres.
-
-### Arnaques d'enchère (09/07/2026, redesign le même jour)
+### Arnaques d'enchère (refonte 09/07/2026)
 
 Deux trésors "rare" truqués (**Floating Pebble**, **Elixir of Youth**,
-`data/items.js`, `camelote: true`) — l'indice est dans le nom, pas dans un
-chiffre caché. Contrairement aux autres trésors "rare", leur prix d'enchère
-est **totalement déconnecté** de leur rareté affichée (pas le plancher de
-10 000 🪙 — ça les rendrait suspects : personne ne pourrait jamais enchérir
-dessus). Trois prix, ancrés sur la référence d'un objet rare normal
-(`VALEUR_RARE_REF = 100`, cf. `PRIX_VENTE.rare`) :
+`data/items.js`, `camelote: true`) — l'indice est dans le NOM, pas dans un
+chiffre. Leur prix est ancré sur la valeur d'un VRAI rare (`VALEUR_RARE_REF =
+10 000`) mais truqué :
 
 | Moment | Prix | Détail |
 |---|---|---|
-| 1er tour (lot de la maison) | ~3 600–4 800 🪙 | Même formule ~85 % que n'importe quel lot, sur une valeur interne de 4 500 : « plusieurs milliers », mais moins qu'un vrai rare. **De vraies enchères** (~40 % des ventes sans surenchère, ~60 % avec un peu de compétition, jusqu'à ~6 400) — ni silence suspect, ni bagarre |
-| Revente au marchand/HV | **10 🪙** | `valeurVente: 10` — ça ne vaut presque rien, mais pas littéralement 1 pièce |
-| Remis en DÉPÔT par le joueur | ~40–70 🪙 | Le bouche-à-oreille a fait son effet : ça ne retrompe plus personne à ce prix-là |
+| 1er tour (lot de la maison) | valeur affichée à la salle **9 000** → mise à prix ~6 000, la salle enchérit comme sur un vrai rare | On paie plusieurs milliers, croyant à un rare bon marché |
+| Revente au marchand/HV | **1 000 🪙** (`valeurVente`) | 10 % d'un vrai rare — on s'est fait avoir |
+| Re-refourgue en DÉPÔT | valeur **4 000** (40 % d'un rare) | La salle a un doute, ça part moins cher, mais > revente marchand : on repasse l'arnaque |
 
-Vérifié par simulation (code réel) : lot de la maison à 3 780-4 048 🪙 de mise
-à prix, vente moyenne ~4 200 (jusqu'à ~6 400) ; dépôt à 40 de mise à prix,
-vente moyenne ~48-49 ; revente marchand à 10 pile.
+Vérifié (code réel) : revente marchand = 1 000 pile ; re-dépôt mise à prix
+2 600, vente ~4 000.
 
 ## Côté ville
 

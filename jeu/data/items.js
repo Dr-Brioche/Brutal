@@ -19,6 +19,11 @@
 // Le stuff ne donne PAS de stats chiffrées : les CHIFFRES (vie, Chaleur, vitesse…)
 // viennent de l'arbre de talents (data/talents.js).
 
+// VALEUR DE RÉFÉRENCE des objets — fixée à la MAIN dans le classeur Excel (onglet
+// « Valeurs »), régénérée dans data/valeurs.js par outils/importer_valeurs.py.
+// Cf. valeurEstimee() / prixVente() plus bas.
+import { VALEUR_OBJET } from "./valeurs.js";
+
 // Raretés, du plus commun au plus précieux. `rang` = ordre (sert à comparer
 // « au moins rare » sans coder en dur les noms — cf. rareteAuMoins).
 export const RARETES = {
@@ -148,21 +153,19 @@ export const ITEMS = {
   // ---- Trésors : objets RARES qui NE S'ÉQUIPENT PAS et NE SERVENT À RIEN, sinon
   // à être REVENDUS. La catégorie "tresor" n'est dans AUCUN slot (SLOT_PAR_CATEGORIE)
   // → equiper() les refuse ; le menu d'inventaire ne propose donc que Sell/Discard.
-  // Leur prix de revente est FIXÉ par item (`valeurVente`, lu par prixVente) au lieu
-  // de dépendre de la rareté — ça permet trois valeurs distinctes. Vendables au
-  // marchand ET à l'Hôtel des ventes (valeurReelle = valeurVente +10 %). Non
-  // empilables (chaque trésor est une pièce unique). Butin de coffres/monstres à venir.
-  "idole-doree":    { id: "idole-doree",    nom: "Gilded Idol",     categorie: "tresor", rarete: "rare", valeurVente: 200, taille: { l: 2, h: 2 }, icone: "#e8c54f" },
-  "calice-cristal": { id: "calice-cristal", nom: "Crystal Chalice", categorie: "tresor", rarete: "rare", valeurVente: 160, taille: { l: 1, h: 2 }, icone: "#bfe6f0" },
-  "chevaliere-ancienne": { id: "chevaliere-ancienne", nom: "Ancient Signet", categorie: "tresor", rarete: "rare", valeurVente: 120, taille: { l: 1, h: 1 }, icone: "#c8862f" },
-  // ARNAQUES D'ENCHÈRE (09/07/2026, revu le même jour) : rareté "rare" comme
-  // les autres trésors, mais marquées `camelote: true` → systems/encheres.js
-  // leur donne un prix d'enchère et de revente À PART, DÉCONNECTÉ de leur
-  // rareté normale (pas le plancher 10 000 du rare). `valeurVente` (10 🪙) fixe
-  // ce qu'elles valent au marchand/HV une fois qu'on cherche à les revendre —
-  // "ça ne vaut rien", mais pas littéralement 1 pièce. L'indice est dans le nom.
-  "caillou-flottant": { id: "caillou-flottant", nom: "Floating Pebble", categorie: "tresor", rarete: "rare", camelote: true, valeurVente: 10, taille: { l: 1, h: 1 }, icone: "#a8b0b8" },
-  "remede-vieillesse": { id: "remede-vieillesse", nom: "Elixir of Youth", categorie: "tresor", rarete: "rare", camelote: true, valeurVente: 10, taille: { l: 1, h: 1 }, icone: "#d97ab0" },
+  // Leur valeur suit la table par rareté (data/valeurs.js, éditable dans le
+  // classeur) comme tout objet vendable — ils se revendent (marchand/HV) à
+  // −20/−30 % de cette valeur. Non empilables (pièce unique). Butin à venir.
+  "idole-doree":    { id: "idole-doree",    nom: "Gilded Idol",     categorie: "tresor", rarete: "rare", taille: { l: 2, h: 2 }, icone: "#e8c54f" },
+  "calice-cristal": { id: "calice-cristal", nom: "Crystal Chalice", categorie: "tresor", rarete: "rare", taille: { l: 1, h: 2 }, icone: "#bfe6f0" },
+  "chevaliere-ancienne": { id: "chevaliere-ancienne", nom: "Ancient Signet", categorie: "tresor", rarete: "rare", taille: { l: 1, h: 1 }, icone: "#c8862f" },
+  // ARNAQUES D'ENCHÈRE : rareté "rare" comme les autres trésors, mais marquées
+  // `camelote: true` → prix TRUQUÉS, hors table de valeurs (cf. systems/encheres.js
+  // pour l'enchère). `valeurVente` fixe leur revente RÉELLE au marchand/HV :
+  // 1 000 🪙 = 10 % de la valeur d'un vrai rare (10 000) — « ça ne vaut presque
+  // rien » face au prix payé à l'enchère. L'indice est dans le nom.
+  "caillou-flottant": { id: "caillou-flottant", nom: "Floating Pebble", categorie: "tresor", rarete: "rare", camelote: true, valeurVente: 1000, taille: { l: 1, h: 1 }, icone: "#a8b0b8" },
+  "remede-vieillesse": { id: "remede-vieillesse", nom: "Elixir of Youth", categorie: "tresor", rarete: "rare", camelote: true, valeurVente: 1000, taille: { l: 1, h: 1 }, icone: "#d97ab0" },
 
   // ---- Parchemins de craft : objets qu'on OUVRE (« Read ») pour DÉCOUVRIR une
   // recette + un texte de lore. Catégorie "parchemin" hors de tout slot → non
@@ -674,35 +677,35 @@ export function couleurRarete(id) {
   return (it && RARETES[it.rarete]?.couleur) || "#9aa0a6";
 }
 
-// Prix de revente d'un item au marchand (or), selon sa rareté. Échelle
-// (commun = 20 or, ×~2,3 par palier) : assez haute pour que les marges de l'HV
-// (cf. valeurReelle, systems/marche.js) restent lisibles après arrondi.
-// `PRIX_VENTE` = la valeur MOYENNE CIBLE de la rareté (cf. docs/concept.md,
-// section « Valeur des objets ») — PAS le prix de chaque objet un par un : deux
-// épées communes ne valent pas pile le même prix (cf. FLUCTUATION ci-dessous).
-const PRIX_VENTE = { commun: 20, uncommon: 45, rare: 100, epique: 250, legendaire: 700 };
+// VALEUR & PRIX — modèle (décision Brioche 09/07/2026) :
+//   • VALEUR de référence = ce que vaut l'objet (≈ prix d'achat / « trouvé chez
+//     un marchand »). Elle est FIXÉE OBJET PAR OBJET dans le classeur Excel
+//     (onglet « Valeurs » → data/valeurs.js), semée autour d'une cible par
+//     rareté (VALEUR_RARETE) avec ± 20 % pour que deux objets diffèrent, puis
+//     ajustable à la main.
+//   • Le PRIX DE VENTE (le joueur VEND) vaut TOUJOURS moins que la valeur :
+//     −25 % au marchand (`MARGE_MARCHAND`), −10 à −20 % à l'HV (le patient
+//     gagne un peu plus, cf. systems/marche.js). Aux ENCHÈRES la règle ne
+//     s'applique pas : c'est la Luck qui décide (cf. systems/encheres.js).
+const VALEUR_RARETE = { commun: 400, uncommon: 2000, rare: 10000, epique: 80000, legendaire: 250000 };
+const MARGE_MARCHAND = 0.75; // le marchand paie 75 % de la valeur (−25 %)
 
-// Fait FLUCTUER le prix d'un objet autour de la moyenne de sa rareté (± 20 %,
-// décision Brioche 09/07/2026) : sans ça, TOUS les objets rares valent
-// exactement pareil, ce qui les rend interchangeables et prévisibles. Hash
-// déterministe sur l'id (FNV-1a) → toujours le MÊME prix pour un même item
-// (stable d'une partie à l'autre), mais différent d'un item à l'autre.
-const FLUCTUATION_RARETE = 0.20;
-function hashId(id) {
-  let h = 2166136261;
-  for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return (h >>> 0) / 4294967296; // [0, 1)
+// Valeur de référence d'un objet. `valeurVente` (fixé main : arnaques) court-
+// circuite tout ; sinon la table Excel ; sinon la cible de la rareté (secours).
+export function valeurEstimee(id) {
+  const it = ITEMS[id];
+  if (!it) return 0;
+  if (it.valeurVente != null) return it.valeurVente;
+  return VALEUR_OBJET[id] ?? VALEUR_RARETE[it.rarete] ?? 1;
 }
+
+// Prix de revente au MARCHAND (or). `valeurVente` = prix fixé main (arnaques :
+// on récupère pile ça). Sinon valeur × marge marchand.
 export function prixVente(id) {
   const it = ITEMS[id];
   if (!it) return 0;
-  // `valeurVente` : prix fixé À LA MAIN par item (trésors, arnaques…) — pas de
-  // fluctuation dessus, il est déjà pensé objet par objet.
   if (it.valeurVente != null) return it.valeurVente;
-  const base = PRIX_VENTE[it.rarete];
-  if (base == null) return 1;
-  const mult = 1 - FLUCTUATION_RARETE + hashId(id) * (2 * FLUCTUATION_RARETE);
-  return Math.max(1, Math.round(base * mult));
+  return Math.max(1, Math.round(valeurEstimee(id) * MARGE_MARCHAND));
 }
 
 // True si la rareté de l'item atteint AU MOINS le seuil donné (ex. "rare"). Sert

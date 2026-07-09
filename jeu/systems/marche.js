@@ -16,15 +16,16 @@
 //         zone normale (mult 1) au fil du temps de jeu ACTIF.
 //       - les ÉVÉNEMENTS rares : PÉNURIE (prix ×~3) ou SURPLUS (prix ×~0,4)
 //         sur une ressource au hasard, 5-10 min, puis retour à la normale.
-//  2. OBJETS (armes, armures…) : valeur RÉELLE fixe par objet (selon la rareté,
-//     surchargée par `it.valeur`). À l'HV on les met en ANNONCE au prix qu'on
-//     veut : plus la marge dépasse la valeur réelle, plus la vente prend du temps
-//     (formule exponentielle, cf. delaiVente). Prix conseillé = valeur +10 %.
+//  2. OBJETS (armes, armures…) : VALEUR de référence fixe par objet (data/items.js
+//     + data/valeurs.js). À l'HV on les met en ANNONCE dans la bande −20 %/−10 %
+//     de la valeur : plus on vise haut (patient), plus la vente prend de temps
+//     (formule exponentielle, cf. delaiMedian). Vendre coûte toujours (< valeur) ;
+//     l'HV paie juste un peu mieux que le marchand (−25 %). Cf. HV_BANDE.
 //
 // ⏱ LE TEMPS DU MARCHÉ tourne EN PERMANENCE ; SEUL le menu pause (Échap) le
 // fige (c'est principal.js qui décide quand appeler tickMarche).
 
-import { MINERAIS, itemDef, prixVente } from "../data/items.js";
+import { MINERAIS, itemDef, prixVente, valeurEstimee } from "../data/items.js";
 
 // ----- Réglages (tout l'équilibrage du marché est ICI) ----------------------
 
@@ -60,13 +61,12 @@ export function prixBaseRessource(id) {
   return it?.prixBase || PRIX_BASE_PAR_RANG[it?.rang ?? 0] || 4;
 }
 
-// Valeur RÉELLE d'un objet (non-ressource) à l'HV = prix marchand (PRIX_VENTE,
-// cf. data/items.js) + 10 % — surchargée par `it.valeur` si un objet mérite un
-// prix particulier. Garantit que l'HV est TOUJOURS plus rentable que le
-// marchand, même sans marge supplémentaire (cf. prixConseille plus bas).
+// Valeur RÉELLE d'un objet = sa VALEUR DE RÉFÉRENCE (data/items.js, fixée dans
+// le classeur). C'est l'ancre partout (HV, enchères) ; le prix de vente en
+// découle plus bas. `it.valeur` peut toujours surcharger un objet précis.
 export function valeurReelle(id) {
   const it = itemDef(id);
-  return it?.valeur ?? Math.max(1, Math.round(prixVente(id) * 1.1));
+  return it?.valeur ?? valeurEstimee(id);
 }
 
 // ----- État ------------------------------------------------------------------
@@ -195,34 +195,43 @@ export function acheterRessource(marche, id, n = 1, rng = Math.random) {
 
 // ----- Annonces d'objets (vente à prix libre) ---------------------------------
 
-// Prix conseillé à l'HV : valeur réelle +10 % (toujours mieux que le marchand).
+// L'HV rapporte un peu MIEUX que le marchand, mais il faut ATTENDRE. On vend
+// entre −20 % (rapide) et −10 % (patient) de la valeur — jamais au-dessus de la
+// valeur (règle Brioche : vendre coûte toujours). Le marchand, lui, paie −25 %
+// tout de suite (cf. prixVente). `HV_BANDE` = fraction de la valeur, [rapide, patient].
+const HV_BANDE = [0.80, 0.90];
+
+// Prix conseillé à l'HV : milieu de la bande (−15 %).
 export function prixConseille(id) {
-  return Math.max(1, Math.round(valeurReelle(id) * 1.1));
+  return Math.max(1, Math.round(valeurReelle(id) * (HV_BANDE[0] + HV_BANDE[1]) / 2));
 }
 
-// Bornes du curseur de prix : du prix marchand (vente éclair) au DOUBLE de la
-// valeur réelle (vente très longue).
+// Bornes du curseur de prix : de −20 % (vente rapide) à −10 % (vente patiente).
 export function bornesPrixVente(id) {
-  return { min: Math.max(1, prixVente(id)), max: Math.max(2, valeurReelle(id) * 2) };
+  const v = valeurReelle(id);
+  return { min: Math.max(1, Math.round(v * HV_BANDE[0])), max: Math.max(2, Math.round(v * HV_BANDE[1])) };
 }
 
-// Délai MÉDIAN de vente (en secondes de jeu actif) pour une marge de m % au-dessus
-// de la valeur réelle. Ancré sur la spec : +10 % ≈ 12 min ; +30 % ≈ 2 h ; +50 % ≈
-// très long (~21 h) — chaque +10 % multiplie le délai par ~3,2.
-const DELAI_BASE_MIN = 12;   // minutes au prix conseillé (+10 %)
-const DELAI_CROISSANCE = 3.2; // ×3,2 par tranche de +10 %
+// Position dans la bande HV : 0 au plancher (−20 %), 1 au sommet (−10 %).
+function fracBande(id, prix) {
+  const v = valeurReelle(id);
+  if (v <= 0) return 0;
+  return Math.min(1, Math.max(0, (prix / v - HV_BANDE[0]) / (HV_BANDE[1] - HV_BANDE[0])));
+}
+
+// Délai MÉDIAN de vente (s de jeu actif) : plus on vise haut dans la bande, plus
+// c'est long. ~2 min au plancher (−20 %) → ~6 h au sommet (−10 %), exponentiel.
+const DELAI_MIN_S = 120, DELAI_MAX_S = 6 * 3600;
 function delaiMedian(id, prix) {
-  const marge = (prix / valeurReelle(id) - 1) * 100;
-  const minutes = DELAI_BASE_MIN * Math.pow(DELAI_CROISSANCE, (marge - 10) / 10);
-  return Math.min(72 * 3600, Math.max(45, minutes * 60)); // borné 45 s .. 72 h
+  const f = fracBande(id, prix);
+  const s = DELAI_MIN_S * Math.pow(DELAI_MAX_S / DELAI_MIN_S, f);
+  return Math.min(72 * 3600, Math.max(45, s));
 }
 
-// Largeur de la fourchette de hasard : ±2^w autour du médian ; elle S'ÉLARGIT
-// avec la marge (gros prix = acheteur imprévisible). +10 % → ~[×0,73..×1,37]
-// (≈ 10-15 min) ; +30 % → ~[×0,59..×1,68] (≈ 1 h 13-3 h 27).
+// Largeur de la fourchette de hasard : ±2^w autour du médian ; s'élargit quand
+// on vise haut (acheteur patient plus imprévisible).
 function largeurFourchette(id, prix) {
-  const marge = (prix / valeurReelle(id) - 1) * 100;
-  return 0.3 + 0.015 * Math.max(0, marge);
+  return 0.3 + 0.5 * fracBande(id, prix);
 }
 
 // Le délai FINAL (médian × hasard) reste borné : 45 s à 72 h de jeu actif.

@@ -356,8 +356,8 @@ function collecter(v) {
   const res = collecterVente(marche, v);
   if (!res) return; // déjà récoltée entre-temps (ne devrait pas arriver, sécurité)
   inv.or += res.prix;
-  const signe = res.profitPct >= 0 ? "+" : "";
-  noter(`💰 Collected ${res.prix} 🪙 for ${d?.nom ?? v.id} — ${signe}${res.profitPct}% profit vs. value.`, 3500);
+  const remise = Math.max(0, -res.profitPct);
+  noter(`💰 Collected ${res.prix} 🪙 for ${d?.nom ?? v.id} — ${remise}% below value.`, 3500);
   rendre();
 }
 
@@ -421,10 +421,10 @@ function rendreVente() {
   elVenteNom.style.color = couleurRarete(id);
   elVenteMontant.innerHTML = `${ventePrix} <span class="icone-piece"></span>`;
   const e = estimerDelaiVente(id, ventePrix);
-  const marge = Math.round((ventePrix / valeurReelle(id) - 1) * 100);
+  const remise = Math.round((1 - ventePrix / valeurReelle(id)) * 100);
   elVenteNote.innerHTML =
     `Estimated sale time: <b>${fmtEstim(e.min)} – ${fmtEstim(e.max)}</b> of play` +
-    ` &nbsp;(${marge >= 0 ? "+" : ""}${marge}% vs. value)<br>` +
+    ` &nbsp;(${remise}% below value)<br>` +
     `Recommended: ${prixConseille(id)} <span class="icone-piece"></span> · Merchant would pay: ${prixVente(id)} <span class="icone-piece"></span>`;
 }
 

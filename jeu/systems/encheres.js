@@ -34,11 +34,12 @@ export const TICKET = 50;          // 🪙 le ticket d'entrée (fenêtre d'inscr
 export const FENETRE_ENTREE = 300; // s de nuit pendant lesquelles on peut ENTRER (avec ticket)
 
 const NB_LOTS = [3, 4];            // lots par vente (min, max) — hors dépôt du joueur
-// Mise à prix = valeur × [min..max] — proche de la vraie valeur (~85 %, relevé
-// 09/07/2026) : le joueur ne voit AUCUN prix de référence à l'écran, donc les
-// vraies affaires doivent rester CRÉDIBLES (15-20 % sous la valeur), pas une
-// braderie à moitié prix qui n'aurait plus besoin de jugement.
-const MISE_A_PRIX = [0.80, 0.90];
+// Mise à prix = valeur × [min..max]. À l'enchère, on DÉMARRE sous la valeur pour
+// laisser une chance de faire une VRAIE affaire (Brioche 09/07/2026 : ~70 %,
+// abaissé depuis 85 %). Aucun prix n'est affiché au joueur : juger si c'est une
+// affaire fait tout le sel. La valeur du lot est déjà celle, élevée, de l'objet
+// (cf. data/valeurs.js) — plus besoin de gonfler quoi que ce soit à l'enchère.
+const MISE_A_PRIX = [0.65, 0.75];
 const INCREMENT_PCT = 0.06;        // une enchère = +6 % de la valeur du lot (min 1 🪙)
 const NB_RIVAUX = [2, 4];          // rivaux PNJ par lot (min, max)
 
@@ -51,38 +52,17 @@ const OBSTINE_FACTEUR = [1.15, 1.50]; // un obstiné multiplie son budget par [m
 // Plus c'est rare, plus la salle s'enflamme (décision Brioche n°2).
 const OBSTINE_PAR_RANG = [0.10, 0.15, 0.25, 0.40, 0.60];
 
-// PRIME DE RARETÉ À L'ENCHÈRE (décision Brioche 08/07/2026, relevée 09/07/2026) :
-// les pièces d'exception doivent être VRAIMENT chères ici — bien au-delà de leur
-// simple prix marchand. On multiplie la valeur du lot (donc mise à prix,
-// incrément ET budgets des rivaux) par ce facteur selon la rareté de l'objet.
-// N'affecte QUE l'enchère — le prix marchand/HV normal ne bouge pas.
-const PRIME_RARETE = { commun: 1, uncommon: 55, rare: 125, epique: 400, legendaire: 450 };
-const primeRarete = (id) => PRIME_RARETE[itemDef(id)?.rarete] ?? 1;
-
-// PLANCHER D'ENCHÈRE (mise à prix minimum GARANTIE, pas juste une moyenne) : une
-// échelle qui fluidifie la progression entre paliers (Brioche, 09/07/2026) —
-// même dans le pire des cas (aucun rival ne pousse), la mise à prix ne descend
-// JAMAIS sous ce seuil. L'ÉPIQUE reste « le meilleur stuff du jeu actuellement »,
-// un achat de prestige. Seuls les ÉQUIPEMENTS sont concernés (pas les paquets de
-// minerai brut, même épique — cf. `valeurLot`/`finaliserLot`).
-const PLANCHER_RARETE = { uncommon: 2000, rare: 10000, epique: 80000, legendaire: 250000 };
-const plancherRarete = (id) => estCamelote(id) ? 0 : (PLANCHER_RARETE[itemDef(id)?.rarete] ?? 0);
-
 // ARNAQUES D'ENCHÈRE (Brioche, 09/07/2026) : les trésors `camelote: true` (cf.
 // data/items.js — Floating Pebble, Elixir of Youth) ont un prix d'enchère
-// TOTALEMENT DÉCONNECTÉ de leur (fausse) rareté "rare" — sinon le plancher
-// rare (10 000, ci-dessus) s'appliquerait et ça deviendrait suspect (personne
-// n'enchérit jamais dessus, cf. le 1er jet). Trois prix, ancrés sur la
-// référence d'un vrai objet rare (`VALEUR_RARE_REF`, cf. PRIX_VENTE.rare dans
-// data/items.js) :
-const VALEUR_RARE_REF = 100;
-// 1er tour (lot de la maison) : encore « plusieurs milliers » (même formule de
-// mise à prix ~85 % que n'importe quel autre lot, donc un peu de vraies
-// enchères — ni silence suspect, ni bagarre), mais MOINS qu'un vrai rare.
-const CAMELOTE_VALEUR_LOT = VALEUR_RARE_REF * 45; // 4 500
-// Remis en DÉPÔT par le joueur : le bouche-à-oreille a fait son effet, ça ne
-// retrompe plus personne à ce prix-là.
-const CAMELOTE_VALEUR_DEPOT = Math.round(VALEUR_RARE_REF * 0.40); // 40
+// TRUQUÉ, déconnecté de leur revente réelle (1 000 🪙 = 10 % d'un vrai rare).
+// Ancré sur la valeur d'un VRAI rare (`VALEUR_RARE_REF`) :
+const VALEUR_RARE_REF = 10000;
+// 1er tour (lot de la maison) : l'objet a l'air d'un vrai rare un peu « bon
+// marché » → tentant. La salle enchérit dessus comme sur un rare.
+const CAMELOTE_VALEUR_LOT = Math.round(VALEUR_RARE_REF * 0.90); // 9 000
+// Remis en DÉPÔT par le joueur (re-refourgue) : la salle a un doute, ça part
+// moins cher — mais toujours bien au-dessus de sa revente marchand (1 000).
+const CAMELOTE_VALEUR_DEPOT = Math.round(VALEUR_RARE_REF * 0.40); // 4 000
 const estCamelote = (id) => Boolean(itemDef(id)?.camelote);
 
 // Paquets de ressources : minerais chers uniquement (rang de minerai ≥ 6).
@@ -129,12 +109,12 @@ export function acheterTicket(enc, inv, jour) {
 
 // ----- Génération d'une vente --------------------------------------------------------
 
-// La valeur d'un lot : objets → valeur réelle (HV) ; paquets → n × prix de
+// La valeur d'un lot : objets → valeur de référence ; paquets → n × prix de
 // base ; camelote → prix truqué à part (cf. CAMELOTE_VALEUR_LOT plus haut).
 function valeurLot(lot) {
   if (lot.type === "paquet") return lot.quantite * prixBaseRessource(lot.id);
   if (estCamelote(lot.id)) return CAMELOTE_VALEUR_LOT;
-  return Math.round(valeurReelle(lot.id) * primeRarete(lot.id));
+  return valeurReelle(lot.id);
 }
 
 // Rang de rareté (0..4) d'un lot, pour l'agressivité de la salle.
@@ -180,32 +160,27 @@ export function genererLots(rng = Math.random) {
 
 function finaliserLot(lot, rng) {
   lot.valeur = valeurLot(lot);
-  const mise = Math.round(lot.valeur * entre(MISE_A_PRIX[0], MISE_A_PRIX[1], rng));
-  const plancher = lot.type === "objet" ? plancherRarete(lot.id) : 0;
-  lot.misePrix = Math.max(1, mise, plancher);
+  lot.misePrix = Math.max(1, Math.round(lot.valeur * entre(MISE_A_PRIX[0], MISE_A_PRIX[1], rng)));
   lot.increment = Math.max(1, Math.round(lot.valeur * INCREMENT_PCT));
   return lot;
 }
 
-// Le lot du DÉPÔT du joueur : mise à prix = prix PLANCHER (prix marchand — la
-// vente ne descend jamais en dessous), salle plus chaude que pour les lots de
-// la maison (cf. BUDGET_DEPOT). Camelote : prix à part, bien plus bas (cf.
-// CAMELOTE_VALEUR_DEPOT) — le plancher rare normal ne s'applique pas.
+// Le lot du DÉPÔT du joueur : mise à prix plancher = prix MARCHAND (déposer ne
+// démarre jamais sous ce qu'on obtiendrait en vendant direct), salle plus chaude
+// que pour les lots de la maison (cf. BUDGET_DEPOT). Camelote : prix à part (cf.
+// CAMELOTE_VALEUR_DEPOT), re-refourgue à la salle sous sa fausse rareté.
 export function lotDepot(depot) {
-  if (estCamelote(depot.id)) {
-    const valeur = CAMELOTE_VALEUR_DEPOT;
-    return {
-      type: "objet", id: depot.id, qualite: depot.qualite ?? null, duJoueur: true,
-      valeur,
-      misePrix: Math.max(1, valeur),
-      increment: Math.max(1, Math.round(valeur * INCREMENT_PCT)),
-    };
-  }
-  const valeur = Math.round(valeurReelle(depot.id) * primeRarete(depot.id));
+  const camelote = estCamelote(depot.id);
+  const valeur = camelote ? CAMELOTE_VALEUR_DEPOT : valeurReelle(depot.id);
+  // Camelote : plancher = mise à prix normale (la salle croit encore à un rare).
+  // Sinon : plancher = prix marchand (jamais pire qu'une vente directe).
+  const plancher = camelote
+    ? Math.round(valeur * MISE_A_PRIX[0])
+    : prixVente(depot.id);
   return {
     type: "objet", id: depot.id, qualite: depot.qualite ?? null, duJoueur: true,
     valeur,
-    misePrix: Math.max(1, prixVente(depot.id), plancherRarete(depot.id)),
+    misePrix: Math.max(1, plancher),
     increment: Math.max(1, Math.round(valeur * INCREMENT_PCT)),
   };
 }

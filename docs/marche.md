@@ -56,36 +56,39 @@ d'œil ce qui grimpe vite (vendre) ou s'effondre (acheter).
 
 ## Les objets : annonces à prix libre
 
-- **Valeur réelle** = **prix marchand (`prixVente`) + 10 %** — surchargeable par
-  objet via `it.valeur`. Garantit que l'HV est toujours plus rentable que le
-  marchand, même sans marge supplémentaire.
-- **Prix conseillé** à l'HV = valeur réelle **+10 %** (donc ≈ +21 % par rapport au
-  marchand).
-- On règle le prix librement (du prix marchand au **double** de la valeur). Le
-  **délai de vente** suit une croissance exponentielle de la marge `m` (% au-dessus
-  de la valeur réelle) :
+> **Vendre coûte toujours** (refonte 09/07/2026) : un objet a une **valeur de
+> référence** (data/items.js + data/valeurs.js, éditable dans le classeur) et se
+> revend TOUJOURS en dessous. Le marchand paie **−25 %** tout de suite ; l'HV
+> paie un peu mieux (**−20 % à −10 %**) mais il faut attendre. Jamais au-dessus
+> de la valeur (ça, c'est réservé aux enchères et à la Luck).
+
+- **Valeur réelle** = la valeur de référence de l'objet (`valeurEstimee`),
+  surchargeable via `it.valeur`.
+- **Bande HV** = de **−20 %** (vente rapide) à **−10 %** (vente patiente) de la
+  valeur. **Prix conseillé** = milieu (−15 %). On règle le prix librement dans
+  cette bande ; viser haut = attendre plus longtemps :
 
   ```
-  délai médian (min) = 12 × 3,2^((m − 10) / 10)        borné 45 s … 72 h
-  tirage réel        = médian × 2^(u·w)   u ∈ [−1;1],  w = 0,3 + 0,015·m
+  f = position dans la bande [−20 %, −10 %]        (0 = rapide, 1 = patient)
+  délai médian = 120 s × (21600/120)^f             borné 45 s … 72 h
+  tirage réel  = médian × 2^(u·w)   u ∈ [−1;1],     w = 0,3 + 0,5·f
   ```
 
-  Ce qui donne en pratique : **+10 % ≈ 9-16 min** · **+30 % ≈ 1-3 h** ·
-  **+50 % ≈ 10-43 h** · +100 % plafonné à 72 h. La fourchette de hasard
-  **s'élargit** avec la marge (gros prix = acheteur imprévisible).
+  En pratique : bas de bande (−20 %) ≈ **1-3 min** · milieu (−15 %) ≈ **20-40 min**
+  · haut (−10 %) ≈ **3-10 h**. La fourchette de hasard **s'élargit** quand on
+  vise haut (acheteur patient plus imprévisible).
 - L'objet **quitte le sac** à la mise en annonce. Quand le délai s'écoule (en
   jouant), l'annonce passe en état **VENDUE** (bord doré, bouton « 💰 Collect ») —
-  **rien n'est payé automatiquement**. Un message prévient sans créditer d'or
-  (« … sold at the Exchange — go collect your N 🪙 ! »). Il faut retourner à l'HV
-  et **cliquer dessus** (ou touche **[C]**) pour toucher l'or ; un résumé de la
-  **plus-value réalisée (%)** vs. la valeur réelle s'affiche à ce moment-là.
-  La **qualité de forge** voyage avec l'annonce.
+  **rien n'est payé automatiquement**. Un message prévient sans créditer d'or.
+  Il faut retourner à l'HV et **cliquer dessus** (ou **[C]**) pour toucher l'or ;
+  un résumé (« X % below value ») s'affiche. La **qualité de forge** voyage avec
+  l'annonce.
 - Des **talents de marchand** pourront plus tard réduire ces délais (prévu).
 
-**Échelle des prix marchand** (`PRIX_VENTE`, data/items.js) : commun 20 · uncommon
-45 · rare 100 · épique 250 · légendaire 700 — assez haut pour que le +10 % de
-l'HV reste lisible après arrondi (avant un rééquilibrage antérieur, commun
-valait 2 or : le +10 % s'arrondissait à rien).
+**Échelle des valeurs** (cible par rareté, semée ± 20 %, éditable dans l'onglet
+« Valeurs » du classeur → `data/valeurs.js`) : commun 400 · uncommon 2 000 ·
+rare 10 000 · épique 80 000 · légendaire 250 000. Cf. `docs/concept.md`,
+section « Valeur des objets ».
 
 ## Fichiers
 
