@@ -196,35 +196,38 @@ export function acheterRessource(marche, id, n = 1, rng = Math.random) {
 
 // ----- Annonces d'objets (vente à prix libre) ---------------------------------
 
-// L'HV rapporte un peu MIEUX que le marchand, mais il faut ATTENDRE. On vend
-// entre −20 % (rapide) et −10 % (patient) de la valeur — jamais au-dessus de la
-// valeur (règle Brioche : vendre coûte toujours). Le marchand, lui, paie −25 %
-// tout de suite (cf. prixVente). `HV_BANDE` = fraction de la valeur, [rapide, patient].
-const HV_BANDE = [0.80, 0.90];
+// L'HV peut rapporter MIEUX que le marchand, mais il faut ATTENDRE — et viser haut
+// est un PARI. Le curseur va de −20 % (0.80, vente rapide) jusqu'à +50 % (1.50,
+// vente lente et incertaine) de la valeur (décision Brioche 09/07/2026 : on PEUT
+// demander AU-DESSUS de la valeur, mais ça se paie en délai). Le marchand, lui,
+// paie −25 % tout de suite (cf. prixVente).
+const HV_BANDE = [0.80, 1.50];   // [plancher, plafond] du curseur, × valeur
+const HV_CONSEILLE = 0.85;       // prix conseillé (fraction de la valeur, vente sûre)
 
-// Prix conseillé à l'HV : milieu de la bande (−15 %).
+// Prix conseillé à l'HV : ~−15 % de la valeur (vente sûre et assez rapide).
 export function prixConseille(id, qualite = null) {
-  return Math.max(1, Math.round(valeurReelle(id, qualite) * (HV_BANDE[0] + HV_BANDE[1]) / 2));
+  return Math.max(1, Math.round(valeurReelle(id, qualite) * HV_CONSEILLE));
 }
 
-// Bornes du curseur de prix : de −20 % (vente rapide) à −10 % (vente patiente).
+// Bornes du curseur de prix : de −20 % (vente rapide) à +50 % (pari, très lent).
 export function bornesPrixVente(id, qualite = null) {
   const v = valeurReelle(id, qualite);
   return { min: Math.max(1, Math.round(v * HV_BANDE[0])), max: Math.max(2, Math.round(v * HV_BANDE[1])) };
 }
 
-// Position dans la bande HV : 0 au plancher (−20 %), 1 au sommet (−10 %).
+// Position dans la bande HV : 0 au plancher (0.80), 1 au plafond (1.50).
 function fracBande(id, prix, qualite = null) {
   const v = valeurReelle(id, qualite);
   if (v <= 0) return 0;
   return Math.min(1, Math.max(0, (prix / v - HV_BANDE[0]) / (HV_BANDE[1] - HV_BANDE[0])));
 }
 
-// Délai MÉDIAN de vente (s de jeu actif) : plus on vise haut dans la bande, plus
-// c'est long. ~2 min au plancher (−20 %) → ~6 h au sommet (−10 %), exponentiel.
-const DELAI_MIN_S = 120, DELAI_MAX_S = 6 * 3600;
+// Délai MÉDIAN de vente (s de jeu actif) : plus on vise haut, plus c'est long.
+// Courbe f^0.6 pour que le bas de bande ne soit pas quasi instantané ; ~2 min au
+// plancher → ~12 h près du plafond (+50 %). Exponentiel.
+const DELAI_MIN_S = 120, DELAI_MAX_S = 12 * 3600;
 function delaiMedian(id, prix, qualite = null) {
-  const f = fracBande(id, prix, qualite);
+  const f = Math.pow(fracBande(id, prix, qualite), 0.6);
   const s = DELAI_MIN_S * Math.pow(DELAI_MAX_S / DELAI_MIN_S, f);
   return Math.min(72 * 3600, Math.max(45, s));
 }

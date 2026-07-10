@@ -433,10 +433,12 @@ function rendreVente() {
   elVenteNom.style.color = couleurRarete(id);
   elVenteMontant.innerHTML = `${ventePrix} <span class="icone-piece"></span>`;
   const e = estimerDelaiVente(id, ventePrix, ql);
-  const remise = Math.round((1 - ventePrix / valeurReelle(id, ql)) * 100);
+  // Écart à la VALEUR : négatif = en dessous (vente sûre), positif = au-dessus (pari).
+  const ecart = Math.round((ventePrix / valeurReelle(id, ql) - 1) * 100);
+  const ecartTxt = ecart >= 0 ? `+${ecart}% above value` : `${ecart}% below value`;
   elVenteNote.innerHTML =
     `Estimated sale time: <b>${fmtEstim(e.min)} – ${fmtEstim(e.max)}</b> of play` +
-    ` &nbsp;(${remise}% below value)<br>` +
+    ` &nbsp;(${ecartTxt})<br>` +
     `Recommended: ${prixConseille(id, ql)} <span class="icone-piece"></span> · Merchant would pay: ${prixVente(id, ql)} <span class="icone-piece"></span>`;
 }
 
