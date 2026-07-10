@@ -1340,13 +1340,42 @@ export async function demarrerJeu(donneesInitiales = null) {
     enPause = true; invite.hidden = true;
     ouvrirChoixProfondeur(choix, {
       surChoisir: (loot) => {
-        appliquerLoot(runProfondeur, loot);
+        if (loot.effet === "porte") {
+          // « Depth Portal » : garantit une porte de descente sur CET étage.
+          const ok = garantirPorteCourante();
+          afficherMessage(ok
+            ? "🕳 Depth Portal — a passage deeper is guaranteed on this floor. Go find it!"
+            : "🕳 Depth Portal — this floor already has a way down.");
+        } else {
+          appliquerLoot(runProfondeur, loot);
+          afficherMessage(`⛏ Depth boon: ${loot.nom} — ${etiquetteLoot(loot)}.`);
+        }
         etageSuivant(runProfondeur);
         majHudInfo();                     // le bandeau des buffs actifs se met à jour
         enPause = false;
-        afficherMessage(`⛏ Depth boon: ${loot.nom} — ${etiquetteLoot(loot)}.`);
       },
     });
+  }
+
+  // Garantit une PORTE de descente `>` sur l'étage courant (loot « Depth Portal ») :
+  // si aucune n'existe, on en pose une sur une case sol d'exploration, loin du départ
+  // (le sol de mine est entièrement connexe → toujours atteignable).
+  function garantirPorteCourante() {
+    if (!zoneCourante?.estMine || !carte) return false;
+    if (carte.lignes.some((l) => l.includes(">"))) return true; // déjà une porte
+    const dCol = zoneCourante.depart?.colonne ?? 2, dLig = zoneCourante.depart?.ligne ?? 2;
+    const cands = [];
+    for (let y = 0; y < carte.hauteur; y++) {
+      for (let x = 0; x < carte.largeur; x++) {
+        if (carte.lignes[y][x] !== ",") continue;          // sol d'exploration uniquement
+        if (Math.hypot(x - dCol, y - dLig) < 6) continue;  // pas collé au départ
+        cands.push([x, y]);
+      }
+    }
+    if (!cands.length) return false;
+    const [x, y] = cands[Math.floor(Math.random() * cands.length)];
+    carte.lignes[y] = carte.lignes[y].slice(0, x) + ">" + carte.lignes[y].slice(x + 1);
+    return true;
   }
 
   // Petite étiquette lisible de l'effet d'un loot (pour le message).

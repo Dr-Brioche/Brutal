@@ -21,7 +21,7 @@ Le script réécrit UNIQUEMENT le bloc balisé de jeu/data/profondeur.js :
 Onglet « Profondeurs » (en-tête ligne 6, données ensuite) :
     A = id · B = Nom · C = Effet · D = Icône (hex) · E = Normale · F = Rare · G = Épique
 Effets reconnus (ils doivent matcher les champs du run, cf. systems/profondeur.js) :
-    force · gold · celerite · armure
+    force · gold · celerite · armure · porte (garantit une porte de descente)
 Onglet « Profondeurs-chances » :
     A = rarete (normale|rare|epique) · B = chance en %  (doit sommer à 100)
 """
@@ -43,7 +43,7 @@ PROF_JS = RACINE / "jeu" / "data" / "profondeur.js"
 DEBUT = "// <<PROFONDEUR-AUTO>>"
 FIN = "// <<FIN-PROFONDEUR-AUTO>>"
 
-EFFETS_OK = {"force", "gold", "celerite", "armure"}
+EFFETS_OK = {"force", "gold", "celerite", "armure", "porte"}
 RARETES = ("normale", "rare", "epique")
 
 

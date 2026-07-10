@@ -230,6 +230,12 @@ ajoute au précédent) et sont **jetés en ressortant** — le run est éphémè
   versé à la sortie (porte) si vivant. **Mort en mine = tout perdu** (or compris).
 - **Talent « Deep Prospector »** (branche Combat, 2 rangs) : **+1 choix** par rang
   → **3 puis 4** cartes par étage (`heros.choixLootProfondeur`).
+- **Talent « Deep Experience »** (branche Combat, 3 rangs, suit Deep Prospector) :
+  **+10 % par rang** de chance qu'un étage ait un passage `>` (`heros.descenteBonus`,
+  ajouté à `chanceDescente` dans `world/mine.js`, plafond 95 %).
+- **Loot « Depth Portal »** (`effet: "porte"`) : au lieu d'un buff, il **GARANTIT
+  une porte de descente sur l'étage courant** (posée au runtime si absente, cf.
+  `garantirPorteCourante` dans `principal.js`). Ne s'accumule pas (action unique).
 - **HUD** (haut-gauche, en mine) : bandeau des buffs actifs (💪 ⚡ 🛡 🪙).
 - **Fichiers** : `jeu/systems/profondeur.js` (logique pure : tirages + accumulation
   + bonus combat), `jeu/ui/profondeur.js` (+ markup/CSS `#choix-profondeur`),

@@ -11,6 +11,7 @@ const LABEL_EFFET = {
   gold: (v) => `+${v} Gold`,
   celerite: (v) => `+${v}% Speed`,
   armure: (v) => `+${v} Armor`,
+  porte: () => `Guaranteed passage`, // garantit une porte de descente sur cet étage
 };
 function texteEffet(loot) {
   return (LABEL_EFFET[loot.effet] ?? ((v) => `+${v}`))(loot.valeur);
