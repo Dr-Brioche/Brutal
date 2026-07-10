@@ -1290,7 +1290,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     });
     runProfondeur = creerRunProfondeur(); // nouveau run : les buffs repartent de zéro
     await allerVersZone(mine, mine.depart);
-    offrirChoixProfondeur();              // 1er étage : un premier butin de run
+    // PAS de butin à l'ENTRÉE (étage 1) : le run démarre « vide ». Le premier
+    // choix de bonus arrive à la 1re DESCENTE (passage `>`), puis à chaque étage.
   }
 
   // Confirmation EN EXPLORATION : fige le monde le temps de répondre (sinon on

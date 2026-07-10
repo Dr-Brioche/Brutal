@@ -214,8 +214,10 @@ offre un **butin de run** : on choisit **UN** buff parmi **2** cartes (± rares,
 tirées au hasard). Les buffs **s'accumulent** toute la descente (chaque étage
 ajoute au précédent) et sont **jetés en ressortant** — le run est éphémère.
 
-- **Quand** : à l'**entrée** de la mine (1er étage) ET à chaque **descente** `>`.
-  Modale **obligatoire** (on doit choisir) ; le monde reste figé.
+- **Quand** : à chaque **descente** `>` vers un étage plus profond. **PAS** à
+  l'entrée de la mine (l'étage 1 ne donne rien : le run démarre « vide », le 1er
+  choix arrive au passage étage 1 → 2). Modale **obligatoire** (on doit choisir) ;
+  le monde reste figé.
 - **Loots** (SOURCE = Excel, onglet **« Profondeurs »**, régénéré par
   `outils/importer_profondeur.py` → `jeu/data/profondeur.js`) :
   - **Strength Stone** : +Force en combat (normale +1 / rare +2 / épique +3)

@@ -1,7 +1,8 @@
 // LES PROFONDEURS COMME UN « RUN » (logique pure — décision Brioche 09/07/2026).
 //
-// Idée : à CHAQUE étage des profondeurs (entrée de la mine + chaque descente `>`),
-// on choisit UN loot parmi 2 (ou plus, avec le talent). Ce sont des BUFFS qui
+// Idée : à chaque DESCENTE (passage `>` vers un étage plus profond ; PAS à
+// l'entrée de la mine), on choisit UN loot parmi 2 (ou plus, avec le talent).
+// L'étage 1 (entrée) ne donne rien : le run part « vide ». Ce sont des BUFFS qui
 // s'ACCUMULENT toute la descente et disparaissent quand on ressort. C'est ce qui
 // donne le « sentiment de run » : plus on descend, plus on est fort, mais tout est
 // perdu au retour (sauf l'or, versé seulement si on sort VIVANT).
