@@ -1286,6 +1286,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       // Sortie : on revient SUR l'entrée `M` (le garde `surEntreeMine` posé à
       // l'arrivée évite de re-rentrer aussitôt, comme pour les portes).
       retour: { vers: zoneActuelle, entree: { colonne: tuile.colonne, ligne: tuile.ligne } },
+      bonusDescente: heros.descenteBonus ?? 0, // talent « Deep Experience »
     });
     runProfondeur = creerRunProfondeur(); // nouveau run : les buffs repartent de zéro
     await allerVersZone(mine, mine.depart);
@@ -1322,6 +1323,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       assetZone: zoneActuelle,
       retour: zoneCourante.retour,        // la sortie ramène toujours à l'ENTRÉE DU MONDE
       materiaux: zoneCourante.materiaux,  // même table de drop (même grotte)
+      bonusDescente: heros.descenteBonus ?? 0, // talent « Deep Experience »
     });
     if (!runProfondeur) runProfondeur = creerRunProfondeur(); // filet (ne devrait pas arriver)
     await allerVersZone(mine, mine.depart);

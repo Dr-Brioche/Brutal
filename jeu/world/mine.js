@@ -234,9 +234,11 @@ function finaliser(g, salles, cfg) {
     }
   }
 
-  // Passage de descente vers l'étage suivant : présent selon la chance de l'étage.
+  // Passage de descente vers l'étage suivant : présent selon la chance de l'étage,
+  // + le bonus du talent « Deep Experience » (cfg.bonusDescente, en points de %).
   // Posé sur une case sol d'exploration LIBRE (pas sur le méga-gisement), tuile `>`.
-  if (Math.random() * 100 < chanceDescente(cfg.niveau)) {
+  const chancePorte = Math.min(95, chanceDescente(cfg.niveau) + (cfg.bonusDescente ?? 0));
+  if (Math.random() * 100 < chancePorte) {
     const libres = solExplo.filter(([x, y]) => !(megaTile && x === megaTile[0] && y === megaTile[1]));
     if (libres.length) {
       const [x, y] = libres[entier(0, libres.length - 1)];

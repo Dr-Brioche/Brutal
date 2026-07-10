@@ -55,6 +55,8 @@ export function appliquerTalents(heros) {
   heros.collecteurImpot = (b.collecteurImpot || 0) > 0;
   // Choix de butin par étage de profondeur : 2 de base + 1 par rang de « Deep Prospector ».
   heros.choixLootProfondeur = 2 + (b.choixProfondeur || 0);
+  // Bonus de chance de trouver un passage `>` (talent « Deep Experience », en %).
+  heros.descenteBonus = b.descenteBonus || 0;
   // Emplacements de Maîtrise débloqués (0, 3, ou 5), plafonnés au maximum absolu.
   heros.slotsMaitrise = Math.min(5, b.slots || 0);
   if (heros.pv > heros.pvMax) heros.pv = heros.pvMax;

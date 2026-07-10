@@ -64,6 +64,14 @@ export const TALENTS = {
     effet: { choixProfondeur: 1 },
     description: "Delve smarter: +1 boon choice per rank on each depth floor (base 2 → up to 4). More options each floor = better runs.",
   },
+  // Expérience des profondeurs : +10 % (par rang) de CHANCE de trouver un passage
+  // vers l'étage suivant (une porte `>`). 3 rangs → jusqu'à +30 %.
+  profExperience: {
+    id: "profExperience", nom: "Deep Experience", branche: "combat",
+    x: 3, y: 6, cout: 1, rangMax: 3, requis: ["prospecteur"],
+    effet: { descenteBonus: 10 },
+    description: "Instinct of the deep: +10% chance per rank (up to +30%) to find a passage to the next floor down.",
+  },
 
   // Légendaires combat (armes avancées) — forkent depuis Fleet Strikes.
   deuxMains: {
@@ -192,6 +200,7 @@ const NOM_EFFET = {
   deuxMains: "Two-handed weapons",
   artisanat: "Slower forge bar",
   choixProfondeur: "Depth boon choices",
+  descenteBonus: "Deeper-passage chance",
 };
 
 // Décrit l'effet d'un nœud, ex. "+10 Max HP".
