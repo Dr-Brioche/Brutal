@@ -64,8 +64,9 @@ export const EASTERN_UNDER_TUNNELS = {
   nom: "Eastern Under-tunnels",
   musique: "ambiance-eastern-under-tunnels", // ambiance d'exploration (pool aléatoire)
   depart: { colonne: 2, ligne: 13 },
-  // Le repaire des gobelins : les 3 variantes (chaman "range" → groupes de 3+).
-  monstres: ["gobelin", "gobelin-vif", "gobelin-chaman"],
+  // Le repaire des gobelins : les 3 variantes (chaman "range" → groupes de 3+)
+  // + l'ogre masqué (brute de niveau 3, pic de difficulté).
+  monstres: ["gobelin", "gobelin-vif", "gobelin-chaman", "ogre-masque"],
   niveauMobs: [1, 3], // fourchette de niveau des monstres de la zone (affichée au HUD)
   plan: [
     "############################################",

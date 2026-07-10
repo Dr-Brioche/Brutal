@@ -121,6 +121,38 @@ export const ENNEMIS = [
       objets: [],
     },
   },
+  // Ogre gris au masque de bois : brute de niveau 3. Lent mais TRÈS résistant et
+  // frappe fort (gros gourdin). Sprite dessiné main (outils/generer_ogre.py).
+  // Affix "melee" : toujours à l'avant. Un vrai pic de difficulté dans la grotte.
+  {
+    id: "ogre-masque",
+    nom: "Masked Ogre",
+    niveau: 3,
+    famille: "animal",   // lâche du cuir (peau/sangles de l'ogre)
+    pv: 58,
+    attaque: 9,
+    xp: 24,
+    vitesse: 6,          // lourd : il joue rarement, mais chaque coup fait mal
+    affix: "melee",      // position visuelle : avant-plan
+    planche: "images/ennemis/ogre.png",
+    // Portrait = le visage masqué (frame 0) pour la file des tours.
+    portrait: { sx: 76, sy: 18, sw: 78, sh: 78 },
+    sprite: {
+      caseL: 192,
+      caseH: 180,        // case plus haute que le gobelin (150) → ogre plus GROS
+      anims: {
+        idle:    { frames: [0, 1, 2, 1], ips: 5,  boucle: true },
+        attaque: { frames: [3, 4, 5],    ips: 9,  boucle: false },
+        touche:  { frames: [6, 7],       ips: 12, boucle: false },
+        ko:      { frames: [6, 7, 8],    ips: 8,  boucle: false },
+      },
+    },
+    butin: {
+      objets: [
+        { id: "anneau-force", chance: 0.12 }, // rare : sa massue a de la poigne (Power Ring)
+      ],
+    },
+  },
 ];
 
 // Renvoie un ennemi par son id (ou le premier de la liste par défaut).
