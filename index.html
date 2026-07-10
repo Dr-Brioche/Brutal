@@ -592,6 +592,14 @@
       background: rgba(30,20,14,0.8); border: 0.15cqw solid #4a3218; border-radius: 0.6cqw; cursor: pointer;
     }
     .forge-case:hover { border-color: #c98a3a; }
+    /* Curseur clavier sur la table de craft. */
+    .forge-case--curseur { border-color: #ffcf57; box-shadow: inset 0 0 0 0.2cqw #ffcf57, 0 0 1.2cqw rgba(255,207,87,0.4); }
+    /* Petit numéro de raccourci (1-9) en coin d'une tuile de palette. */
+    .forge-palette-tuile { position: relative; }
+    .forge-palette-touche {
+      position: absolute; top: 0.15cqw; right: 0.3cqw; font-size: 1.05cqw; font-weight: 800;
+      color: #ffcf57; opacity: 0.55; font-family: ui-monospace, monospace;
+    }
     .forge-case .forge-pastille { width: 4.8cqw; height: 4.8cqw; border-radius: 0.6cqw; border: 0.2cqw solid #000; }
     /* Résultat : slot de sortie (aperçu de l'objet) + bouton Forger. */
     .forge-resultat { display: flex; flex-direction: column; align-items: center; gap: 1.6cqw; width: 17cqw; }
@@ -2222,6 +2230,7 @@
     }
     .livre-carte--choisir { cursor: pointer; }
     .livre-carte--choisir:hover { border-color: #e0a84a; background: #2c2013; }
+    .livre-carte--sel { border-color: #ffcf57; background: #2c2013; box-shadow: 0 0 0 1px #ffcf57; }
     .livre-carte-tete { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
     .livre-carte-txt { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
     .livre-carte-nom { font-weight: 700; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2602,7 +2611,7 @@
           <div class="forge-ref" id="forge-ref" hidden></div>
         </div>
       </div>
-      <div class="forge-aide" id="forge-aide">Assemble des ingrédients sur la table — l'objet apparaît à droite quand le motif est juste. [Échap] Quitter</div>
+      <div class="forge-aide" id="forge-aide">Souris : clique la palette puis les cases · Clavier : [flèches] curseur · [1-9] ressource · [Espace] poser · [C]/[V] charbon/bois · [F] Forger · [B] livre · [Échap] Quitter</div>
 
       <!-- Mini-jeu de forge : jauge orange + curseur qui va-et-vient ; frappe sur
            le marqueur (3 tailles concentriques) pour la qualité. Aux extrémités,

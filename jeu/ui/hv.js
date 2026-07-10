@@ -406,7 +406,7 @@ function rendreVente() {
   elVenteTitre.textContent = enListe ? "Sell an item" : "Set your price";
   elVenteAide.textContent = enListe
     ? "[↑↓] Choose · [Enter] Select · [Esc] Back"
-    : "[←→] Price ±1 (Shift: ±5) · [Enter] List it · [Esc] Back";
+    : "[←→] Price ±1% (Shift: ×10) · [Enter] List it · [Esc] Back";
 
   if (enListe) {
     elVenteListe.replaceChildren();

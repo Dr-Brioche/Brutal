@@ -44,6 +44,9 @@ let heros = null;         // pour lire le rang du talent « Master Craftsman »
 let grille = [];          // 5×5 d'ids de ressource (ou null)
 let ressourceSel = null;  // id de la ressource « en main » (clic pour poser)
 let recetteCourante = null;
+// Navigation CLAVIER : curseur sur la table + palette ordonnée (touches 1-9).
+let curLig = 0, curCol = 0, curseurVisible = false;
+let paletteIds = [];
 // État du mini-jeu.
 let miniActif = false, mjRaf = 0, mjCentre = 0.5, mjDebut = 0, mjPos = 0, mjPeriode = 1300;
 
@@ -95,6 +98,7 @@ export function ouvrirForge(inventaire, herosRef = null, surFermer = null, opts 
   elLivreBtn.hidden = !biblioRef;    // pas de livre → pas de bouton
   grille = Array.from({ length: TAILLE }, () => Array(TAILLE).fill(null));
   ressourceSel = null;
+  curLig = 0; curCol = 0; curseurVisible = false; // curseur clavier au repos
   carburant = { charbon: 0, bois: 0 }; // feu vide à l'ouverture
   miniActif = false;                 // sécurité : jamais de mini-jeu « collé » d'une session précédente
   cancelAnimationFrame(mjRaf);
@@ -181,7 +185,8 @@ function rafraichir() {
     if (itemDef(o.id)?.categorie !== "ressource") continue;
     compte[o.id] = (compte[o.id] ?? 0) + (o.quantite ?? 1);
   }
-  for (const id of Object.keys(compte)) {
+  paletteIds = Object.keys(compte); // ordre stable → touches 1-9 sélectionnent la Nᵉ
+  paletteIds.forEach((id, i) => {
     const d = itemDef(id);
     const restant = compte[id] - posesTotal(id);
     const tuile = document.createElement("div");
@@ -189,18 +194,20 @@ function rafraichir() {
     tuile.innerHTML =
       `<span class="forge-pastille" style="background:${d.icone}"></span>` +
       `<span class="forge-palette-nom"></span>` +
-      `<span class="forge-palette-qte">${restant}</span>`;
+      `<span class="forge-palette-qte">${restant}</span>` +
+      (i < 9 ? `<span class="forge-palette-touche">${i + 1}</span>` : "");
     tuile.querySelector(".forge-palette-nom").textContent = d.nom;
     tuile.addEventListener("click", () => choisirRessource(id));
     elPalette.appendChild(tuile);
-  }
+  });
 
-  // 2) TABLE : dessiner les pastilles posées.
+  // 2) TABLE : dessiner les pastilles posées + le curseur clavier.
   const cases = elTable.children;
   for (let r = 0; r < TAILLE; r++) {
     for (let c = 0; c < TAILLE; c++) {
       const cell = cases[r * TAILLE + c];
       cell.replaceChildren();
+      cell.classList.toggle("forge-case--curseur", curseurVisible && r === curLig && c === curCol);
       const id = grille[r][c];
       if (id) {
         const p = document.createElement("span");
@@ -417,18 +424,51 @@ function annulerMiniJeu() {
   elMiniJeu.hidden = true;            // ingrédients gardés, motif intact
 }
 
+// Directions clavier (flèches + WASD + ZQSD) → [dLigne, dCol].
+const DIRS_FORGE = {
+  ArrowUp: [-1, 0], KeyW: [-1, 0], KeyZ: [-1, 0],
+  ArrowDown: [1, 0], KeyS: [1, 0],
+  ArrowLeft: [0, -1], KeyA: [0, -1], KeyQ: [0, -1],
+  ArrowRight: [0, 1], KeyD: [0, 1],
+};
+
+// Forge JOUABLE AU CLAVIER autant qu'à la souris (règle du projet) :
+//   flèches/WASD : bouger le curseur sur la table · 1-9 : prendre la Nᵉ ressource
+//   Espace/Entrée : poser/retirer sur le curseur · F : Forger · C/V : charbon/bois
+//   (Maj = retirer) · B : livre · Échap : annuler/quitter. Pendant le mini-jeu,
+//   Espace/Entrée = frappe, Échap = annuler.
 function surTouche(e) {
   if (e.code === "Escape") {
-    e.preventDefault();
-    e.stopPropagation();
-    if (miniActif) annulerMiniJeu();
-    else fermerForge();
+    e.preventDefault(); e.stopPropagation();
+    if (miniActif) annulerMiniJeu(); else fermerForge();
     return;
   }
-  if (miniActif && (e.code === "Space" || e.code === "Enter")) {
-    e.preventDefault();
-    e.stopPropagation();
-    validerFrappe();
+  if (miniActif) {
+    if (e.code === "Space" || e.code === "Enter") { e.preventDefault(); e.stopPropagation(); validerFrappe(); }
+    return;
+  }
+  // ---- Hors mini-jeu : navigation complète de la table de craft ----
+  if (DIRS_FORGE[e.code]) {
+    e.preventDefault(); e.stopPropagation();
+    const [dl, dc] = DIRS_FORGE[e.code];
+    curLig = Math.max(0, Math.min(TAILLE - 1, curLig + dl));
+    curCol = Math.max(0, Math.min(TAILLE - 1, curCol + dc));
+    curseurVisible = true; rafraichir();
+  } else if (/^Digit[1-9]$/.test(e.code)) {
+    e.preventDefault(); e.stopPropagation();
+    const n = Number(e.code.slice(5)) - 1;
+    if (n < paletteIds.length) { ressourceSel = paletteIds[n]; curseurVisible = true; rafraichir(); }
+  } else if (e.code === "Space" || e.code === "Enter") {
+    e.preventDefault(); e.stopPropagation();
+    curseurVisible = true; cliquerCase(curLig, curCol); // pose / retire sous le curseur
+  } else if (e.code === "KeyF") {
+    e.preventDefault(); e.stopPropagation(); forger(); // lance le mini-jeu si prêt
+  } else if (e.code === "KeyC") {
+    e.preventDefault(); e.stopPropagation(); e.shiftKey ? retirerCarburant("charbon") : ajouterCarburant("charbon");
+  } else if (e.code === "KeyV") {
+    e.preventDefault(); e.stopPropagation(); e.shiftKey ? retirerCarburant("bois") : ajouterCarburant("bois");
+  } else if (e.code === "KeyB") {
+    e.preventDefault(); e.stopPropagation(); ouvrirLivrePick(); // livre d'artisanat (référence)
   }
 }
 

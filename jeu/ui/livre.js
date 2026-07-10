@@ -12,6 +12,7 @@ import { recettesParCategorie, compteBibliotheque } from "../systems/bibliothequ
 
 let overlay, elTitre, elCorps, elAide;
 let biblioRef = null, surChoixActif = null, surFermerActif = null;
+let recettesPlates = [], selCarte = 0; // navigation CLAVIER en mode PICK
 
 export function livreActif() { return overlay && !overlay.hidden; }
 
@@ -93,16 +94,29 @@ function rendre() {
        <div class="livre-cartes">${g.recettes.map(carteHtml).join("")}</div>
      </div>`).join("");
 
-  // En mode PICK : les cartes sont cliquables (choisir une référence pour la forge).
+  // Liste PLATE (ordre d'affichage) pour la navigation clavier en mode PICK.
+  recettesPlates = groupes.flatMap((g) => g.recettes);
+
+  // En mode PICK : cartes cliquables (souris) ET sélectionnables au clavier.
   if (surChoixActif) {
-    for (const el of elCorps.querySelectorAll(".livre-carte")) {
+    selCarte = Math.max(0, Math.min(recettesPlates.length - 1, selCarte));
+    const cartes = [...elCorps.querySelectorAll(".livre-carte")];
+    cartes.forEach((el, i) => {
       el.classList.add("livre-carte--choisir");
-      el.addEventListener("click", () => {
-        const rec = groupes.flatMap((g) => g.recettes).find((r) => r.resultat === el.dataset.id);
-        if (rec) { const cb = surChoixActif; fermer(); cb(rec); }
-      });
-    }
+      el.classList.toggle("livre-carte--sel", i === selCarte);
+      el.addEventListener("click", () => choisir(i));
+    });
+    cartes[selCarte]?.scrollIntoView({ block: "nearest" });
   }
+}
+
+// Valide la Nᵉ carte (souris ou clavier) → référence pour la forge.
+function choisir(i) {
+  const rec = recettesPlates[i];
+  if (!rec) return;
+  const cb = surChoixActif;
+  fermer();
+  cb(rec);
 }
 
 // `opts.surChoix` (optionnel) → mode PICK depuis la forge.
@@ -111,9 +125,10 @@ export function ouvrirLivre(biblio, opts = {}) {
   biblioRef = biblio;
   surChoixActif = opts.surChoix ?? null;
   surFermerActif = opts.surFermer ?? null;
+  selCarte = 0;
   rendre();
   elAide.textContent = surChoixActif
-    ? "Pick a recipe to use as a reference · [Esc] cancel"
+    ? "Click a recipe, or [←→ arrows] + [Enter] to pick · [Esc] cancel"
     : "[L] / [Esc] close";
   overlay.hidden = false;
   window.addEventListener("keydown", surTouche, true);
@@ -128,9 +143,23 @@ function fermer() {
   if (cb) cb();
 }
 
+const DIRS_LIVRE = { ArrowLeft: -1, KeyA: -1, KeyQ: -1, ArrowUp: -1, KeyW: -1, KeyZ: -1,
+                     ArrowRight: 1, KeyD: 1, ArrowDown: 1, KeyS: 1 };
 function surTouche(e) {
   if (e.code === "Escape" || e.code === "KeyL") {
     e.preventDefault(); e.stopPropagation();
     fermer();
+    return;
+  }
+  // Mode PICK : flèches pour choisir une carte, Entrée/Espace pour valider.
+  if (surChoixActif && recettesPlates.length) {
+    if (DIRS_LIVRE[e.code] !== undefined) {
+      e.preventDefault(); e.stopPropagation();
+      selCarte = (selCarte + DIRS_LIVRE[e.code] + recettesPlates.length) % recettesPlates.length;
+      rendre();
+    } else if (e.code === "Enter" || e.code === "Space") {
+      e.preventDefault(); e.stopPropagation();
+      choisir(selCarte);
+    }
   }
 }
