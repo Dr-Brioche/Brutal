@@ -562,10 +562,15 @@
       flex: 1; display: flex; flex-direction: row;
       align-items: center; justify-content: center; gap: 3cqw;
     }
+    /* Colonne gauche : recette-modèle (en haut, visible) + palette. */
+    .forge-gauche {
+      display: flex; flex-direction: column; align-items: center; gap: 1.2cqw;
+      max-height: 46cqw;
+    }
     /* Palette : les ressources du sac, en colonne, cliquables (icône + quantité). */
     .forge-palette {
       display: flex; flex-direction: column; gap: 1cqw;
-      max-height: 40cqw; overflow-y: auto; padding: 0.4cqw;
+      max-height: 28cqw; overflow-y: auto; padding: 0.4cqw;
     }
     .forge-palette:empty::after {
       content: "Sac vide"; color: #8a7250; font-size: 1.5cqw; font-style: italic;
@@ -2583,9 +2588,15 @@
         <button class="forge-fermer" id="forge-fermer" title="Quitter (Échap)">✕</button>
       </div>
       <div class="forge-contenu">
-        <!-- Palette : les ressources du sac, cliquables (clic = on prend, clic sur
-             une case = on pose). Remplie par ui/forge.js. -->
-        <div class="forge-palette" id="forge-palette"></div>
+        <!-- Colonne GAUCHE : la recette-modèle choisie (en haut, bien visible, à
+             recopier sur la table juste à côté) + la palette des ressources. -->
+        <div class="forge-gauche">
+          <!-- Référence : la recette choisie dans le livre, en petit (modèle). -->
+          <div class="forge-ref" id="forge-ref" hidden></div>
+          <!-- Palette : les ressources du sac, cliquables (clic = on prend, clic sur
+               une case = on pose). Remplie par ui/forge.js. -->
+          <div class="forge-palette" id="forge-palette"></div>
+        </div>
         <!-- Table de craft 5×5 (25 cases). -->
         <div class="forge-table" id="forge-table"></div>
         <!-- Résultat : l'objet créé (aperçu + infobulle) + bouton Forger. -->
