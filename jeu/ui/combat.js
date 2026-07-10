@@ -857,7 +857,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         if (drawn > 0) {
           const aReveler = combat.main.splice(combat.main.length - drawn, drawn);
           rafraichir(); // la main n'affiche pas encore les cartes piochées
-          animerPioche(aReveler, null, (c) => combat.main.push(c));
+          // Petite PAUSE (~0,3 s) AVANT la pioche : piocher instantané est trop sec,
+          // on laisse « respirer » entre la carte jouée et les cartes qui arrivent.
+          enAnimPioche = true; // verrou pendant l'attente
+          setTimeout(() => animerPioche(aReveler, null, (c) => combat.main.push(c)), 300);
         }
       }
     }
