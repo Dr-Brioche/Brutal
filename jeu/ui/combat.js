@@ -144,6 +144,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // les pauses (entre actions ennemies, entre dégâts, durées d'animation) → au
   // combat de groupe, on suit mieux ce qui se passe.
   const lenteur = getPreference("gameplayRapide") ? 1.0 : 1.8;
+  // Petit délai entre « carte jouée » et l'apparition de son effet (dégâts/statuts) :
+  // le temps que la carte agrandie s'écarte, pour qu'on VOIE ce qui se passe.
+  const DELAI_CARTE = Math.round(220 * lenteur);
 
   // État d'AFFICHAGE de chaque ennemi (le moteur tient l'état de jeu dans
   // combat.ennemis ; ici on tient le sprite, la position, les animations).
@@ -743,6 +746,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
     if (elJouee) animerCarteJouee(elJouee); // la carte sort, grandit, puis disparaît
 
+    // Input réactivé TOUT DE SUITE (ciblage, main) ; la résolution VISUELLE des
+    // effets, elle, est différée de DELAI_CARTE (le temps que la carte s'écarte).
+    phaseCiblage = false;
+    recalerCible();
+    selection = combat.main.length > 0 ? Math.min(selection, combat.main.length - 1) : -1;
+    rafraichir();
+
+    setTimeout(() => {
     // Animer TOUS les ennemis touchés (fonctionne pour 1 cible ET pour AOE).
     // `sonJoue` : on ne joue qu'un son par carte (priorité : dégâts > pierre > buff).
     let quelquUnTouche = false;
@@ -832,9 +843,6 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     } else if (combat.pvHeros > pvHerosAvant) { // soin induit (ex. set Sang vampirique via regen)
       ajouterFlottant(`💚+${combat.pvHeros - pvHerosAvant}`, heroEcran.cx, heroEcran.sommet - 16, "#7edf82");
     }
-    phaseCiblage = false;
-    recalerCible();
-    selection = combat.main.length > 0 ? Math.min(selection, combat.main.length - 1) : -1;
     rafraichir();
     verifierFin();
     if (!combat.fini) {
@@ -886,6 +894,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         }
       }
     }
+    }, DELAI_CARTE); // fin de la résolution visuelle différée (délai « carte → effet »)
   }
 
   // -- Ciblage SOURIS : on saisit une carte et on tire une flèche vers un monstre.
@@ -1973,7 +1982,9 @@ function animerCarteJouee(el) {
   clone.style.setProperty("--carte-l", r.width + "px"); // garde la bonne taille de texte
   document.body.appendChild(clone);
 
-  const dx = innerWidth / 2 - (r.left + r.width / 2);
+  // On agrandit la carte vers la GAUCHE (côté héros), PAS au centre : sinon elle
+  // recouvre les premiers monstres (à droite) et on ne voit pas l'effet.
+  const dx = innerWidth * 0.36 - (r.left + r.width / 2);
   const dy = innerHeight / 2 - (r.top + r.height / 2);
   clone.animate([
     { transform: "translate(0px, 0px) rotate(0deg) scale(1)", opacity: 1 },
