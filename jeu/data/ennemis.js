@@ -48,10 +48,10 @@ export const ENNEMIS = [
     // Illustration fournie (fond vert détouré par outils/preparer_skin.py).
     // Rendue vivante par le CODE (image fixe + effets), en lisse.
     planche: "images/ennemis/gobelin.png",
-    portrait: { sx: 10, sy: 4, sw: 80, sh: 80 }, // la tête (file des tours)
+    portrait: { sx: 7, sy: 3, sw: 56, sh: 56 }, // la tête (file des tours)
     sprite: {
-      caseL: 190,
-      caseH: 200,
+      caseL: 133,
+      caseH: 140,   // petite créature
       statique: true,  // une seule image (frame 0) ; animation 100 % par le code
       anims: {
         idle:    { frames: [0], ips: 1, boucle: true },
@@ -82,10 +82,10 @@ export const ENNEMIS = [
     // Skin DÉDIÉ : illustration fournie (fond vert détouré par preparer_skin.py).
     // Rendue vivante par le CODE (image fixe + effets) — encapuchonné, deux dagues.
     planche: "images/ennemis/gobelin-vif.png",
-    portrait: { sx: 12, sy: 4, sw: 100, sh: 100 }, // la tête encapuchonnée (file des tours)
+    portrait: { sx: 8, sy: 3, sw: 67, sh: 67 }, // la tête encapuchonnée (file des tours)
     sprite: {
-      caseL: 237,
-      caseH: 200,
+      caseL: 159,
+      caseH: 134,   // même taille que les autres gobelins (petite créature)
       statique: true,  // une seule image (frame 0) ; animation 100 % par le code
       anims: {
         idle:    { frames: [0], ips: 1, boucle: true },
@@ -116,10 +116,10 @@ export const ENNEMIS = [
     // Skin DÉDIÉ : illustration fournie (fond vert détouré par preparer_skin.py).
     // Vrai « lanceur de sorts » : bâton à crâne, robe sombre. Rendu lisse.
     planche: "images/ennemis/gobelin-chaman.png",
-    portrait: { sx: 7, sy: 4, sw: 58, sh: 58 }, // la tête (file des tours)
+    portrait: { sx: 6, sy: 4, sw: 52, sh: 52 }, // la tête (file des tours)
     sprite: {
-      caseL: 137,
-      caseH: 200,
+      caseL: 124,
+      caseH: 182,   // même gabarit de créature ; le bâton dépasse au-dessus
       statique: true,  // une seule image (frame 0) ; animation 100 % par le code
       anims: {
         idle:    { frames: [0], ips: 1, boucle: true },
@@ -152,10 +152,10 @@ export const ENNEMIS = [
     affix: "melee",      // position visuelle : avant-plan
     // Illustration fournie (fond vert détouré par preparer_skin.py). Rendu lisse.
     planche: "images/ennemis/ogre.png",
-    portrait: { sx: 10, sy: 5, sw: 87, sh: 87 }, // la tête casquée (file des tours)
+    portrait: { sx: 9, sy: 4, sw: 75, sh: 75 }, // la tête casquée (file des tours)
     sprite: {
-      caseL: 206,
-      caseH: 235,        // le plus GROS (brute) — case plus haute que les gobelins
+      caseL: 179,
+      caseH: 205,        // le plus GROS (brute) — nettement plus grand que les gobelins
       statique: true,    // une seule image (frame 0) ; animation 100 % par le code
       anims: {
         idle:    { frames: [0], ips: 1, boucle: true },
