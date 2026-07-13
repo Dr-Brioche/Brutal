@@ -4,19 +4,52 @@
 # (le combat rend ces sprites en LISSE — cf. dessinerEnnemiStatique / ui/combat.js).
 #
 # Détection auto du fond :
+#   - fond VERT (chroma key)                  → on retire le vert (+ anti-débordement) ;
 #   - image DÉJÀ détourée (vraie transparence) → on garde son alpha ;
 #   - image sur fond BLANC opaque             → on retire le blanc.
 #
 # Usage :
 #   python3 outils/preparer_skin.py <source> <sortie.png> [hauteur=200]
 # Exemples :
-#   python3 outils/preparer_skin.py images/sources/gobelin2-source.png images/ennemis/gobelin-vif.png 190
-#   python3 outils/preparer_skin.py images/sources/gobelin-chaman-source.png images/ennemis/gobelin-chaman.png 200
+#   python3 outils/preparer_skin.py images/sources/cave-gobelin-source.png images/ennemis/gobelin.png 200
 
 import sys, os
 from PIL import Image, ImageFilter, ImageChops
 
 SEUIL_BLANC = 238
+# Chroma key vert : "verdeur" = g - max(r,b). Fond >= VERT_HIGH, sujet <= VERT_LOW.
+VERT_LOW, VERT_HIGH = 45, 95
+
+
+def a_fond_vert(im):
+    """Les 4 coins sont-ils d'un vert saturé (fond de chroma key) ?"""
+    px = im.convert("RGB").load()
+    w, h = im.size
+    n = 0
+    for x, y in [(2, 2), (w - 3, 2), (2, h - 3), (w - 3, h - 3)]:
+        r, g, b = px[x, y]
+        if g - max(r, b) > 55 and g > 120:
+            n += 1
+    return n >= 3
+
+
+def detourer_vert(im):
+    """Rend transparent un fond VERT (chroma key) et retire le débordement de vert
+    sur les bords du sujet (despill : on plafonne le canal vert à max(r,b))."""
+    r, g, b = im.convert("RGB").split()
+    maxrb = ImageChops.lighter(r, b)
+    verdeur = ImageChops.subtract(g, maxrb)  # g - max(r,b), borné à 0
+    # Alpha : sujet (verdeur faible) opaque, fond (verdeur forte) transparent, rampe douce.
+    def rampe(v):
+        if v <= VERT_LOW: return 255
+        if v >= VERT_HIGH: return 0
+        return round(255 * (VERT_HIGH - v) / (VERT_HIGH - VERT_LOW))
+    a = verdeur.point(rampe).filter(ImageFilter.MinFilter(3))  # érode 1px le liseré vert
+    # Despill : plafonne le vert à un poil au-dessus de max(r,b) → plus de halo verdâtre.
+    g2 = ImageChops.darker(g, maxrb.point(lambda v: min(255, v + 12)))
+    out = Image.merge("RGB", (r, g2, b)).convert("RGBA")
+    out.putalpha(a)
+    return out
 
 
 def detourer_blanc(im):
@@ -45,7 +78,12 @@ def main():
     hauteur = int(sys.argv[3]) if len(sys.argv) > 3 else 200
 
     im = Image.open(source)
-    rgba = im.convert("RGBA") if a_de_la_transparence(im) else detourer_blanc(im)
+    if a_fond_vert(im):
+        rgba = detourer_vert(im)
+    elif a_de_la_transparence(im):
+        rgba = im.convert("RGBA")
+    else:
+        rgba = detourer_blanc(im)
 
     rgba = rgba.crop(rgba.getbbox())                          # rogne à la boîte du perso
     w, h = rgba.size

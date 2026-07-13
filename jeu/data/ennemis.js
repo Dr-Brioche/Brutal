@@ -45,21 +45,19 @@ export const ENNEMIS = [
     xp: 6,            // XP donnée au héros à sa mort
     vitesse: 10,      // vitesse d'initiative (ATB) ; héros de base = 10
     affix: "melee",   // position visuelle : avant-plan
+    // Illustration fournie (fond vert détouré par outils/preparer_skin.py).
+    // Rendue vivante par le CODE (image fixe + effets), en lisse.
     planche: "images/ennemis/gobelin.png",
-    // Portrait = zone de la TÊTE dans la planche (frame 0), pour la file des tours.
-    // (Valeurs à ajuster à l'œil si la tête n'est pas bien cadrée.)
-    portrait: { sx: 54, sy: 4, sw: 96, sh: 96 },
+    portrait: { sx: 10, sy: 4, sw: 80, sh: 80 }, // la tête (file des tours)
     sprite: {
-      caseL: 204,
-      caseH: 150,
-      statique: true, // DÉMO « image fixe + effets » : on n'utilise que la frame 0,
-                      // toute l'animation (respiration, bond, flash, mort) est faite
-                      // par le CODE (cf. dessinerEnnemiStatique dans ui/combat.js).
+      caseL: 190,
+      caseH: 200,
+      statique: true,  // une seule image (frame 0) ; animation 100 % par le code
       anims: {
-        idle:    { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 8,  boucle: true },
-        attaque: { frames: [8, 9, 10],              ips: 10, boucle: false },
-        touche:  { frames: [11, 12],                ips: 12, boucle: false },
-        ko:      { frames: [11, 12, 13],            ips: 8,  boucle: false },
+        idle:    { frames: [0], ips: 1, boucle: true },
+        attaque: { frames: [0], ips: 1, boucle: false },
+        touche:  { frames: [0], ips: 1, boucle: false },
+        ko:      { frames: [0], ips: 1, boucle: false },
       },
     },
     butin: {
@@ -81,14 +79,13 @@ export const ENNEMIS = [
     xp: 7,
     vitesse: 18,
     affix: "melee",   // position visuelle : avant-plan
-    // Skin DÉDIÉ : illustration fournie, détourée + réduite par
-    // outils/preparer_gobelin_vif.py. Rendue vivante par le CODE (image fixe +
-    // effets) — plus de teinte : c'est sa vraie image (encapuchonné, deux dagues).
+    // Skin DÉDIÉ : illustration fournie (fond vert détouré par preparer_skin.py).
+    // Rendue vivante par le CODE (image fixe + effets) — encapuchonné, deux dagues.
     planche: "images/ennemis/gobelin-vif.png",
-    portrait: { sx: 9, sy: 4, sw: 74, sh: 74 }, // la tête encapuchonnée (file des tours)
+    portrait: { sx: 12, sy: 4, sw: 100, sh: 100 }, // la tête encapuchonnée (file des tours)
     sprite: {
-      caseL: 176,
-      caseH: 190,      // un peu plus grand que le gobelin de base (150)
+      caseL: 237,
+      caseH: 200,
       statique: true,  // une seule image (frame 0) ; animation 100 % par le code
       anims: {
         idle:    { frames: [0], ips: 1, boucle: true },
@@ -116,13 +113,12 @@ export const ENNEMIS = [
     xp: 12,
     vitesse: 7,       // lent : compense sa capacité à accélérer ses alliés
     affix: "range",   // position visuelle : arrière-plan
-    // Skin DÉDIÉ : illustration fournie (images/sources/gobelin-chaman-source.png),
-    // préparée par outils/preparer_skin.py. Rendue vivante par le CODE (image fixe
-    // + effets), en LISSE. Plus de teinte : c'est sa vraie image.
+    // Skin DÉDIÉ : illustration fournie (fond vert détouré par preparer_skin.py).
+    // Vrai « lanceur de sorts » : bâton à crâne, robe sombre. Rendu lisse.
     planche: "images/ennemis/gobelin-chaman.png",
-    portrait: { sx: 7, sy: 4, sw: 57, sh: 57 }, // la tête encapuchonnée (file des tours)
+    portrait: { sx: 7, sy: 4, sw: 58, sh: 58 }, // la tête (file des tours)
     sprite: {
-      caseL: 136,
+      caseL: 137,
       caseH: 200,
       statique: true,  // une seule image (frame 0) ; animation 100 % par le code
       anims: {
@@ -142,9 +138,8 @@ export const ENNEMIS = [
       objets: [],
     },
   },
-  // Ogre gris au masque de bois : brute de niveau 3. Lent mais TRÈS résistant et
-  // frappe fort (gros gourdin). Sprite dessiné main (outils/generer_ogre.py).
-  // Affix "melee" : toujours à l'avant. Un vrai pic de difficulté dans la grotte.
+  // Ogre : brute de niveau 3. Lent mais TRÈS résistant et frappe fort (gourdin
+  // clouté). Affix "melee" : toujours à l'avant. Un vrai pic de difficulté.
   {
     id: "ogre-masque",
     nom: "Masked Ogre",
@@ -155,17 +150,18 @@ export const ENNEMIS = [
     xp: 24,
     vitesse: 6,          // lourd : il joue rarement, mais chaque coup fait mal
     affix: "melee",      // position visuelle : avant-plan
+    // Illustration fournie (fond vert détouré par preparer_skin.py). Rendu lisse.
     planche: "images/ennemis/ogre.png",
-    // Portrait = le visage masqué (frame 0) pour la file des tours.
-    portrait: { sx: 76, sy: 18, sw: 78, sh: 78 },
+    portrait: { sx: 10, sy: 5, sw: 87, sh: 87 }, // la tête casquée (file des tours)
     sprite: {
-      caseL: 192,
-      caseH: 180,        // case plus haute que le gobelin (150) → ogre plus GROS
+      caseL: 206,
+      caseH: 235,        // le plus GROS (brute) — case plus haute que les gobelins
+      statique: true,    // une seule image (frame 0) ; animation 100 % par le code
       anims: {
-        idle:    { frames: [0, 1, 2, 1], ips: 5,  boucle: true },
-        attaque: { frames: [3, 4, 5],    ips: 9,  boucle: false },
-        touche:  { frames: [6, 7],       ips: 12, boucle: false },
-        ko:      { frames: [6, 7, 8],    ips: 8,  boucle: false },
+        idle:    { frames: [0], ips: 1, boucle: true },
+        attaque: { frames: [0], ips: 1, boucle: false },
+        touche:  { frames: [0], ips: 1, boucle: false },
+        ko:      { frames: [0], ips: 1, boucle: false },
       },
     },
     butin: {
