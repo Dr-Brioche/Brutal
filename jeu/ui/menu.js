@@ -37,10 +37,16 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
   const vueSons           = document.getElementById("menu-vue-sons");
   const vueInterface      = document.getElementById("menu-vue-interface");
   const checkConfirmVente = document.getElementById("pref-confirm-vente");
+  const checkGameplayRapide = document.getElementById("pref-gameplay-rapide");
 
   checkConfirmVente.checked = getPreference("confirmVente");
   checkConfirmVente.addEventListener("change", () => {
     setPreference("confirmVente", checkConfirmVente.checked);
+  });
+
+  checkGameplayRapide.checked = getPreference("gameplayRapide");
+  checkGameplayRapide.addEventListener("change", () => {
+    setPreference("gameplayRapide", checkGameplayRapide.checked);
   });
 
   function basculerOnglet(nom) {

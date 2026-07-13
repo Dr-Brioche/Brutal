@@ -4,7 +4,8 @@
 const CLE = "brutal_prefs";
 
 const DEFAUTS = {
-  confirmVente: true, // Confirm before selling rare+ items (cochée par défaut)
+  confirmVente: true,    // Confirm before selling rare+ items (cochée par défaut)
+  gameplayRapide: false, // Combat au rythme RAPIDE (décochée = rythme posé, lisible)
 };
 
 let prefs = { ...DEFAUTS };

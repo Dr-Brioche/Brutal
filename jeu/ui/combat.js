@@ -29,6 +29,7 @@ import { police, POLICE_NOM } from "../core/texte.js"; // polices centrales (cf.
 import { cheminArrondi, RAYON } from "../core/style.js"; // coins arrondis centraux (cf. core/style.js)
 import { garnirCarte } from "./carte.js";
 import { alerteVie } from "./effets.js";
+import { getPreference } from "../systems/preferences.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
 import {
   jouerSonCoup, jouerSonCoupArmure, jouerSonSortilege, jouerSonPierre, jouerSonPioche,
@@ -138,6 +139,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   heroEcran.milieu = (heroEcran.haut + heroEcran.sol) / 2;
   heroEcran.sommet = heroEcran.haut - 10; // au-dessus de la tête du héros (nombres flottants)
 
+  // RYTHME DU COMBAT : par défaut posé/lisible ; l'option « Fast gameplay »
+  // (menu → Interface) rétablit le rythme rapide (×1). `lenteur` multiplie TOUTES
+  // les pauses (entre actions ennemies, entre dégâts, durées d'animation) → au
+  // combat de groupe, on suit mieux ce qui se passe.
+  const lenteur = getPreference("gameplayRapide") ? 1.0 : 1.8;
+
   // État d'AFFICHAGE de chaque ennemi (le moteur tient l'état de jeu dans
   // combat.ennemis ; ici on tient le sprite, la position, les animations).
   // Quinconce STRICT par position : indices pairs = avant-plan, impairs =
@@ -159,7 +166,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       localX: PIVOT_SCENE.x + (cxs[i] - PIVOT_SCENE.x) / echelle - spr.caseL / 2,
       localY: solMonde - spr.caseH,
       ecran,
-      vitAnim: facteurAnimVitesse(e.def.vitesse ?? 10), // rythme des anims ∝ vitesse
+      vitAnim: facteurAnimVitesse(e.def.vitesse ?? 10) * lenteur, // rythme ∝ vitesse × lenteur
       anim: { nom: "idle", t: 0 },
       secousse: 0,
       affPv: e.pv,
@@ -791,7 +798,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
             if (isLastHitForEnemy) { if (e.pv <= 0) exploser(u); else jouerAnim(u, "touche"); }
             else jouerAnim(u, "touche");
           }, d);
-          delay += 120;
+          delay += 120 * lenteur; // dégâts multiples plus espacés (lisibilité)
         }
       }
       if (totalHits > 0) { quelquUnTouche = true; sonJoue = true; } // pour la logique pierre/hâte
@@ -957,8 +964,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Boucle de combat ATB : l'initiative (jauges de vitesse) désigne QUI agit.
   // Héros désigné → on attend qu'il joue (End Turn) ; ennemi désigné → il agit,
   // puis on enchaîne après une courte pause (lisibilité).
-  const PAS_AVANT = 0.3;   // pause après End Turn avant que la timeline reprenne
-  const PAS_ENNEMI = 0.55; // pause après une action ennemie
+  const PAS_AVANT = 0.3 * lenteur;   // pause après End Turn avant que la timeline reprenne
+  const PAS_ENNEMI = 0.55 * lenteur; // pause après CHAQUE action ennemie (× lenteur)
 
   function finDeTour() {
     if (phaseCiblage || combat.fini || !combat.tourJoueur) return;
