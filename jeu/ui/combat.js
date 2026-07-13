@@ -373,6 +373,15 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Chaque entrée est un bouton avec un tooltip au survol.
   function rendrePermanents() {
     elPermBuff.replaceChildren();
+    // Bonus de SET actif (armure complète) : nom + effet en info-bulle. En haut à
+    // gauche, avec les autres bonus permanents.
+    for (const s of setsActifs(inventaire.slots)) {
+      const el = document.createElement("div");
+      el.className = "combat-perm-buff combat-perm-buff--set";
+      el.textContent = `✦ ${s.nom}`;
+      el.dataset.tooltip = s.bonus.texte;
+      elPermBuff.append(el);
+    }
     if (combat.forcePerm > 0) {
       const el = document.createElement("div");
       el.className = "combat-perm-buff";
@@ -982,7 +991,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Boucle de combat ATB : l'initiative (jauges de vitesse) désigne QUI agit.
   // Héros désigné → on attend qu'il joue (End Turn) ; ennemi désigné → il agit,
   // puis on enchaîne après une courte pause (lisibilité).
-  const PAS_AVANT = 0.3 * lenteur;   // pause après End Turn avant que la timeline reprenne
+  const PAS_AVANT = 0.7 * lenteur;   // pause après End Turn AVANT le 1er ennemi (respire un peu)
   const PAS_ENNEMI = 0.55 * lenteur; // pause après CHAQUE action ennemie (× lenteur)
 
   function finDeTour() {
