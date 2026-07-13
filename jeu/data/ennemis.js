@@ -81,22 +81,20 @@ export const ENNEMIS = [
     xp: 7,
     vitesse: 18,
     affix: "melee",   // position visuelle : avant-plan
-    planche: "images/ennemis/gobelin.png",
-    // Même planche que le gobelin : on le distingue par une TEINTE (filtre canvas)
-    // plus froide et claire → lecture immédiate « celui-là est le rapide ».
-    teinte: "hue-rotate(65deg) saturate(1.35) brightness(1.18)",
-    portrait: { sx: 54, sy: 4, sw: 96, sh: 96 },
+    // Skin DÉDIÉ : illustration fournie, détourée + réduite par
+    // outils/preparer_gobelin_vif.py. Rendue vivante par le CODE (image fixe +
+    // effets) — plus de teinte : c'est sa vraie image (encapuchonné, deux dagues).
+    planche: "images/ennemis/gobelin-vif.png",
+    portrait: { sx: 9, sy: 4, sw: 74, sh: 74 }, // la tête encapuchonnée (file des tours)
     sprite: {
-      caseL: 204,
-      caseH: 150,
-      statique: true, // DÉMO « image fixe + effets » : on n'utilise que la frame 0,
-                      // toute l'animation (respiration, bond, flash, mort) est faite
-                      // par le CODE (cf. dessinerEnnemiStatique dans ui/combat.js).
+      caseL: 176,
+      caseH: 190,      // un peu plus grand que le gobelin de base (150)
+      statique: true,  // une seule image (frame 0) ; animation 100 % par le code
       anims: {
-        idle:    { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 8,  boucle: true },
-        attaque: { frames: [8, 9, 10],              ips: 10, boucle: false },
-        touche:  { frames: [11, 12],                ips: 12, boucle: false },
-        ko:      { frames: [11, 12, 13],            ips: 8,  boucle: false },
+        idle:    { frames: [0], ips: 1, boucle: true },
+        attaque: { frames: [0], ips: 1, boucle: false },
+        touche:  { frames: [0], ips: 1, boucle: false },
+        ko:      { frames: [0], ips: 1, boucle: false },
       },
     },
     butin: {
