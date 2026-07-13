@@ -1222,6 +1222,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // -- Boucle : animations + dessin ----------------------------------------
   function mettreAJour(dt) {
+    // Pendant une animation de pioche : on neutralise l'agrandissement au SURVOL
+    // (le clavier est déjà masqué via majSelection) → plus de « flash » de carte
+    // survolée juste avant que la pioche prenne le relais.
+    conteneurMain.classList.toggle("anim-pioche", enAnimPioche);
     if (enPause) return; // menu pause ouvert : tout est figé (initiative, anims…)
     aff.pvHeros += (combat.pvHeros - aff.pvHeros) * Math.min(1, dt * 8);
     aff.pierre += (combat.pierre - aff.pierre) * Math.min(1, dt * 10);

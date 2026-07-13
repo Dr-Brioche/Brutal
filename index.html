@@ -1371,7 +1371,7 @@
        (retour joueurs : 1,2× restait trop petit, même sur écran normal).
        transform-origin bottom center (hérité) → elle grandit vers le HAUT, jamais
        sous le bord. Scopé à .combat-main pour ne pas toucher aux autres écrans. */
-    .combat-main .combat-carte:hover:not(:disabled):not(.armee),
+    .combat-main:not(.anim-pioche) .combat-carte:hover:not(:disabled):not(.armee),
     .combat-main .combat-carte.sel:not(.armee) {
       transform: translateY(calc(var(--dy, 0px) - var(--carte-l, 150px) * 0.10)) rotate(0deg) scale(1.8);
     }
