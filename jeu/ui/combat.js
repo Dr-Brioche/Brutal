@@ -1386,7 +1386,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     ctx.save();
     if (imgHeroCombat.complete && imgHeroCombat.naturalWidth) {
       // Héros = ILLUSTRATION (mains vides). Pieds au sol, centré, rendu lisse.
-      const HH = 224, HW = HH * imgHeroCombat.naturalWidth / imgHeroCombat.naturalHeight;
+      const HH = 150, HW = HH * imgHeroCombat.naturalWidth / imgHeroCombat.naturalHeight;
       const hxI = HEROS.x + 64 * ECHELLE_HEROS / 2 - HW / 2 + (animAttaque > 0 ? avance : 0) + trHeros;
       const hyI = solHeros - HH;
       const aX = hxI + HW / 2, aY = solHeros;
