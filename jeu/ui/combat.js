@@ -1600,6 +1600,11 @@ function dessinerEnnemiStatique(ctx, u, temps, tr) {
   }
 
   ctx.save();
+  // LISSAGE ON pour les monstres illustrés : le canvas est déjà suréchantillonné
+  // (RES×), donc une illustration rendue en lisse reste NETTE (au lieu des gros
+  // pixels du nearest). Le save/restore rétablit le nearest pour le pixel-art.
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.translate(ax, ay);
   ctx.rotate(rot);
   ctx.scale(sx, sy);
