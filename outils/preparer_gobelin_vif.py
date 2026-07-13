@@ -37,6 +37,12 @@ def main():
     ech = HAUTEUR_CIBLE / h
     tw = max(1, round(w * ech))
     rgba = rgba.resize((tw, HAUTEUR_CIBLE), Image.LANCZOS)
+    # Bords DURS : on retire les pixels semi-transparents (l'anti-aliasing du
+    # redimensionnement). Sinon, agrandis par le rendu « pixels nets » du jeu, ils
+    # deviennent des blocs translucides → effet « on voit à travers » en mouvement.
+    r2, g2, b2, a2 = rgba.split()
+    a2 = a2.point(lambda v: 255 if v >= 128 else 0)
+    rgba = Image.merge("RGBA", (r2, g2, b2, a2))
     rgba.save(SORTIE)
 
     # Portrait suggéré : carré autour de la TÊTE (haut-gauche de l'illustration).
