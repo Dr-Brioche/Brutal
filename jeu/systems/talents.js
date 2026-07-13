@@ -2,10 +2,11 @@
 // application des CHIFFRES au héros. (Les données des nœuds sont dans data/talents.js.)
 
 import { talentDef } from "../data/talents.js";
+import { STATS_HEROS_BASE } from "../data/heros_base.js";
 
-// Stats de base du héros (doivent matcher entities/heros.js).
-const PV_BASE = 40;
-const VITESSE_BASE = 160;
+// Stats de base du héros (source : Excel « Héros » via data/heros_base.js).
+const PV_BASE = STATS_HEROS_BASE.pv;
+const VITESSE_BASE = STATS_HEROS_BASE.vitesseMarche;
 
 // Somme des effets de TOUS les talents débloqués (× leur rang).
 // Ex. { pvMax: 25, chaleurSeuil: 1, pioche: 1 }.

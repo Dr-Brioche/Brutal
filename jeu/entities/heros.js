@@ -2,6 +2,7 @@
 
 import { dessinerCase } from "../core/sprites.js";
 import { piedsLibres, rectangleLibre, TUILE } from "../world/carte.js";
+import { STATS_HEROS_BASE } from "../data/heros_base.js";
 
 // Lignes de la planche images/heros/nain.png
 const LIGNE = { bas: 0, gauche: 1, droite: 2, haut: 3 };
@@ -12,14 +13,14 @@ export function creerHeros() {
   return {
     x: 0,              // position en pixels (placée par la carte au démarrage)
     y: 0,
-    vitesse: 160,      // pixels par seconde
+    vitesse: STATS_HEROS_BASE.vitesseMarche, // pixels/s (Excel « Héros ») ; recalc. par talents
     direction: "bas",
     enMarche: false,
     tempsAnimation: 0,
     plancheArmure: null, // le corps du nain : changé par le set d'armure porté
     plancheArme: null,   // l'arme tenue : dessinée par-dessus
-    pvMax: 40,           // vie max — RECALCULÉE par les talents (base 40)
-    pv: 40,              // vie courante — PERSISTE entre les combats
+    pvMax: STATS_HEROS_BASE.pv, // vie max — RECALCULÉE par les talents (base Excel « Héros »)
+    pv: STATS_HEROS_BASE.pv,    // vie courante — PERSISTE entre les combats
     // Progression : XP/niveau → points de talent. L'arbre de talents donne les
     // CHIFFRES du héros (vie max, vitesse, Chaleur, pioche…) ; l'équipement, lui,
     // donne les CARTES. (vitesse ci-dessus est aussi recalculée par les talents.)

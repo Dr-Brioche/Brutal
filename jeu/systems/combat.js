@@ -14,10 +14,11 @@
 // Twist nain VERROUILLÉ : la défense « Pierre » PERSISTE entre les tours.
 
 import { CARTES } from "../data/cartes.js";
+import { STATS_HEROS_BASE } from "../data/heros_base.js";
 
 // ----- Réglages (équilibrage, valeurs provisoires) -------------------------
 const TAILLE_MAIN = 3;        // cartes piochées par tour (de base ; monte avec les talents)
-const MAIN_MAX = 8;          // plafond de cartes en main : toute carte piochée au-delà est défaussée d'office
+const MAIN_MAX = STATS_HEROS_BASE.mainMax; // plafond de cartes en main (Excel « Héros »)
 // Cartes de SUPPLÉANCE : un filet de sécurité (toujours quelque chose à jouer)
 // tant qu'un SLOT d'équipement est VIDE. Chaque entrée lie l'état d'occupation
 // d'un slot (cf. inventaire.js → slotsOccupes) à une carte FAIBLE et son nombre
@@ -63,14 +64,15 @@ export function cartesDeBase(slots = {}) {
 
 // La Chaleur de Forge (l'énergie des cartes). Persiste entre les tours, peut
 // monter en SURCHAUFFE au-dessus du seuil. Valeurs modifiables par l'équipement.
-const CHALEUR_DEPART = 1;     // forge FROIDE au départ (montée en puissance)
-const CHALEUR_RECHARGE = 1;   // +1 par tour
-const CHALEUR_SEUIL = 3;      // au-delà = surchauffe
-const CHALEUR_MAX = 8;        // plafond absolu
+// (Valeurs de base issues de l'Excel « Héros » — data/heros_base.js.)
+const CHALEUR_DEPART = STATS_HEROS_BASE.chaleurDepart;     // forge FROIDE au départ
+const CHALEUR_RECHARGE = STATS_HEROS_BASE.chaleurRecharge; // +1 par tour
+const CHALEUR_SEUIL = STATS_HEROS_BASE.chaleurSeuil;       // au-delà = surchauffe
+const CHALEUR_MAX = STATS_HEROS_BASE.chaleurMax;           // plafond absolu
 
 // Initiative (ATB) : chacun remplit une jauge à sa VITESSE ; le 1er à SEUIL agit.
 // Vitesse égale → on alterne 1:1 ; 2× plus rapide → 2 tours pour 1 de l'autre.
-const VITESSE_HEROS_BASE = 10; // vitesse de base du héros (modifiée par talents/célérité)
+const VITESSE_HEROS_BASE = STATS_HEROS_BASE.vitesseCombat; // vitesse de base du héros
 const SEUIL_INIT = 100;        // jauge d'initiative à remplir pour agir
 // Statuts de VITESSE (temporaires : ils tickent par tour comme le poison).
 // La VALEUR d'une carte = le NOMBRE DE TICKS ajoutés. Chaque tick de Hâte donne
