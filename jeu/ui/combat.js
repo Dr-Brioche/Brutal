@@ -343,7 +343,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (selection >= els.length) selection = els.length - 1;
     // Pendant une animation de pioche : aucune carte surlignée, pour garder le
     // regard sur la pioche au centre (le deck est de toute façon verrouillé).
-    els.forEach((el, i) => el.classList.toggle("sel", i === selection && !enAnimPioche));
+    // Pendant le CIBLAGE : pas de carte agrandie (.sel) non plus — on veut voir
+    // les monstres. La carte armée est juste RANGÉE + surlignée (classe .armee).
+    els.forEach((el, i) =>
+      el.classList.toggle("sel", i === selection && !enAnimPioche && !phaseCiblage));
+    [...conteneurMain.children].forEach((el, i) =>
+      el.classList.toggle("armee", phaseCiblage && i === carteEnAttente));
   }
   function rafraichir() {
     conteneurMain.replaceChildren();
@@ -445,7 +450,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // une carte) ouvre le menu pause. Géré AVANT le verrou « tour du joueur » pour
     // qu'on puisse aussi mettre en pause pendant le tour ennemi (quand ça « gueule »).
     if (e.code === "Escape") {
-      if (phaseCiblage) { phaseCiblage = false; return; }
+      if (phaseCiblage) { phaseCiblage = false; majSelection(); return; }
       if (!combat.fini && combat.tourJoueur && !enAnimPioche &&
           selection >= 0 && selection < combat.main.length) {
         selection = combat.main.length; // index du bouton « End Turn » (juste surligné)
@@ -707,6 +712,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       phaseCiblage = true;
       carteEnAttente = i;
       recalerCible();
+      majSelection(); // range la carte armée dans la main + la surligne (.armee)
     } else {
       jouer(i);
     }

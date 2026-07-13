@@ -1382,6 +1382,20 @@
         0 0 calc(var(--carte-l, 150px) * 0.05) calc(var(--carte-l, 150px) * 0.018) rgba(255, 216, 100, 0.95),
         0 0 calc(var(--carte-l, 150px) * 0.10) calc(var(--carte-l, 150px) * 0.05) rgba(255, 190, 70, 0.5);
     }
+    /* Carte ARMÉE pendant le CIBLAGE : elle se RANGE dans la main (quasi taille
+       normale, juste redressée + un peu levée) au lieu de s'agrandir à 1,8× — pour
+       qu'on VOIE les monstres et qu'on choisisse la cible — tout en gardant le halo
+       doré pour savoir ce qu'on va jouer. */
+    .combat-main .combat-carte.armee {
+      transform: translateY(calc(var(--dy, 0px) - var(--carte-l, 150px) * 0.06)) rotate(0deg) scale(1.12);
+      z-index: 10;
+    }
+    .combat-carte.armee .carte-cadre {
+      box-shadow:
+        0 0 0 calc(var(--carte-l, 150px) * 0.02) #08080b,
+        0 0 calc(var(--carte-l, 150px) * 0.05) calc(var(--carte-l, 150px) * 0.018) rgba(255, 216, 100, 0.95),
+        0 0 calc(var(--carte-l, 150px) * 0.10) calc(var(--carte-l, 150px) * 0.05) rgba(255, 190, 70, 0.5);
+    }
 
     /* Le panneau Victory / Defeat */
     .combat-resultat {
