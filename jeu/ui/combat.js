@@ -159,6 +159,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       localX: PIVOT_SCENE.x + (cxs[i] - PIVOT_SCENE.x) / echelle - spr.caseL / 2,
       localY: solMonde - spr.caseH,
       ecran,
+      vitAnim: facteurAnimVitesse(e.def.vitesse ?? 10), // rythme des anims ∝ vitesse
       anim: { nom: "idle", t: 0 },
       secousse: 0,
       affPv: e.pv,
@@ -278,6 +279,20 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         vx: (Math.random() - 0.5) * 24 * e, vy: (-22 - Math.random() * 28) * e,
         taille: (8 + Math.random() * 10) * e, g: 6 * e, gs: 14 * e,
         vie: 0.7 + Math.random() * 0.5, vieMax: 1.2,
+      });
+    }
+  }
+
+  // Petit nuage de POUSSIÈRE d'impact (au point de contact d'un coup). Réutilise
+  // les particules « fumée » (grises). Sert à « claquer » le coup reçu.
+  function poufImpact(cx, sol) {
+    for (let i = 0; i < 7; i++) {
+      particules.push({
+        type: "fumee",
+        x: cx + (Math.random() - 0.5) * 42, y: sol - 8 + (Math.random() - 0.5) * 16,
+        vx: (Math.random() - 0.5) * 80, vy: -18 - Math.random() * 26,
+        taille: 4 + Math.random() * 6, g: 8, gs: 12,
+        vie: 0.3 + Math.random() * 0.25, vieMax: 0.55,
       });
     }
   }
@@ -1081,6 +1096,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (evt.mortStatut) { if (!u.mort.actif && !u.partis) exploser(u); return; }
     if (evt.attaque > 0 || evt.armureAbsorbe > 0) { // il frappe : PV perdus OU armure entamée
       jouerAnim(u, "attaque");
+      // Poussière d'impact synchronisée sur le BOND (après la phase d'armement).
+      setTimeout(() => poufImpact(heroEcran.cx, heroEcran.sol), 230 * (u.vitAnim ?? 1));
       secousseHeros = 0.3;
       // PV perdus → chiffre rouge ; coup entièrement encaissé par la Pierre → chiffre bleu.
       if (evt.attaque > 0) ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
@@ -1183,9 +1200,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       u.anim.t += dt;
       if (u.spr.statique) {
         // Monstre « image fixe + effets » : pas de frames, on borne juste la
-        // DURÉE de l'action procédurale (cf. dessinerEnnemiStatique).
-        const dur = { attaque: DUREE_ATTAQUE_PROC, touche: DUREE_TOUCHE_PROC }[u.anim.nom];
-        if (dur && u.anim.t >= dur) u.anim = { nom: "idle", t: 0 };
+        // DURÉE de l'action procédurale (cf. dessinerEnnemiStatique). Les durées
+        // sont modulées par la vitesse du monstre (rapide = anim plus courte).
+        const base = { attaque: DUREE_ATTAQUE_PROC, touche: DUREE_TOUCHE_PROC }[u.anim.nom];
+        if (base && u.anim.t >= base * u.vitAnim) u.anim = { nom: "idle", t: 0 };
       } else {
         const def = u.spr.anims[u.anim.nom] ?? u.spr.anims.idle;
         if (!def.boucle && u.anim.t * def.ips >= def.frames.length &&
@@ -1334,8 +1352,23 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const avance = Math.sin((1 - animAttaque / 0.25) * Math.PI) * 14;
     const trHeros = secousseHeros > 0 ? (Math.random() - 0.5) * 8 : 0;
     const hx = HEROS.x + (animAttaque > 0 ? avance : 0) + trHeros;
+    // Le héros aussi respire (léger étirement) et FLASHE en blanc quand il encaisse.
+    const brH = Math.sin(temps * 2.4);
+    const hAX = hx + 64 * ECHELLE_HEROS / 2, hAY = HEROS.y + 64 * ECHELLE_HEROS;
+    const flashH = Math.min(1, secousseHeros / 0.3);
+    ctx.save();
+    ctx.translate(hAX, hAY); ctx.scale(1 - 0.015 * brH, 1 + 0.025 * brH); ctx.translate(-hAX, -hAY);
     if (heros.plancheArmure) dessinerCaseEchelle(ctx, heros.plancheArmure, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
     if (heros.plancheArme) dessinerCaseEchelle(ctx, heros.plancheArme, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
+    if (flashH > 0.05) {
+      const ga = ctx.globalAlpha;
+      ctx.globalAlpha = ga * flashH * 0.6;
+      ctx.filter = "brightness(0) invert(1)";
+      if (heros.plancheArmure) dessinerCaseEchelle(ctx, heros.plancheArmure, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
+      if (heros.plancheArme) dessinerCaseEchelle(ctx, heros.plancheArme, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
+      ctx.filter = "none"; ctx.globalAlpha = ga;
+    }
+    ctx.restore();
     ctx.restore();
 
     // PARTICULES (braises, fumée) : stockées en coords écran → pas de transform.
@@ -1519,32 +1552,46 @@ function dessinerEnnemi(ctx, planche, spr, frame, x, y, teinte) {
 // en boucle, bond vers le héros à l'attaque, recul + flash blanc au coup reçu,
 // bascule à la mort. Idée : dans un combat au tour par tour, le « vivant » vient
 // surtout des RÉACTIONS, pas d'une boucle d'idle. (cf. Slay the Spire.)
-const DUREE_ATTAQUE_PROC = 0.5;  // s — durée du bond d'attaque
+const DUREE_ATTAQUE_PROC = 0.5;  // s — durée du bond d'attaque (à vitesse « neutre »)
 const DUREE_TOUCHE_PROC = 0.35;  // s — durée du recul « coup reçu »
+const VIT_ANIM_REF = 10;         // vitesse d'initiative « neutre » → anim à ×1.0
+
+// Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
+// COURTE et vive, lent = ample et lourde. (Sert de multiplicateur de durée.)
+function facteurAnimVitesse(vit) {
+  return Math.max(0.6, Math.min(1.7, VIT_ANIM_REF / (vit || VIT_ANIM_REF)));
+}
 
 function dessinerEnnemiStatique(ctx, u, temps, tr) {
   const spr = u.spr;
-  const ax = u.localX + spr.caseL / 2;   // ancre X (centre du corps)
-  const ay = u.localY + spr.caseH;       // ancre Y (les pieds : tout pivote de là)
+  const va = u.vitAnim;                   // rythme (∝ vitesse) : <1 rapide, >1 lent
+  const ax = u.localX + spr.caseL / 2;    // ancre X (centre du corps)
+  const ay = u.localY + spr.caseH;        // ancre Y (les pieds : tout pivote de là)
   const ph = (u.localX * 0.021) % 6.2832; // déphasage pour désynchroniser les monstres
 
   // Respiration permanente : léger étirement vertical (le buste « gonfle »).
-  const br = Math.sin(temps * 2.6 + ph);
+  // Le rythme suit la vitesse du monstre (un vif respire plus vite).
+  const br = Math.sin(temps * (2.6 / va) + ph);
   let sx = 1 - 0.018 * br, sy = 1 + 0.03 * br;
-  let rot = 0.015 * Math.sin(temps * 1.1 + ph), dx = 0, dy = 0, flash = 0;
+  let rot = 0.015 * Math.sin(temps * (1.1 / va) + ph), dx = 0, dy = 0, flash = 0;
+
+  // Vol (def.vole) : le monstre lévite (petit flottement vertical, pas de sol).
+  if (u.e.def.vole) dy += -6 + 3 * Math.sin(temps * (2.0 / va) + ph);
 
   const nom = u.anim.nom, t = u.anim.t;
   if (nom === "attaque") {
-    // Le héros est à GAUCHE : on arme (recul à droite) puis on BONDIT vers lui.
-    const p = Math.min(1, t / DUREE_ATTAQUE_PROC);
-    if (p < 0.28) { const k = p / 0.28; dx = 9 * k; rot += 0.14 * k; sx *= 1 + 0.05 * k; }
-    else if (p < 0.52) { const k = (p - 0.28) / 0.24; dx = 9 - 34 * k; rot += 0.14 - 0.26 * k; sx *= 1.05 - 0.15 * k; sy *= 1 + 0.08 * k; }
-    else { const k = (p - 0.52) / 0.48; dx = -25 * (1 - k); rot += -0.12 * (1 - k); }
+    // Le héros est à GAUCHE : ANTICIPATION marquée (on s'arme en reculant et en se
+    // ramassant), puis BOND vers lui, puis retour. La phase d'armement est un
+    // télégraphe lisible même au tour par tour.
+    const p = Math.min(1, t / (DUREE_ATTAQUE_PROC * va));
+    if (p < 0.34) { const k = p / 0.34; dx = 12 * k; rot += 0.18 * k; sx *= 1 + 0.07 * k; sy *= 1 - 0.05 * k; }
+    else if (p < 0.56) { const k = (p - 0.34) / 0.22; dx = 12 - 42 * k; rot += 0.18 - 0.32 * k; sx *= 1.07 - 0.18 * k; sy *= 0.95 + 0.14 * k; }
+    else { const k = (p - 0.56) / 0.44; dx = -30 * (1 - k); rot += -0.14 * (1 - k); }
   } else if (nom === "touche") {
     // Repoussé vers l'arrière (droite), petit choc + flash blanc qui s'éteint.
-    const p = Math.min(1, t / DUREE_TOUCHE_PROC), s = Math.sin(p * Math.PI);
+    const p = Math.min(1, t / (DUREE_TOUCHE_PROC * va)), s = Math.sin(p * Math.PI);
     dx = 14 * s; rot += 0.10 * s; sx *= 1 + 0.04 * s; sy *= 1 - 0.03 * s;
-    flash = Math.max(0, 1 - t / 0.18);
+    flash = Math.max(0, 1 - t / (0.18 * va));
   }
   if (u.mort.actif) {
     const k = Math.min(1, u.mort.t / 0.35);
