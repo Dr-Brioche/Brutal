@@ -116,21 +116,20 @@ export const ENNEMIS = [
     xp: 12,
     vitesse: 7,       // lent : compense sa capacité à accélérer ses alliés
     affix: "range",   // position visuelle : arrière-plan
-    // Teinte rouge sang : immédiatement reconnaissable comme cible prioritaire.
-    teinte: "hue-rotate(320deg) saturate(1.6) brightness(0.9)",
-    planche: "images/ennemis/gobelin.png",
-    portrait: { sx: 54, sy: 4, sw: 96, sh: 96 },
+    // Skin DÉDIÉ : illustration fournie (images/sources/gobelin-chaman-source.png),
+    // préparée par outils/preparer_skin.py. Rendue vivante par le CODE (image fixe
+    // + effets), en LISSE. Plus de teinte : c'est sa vraie image.
+    planche: "images/ennemis/gobelin-chaman.png",
+    portrait: { sx: 7, sy: 4, sw: 57, sh: 57 }, // la tête encapuchonnée (file des tours)
     sprite: {
-      caseL: 204,
-      caseH: 150,
-      statique: true, // DÉMO « image fixe + effets » : on n'utilise que la frame 0,
-                      // toute l'animation (respiration, bond, flash, mort) est faite
-                      // par le CODE (cf. dessinerEnnemiStatique dans ui/combat.js).
+      caseL: 136,
+      caseH: 200,
+      statique: true,  // une seule image (frame 0) ; animation 100 % par le code
       anims: {
-        idle:    { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 8,  boucle: true },
-        attaque: { frames: [8, 9, 10],              ips: 10, boucle: false },
-        touche:  { frames: [11, 12],                ips: 12, boucle: false },
-        ko:      { frames: [11, 12, 13],            ips: 8,  boucle: false },
+        idle:    { frames: [0], ips: 1, boucle: true },
+        attaque: { frames: [0], ips: 1, boucle: false },
+        touche:  { frames: [0], ips: 1, boucle: false },
+        ko:      { frames: [0], ips: 1, boucle: false },
       },
     },
     // Actions pondérées : tirée aléatoirement selon le champ `poids`.
