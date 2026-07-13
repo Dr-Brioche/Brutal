@@ -19,6 +19,21 @@
 
 import { tirerOr, tirerButinFamille } from "./butin.js";
 
+// ⚠ STATS ÉDITABLES DANS L'EXCEL — docs/BRUTAL-items-et-cartes.xlsx, onglet
+// « Monstres ». Le bloc ci-dessous est RÉGÉNÉRÉ par outils/importer_monstres.py :
+// ne pas l'éditer à la main. Il REMPLACE (source de vérité) les chiffres écrits
+// plus bas dans ENNEMIS — ceux-ci ne servent que de valeurs de secours si un
+// monstre venait à manquer dans l'Excel. Pour régler pv/attaque/xp/vitesse/actions,
+// passe par l'Excel puis relance l'importer.
+// <<MONSTRES-AUTO>>
+const STATS_MONSTRES = {
+  "gobelin": { nom: "Cave Goblin", niveau: 1, famille: "gobelin", pv: 24, attaque: 4, xp: 6, vitesse: 10, actions: [] },
+  "gobelin-vif": { nom: "Goblin Skirmisher", niveau: 1, famille: "gobelin", pv: 16, attaque: 3, xp: 7, vitesse: 18, actions: [] },
+  "gobelin-chaman": { nom: "Goblin Shaman", niveau: 1, famille: "gobelin", pv: 14, attaque: 2, xp: 12, vitesse: 7, actions: [{ type: "soigner", valeur: 10, poids: 50 }, { type: "haste-allie", valeur: 2, poids: 30 }, { type: "attaque", valeur: 2, poids: 20 }] },
+  "ogre-masque": { nom: "Masked Ogre", niveau: 3, famille: "animal", pv: 58, attaque: 9, xp: 24, vitesse: 6, actions: [] },
+};
+// <<FIN-MONSTRES-AUTO>>
+
 export const ENNEMIS = [
   {
     id: "gobelin",
@@ -163,6 +178,15 @@ export const ENNEMIS = [
     },
   },
 ];
+
+// Applique les stats de l'Excel (onglet « Monstres ») PAR-DESSUS les valeurs de
+// secours définies ci-dessus : l'Excel est la source de vérité pour l'équilibrage.
+if (typeof STATS_MONSTRES !== "undefined") {
+  for (const e of ENNEMIS) {
+    const s = STATS_MONSTRES[e.id];
+    if (s) Object.assign(e, s);
+  }
+}
 
 // Renvoie un ennemi par son id (ou le premier de la liste par défaut).
 export function ennemiParId(id) {
