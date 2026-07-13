@@ -957,21 +957,26 @@ function resoudreCiblee(combat, carte, cible) {
     return;
   }
 
-  // Frost Cascade : frappe la cible (dégâts + Gel) ; si elle était DÉJÀ gelée
-  // avant le coup, le même coup rebondit sur l'ennemi suivant (vers l'arrière de
-  // la file), et ainsi de suite tant que chaque cible touchée était déjà gelée.
+  // Frost Cascade : la CIBLE prend les dégâts + `gel` (ajoutés à ce qu'elle avait).
+  // Si elle était DÉJÀ gelée avant le coup, le GEL SEUL (pas les dégâts) se propage
+  // à l'ennemi DERRIÈRE (+`gel`), et continue vers l'arrière tant que chaque ennemi
+  // touché était lui aussi déjà gelé. (Seule la cible principale encaisse les dégâts.)
   const casc = carte.effets.find((e) => e.type === "gel-cascade");
   if (casc) {
-    const debut = combat.ennemis.indexOf(ennemi);
-    for (let i = debut; i < combat.ennemis.length; i++) {
-      const cible = combat.ennemis[i];
-      if (!ennemiVivant(cible)) continue;
-      const dejaGele = cible.gel > 0;
-      blesser(cible, casc.degats);
-      if (cible.feu > 0) { cible.feu = 0; cible.feuDeCarte = false; } // gel éteint le feu
-      cible.gel += casc.gel;
-      verifierGelEnnemi(cible); // stun immédiat si ≥ 5 stacks
-      if (!dejaGele) break; // la chaîne s'arrête sur le premier ennemi pas déjà gelé
+    blesser(ennemi, casc.degats);
+    if (ennemi.feu > 0) { ennemi.feu = 0; ennemi.feuDeCarte = false; } // gel éteint le feu
+    let propage = ennemi.gel > 0;   // « était déjà gelée » (avant l'ajout du Gel)
+    ennemi.gel += casc.gel;
+    verifierGelEnnemi(ennemi);      // stun immédiat si ≥ 5 stacks
+    let i = combat.ennemis.indexOf(ennemi);
+    while (propage) {
+      do { i++; } while (i < combat.ennemis.length && !ennemiVivant(combat.ennemis[i]));
+      if (i >= combat.ennemis.length) break; // plus personne derrière
+      const derriere = combat.ennemis[i];
+      propage = derriere.gel > 0;   // on ne continue que s'il était déjà gelé
+      if (derriere.feu > 0) { derriere.feu = 0; derriere.feuDeCarte = false; }
+      derriere.gel += casc.gel;     // +Gel seulement (aucun dégât propagé)
+      verifierGelEnnemi(derriere);
     }
     return;
   }

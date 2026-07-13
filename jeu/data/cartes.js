@@ -593,16 +593,16 @@ export const CARTES = {
 
   // ---- Perfect Frost Ring (bague) : gel en chaîne -----------------------------
 
-  // Frost Cascade : 8 dégâts + 3 Gel. Combo : si la cible était DÉJÀ gelée, le
-  // même coup rebondit sur l'ennemi suivant, et ainsi de suite tant que chaque
-  // cible touchée était déjà gelée avant (chaîne de gel).
+  // Frost Cascade : 8 dégâts + 3 Gel sur la cible. Combo : si la cible était DÉJÀ
+  // gelée, +3 Gel se propage à l'ennemi derrière (GEL seul, pas de dégâts), et ainsi
+  // de suite tant que chaque ennemi touché était lui aussi déjà gelé.
   "gel-cascade": {
     id: "gel-cascade",
     nom: "Frost Cascade",
     cout: 2,
     type: "attaque",
     portee: "range",
-    texte: "Deal 8 damage and apply 3 Chill. If the target was already chilled, cascade the same hit to the next enemy, and so on.",
+    texte: "Deal 8 damage and apply 3 Chill. If the target was already chilled, spread 3 Chill to the enemy behind — and keep spreading to each already-chilled enemy behind.",
     effets: [{ type: "gel-cascade", degats: 8, gel: 3 }],
   },
 
