@@ -849,7 +849,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     } else if (combat.pvHeros > pvHerosAvant) { // soin induit (ex. set Sang vampirique via regen)
       ajouterFlottant(`💚+${combat.pvHeros - pvHerosAvant}`, heroEcran.cx, heroEcran.sommet - 16, "#7edf82");
     }
-    rafraichir();
+    // (Pas de rafraichir() ici : la main a déjà été re-rendue juste après le jeu de
+    // la carte. Un 2e rafraichir recréerait le DOM → la carte survolée « resauterait ».)
     verifierFin();
     if (!combat.fini) {
       // Lancer de dés (chaleur-aleatoire) : animation qui roule avant de s'arrêter sur le résultat.
@@ -949,6 +950,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (drag.vise) {
       drag.cibleSurvol = ennemiSousPoint(p.x, p.y);
       ctx.canvas.style.cursor = "none"; // le réticule rouge dessiné REMPLACE le curseur
+      el.classList.add("armee");        // la carte se RANGE (bas + surlignée) le temps du ciblage
     }
     window.addEventListener("pointermove", surDragMove);
     window.addEventListener("pointerup", surDragUp);
@@ -965,6 +967,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     ctx.canvas.style.cursor = ""; // fin du drag → on rend le vrai curseur
     const d = drag; drag = null;
     if (!d) return;
+    d.el.classList.remove("armee"); // la carte revient en main (jouée ou annulée)
     if (d.vise) {
       if (d.cibleSurvol >= 0) jouer(d.i, d.cibleSurvol); // lâché SUR un ennemi → joue
       // lâché ailleurs → annulé (la carte reste en main)
@@ -1049,6 +1052,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (acteur.id === "heros") {
       const nbAvantTour = combat.main.length; // snapshot avant la pioche (= 0 normalement)
       carteJouee = false;         // nouveau tour du héros → la fuite redevient possible
+      selection = -1;             // nouveau tour : AUCUNE carte levée par défaut
+                                  // (sinon une carte reste en surbrillance même souris ailleurs)
       commencerTourHeros(combat); // recharge Chaleur + statuts du héros + pioche
       if (combat.tourSaute) {     // glace brisée : le héros est gelé solide, il saute son tour
         animerGelExplosionHeros();
