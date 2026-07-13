@@ -37,6 +37,9 @@ export const ENNEMIS = [
     sprite: {
       caseL: 204,
       caseH: 150,
+      statique: true, // DÉMO « image fixe + effets » : on n'utilise que la frame 0,
+                      // toute l'animation (respiration, bond, flash, mort) est faite
+                      // par le CODE (cf. dessinerEnnemiStatique dans ui/combat.js).
       anims: {
         idle:    { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 8,  boucle: true },
         attaque: { frames: [8, 9, 10],              ips: 10, boucle: false },
@@ -71,6 +74,9 @@ export const ENNEMIS = [
     sprite: {
       caseL: 204,
       caseH: 150,
+      statique: true, // DÉMO « image fixe + effets » : on n'utilise que la frame 0,
+                      // toute l'animation (respiration, bond, flash, mort) est faite
+                      // par le CODE (cf. dessinerEnnemiStatique dans ui/combat.js).
       anims: {
         idle:    { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 8,  boucle: true },
         attaque: { frames: [8, 9, 10],              ips: 10, boucle: false },
@@ -104,6 +110,9 @@ export const ENNEMIS = [
     sprite: {
       caseL: 204,
       caseH: 150,
+      statique: true, // DÉMO « image fixe + effets » : on n'utilise que la frame 0,
+                      // toute l'animation (respiration, bond, flash, mort) est faite
+                      // par le CODE (cf. dessinerEnnemiStatique dans ui/combat.js).
       anims: {
         idle:    { frames: [0, 1, 2, 3, 4, 5, 6, 7], ips: 8,  boucle: true },
         attaque: { frames: [8, 9, 10],              ips: 10, boucle: false },

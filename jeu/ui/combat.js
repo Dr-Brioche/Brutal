@@ -1181,10 +1181,17 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       u.affPv += (u.e.pv - u.affPv) * Math.min(1, dt * 8);
       u.affInit += (ratioInitiativeEnnemi(u.e) - u.affInit) * Math.min(1, dt * 6);
       u.anim.t += dt;
-      const def = u.spr.anims[u.anim.nom] ?? u.spr.anims.idle;
-      if (!def.boucle && u.anim.t * def.ips >= def.frames.length &&
-          (u.anim.nom === "touche" || u.anim.nom === "attaque")) {
-        u.anim = { nom: "idle", t: 0 };
+      if (u.spr.statique) {
+        // Monstre « image fixe + effets » : pas de frames, on borne juste la
+        // DURÉE de l'action procédurale (cf. dessinerEnnemiStatique).
+        const dur = { attaque: DUREE_ATTAQUE_PROC, touche: DUREE_TOUCHE_PROC }[u.anim.nom];
+        if (dur && u.anim.t >= dur) u.anim = { nom: "idle", t: 0 };
+      } else {
+        const def = u.spr.anims[u.anim.nom] ?? u.spr.anims.idle;
+        if (!def.boucle && u.anim.t * def.ips >= def.frames.length &&
+            (u.anim.nom === "touche" || u.anim.nom === "attaque")) {
+          u.anim = { nom: "idle", t: 0 };
+        }
       }
       u.secousse = Math.max(0, u.secousse - dt);
       if (u.mort.actif) { u.mort.t += dt; if (u.mort.t > 0.35) u.partis = true; }
@@ -1311,7 +1318,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         ctx.translate(PIVOT_SCENE.x, PIVOT_SCENE.y);
         ctx.scale(u.echelle, u.echelle);
         ctx.translate(-PIVOT_SCENE.x, -PIVOT_SCENE.y);
-        dessinerEnnemi(ctx, u.planche, u.spr, frame, u.localX + tr, u.localY, u.e.def.teinte);
+        if (u.spr.statique)
+          dessinerEnnemiStatique(ctx, u, temps, tr);
+        else
+          dessinerEnnemi(ctx, u.planche, u.spr, frame, u.localX + tr, u.localY, u.e.def.teinte);
         ctx.restore();
       }
     }
@@ -1502,6 +1512,62 @@ function dessinerEnnemi(ctx, planche, spr, frame, x, y, teinte) {
     Math.round(x), Math.round(y), spr.caseL, spr.caseH
   );
   if (teinte) ctx.filter = "none";
+}
+
+// ---- Animation « image fixe + effets » (sprite.statique) --------------------
+// Un monstre n'a qu'UNE image (frame 0) ; toute la vie vient du CODE : respiration
+// en boucle, bond vers le héros à l'attaque, recul + flash blanc au coup reçu,
+// bascule à la mort. Idée : dans un combat au tour par tour, le « vivant » vient
+// surtout des RÉACTIONS, pas d'une boucle d'idle. (cf. Slay the Spire.)
+const DUREE_ATTAQUE_PROC = 0.5;  // s — durée du bond d'attaque
+const DUREE_TOUCHE_PROC = 0.35;  // s — durée du recul « coup reçu »
+
+function dessinerEnnemiStatique(ctx, u, temps, tr) {
+  const spr = u.spr;
+  const ax = u.localX + spr.caseL / 2;   // ancre X (centre du corps)
+  const ay = u.localY + spr.caseH;       // ancre Y (les pieds : tout pivote de là)
+  const ph = (u.localX * 0.021) % 6.2832; // déphasage pour désynchroniser les monstres
+
+  // Respiration permanente : léger étirement vertical (le buste « gonfle »).
+  const br = Math.sin(temps * 2.6 + ph);
+  let sx = 1 - 0.018 * br, sy = 1 + 0.03 * br;
+  let rot = 0.015 * Math.sin(temps * 1.1 + ph), dx = 0, dy = 0, flash = 0;
+
+  const nom = u.anim.nom, t = u.anim.t;
+  if (nom === "attaque") {
+    // Le héros est à GAUCHE : on arme (recul à droite) puis on BONDIT vers lui.
+    const p = Math.min(1, t / DUREE_ATTAQUE_PROC);
+    if (p < 0.28) { const k = p / 0.28; dx = 9 * k; rot += 0.14 * k; sx *= 1 + 0.05 * k; }
+    else if (p < 0.52) { const k = (p - 0.28) / 0.24; dx = 9 - 34 * k; rot += 0.14 - 0.26 * k; sx *= 1.05 - 0.15 * k; sy *= 1 + 0.08 * k; }
+    else { const k = (p - 0.52) / 0.48; dx = -25 * (1 - k); rot += -0.12 * (1 - k); }
+  } else if (nom === "touche") {
+    // Repoussé vers l'arrière (droite), petit choc + flash blanc qui s'éteint.
+    const p = Math.min(1, t / DUREE_TOUCHE_PROC), s = Math.sin(p * Math.PI);
+    dx = 14 * s; rot += 0.10 * s; sx *= 1 + 0.04 * s; sy *= 1 - 0.03 * s;
+    flash = Math.max(0, 1 - t / 0.18);
+  }
+  if (u.mort.actif) {
+    const k = Math.min(1, u.mort.t / 0.35);
+    rot += 0.6 * k; dy += 10 * k;                    // bascule + s'affaisse
+    flash = Math.max(flash, 1 - u.mort.t / 0.12);
+  }
+
+  ctx.save();
+  ctx.translate(ax, ay);
+  ctx.rotate(rot);
+  ctx.scale(sx, sy);
+  ctx.translate(-ax, -ay);
+  const x = u.localX + dx + tr, y = u.localY + dy;
+  dessinerEnnemi(ctx, u.planche, spr, 0, x, y, u.e.def.teinte);
+  if (flash > 0) { // 2e passe : silhouette blanche (brightness 0 -> invert) par-dessus
+    const ga = ctx.globalAlpha;
+    ctx.globalAlpha = ga * Math.min(1, flash);
+    ctx.filter = "brightness(0) invert(1)";
+    dessinerEnnemi(ctx, u.planche, spr, 0, x, y, null);
+    ctx.filter = "none";
+    ctx.globalAlpha = ga;
+  }
+  ctx.restore();
 }
 
 // La vie d'un perso posée à son repère-écran : bouclier d'armure (Pierre) à
