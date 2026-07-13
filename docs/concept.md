@@ -214,9 +214,12 @@ indication contraire* — une zone peut imposer sa propre courbe) :
 |---|---|---|---|---|---|
 | Chance | 30 % | 30 % | 20 % | 15 % | 5 % |
 
-**Types tirés** : chaque emplacement est tiré **indépendamment** et **à chances
-égales** parmi les types éligibles de la zone (*sauf indication contraire* — pas
-de poids différenciés pour l'instant). Règle des affixes :
+**Types tirés** : chaque emplacement est tiré **indépendamment**, **pondéré par
+NIVEAU** parmi les types éligibles de la zone. Dans une zone à fourchette (ex.
+lvl 1-3), les monstres **plus faibles sortent plus souvent** que les plus forts :
+chaque niveau au-dessus du plus bas de la zone divise la fréquence par `FACTEUR_NIVEAU`
+(=2, `data/ennemis.js`). Ex. cave gobelins : les gobelins (niv 1) ~36 % chacun,
+l'ogre masqué (niv 3) ~9 %. Règle des affixes :
 - **Groupe de 1-2** : uniquement des monstres **`melee`**.
 - **Groupe de 3+** : **tous** les types (melee **et** range), à chances égales →
   un même type peut sortir plusieurs fois, et le groupe peut même être **composé

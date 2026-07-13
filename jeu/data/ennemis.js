@@ -210,8 +210,21 @@ export function tirerButin(ennemi) {
 export const DISTRIBUTION_GROUPE = [0.30, 0.30, 0.20, 0.15, 0.05];
 
 // Règle des affixes (cf. concept.md) : les monstres "range" n'apparaissent QUE
-// dans les groupes de 3 ou plus. Sinon, tous les types d'une zone ont autant de
-// chance de sortir (tirage uniforme, indépendant par emplacement).
+// dans les groupes de 3 ou plus. Sinon, on tire parmi les types de la zone,
+// PONDÉRÉ PAR NIVEAU : dans une zone à fourchette (ex. lvl 1-3), les monstres plus
+// FAIBLES sortent plus souvent que les plus forts.
+
+// Chaque niveau AU-DESSUS du plus bas de la zone divise la fréquence par ce facteur
+// (2 = « un niveau de plus ⇒ ~2× plus rare »). Régler ici pour toutes les zones.
+const FACTEUR_NIVEAU = 2;
+
+// Tire UN monstre du pool, pondéré par niveau (plus bas = plus probable).
+function tirerMonstrePondere(pool, niveauMin, rng = Math.random) {
+  const poids = pool.map((d) => 1 / Math.pow(FACTEUR_NIVEAU, (d.niveau ?? 1) - niveauMin));
+  let r = rng() * poids.reduce((s, w) => s + w, 0);
+  for (let i = 0; i < pool.length; i++) { r -= poids[i]; if (r < 0) return pool[i]; }
+  return pool[pool.length - 1];
+}
 
 // Tire une taille de groupe selon une distribution cumulée.
 function tirerTaille(distribution) {
@@ -228,19 +241,21 @@ function tirerTaille(distribution) {
 // d'une zone. Renvoie un tableau de DÉFINITIONS (data), trié melee → range pour
 // que les monstres distants soient toujours placés à l'arrière en combat.
 //   - taille < 3 : on ne tire que parmi les monstres MELEE de la zone ;
-//   - taille ≥ 3 : on tire parmi TOUS les monstres (melee + range), à chances
-//     égales → le groupe peut même être composé uniquement de monstres "range".
+//   - taille ≥ 3 : on tire parmi TOUS les monstres (melee + range).
+// Dans les deux cas, le tirage est PONDÉRÉ PAR NIVEAU (plus bas = plus fréquent),
+// relativement au monstre le plus faible de la zone.
 // `opts.distribution` permet à une zone d'imposer sa propre courbe de tailles.
 export function composerGroupe(monstreIds, opts = {}) {
   const defs = (monstreIds ?? []).map(ennemiParId).filter(Boolean);
   if (defs.length === 0) return [];
   const melee = defs.filter((d) => d.affix !== "range");
+  const niveauMin = Math.min(...defs.map((d) => d.niveau ?? 1)); // réf. de la fourchette
   const taille = tirerTaille(opts.distribution ?? DISTRIBUTION_GROUPE);
   // En groupe de 1-2 : que du melee. (Repli sur `defs` si la zone n'a aucun
   // melee — cas théorique d'une zone 100 % distance.)
   const pool = taille >= 3 ? defs : (melee.length ? melee : defs);
   const groupe = Array.from({ length: taille }, () =>
-    pool[Math.floor(Math.random() * pool.length)]);
+    tirerMonstrePondere(pool, niveauMin));
   // Tri stable melee d'abord, range à la fin (positionnement visuel du combat).
   groupe.sort((a, b) => (a.affix === "range" ? 1 : 0) - (b.affix === "range" ? 1 : 0));
   return groupe;
