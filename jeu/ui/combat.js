@@ -1381,19 +1381,39 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const hx = HEROS.x + (animAttaque > 0 ? avance : 0) + trHeros;
     // Le héros aussi respire (léger étirement) et FLASHE en blanc quand il encaisse.
     const brH = Math.sin(temps * 2.4);
-    const hAX = hx + 64 * ECHELLE_HEROS / 2, hAY = HEROS.y + 64 * ECHELLE_HEROS;
     const flashH = Math.min(1, secousseHeros / 0.3);
+    const solHeros = HEROS.y + 64 * ECHELLE_HEROS; // ligne de sol (pieds)
     ctx.save();
-    ctx.translate(hAX, hAY); ctx.scale(1 - 0.015 * brH, 1 + 0.025 * brH); ctx.translate(-hAX, -hAY);
-    if (heros.plancheArmure) dessinerCaseEchelle(ctx, heros.plancheArmure, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
-    if (heros.plancheArme) dessinerCaseEchelle(ctx, heros.plancheArme, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
-    if (flashH > 0.05) {
-      const ga = ctx.globalAlpha;
-      ctx.globalAlpha = ga * flashH * 0.6;
-      ctx.filter = "brightness(0) invert(1)";
+    if (imgHeroCombat.complete && imgHeroCombat.naturalWidth) {
+      // Héros = ILLUSTRATION (mains vides). Pieds au sol, centré, rendu lisse.
+      const HH = 224, HW = HH * imgHeroCombat.naturalWidth / imgHeroCombat.naturalHeight;
+      const hxI = HEROS.x + 64 * ECHELLE_HEROS / 2 - HW / 2 + (animAttaque > 0 ? avance : 0) + trHeros;
+      const hyI = solHeros - HH;
+      const aX = hxI + HW / 2, aY = solHeros;
+      ctx.translate(aX, aY); ctx.scale(1 - 0.015 * brH, 1 + 0.025 * brH); ctx.translate(-aX, -aY);
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(imgHeroCombat, hxI, hyI, HW, HH);
+      if (flashH > 0.05) {
+        const ga = ctx.globalAlpha;
+        ctx.globalAlpha = ga * flashH * 0.6;
+        ctx.filter = "brightness(0) invert(1)";
+        ctx.drawImage(imgHeroCombat, hxI, hyI, HW, HH);
+        ctx.filter = "none"; ctx.globalAlpha = ga;
+      }
+    } else {
+      // Repli : ancien sprite pixel (le temps que l'illustration charge).
+      const hAX = hx + 64 * ECHELLE_HEROS / 2, hAY = solHeros;
+      ctx.translate(hAX, hAY); ctx.scale(1 - 0.015 * brH, 1 + 0.025 * brH); ctx.translate(-hAX, -hAY);
       if (heros.plancheArmure) dessinerCaseEchelle(ctx, heros.plancheArmure, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
       if (heros.plancheArme) dessinerCaseEchelle(ctx, heros.plancheArme, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
-      ctx.filter = "none"; ctx.globalAlpha = ga;
+      if (flashH > 0.05) {
+        const ga = ctx.globalAlpha;
+        ctx.globalAlpha = ga * flashH * 0.6;
+        ctx.filter = "brightness(0) invert(1)";
+        if (heros.plancheArmure) dessinerCaseEchelle(ctx, heros.plancheArmure, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
+        if (heros.plancheArme) dessinerCaseEchelle(ctx, heros.plancheArme, 0, 2, hx, HEROS.y, ECHELLE_HEROS);
+        ctx.filter = "none"; ctx.globalAlpha = ga;
+      }
     }
     ctx.restore();
     ctx.restore();
@@ -1582,6 +1602,12 @@ function dessinerEnnemi(ctx, planche, spr, frame, x, y, teinte) {
 const DUREE_ATTAQUE_PROC = 0.5;  // s — durée du bond d'attaque (à vitesse « neutre »)
 const DUREE_TOUCHE_PROC = 0.35;  // s — durée du recul « coup reçu »
 const VIT_ANIM_REF = 10;         // vitesse d'initiative « neutre » → anim à ×1.0
+
+// Illustration du HÉROS en combat (mains vides : l'arme équipée reste abstraite —
+// pas de skin par arme). Rendu lisse + effets, comme les monstres. Repli sur le
+// sprite pixel tant qu'elle charge. (L'EXPLORATION garde le sprite pixel 4 sens.)
+const imgHeroCombat = new Image();
+imgHeroCombat.src = "images/heros/nain-combat.png";
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
 // COURTE et vive, lent = ample et lourde. (Sert de multiplicateur de durée.)
