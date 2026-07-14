@@ -57,15 +57,40 @@ export const MINERAIS = [
   "saphir", "diamant", "mithril", "onyx", "pierre-solaire",
 ];
 
-// Tire le minerai d'une veine selon la PROFONDEUR. Chaque minerai n'apparaît qu'à
-// partir de sa `profMin`. Plus on descend, plus la « fenêtre » de rareté favorisée
-// monte (rang visé ≈ profondeur) → les rares deviennent probables, les communs se
-// raréfient (mais restent possibles). `ids` = table de drop de la zone (surcharge
-// possible par grotte ; la logique reste la même). Valeurs réglables ici.
+// Rang favorisé à une profondeur donnée : monte ~+0,9 / étage.
+function cibleRang(profondeur) { return 1 + (profondeur - 1) * 0.9; }
+
+// De combien le rang favorisé peut dépasser celui d'un minerai avant qu'il
+// DISPARAISSE de la mine. Sans ça, les minerais communs (pierre, charbon…)
+// restaient possibles à l'infini → liste ingérable en profondeur. Avec cette
+// fenêtre, les premiers minerais s'effacent après quelques étages : à FENETRE=4,
+// la pierre taillée (rang 1) disparaît vers l'étage 6, le fer (rang 4) vers le 9,
+// les gemmes (rang 7-9) tiennent jusqu'aux étages 13-15. Réglable.
+const FENETRE_MINERAI = 4;
+
+// Minerais réellement trouvables à une profondeur : bornés EN BAS par `profMin`
+// (déjà introduit) ET EN HAUT par la fenêtre (pas trop « dépassé » en rareté).
+// Filet de sécurité : si tout est filtré (fond très profond), on garde au moins
+// les minerais du plus haut rang disponible → la mine n'est jamais vide.
+export function minerauxDisponibles(profondeur, ids = MINERAIS) {
+  const cible = cibleRang(profondeur);
+  const base = ids.map(itemDef).filter((m) => m && (m.profMin ?? 1) <= profondeur);
+  let dispo = base.filter((m) => (m.rang ?? 1) >= cible - FENETRE_MINERAI);
+  if (!dispo.length && base.length) {
+    const maxRang = Math.max(...base.map((m) => m.rang ?? 1));
+    dispo = base.filter((m) => (m.rang ?? 1) >= maxRang - 1);
+  }
+  return dispo;
+}
+
+// Tire le minerai d'une veine selon la PROFONDEUR. Chaque minerai apparaît dans sa
+// FENÊTRE de profondeur (cf. minerauxDisponibles) ; à l'intérieur, plus le rang est
+// proche du rang favorisé (≈ profondeur), plus il est probable. `ids` = table de
+// drop de la zone (surcharge possible par grotte ; la logique reste la même).
 export function tirerMinerai(profondeur, ids = MINERAIS) {
-  const dispo = ids.map(itemDef).filter((m) => m && (m.profMin ?? 1) <= profondeur);
+  const dispo = minerauxDisponibles(profondeur, ids);
   if (!dispo.length) return ids[0];
-  const cible = 1 + (profondeur - 1) * 0.9; // rang favorisé : monte ~+0,9 / étage
+  const cible = cibleRang(profondeur);
   let total = 0;
   const poids = dispo.map((m) => {
     const w = 1 / (1 + Math.abs((m.rang ?? 1) - cible)) ** 1.6;
@@ -81,9 +106,9 @@ export function tirerMinerai(profondeur, ids = MINERAIS) {
 // au moins probable (pour l'indicateur HUD « minerais trouvables à l'étage »).
 // `pct` = chance qu'une veine donnée soit ce minerai (pas une garantie de présence).
 export function distributionMinerais(profondeur, ids = MINERAIS) {
-  const dispo = ids.map(itemDef).filter((m) => m && (m.profMin ?? 1) <= profondeur);
+  const dispo = minerauxDisponibles(profondeur, ids);
   if (!dispo.length) return [];
-  const cible = 1 + (profondeur - 1) * 0.9;
+  const cible = cibleRang(profondeur);
   const poids = dispo.map((m) => 1 / (1 + Math.abs((m.rang ?? 1) - cible)) ** 1.6);
   const total = poids.reduce((s, w) => s + w, 0) || 1;
   return dispo
