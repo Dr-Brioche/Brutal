@@ -47,6 +47,10 @@ const RATIO_ARRIERE   = ECHELLE_ARRIERE / ECHELLE_AVANT; // facteur UI arrière 
 const SOL_ARRIERE = SOL_Y - 18;              // pieds des ennemis arrière, 18 px plus hauts
 const PIVOT_SCENE = { x: 320, y: SOL_Y };
 const HEROS_ECRAN_CX = 140;         // centre du héros à l'écran (scène)
+// Le nain est REMONTÉ de quelques px pour se placer EN HAUTEUR entre les deux rangs
+// de mobs (avant SOL_Y=224, arrière SOL_ARRIERE=206) → ses pieds visent ~213.
+const DECAL_HEROS = 11;             // remontée du nain à l'écran (px)
+const ECHELLE_HEROS_ILLU = 1.30;   // illustration du nain agrandie de 30 %
 // Le groupe d'ennemis est centré à droite ; ils s'étalent autour de ce centre.
 const ENNEMIS_CX = 425;
 const ENNEMIS_ESPACE = 78;          // écart horizontal entre deux ennemis (scène)
@@ -140,7 +144,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // Héros : coin haut-gauche du sprite (pieds sur le sol) + repère écran.
   const HEROS = { x: versOrigine(HEROS_ECRAN_CX) - (64 * ECHELLE_HEROS) / 2, y: SOL_Y - 64 * ECHELLE_HEROS };
-  const heroEcran = { cx: HEROS_ECRAN_CX, sol: SOL_Y, haut: SOL_Y - 64 * ECHELLE_HEROS * ECHELLE_SCENE };
+  const heroEcran = { cx: HEROS_ECRAN_CX, sol: SOL_Y - DECAL_HEROS, haut: SOL_Y - DECAL_HEROS - 64 * ECHELLE_HEROS * ECHELLE_SCENE };
   heroEcran.milieu = (heroEcran.haut + heroEcran.sol) / 2;
   heroEcran.sommet = heroEcran.haut - 10; // au-dessus de la tête du héros (nombres flottants)
 
@@ -1424,6 +1428,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     ctx.translate(PIVOT_SCENE.x, PIVOT_SCENE.y);
     ctx.scale(ECHELLE_AVANT, ECHELLE_AVANT);
     ctx.translate(-PIVOT_SCENE.x, -PIVOT_SCENE.y);
+    ctx.translate(0, -DECAL_HEROS / ECHELLE_AVANT); // remonte le nain entre les 2 rangs de mobs
     const avance = Math.sin((1 - animAttaque / 0.25) * Math.PI) * 14;
     const trHeros = secousseHeros > 0 ? (Math.random() - 0.5) * 8 : 0;
     const hx = HEROS.x + (animAttaque > 0 ? avance : 0) + trHeros;
@@ -1434,7 +1439,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     ctx.save();
     if (imgHeroCombat.complete && imgHeroCombat.naturalWidth) {
       // Héros = ILLUSTRATION (mains vides). Pieds au sol, centré, rendu lisse.
-      const HH = 150, HW = HH * imgHeroCombat.naturalWidth / imgHeroCombat.naturalHeight;
+      // Agrandi de 30 % (ECHELLE_HEROS_ILLU) ; les pieds restent posés sur solHeros.
+      const HH = 150 * ECHELLE_HEROS_ILLU, HW = HH * imgHeroCombat.naturalWidth / imgHeroCombat.naturalHeight;
       const hxI = HEROS.x + 64 * ECHELLE_HEROS / 2 - HW / 2 + (animAttaque > 0 ? avance : 0) + trHeros;
       const hyI = solHeros - HH;
       const aX = hxI + HW / 2, aY = solHeros;
