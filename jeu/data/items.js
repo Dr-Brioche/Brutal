@@ -83,36 +83,55 @@ export function minerauxDisponibles(profondeur, ids = MINERAIS) {
   return dispo;
 }
 
-// Tire le minerai d'une veine selon la PROFONDEUR. Chaque minerai apparaît dans sa
-// FENÊTRE de profondeur (cf. minerauxDisponibles) ; à l'intérieur, plus le rang est
-// proche du rang favorisé (≈ profondeur), plus il est probable. `ids` = table de
-// drop de la zone (surcharge possible par grotte ; la logique reste la même).
-export function tirerMinerai(profondeur, ids = MINERAIS) {
-  const dispo = minerauxDisponibles(profondeur, ids);
-  if (!dispo.length) return ids[0];
-  const cible = cibleRang(profondeur);
-  let total = 0;
-  const poids = dispo.map((m) => {
-    const w = 1 / (1 + Math.abs((m.rang ?? 1) - cible)) ** 1.6;
-    total += w;
-    return w;
-  });
-  let r = Math.random() * total;
-  for (let i = 0; i < dispo.length; i++) { r -= poids[i]; if (r <= 0) return dispo[i].id; }
-  return dispo[dispo.length - 1].id;
-}
+// Minerai EMBLÉMATIQUE de chaque grotte à thème : il a une chance BONUS d'apparaître
+// dans sa grotte (à condition d'être déjà trouvable à cette profondeur). Le rubis
+// aime la lave (grotte de feu), le diamant le cristal, le lapis-lazuli la glace.
+const MINERAI_THEME = { lave: "rubis", cristal: "diamant", glace: "lapis" };
+const BONUS_THEME = 0.15; // +15 points de probabilité au minerai emblématique
 
-// Distribution des minerais à une profondeur : [{ id, pct }] trié du plus probable
-// au moins probable (pour l'indicateur HUD « minerais trouvables à l'étage »).
-// `pct` = chance qu'une veine donnée soit ce minerai (pas une garantie de présence).
-export function distributionMinerais(profondeur, ids = MINERAIS) {
+// Probabilités (poids normalisés) des minerais disponibles à une profondeur.
+// Applique le bonus de grotte à thème s'il y a lieu. Renvoie [{ def, p }].
+function probasMinerais(profondeur, ids, theme) {
   const dispo = minerauxDisponibles(profondeur, ids);
   if (!dispo.length) return [];
   const cible = cibleRang(profondeur);
   const poids = dispo.map((m) => 1 / (1 + Math.abs((m.rang ?? 1) - cible)) ** 1.6);
   const total = poids.reduce((s, w) => s + w, 0) || 1;
-  return dispo
-    .map((m, i) => ({ id: m.id, pct: Math.round((poids[i] / total) * 100) }))
+  let prob = poids.map((w) => w / total);
+  // Bonus de grotte à thème : +BONUS_THEME au minerai emblématique s'il est trouvable
+  // ici ; les autres sont réduits proportionnellement pour garder une somme de 1.
+  const favori = theme && MINERAI_THEME[theme];
+  if (favori) {
+    const j = dispo.findIndex((m) => m.id === favori);
+    if (j >= 0 && prob[j] < 1) {
+      const cibleP = Math.min(1, prob[j] + BONUS_THEME);
+      const reste = 1 - prob[j];
+      const facteur = reste > 0 ? (1 - cibleP) / reste : 0;
+      prob = prob.map((p, k) => (k === j ? cibleP : p * facteur));
+    }
+  }
+  return dispo.map((def, i) => ({ def, p: prob[i] }));
+}
+
+// Tire le minerai d'une veine selon la PROFONDEUR. Chaque minerai apparaît dans sa
+// FENÊTRE de profondeur (cf. minerauxDisponibles) ; à l'intérieur, plus le rang est
+// proche du rang favorisé (≈ profondeur), plus il est probable. `ids` = table de
+// drop de la zone. `theme` = grotte à thème (bonus au minerai emblématique).
+export function tirerMinerai(profondeur, ids = MINERAIS, theme = null) {
+  const probas = probasMinerais(profondeur, ids, theme);
+  if (!probas.length) return ids[0];
+  let r = Math.random();
+  for (const { def, p } of probas) { r -= p; if (r <= 0) return def.id; }
+  return probas[probas.length - 1].def.id;
+}
+
+// Distribution des minerais à une profondeur : [{ id, pct }] trié du plus probable
+// au moins probable (pour l'indicateur HUD « minerais trouvables à l'étage »).
+// `pct` = chance qu'une veine donnée soit ce minerai (pas une garantie de présence).
+// `theme` : reflète aussi le bonus de grotte pour que le HUD colle au vrai tirage.
+export function distributionMinerais(profondeur, ids = MINERAIS, theme = null) {
+  return probasMinerais(profondeur, ids, theme)
+    .map(({ def, p }) => ({ id: def.id, pct: Math.round(p * 100) }))
     .filter((e) => e.pct >= 1)            // on n'affiche pas le bruit < 1 %
     .sort((a, b) => b.pct - a.pct);
 }

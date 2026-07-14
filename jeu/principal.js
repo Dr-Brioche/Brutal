@@ -1199,7 +1199,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     let html = `<div class="hud-ligne" data-tooltip="Monster level on this floor">`
       + `<span class="hud-logo">⚔</span> Lv ${z.niveauMobs[0]}–${z.niveauMobs[1]}</div>`;
     if (z.estMine) {
-      const dist = distributionMinerais(z.niveau ?? 1, z.materiaux);
+      const dist = distributionMinerais(z.niveau ?? 1, z.materiaux, z.theme);
       html += dist.map(e => {
         const d = itemDef(e.id);
         return `<div class="hud-min"><i class="hud-icone" style="background:${d.icone}"></i>${d.nom}<span class="hud-pct">${e.pct}%</span></div>`;

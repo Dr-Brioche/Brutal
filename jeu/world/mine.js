@@ -213,7 +213,7 @@ function finaliser(g, salles, cfg) {
   const veines = [];
   for (let i = 0; i < nb && i < parois.length; i++) {
     const [x, y] = parois[i];
-    veines.push({ col: x, lig: y, type: tirerMinerai(cfg.niveau, cfg.materiaux), coups: entier(2, 5) });
+    veines.push({ col: x, lig: y, type: tirerMinerai(cfg.niveau, cfg.materiaux, cfg.theme), coups: entier(2, 5) });
   }
 
   // MÉGA-GISEMENT (rare) : un gros filon au CENTRE d'une salle d'exploration. C'est
@@ -229,7 +229,7 @@ function finaliser(g, salles, cfg) {
       [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dy]) => g[cy + dy]?.[cx + dx] === ",");
     if (entoure) {
       g[cy][cx] = "#"; // pilier de roche : bloque le passage (mine-able tout autour)
-      veines.push({ col: cx, lig: cy, type: tirerMinerai(cfg.niveau + 1, cfg.materiaux), coups: entier(8, 12), mega: true });
+      veines.push({ col: cx, lig: cy, type: tirerMinerai(cfg.niveau + 1, cfg.materiaux, cfg.theme), coups: entier(8, 12), mega: true });
       megaTile = [cx, cy];
     }
   }
