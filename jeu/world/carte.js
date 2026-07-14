@@ -331,6 +331,7 @@ const THEMES_MINE = {
   cristal: { teinte: "rgba(120,80,210,0.15)", accent: "#8ad6ff", eclat: "#e8c8ff" },
   glace:   { teinte: "rgba(120,175,225,0.17)", accent: "#eaf6ff", eclat: "#a9dcff" },
   lave:    { teinte: "rgba(205,55,15,0.15)",  accent: "#ff7a1a", eclat: "#ffd24a" },
+  inondee: { teinte: "rgba(30,120,150,0.18)", accent: "#3fb0c8", eclat: "#bfeaf2" },
 };
 
 // Petit cristal (losange) qui pointe depuis une paroi / le sol.

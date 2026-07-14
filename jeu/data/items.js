@@ -85,8 +85,9 @@ export function minerauxDisponibles(profondeur, ids = MINERAIS) {
 
 // Minerai EMBLÉMATIQUE de chaque grotte à thème : il a une chance BONUS d'apparaître
 // dans sa grotte (à condition d'être déjà trouvable à cette profondeur). Le rubis
-// aime la lave (grotte de feu), le diamant le cristal, le lapis-lazuli la glace.
-const MINERAI_THEME = { lave: "rubis", cristal: "diamant", glace: "lapis" };
+// aime la lave (grotte de feu), le diamant le cristal, le lapis-lazuli la glace,
+// et le titane la mine inondée.
+const MINERAI_THEME = { lave: "rubis", cristal: "diamant", glace: "lapis", inondee: "titane" };
 const BONUS_THEME = 0.15; // +15 points de probabilité au minerai emblématique
 
 // Probabilités (poids normalisés) des minerais disponibles à une profondeur.

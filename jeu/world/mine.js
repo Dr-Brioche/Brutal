@@ -41,19 +41,31 @@ const PROFIL_DEFAUT = {
 
 function entier(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
 
-// ÉTAGES À THÈME (décision Brioche 09/07/2026) : dès l'étage 3, une CHANCE de
-// tomber sur un étage à thème (cristal / glace / lave) — design + palette à part.
-// Réglable : la chance et la liste. Le rendu de la teinte/décor est dans carte.js.
-const CHANCE_THEME = 0.4;                 // % d'étages à thème dès l'étage 3
-const ETAGE_THEME_MIN = 3;
-const THEMES_MINE = ["cristal", "glace", "lave"];
+// ÉTAGES À THÈME (biomes de mine) : une CHANCE de tomber sur un étage à biome
+// (glace / lave / inondée / cristal) — décor, palette et fonds de combat à part.
+// Chaque biome n'apparaît qu'à partir d'une PROFONDEUR MINIMALE (décision Brioche) :
+//   glace ≥ 3 · lave ≥ 4 · inondée ≥ 5 · cristal ≥ 6.
+// À un étage donné, on tire au sort parmi les biomes déjà débloqués ; sinon l'étage
+// reste NORMAL (chance CHANCE_THEME de tomber sur un biome). Réglable ici.
+const CHANCE_THEME = 0.4;                 // proba qu'un étage éligible soit à biome
+const THEMES_MINE = [
+  { id: "glace",   min: 3 },
+  { id: "lave",    min: 4 },
+  { id: "inondee", min: 5 },
+  { id: "cristal", min: 6 },
+];
 export function tirerTheme(niveau) {
-  if ((niveau ?? 1) < ETAGE_THEME_MIN) return null;
-  if (Math.random() >= CHANCE_THEME) return null;
-  return THEMES_MINE[Math.floor(Math.random() * THEMES_MINE.length)];
+  const n = niveau ?? 1;
+  const eligibles = THEMES_MINE.filter((t) => n >= t.min);
+  if (!eligibles.length) return null;                 // trop peu profond : normal
+  if (Math.random() >= CHANCE_THEME) return null;     // étage normal
+  return eligibles[Math.floor(Math.random() * eligibles.length)].id;
 }
-// Nom + réglages propres à un thème (la mine de cristal est ABONDANTE : + de veines).
-const THEME_NOM = { cristal: "Crystal Depths", glace: "Frozen Depths", lave: "Molten Depths" };
+// Nom + réglages propres à un biome (la mine de cristal est ABONDANTE : + de veines).
+const THEME_NOM = {
+  cristal: "Crystal Depths", glace: "Frozen Depths",
+  lave: "Molten Depths", inondee: "Flooded Depths",
+};
 function appliquerThemeCfg(cfg) {
   cfg.nom = THEME_NOM[cfg.theme] ?? cfg.nom;
   if (cfg.theme === "cristal") {
