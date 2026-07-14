@@ -213,6 +213,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   }
   conteneurMain.addEventListener("pointerleave", surSortieMain);
   const overlayPioche = document.getElementById("combat-pioche-anim");
+  // CLIC (souris) pendant une animation de pioche/défausse : passe l'animation, comme
+  // Espace au clavier. On écoute pointerdown (plus fiable que click, non « mangé » par
+  // la gestion pointer du drag de cartes) et on déclenche le saut posé sur `onclick`.
+  overlayPioche.addEventListener("pointerdown", (e) => { e.preventDefault(); overlayPioche.onclick?.(); });
   const boutonFin = document.getElementById("combat-fin");
   const boutonFuite = document.getElementById("combat-fuite");
   const panneauResultat = document.getElementById("combat-resultat");
