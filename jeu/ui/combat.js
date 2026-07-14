@@ -1471,11 +1471,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         ctx.scale(sArme, sArme);
         ctx.drawImage(skinArme.img, -skinArme.gcx, -skinArme.gcy); // point de prise à l'origine
         ctx.restore();
-        // Re-pose les poings (fraction DROITE du sprite) au-dessus de l'arme.
+        // Re-pose les poings (fraction DROITE du sprite) au-dessus de l'arme, mais PAS
+        // au-dessus de poingsTopFrac (le dessus de la main reste derrière la lame → l'épée
+        // semble sortir de la main).
         ctx.save();
         const fracX = hxI + skinArme.poingsFrac * HW;
+        const yTop = hyI + (skinArme.poingsTopFrac ?? 0) * HH;
         ctx.beginPath();
-        ctx.rect(fracX, hyI, hxI + HW - fracX, HH);
+        ctx.rect(fracX, yTop, hxI + HW - fracX, hyI + HH - yTop);
         ctx.clip();
         ctx.drawImage(imgHero, hxI, hyI, HW, HH);
         ctx.restore();
@@ -1766,11 +1769,13 @@ imgHeroCombat2Mains.src = "images/heros/nain-combat-2mains.png";
 //   à l'illustration du héros ; angle = inclinaison (° ; + = lame vers le haut) ;
 //   fx,fy = point de prise sur le héros (fraction de sa largeur/hauteur dessinée) ;
 //   poingsFrac = à partir de quelle fraction de largeur on RE-POSE les poings du nain
-//   par-dessus l'arme (0.71 = le dernier ~29 % à droite = les mains).
+//   par-dessus l'arme (0.71 = le dernier ~29 % à droite = les mains) ;
+//   poingsTopFrac = au-dessus de cette fraction de HAUTEUR, on ne repose PAS les poings
+//   → le dessus de la main reste DERRIÈRE la lame (l'épée « sort » de la main).
 const imgClaymore = new Image();
 imgClaymore.src = "images/armes/claymore-combat.png";
 const SKINS_ARME_2M = {
-  "epee-large": { img: imgClaymore, gcx: 88, gcy: 52, echelle: 0.48, angle: 73, fx: 0.94, fy: 0.37, poingsFrac: 0.71 },
+  "epee-large": { img: imgClaymore, gcx: 88, gcy: 52, echelle: 0.48, angle: 73, fx: 0.94, fy: 0.37, poingsFrac: 0.71, poingsTopFrac: 0.37 },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
