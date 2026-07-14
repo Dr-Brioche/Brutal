@@ -1177,6 +1177,9 @@
       z-index: 50;
       background: rgba(0, 0, 0, 0.38);
       cursor: pointer;
+      /* La zone de combat est en pointer-events:none : l'overlay DOIT réactiver les
+         clics, sinon le clic « passe à travers » et ne passe pas l'animation de pioche. */
+      pointer-events: auto;
     }
     #combat-pioche-anim .combat-carte {
       --carte-l: 40.5cqh; /* cartes présentées (pioche/défausse) : 1,5× la taille de base (27cqh) */
