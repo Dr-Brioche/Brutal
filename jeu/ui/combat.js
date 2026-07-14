@@ -1457,8 +1457,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const aX = hxI + HW / 2, aY = solHeros;
       ctx.translate(aX, aY); ctx.scale(1 - 0.015 * brH, 1 + 0.025 * brH); ctx.translate(-aX, -aY);
       ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-      // ARME à deux mains DERRIÈRE le nain (avant son sprite) : poignée dans les mains,
-      // lame vers l'avant. Le manche qui dépasse passe donc derrière la main.
+      // 1) Le NAIN (base). 2) L'ARME par-dessus : la lame passe devant le corps et la
+      //    main arrière. 3) On REPOSE les POINGS (partie droite du sprite) par-dessus
+      //    l'arme → les mains tiennent vraiment l'arme (doigts devant, la lame traverse
+      //    la prise). Effet « calques » sans redessiner de bras à la main.
+      ctx.drawImage(imgHero, hxI, hyI, HW, HH);
       if (skinArme && skinArme.img.complete && skinArme.img.naturalWidth) {
         const gX = hxI + skinArme.fx * HW, gY = hyI + skinArme.fy * HH;
         const sArme = skinArme.echelle * HH / imgHero.naturalHeight;
@@ -1468,8 +1471,15 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         ctx.scale(sArme, sArme);
         ctx.drawImage(skinArme.img, -skinArme.gcx, -skinArme.gcy); // point de prise à l'origine
         ctx.restore();
+        // Re-pose les poings (fraction DROITE du sprite) au-dessus de l'arme.
+        ctx.save();
+        const fracX = hxI + skinArme.poingsFrac * HW;
+        ctx.beginPath();
+        ctx.rect(fracX, hyI, hxI + HW - fracX, HH);
+        ctx.clip();
+        ctx.drawImage(imgHero, hxI, hyI, HW, HH);
+        ctx.restore();
       }
-      ctx.drawImage(imgHero, hxI, hyI, HW, HH);
       if (flashH > 0.05) {
         const ga = ctx.globalAlpha;
         ctx.globalAlpha = ga * flashH * 0.6;
@@ -1754,11 +1764,13 @@ imgHeroCombat2Mains.src = "images/heros/nain-combat-2mains.png";
 // dépasse passe derrière la main. Un skin par arme (id = clé). Réglages :
 //   gcx,gcy = point de PRISE dans l'image de l'arme (px) ; echelle = taille relative
 //   à l'illustration du héros ; angle = inclinaison (° ; + = lame vers le haut) ;
-//   fx,fy = point de prise sur le héros (fraction de sa largeur/hauteur dessinée).
+//   fx,fy = point de prise sur le héros (fraction de sa largeur/hauteur dessinée) ;
+//   poingsFrac = à partir de quelle fraction de largeur on RE-POSE les poings du nain
+//   par-dessus l'arme (0.71 = le dernier ~29 % à droite = les mains).
 const imgClaymore = new Image();
 imgClaymore.src = "images/armes/claymore-combat.png";
 const SKINS_ARME_2M = {
-  "epee-large": { img: imgClaymore, gcx: 88, gcy: 52, echelle: 0.48, angle: 11, fx: 0.89, fy: 0.42 },
+  "epee-large": { img: imgClaymore, gcx: 88, gcy: 52, echelle: 0.48, angle: 11, fx: 0.89, fy: 0.42, poingsFrac: 0.71 },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
