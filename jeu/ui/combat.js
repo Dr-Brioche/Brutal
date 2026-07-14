@@ -1685,6 +1685,26 @@ function dessinerEnnemiStatique(ctx, u, temps, tr) {
   ctx.scale(sx, sy);
   ctx.translate(-ax, -ay);
   const x = u.localX + dx + tr, y = u.localY + dy;
+  // HALO de lisibilité : un dégradé clair très léger DERRIÈRE l'ennemi (dessiné
+  // avant le sprite → passe dessous). En mode additif (« lighter ») il n'éclaire
+  // que le décor sombre autour ; le sprite, opaque, se dessine par-dessus sans
+  // être délavé. Ellipse calée sur le corps. Régler HALO_OPACITE pour + / - fort.
+  {
+    const HALO_OPACITE = 0.16;
+    const hcx = x + spr.caseL / 2, hcy = y + spr.caseH * 0.5;
+    const rx = spr.caseL * 0.78, ry = spr.caseH * 0.6;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(hcx, hcy);
+    ctx.scale(1, ry / rx); // rond -> ellipse verticale (suit la hauteur du corps)
+    const halo = ctx.createRadialGradient(0, 0, rx * 0.12, 0, 0, rx);
+    halo.addColorStop(0, `rgba(240,244,255,${HALO_OPACITE})`);
+    halo.addColorStop(0.55, `rgba(240,244,255,${HALO_OPACITE * 0.4})`);
+    halo.addColorStop(1, "rgba(240,244,255,0)");
+    ctx.fillStyle = halo;
+    ctx.fillRect(-rx, -rx, rx * 2, rx * 2);
+    ctx.restore();
+  }
   dessinerEnnemi(ctx, u.planche, spr, 0, x, y, u.e.def.teinte);
   if (flash > 0) { // 2e passe : silhouette blanche (brightness 0 -> invert) par-dessus
     const ga = ctx.globalAlpha;
