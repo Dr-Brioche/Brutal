@@ -93,6 +93,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
   // Items équipés (slots armure, bottes, gants… + armes, bijoux).
   const itemsEquipes = Object.values(inventaire.slots ?? {}).filter(Boolean).map(itemDef).filter(Boolean);
+  // Arme à DEUX MAINS équipée ? → choisit l'illustration « poings tendus » du héros.
+  const armeDeuxMains = itemDef(inventaire.slots?.arme1)?.mains === 2;
   // Armure de départ : somme des armureDepart de tous les items équipés (+ run).
   const armureDepart = itemsEquipes.reduce((s, d) => s + (d.armureDepart ?? 0), 0) + (run.armureDepart ?? 0);
   // Célérité passive (% d'initiative de combat) des items (+ run). Le « move speed »
@@ -1440,22 +1442,25 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const brH = Math.sin(temps * 2.4);
     const flashH = Math.min(1, secousseHeros / 0.3);
     const solHeros = HEROS.y + 64 * ECHELLE_HEROS; // ligne de sol (pieds)
+    // Pose selon l'arme : poings tendus si arme à 2 mains, sinon mains vides.
+    const imgHero = (armeDeuxMains && imgHeroCombat2Mains.complete && imgHeroCombat2Mains.naturalWidth)
+      ? imgHeroCombat2Mains : imgHeroCombat;
     ctx.save();
-    if (imgHeroCombat.complete && imgHeroCombat.naturalWidth) {
-      // Héros = ILLUSTRATION (mains vides). Pieds au sol, centré, rendu lisse.
+    if (imgHero.complete && imgHero.naturalWidth) {
+      // Héros = ILLUSTRATION. Pieds au sol, centré, rendu lisse.
       // Agrandi de 30 % (ECHELLE_HEROS_ILLU) ; les pieds restent posés sur solHeros.
-      const HH = 150 * ECHELLE_HEROS_ILLU, HW = HH * imgHeroCombat.naturalWidth / imgHeroCombat.naturalHeight;
+      const HH = 150 * ECHELLE_HEROS_ILLU, HW = HH * imgHero.naturalWidth / imgHero.naturalHeight;
       const hxI = HEROS.x + 64 * ECHELLE_HEROS / 2 - HW / 2 + (animAttaque > 0 ? avance : 0) + trHeros;
       const hyI = solHeros - HH;
       const aX = hxI + HW / 2, aY = solHeros;
       ctx.translate(aX, aY); ctx.scale(1 - 0.015 * brH, 1 + 0.025 * brH); ctx.translate(-aX, -aY);
       ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(imgHeroCombat, hxI, hyI, HW, HH);
+      ctx.drawImage(imgHero, hxI, hyI, HW, HH);
       if (flashH > 0.05) {
         const ga = ctx.globalAlpha;
         ctx.globalAlpha = ga * flashH * 0.6;
         ctx.filter = "brightness(0) invert(1)";
-        ctx.drawImage(imgHeroCombat, hxI, hyI, HW, HH);
+        ctx.drawImage(imgHero, hxI, hyI, HW, HH);
         ctx.filter = "none"; ctx.globalAlpha = ga;
       }
     } else {
@@ -1721,11 +1726,14 @@ const DUREE_ATTAQUE_PROC = 0.5;  // s — durée du bond d'attaque (à vitesse �
 const DUREE_TOUCHE_PROC = 0.35;  // s — durée du recul « coup reçu »
 const VIT_ANIM_REF = 10;         // vitesse d'initiative « neutre » → anim à ×1.0
 
-// Illustration du HÉROS en combat (mains vides : l'arme équipée reste abstraite —
-// pas de skin par arme). Rendu lisse + effets, comme les monstres. Repli sur le
-// sprite pixel tant qu'elle charge. (L'EXPLORATION garde le sprite pixel 4 sens.)
+// Illustration du HÉROS en combat. Rendu lisse + effets, comme les monstres. Repli
+// sur le sprite pixel tant qu'elle charge. (L'EXPLORATION garde le sprite pixel 4 sens.)
+// Deux poses : MAINS VIDES (arme abstraite) et POINGS TENDUS (arme à DEUX MAINS —
+// on choisit celle-ci quand une arme 2 mains est équipée ; cf. armeDeuxMains).
 const imgHeroCombat = new Image();
 imgHeroCombat.src = "images/heros/nain-combat.png";
+const imgHeroCombat2Mains = new Image();
+imgHeroCombat2Mains.src = "images/heros/nain-combat-2mains.png";
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
 // COURTE et vive, lent = ample et lourde. (Sert de multiplicateur de durée.)
