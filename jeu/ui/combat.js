@@ -1455,6 +1455,13 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const hxI = HEROS.x + 64 * ECHELLE_HEROS / 2 - HW / 2 + (animAttaque > 0 ? avance : 0) + trHeros;
       const hyI = solHeros - HH;
       const aX = hxI + HW / 2, aY = solHeros;
+      // OMBRE au sol sous le nain (comme les monstres) : ovale calé sous ses pieds
+      // réels. Dessinée AVANT la respiration → elle reste posée au sol (pas de secousse).
+      const mHero = scanPieds(imgHero, imgHero.naturalWidth, imgHero.naturalHeight);
+      const hxBase = HEROS.x + 64 * ECHELLE_HEROS / 2 - HW / 2; // sans secousse/avance
+      const ombreCx = hxBase + (mHero ? mHero.cx / imgHero.naturalWidth : 0.5) * HW;
+      const ombreDemi = (mHero ? mHero.demi / imgHero.naturalWidth : 0.35) * HW;
+      ombreOvale(ctx, ombreCx, solHeros - 1, Math.max(ombreDemi * 1.5, HW * 0.42));
       ctx.translate(aX, aY); ctx.scale(1 - 0.015 * brH, 1 + 0.025 * brH); ctx.translate(-aX, -aY);
       ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
       // 1) Le NAIN (base). 2) L'ARME par-dessus : la lame passe devant le corps et la
@@ -1690,23 +1697,22 @@ function dessinerEnnemi(ctx, planche, spr, frame, x, y, teinte) {
 // puis on met en cache par planche. Marche pour tout futur monstre, sans réglage.
 // Renvoie { cx, demi } en pixels-sprite (centre des pieds + demi-largeur), ou null.
 const _piedsCache = new WeakMap();
-function metriquesPieds(u) {
-  const spr = u.spr, planche = u.planche;
+function scanPieds(planche, sw, sh) {
   if (!planche || !planche.complete || !planche.naturalWidth) return null;
   const cache = _piedsCache.get(planche);
   if (cache !== undefined) return cache;
   let res = null;
   try {
     const cv = document.createElement("canvas");
-    cv.width = spr.caseL; cv.height = spr.caseH;
+    cv.width = sw; cv.height = sh;
     const c = cv.getContext("2d", { willReadFrequently: true });
-    c.drawImage(planche, 0, 0, spr.caseL, spr.caseH, 0, 0, spr.caseL, spr.caseH);
-    const data = c.getImageData(0, 0, spr.caseL, spr.caseH).data;
-    const yDebut = Math.floor(spr.caseH * 0.85); // les ~15 % du bas = les pieds
-    let xmin = spr.caseL, xmax = -1;
-    for (let y = yDebut; y < spr.caseH; y++) {
-      const base = y * spr.caseL;
-      for (let x = 0; x < spr.caseL; x++) {
+    c.drawImage(planche, 0, 0, sw, sh, 0, 0, sw, sh);
+    const data = c.getImageData(0, 0, sw, sh).data;
+    const yDebut = Math.floor(sh * 0.85); // les ~15 % du bas = les pieds
+    let xmin = sw, xmax = -1;
+    for (let y = yDebut; y < sh; y++) {
+      const base = y * sw;
+      for (let x = 0; x < sw; x++) {
         if (data[(base + x) * 4 + 3] > 40) { if (x < xmin) xmin = x; if (x > xmax) xmax = x; }
       }
     }
@@ -1715,20 +1721,12 @@ function metriquesPieds(u) {
   _piedsCache.set(planche, res);
   return res;
 }
+function metriquesPieds(u) { return scanPieds(u.planche, u.spr.caseL, u.spr.caseH); }
 
-// Ombre portée au sol sous un ennemi : ovale dégradé sombre, calé sous les PIEDS
-// RÉELS (détectés) et assez large pour couvrir les deux pieds. Plus grande sous un
-// grand monstre. Dessinée AVANT le sprite (donc dessous), dans le repère à l'échelle.
-function dessinerOmbreSol(ctx, u) {
-  const spr = u.spr;
-  const m = metriquesPieds(u); // pieds réels (sinon milieu de l'image en secours)
-  const cx = u.localX + (m ? m.cx : spr.caseL / 2);
-  const cy = u.localY + spr.caseH - 1; // sur la ligne des pieds
-  // Largeur : couvre LARGEMENT les deux pieds (jambes écartées incluses), plancher
-  // pour les petits. Le noir tient jusqu'à 70 % du rayon → l'ombre porte vraiment.
-  const base = m ? Math.max(m.demi * 1.55, spr.caseL * 0.38) : spr.caseL * 0.48;
-  const rx = base * (u.e.def.grand ? 1.12 : 1);
-  const ry = rx * 0.26;                // ovale aplati (vu de face)
+// Dessine un OVALE d'ombre dégradé sombre, centré sur (cx, cy), de demi-largeur rx.
+// Aplati (ry = 26 % de rx). Le noir tient jusqu'à 70 % du rayon → l'ombre porte.
+function ombreOvale(ctx, cx, cy, rx) {
+  const ry = rx * 0.26;
   ctx.save();
   ctx.imageSmoothingEnabled = true;
   ctx.translate(cx, cy);
@@ -1742,6 +1740,20 @@ function dessinerOmbreSol(ctx, u) {
   ctx.arc(0, 0, rx, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+// Ombre portée au sol sous un ennemi : calée sous les PIEDS RÉELS (détectés) et assez
+// large pour couvrir les deux pieds. Plus grande sous un grand monstre. Dessinée AVANT
+// le sprite (donc dessous), dans le repère à l'échelle.
+function dessinerOmbreSol(ctx, u) {
+  const spr = u.spr;
+  const m = metriquesPieds(u); // pieds réels (sinon milieu de l'image en secours)
+  const cx = u.localX + (m ? m.cx : spr.caseL / 2);
+  const cy = u.localY + spr.caseH - 1; // sur la ligne des pieds
+  // Largeur : couvre LARGEMENT les deux pieds (jambes écartées incluses), plancher pour
+  // les petits.
+  const base = m ? Math.max(m.demi * 1.55, spr.caseL * 0.38) : spr.caseL * 0.48;
+  ombreOvale(ctx, cx, cy, base * (u.e.def.grand ? 1.12 : 1));
 }
 
 // ---- Animation « image fixe + effets » (sprite.statique) --------------------
