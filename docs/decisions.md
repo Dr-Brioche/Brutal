@@ -98,7 +98,7 @@ l'illustration « poings tendus » (`images/heros/nain-combat-2mains.png`).
 - **Claymore** (`epee-large`) : `angle 73`, `fx 0.94`, `fy 0.37`, `echelle 0.1783`,
   `poingsFrac 0.71`, `poingsTopFrac 0.15`.
 - **War Axe** (`hache-de-guerre`) : `angle 73`, `fx 1.025`, `fy 0.20`, `echelle 0.21`,
-  `gcx 470`, `gcy 285`, `poingsFrac 0.80`, `poingsTopFrac 0.36`.
+  `gcx 470`, `gcy 285`, `poingsFrac 0.80`, `poingsTopFrac 0.15`.
   (`poingsFrac` monté à 0.80 pour que la barbe ne repasse pas par-dessus la lame.)
 
 **Règles pour les futures armes** :
