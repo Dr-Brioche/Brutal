@@ -1791,8 +1791,11 @@ imgHeroCombat2Mains.src = "images/heros/nain-combat-2mains.png";
 //   → le dessus de la main reste DERRIÈRE la lame (l'épée « sort » de la main).
 const imgClaymore = new Image();
 imgClaymore.src = "images/armes/claymore-combat.png";
+const imgWarAxe = new Image();
+imgWarAxe.src = "images/armes/war-axe-combat.png";
 const SKINS_ARME_2M = {
-  "epee-large": { img: imgClaymore, gcx: 237, gcy: 140, echelle: 0.1783, angle: 73, fx: 0.94, fy: 0.37, poingsFrac: 0.71, poingsTopFrac: 0.15 },
+  "epee-large":     { img: imgClaymore, gcx: 237, gcy: 140, echelle: 0.1783, angle: 73, fx: 0.94, fy: 0.37, poingsFrac: 0.71, poingsTopFrac: 0.15 },
+  "hache-de-guerre": { img: imgWarAxe,  gcx: 470, gcy: 285, echelle: 0.21,   angle: 73, fx: 0.90, fy: 0.40, poingsFrac: 0.71, poingsTopFrac: 0.15 },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
