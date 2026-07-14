@@ -66,7 +66,12 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   entrer/ressortir). On y mine des **veines** dans les **parois** (matériaux →
   farm/craft) — plus de rares **méga-gisements** (piliers) au centre des salles — et
   on combat ; à la sortie on revient au monde, et **re-entrer régénère** une mine
-  neuve. La rareté des trouvailles monte avec la profondeur (et la difficulté aussi).
+  neuve. La rareté des trouvailles monte avec la profondeur (et la difficulté aussi) :
+  chaque minerai a une **fenêtre de profondeur** — il apparaît à partir d'un étage,
+  puis **disparaît** quand on descend trop (les communs s'effacent après quelques
+  étages → la liste des minerais reste lisible, jamais vide). Les **grottes à thème**
+  (cristal / glace / lave, cf. plus bas) donnent **+15 %** à leur minerai emblématique
+  (diamant / lapis-lazuli / rubis) s'il est déjà trouvable à l'étage.
   **La descente est un « RUN »** : à chaque étage (entrée + descente `>`) on choisit
   **1 buff parmi 2** (Force, Célérité, Armure de départ, ou Or à la sortie) qui
   **s'accumulent** toute la visite et **disparaissent en ressortant** (l'or n'est
@@ -1204,7 +1209,9 @@ On construit un socle + **UN** pilier complet et fun à la fois, on teste, on va
 que c'est addictif, **puis** on empile le suivant.
 
 0. **Socle commun** *(fait)* : héros 64×64 qui se déplace + équipement avec
-   skins + sauvegarde (3 emplacements, menu Échap, écran de démarrage).
+   skins + sauvegarde (3 emplacements manuels + **1 slot « auto »** séparé, écrit
+   tout seul à chaque entrée/sortie de la cité — filet de sécurité ; menu Échap,
+   écran de démarrage).
 0bis. **Monde / exploration** *(en cours)* : zone de test explorable (caméra
    qui suit, collisions, point d'intérêt, rencontres-flash), puis transitions
    entre zones, décor montagne, et zone de minage procédurale.
