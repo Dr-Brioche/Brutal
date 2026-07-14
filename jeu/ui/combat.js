@@ -96,7 +96,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Arme à DEUX MAINS équipée ? → choisit l'illustration « poings tendus » du héros.
   const armeDeuxMains = itemDef(inventaire.slots?.arme1)?.mains === 2;
   // Skin d'arme à poser dans les mains (si l'arme 2 mains équipée en a un défini).
-  const skinArme = armeDeuxMains ? (SKINS_ARME_2M[inventaire.slots?.arme1] ?? null) : null;
+  const skinArme = armeDeuxMains
+    ? (SKINS_ARME_2M[inventaire.slots?.arme1] ?? null)
+    : (SKINS_ARME_1M[inventaire.slots?.arme1] ?? null);
   // Armure de départ : somme des armureDepart de tous les items équipés (+ run).
   const armureDepart = itemsEquipes.reduce((s, d) => s + (d.armureDepart ?? 0), 0) + (run.armureDepart ?? 0);
   // Célérité passive (% d'initiative de combat) des items (+ run). Le « move speed »
@@ -1796,6 +1798,13 @@ imgWarAxe.src = "images/armes/war-axe-combat.png";
 const SKINS_ARME_2M = {
   "epee-large":     { img: imgClaymore, gcx: 237, gcy: 140, echelle: 0.1783, angle: 73, fx: 0.94, fy: 0.37, poingsFrac: 0.71, poingsTopFrac: 0.15 },
   "hache-de-guerre": { img: imgWarAxe,  gcx: 470, gcy: 285, echelle: 0.21,   angle: 73, fx: 1.025, fy: 0.20, poingsFrac: 0.80, poingsTopFrac: 0.15 },
+};
+// Skins d'ARME à UNE main : MÊME mécanique de calques, mais avec l'illustration du
+// nain « mains vides » (nain-combat.png) — l'arme est posée dans le poing avant.
+const imgEpeeLumiere = new Image();
+imgEpeeLumiere.src = "images/armes/epee-lumiere-combat.png";
+const SKINS_ARME_1M = {
+  "epee-sacree": { img: imgEpeeLumiere, gcx: 235, gcy: 197, echelle: 0.13, angle: 20, fx: 0.80, fy: 0.47, poingsFrac: 0.71, poingsTopFrac: 0.15 },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
