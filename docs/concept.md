@@ -2,6 +2,10 @@
 
 > Document vivant : c'est la « bible » du projet. On le modifie au fil de l'eau.
 > Dernière mise à jour : 2026-06-21.
+>
+> **Récap concret des décisions déjà implémentées** (rendu combat, skins d'arme,
+> ombres, fonds, biomes, sauvegarde…) avec leurs valeurs de réglage et où elles
+> vivent dans le code : [`docs/decisions.md`](decisions.md).
 
 ## Pitch
 
