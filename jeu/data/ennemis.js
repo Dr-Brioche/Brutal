@@ -214,15 +214,20 @@ export const DISTRIBUTION_GROUPE = [0.30, 0.30, 0.20, 0.15, 0.05];
 // (2 = « un niveau de plus ⇒ ~2× plus rare »). Régler ici pour toutes les zones.
 const FACTEUR_NIVEAU = 2;
 // Les monstres GRANDS (occupent 2 places, cf. `grand: true`) apparaissent en plus
-// RAREMENT : leur poids est multiplié par ce facteur (0,5 = 2× moins souvent), EN PLUS
-// de la pondération par niveau. Un seul réglage pour tous les grands monstres.
+// RAREMENT dans les PETITS groupes : leur poids est multiplié par ce facteur
+// (0,5 = 2× moins souvent), EN PLUS de la pondération par niveau.
 const GRAND_RARETE = 0.5;
+// … mais dans les GROS groupes (taille > GROS_GROUPE emplacements), on veut plutôt
+// FAVORISER un grand ennemi : son poids est alors multiplié par ce bonus (au lieu du
+// malus ci-dessus). Un seul réglage pour tous les grands monstres.
+const GROS_GROUPE = 3;         // au-delà de 3 places, le groupe est « gros »
+const GRAND_BONUS_GROS = 3.0;  // poids du grand dans un gros groupe (favorisé)
 
-// Tire UN monstre du pool, pondéré par niveau (plus bas = plus probable) et par la
-// rareté « grand ».
-function tirerMonstrePondere(pool, niveauMin, rng = Math.random) {
+// Tire UN monstre du pool, pondéré par niveau (plus bas = plus probable) et par le
+// facteur « grand » (`grandFacteur` : malus dans un petit groupe, bonus dans un gros).
+function tirerMonstrePondere(pool, niveauMin, grandFacteur = GRAND_RARETE, rng = Math.random) {
   const poids = pool.map((d) =>
-    (1 / Math.pow(FACTEUR_NIVEAU, (d.niveau ?? 1) - niveauMin)) * (d.grand ? GRAND_RARETE : 1));
+    (1 / Math.pow(FACTEUR_NIVEAU, (d.niveau ?? 1) - niveauMin)) * (d.grand ? grandFacteur : 1));
   let r = rng() * poids.reduce((s, w) => s + w, 0);
   for (let i = 0; i < pool.length; i++) { r -= poids[i]; if (r < 0) return pool[i]; }
   return pool[pool.length - 1];
@@ -259,6 +264,9 @@ export function composerGroupe(monstreIds, opts = {}) {
   const taille = tirerTaille(opts.distribution ?? DISTRIBUTION_GROUPE); // EN EMPLACEMENTS
   // En groupe de 1-2 places : que du melee (règle range inchangée).
   const poolBase = taille >= 3 ? defs : (melee.length ? melee : defs);
+  // GROS groupe (> 3 places) → on FAVORISE l'apparition d'un grand ennemi ; petit
+  // groupe → malus habituel. (cf. GRAND_BONUS_GROS / GRAND_RARETE)
+  const grandFacteur = taille > GROS_GROUPE ? GRAND_BONUS_GROS : GRAND_RARETE;
   const groupe = [];
   let libres = taille;
   while (libres > 0) {
@@ -266,7 +274,7 @@ export function composerGroupe(monstreIds, opts = {}) {
     let pool = poolBase.filter((d) => !d.grand || libres >= 2);
     if (!pool.length) pool = poolBase.filter((d) => !d.grand); // dernière place : que du normal
     if (!pool.length) break; // (cas extrême zone 100 % grand + 1 place : on laisse la place vide)
-    const pick = tirerMonstrePondere(pool, niveauMin);
+    const pick = tirerMonstrePondere(pool, niveauMin, grandFacteur);
     groupe.push(pick);
     libres -= placesMonstre(pick);
   }
