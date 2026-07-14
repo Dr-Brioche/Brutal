@@ -1723,17 +1723,18 @@ function scanPieds(planche, sw, sh) {
 }
 function metriquesPieds(u) { return scanPieds(u.planche, u.spr.caseL, u.spr.caseH); }
 
-// Dessine un OVALE d'ombre dégradé sombre, centré sur (cx, cy), de demi-largeur rx.
-// Aplati (ry = 26 % de rx). Le noir tient jusqu'à 70 % du rayon → l'ombre porte.
+// Dessine un OVALE d'ombre dégradé sombre sous les pieds. (cx, cy) = ligne des pieds ;
+// rx = demi-largeur. L'ovale est légèrement DESCENDU (il « pose » sous les pieds au lieu
+// d'être coupé en deux par le sprite) et assez FONCÉ pour bien se voir même sur un sol clair.
 function ombreOvale(ctx, cx, cy, rx) {
-  const ry = rx * 0.26;
+  const ry = rx * 0.34;                // moins aplati → plus visible sous les pieds
   ctx.save();
   ctx.imageSmoothingEnabled = true;
-  ctx.translate(cx, cy);
+  ctx.translate(cx, cy + ry * 0.45);   // pooled sous les pieds (pas coupé par le sprite)
   ctx.scale(1, ry / rx);               // cercle -> ellipse aplatie
   const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
-  g.addColorStop(0, "rgba(0,0,0,0.55)");   // cœur bien marqué
-  g.addColorStop(0.7, "rgba(0,0,0,0.30)"); // le noir tient large avant de s'estomper
+  g.addColorStop(0, "rgba(0,0,0,0.75)");   // cœur bien marqué
+  g.addColorStop(0.7, "rgba(0,0,0,0.42)"); // le noir tient large avant de s'estomper
   g.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = g;
   ctx.beginPath();
