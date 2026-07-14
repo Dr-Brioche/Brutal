@@ -1775,7 +1775,7 @@ imgHeroCombat2Mains.src = "images/heros/nain-combat-2mains.png";
 const imgClaymore = new Image();
 imgClaymore.src = "images/armes/claymore-combat.png";
 const SKINS_ARME_2M = {
-  "epee-large": { img: imgClaymore, gcx: 88, gcy: 52, echelle: 0.48, angle: 73, fx: 0.94, fy: 0.37, poingsFrac: 0.71, poingsTopFrac: 0.15 },
+  "epee-large": { img: imgClaymore, gcx: 237, gcy: 140, echelle: 0.1783, angle: 73, fx: 0.94, fy: 0.37, poingsFrac: 0.71, poingsTopFrac: 0.15 },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
