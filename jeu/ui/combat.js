@@ -1484,14 +1484,22 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         ctx.scale(sArme, sArme);
         ctx.drawImage(skinArme.img, -skinArme.gcx, -skinArme.gcy); // point de prise à l'origine
         ctx.restore();
-        // Re-pose les poings (fraction DROITE du sprite) au-dessus de l'arme, mais PAS
-        // au-dessus de poingsTopFrac (le dessus de la main reste derrière la lame → l'épée
-        // semble sortir de la main).
+        // Re-pose la MAIN au-dessus de l'arme (les doigts tiennent l'arme). Deux modes :
+        //  - `poingsBox` {x0,y0,x1,y1} (fractions) : ne repose QUE cette boîte = la main
+        //    → l'arme reste devant le corps et la barbe (arme 1 main). PRIORITAIRE.
+        //  - sinon : la fraction DROITE du sprite à partir de poingsFrac, et PAS au-dessus
+        //    de poingsTopFrac (le dessus de la main reste derrière la lame → « sort de la main »).
         ctx.save();
-        const fracX = hxI + skinArme.poingsFrac * HW;
-        const yTop = hyI + (skinArme.poingsTopFrac ?? 0) * HH;
-        ctx.beginPath();
-        ctx.rect(fracX, yTop, hxI + HW - fracX, hyI + HH - yTop);
+        if (skinArme.poingsBox) {
+          const b = skinArme.poingsBox;
+          ctx.beginPath();
+          ctx.rect(hxI + b.x0 * HW, hyI + b.y0 * HH, (b.x1 - b.x0) * HW, (b.y1 - b.y0) * HH);
+        } else {
+          const fracX = hxI + skinArme.poingsFrac * HW;
+          const yTop = hyI + (skinArme.poingsTopFrac ?? 0) * HH;
+          ctx.beginPath();
+          ctx.rect(fracX, yTop, hxI + HW - fracX, hyI + HH - yTop);
+        }
         ctx.clip();
         ctx.drawImage(imgHero, hxI, hyI, HW, HH);
         ctx.restore();
@@ -1804,7 +1812,7 @@ const SKINS_ARME_2M = {
 const imgEpeeLumiere = new Image();
 imgEpeeLumiere.src = "images/armes/epee-lumiere-combat.png";
 const SKINS_ARME_1M = {
-  "epee-sacree": { img: imgEpeeLumiere, gcx: 235, gcy: 197, echelle: 0.13, angle: 50, fx: 0.82, fy: 0.494, poingsFrac: 0.71, poingsTopFrac: 0.15 },
+  "epee-sacree": { img: imgEpeeLumiere, gcx: 235, gcy: 197, echelle: 0.13, angle: 50, fx: 0.82, fy: 0.494, poingsBox: { x0: 0.70, y0: 0.38, x1: 0.93, y1: 0.58 } },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
