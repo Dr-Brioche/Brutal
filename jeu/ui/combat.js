@@ -1736,7 +1736,7 @@ function ombreOvale(ctx, cx, cy, rx) {
   const ry = rx * 0.34;                // moins aplati → plus visible sous les pieds
   ctx.save();
   ctx.imageSmoothingEnabled = true;
-  ctx.translate(cx, cy + ry * 0.45);   // pooled sous les pieds (pas coupé par le sprite)
+  ctx.translate(cx, cy);               // CENTRÉE sur la ligne des pieds (pas d'écart → pas flottante)
   ctx.scale(1, ry / rx);               // cercle -> ellipse aplatie
   const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
   g.addColorStop(0, "rgba(0,0,0,0.75)");   // cœur bien marqué
@@ -1797,7 +1797,7 @@ const imgWarAxe = new Image();
 imgWarAxe.src = "images/armes/war-axe-combat.png";
 const SKINS_ARME_2M = {
   "epee-large":     { img: imgClaymore, gcx: 237, gcy: 140, echelle: 0.1783, angle: 73, fx: 0.94, fy: 0.37, poingsFrac: 0.71, poingsTopFrac: 0.15 },
-  "hache-de-guerre": { img: imgWarAxe,  gcx: 470, gcy: 285, echelle: 0.21,   angle: 73, fx: 1.025, fy: 0.20, poingsFrac: 0.80, poingsTopFrac: 0.15 },
+  "hache-de-guerre": { img: imgWarAxe,  gcx: 626, gcy: 379, echelle: 0.21,   angle: 73, fx: 1.025, fy: 0.20, poingsFrac: 0.80, poingsTopFrac: 0.15 },
 };
 // Skins d'ARME à UNE main : MÊME mécanique de calques, mais avec l'illustration du
 // nain « mains vides » (nain-combat.png) — l'arme est posée dans le poing avant.
