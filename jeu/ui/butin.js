@@ -11,7 +11,7 @@
 // cette animation — qu'on peut zapper (clic / touche). Les clics sur les objets,
 // eux, restent immédiats.
 
-import { ITEMS, couleurRarete } from "../data/items.js";
+import { ITEMS, couleurRarete, bonusPassifs } from "../data/items.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
 import { animerGainXp } from "./gainXp.js";
 
@@ -52,9 +52,14 @@ export function installerButin() {
     const el = document.createElement("button");
     el.className = "butin-ligne butin-objet";
     el.dataset.id = id;
+    // Bonus passifs (Agilité, Vitesse, Pierre…) affichés SOUS le nom, pour voir ce
+    // qu'apporte la pièce (ex. des bottes) avant même de la ramasser.
+    const passifs = bonusPassifs(id);
     el.innerHTML =
       `<span class="butin-pastille" style="background:${d.icone};border-color:${couleurRarete(id)}"></span>` +
-      `<span class="butin-nom">${d.nom}</span><span class="butin-hint">Take</span>`;
+      `<span class="butin-corps"><span class="butin-nom">${d.nom}</span>` +
+      (passifs.length ? `<span class="butin-passif">${passifs.join(" · ")}</span>` : ``) +
+      `</span><span class="butin-hint">Take</span>`;
     el.addEventListener("click", (e) => { e.stopPropagation(); prendreUn(el); });
     return el;
   }

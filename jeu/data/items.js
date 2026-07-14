@@ -900,6 +900,22 @@ export function categorieLisible(id) {
 // ne sont PLUS affichés : ils ne servaient à rien (le combat est piloté par les
 // CARTES, pas par degats/defense). La bulle montre les cartes en VRAI (visuel) —
 // voir ui/infobulle.js. Vide si l'objet n'apporte rien de chiffré.
+// Bonus PASSIFS chiffrés d'un objet (le « stat bonus » permanent tant qu'il est
+// équipé) : Pierre au combat / par tour, Agilité, Vitesse de déplacement, passif
+// spécial. Partagé par l'infobulle ET l'écran de butin, pour qu'on voie tout de
+// suite ce qu'apporte une pièce (ex. des bottes) avant de la ramasser/équiper.
+export function bonusPassifs(id) {
+  const d = ITEMS[id];
+  if (!d) return [];
+  const l = [];
+  if (d.armureDepart) l.push(`+${d.armureDepart} Stone at combat start`);
+  if (d.pierreParTour) l.push(`+${d.pierreParTour} Stone each turn`);
+  if (d.agilite) l.push(`+${d.agilite} Agility`);
+  if (d.vitesseDeplPct) l.push(`+${d.vitesseDeplPct}% Move Speed`);
+  if (d.passifPropre) l.push(d.passifPropre.texte);
+  return l;
+}
+
 export function statsLisibles(id) {
   const d = ITEMS[id];
   if (!d) return [];
@@ -908,9 +924,6 @@ export function statsLisibles(id) {
   if (d.categorie === "parchemin") lignes.push("A recipe scroll — right-click to Read it.");
   if (d.mains === 2) lignes.push("Two-handed");
   if (d.rangsBonus) lignes.push(`+${d.rangsBonus} bag rows`);
-  if (d.armureDepart) lignes.push(`+${d.armureDepart} Stone at combat start`);
-  if (d.agilite) lignes.push(`+${d.agilite} Agility`);
-  if (d.vitesseDeplPct) lignes.push(`+${d.vitesseDeplPct}% Move Speed`);
-  if (d.passifPropre) lignes.push(d.passifPropre.texte);
+  lignes.push(...bonusPassifs(id)); // bonus passifs chiffrés (Pierre, Agilité, Vitesse…)
   return lignes;
 }
