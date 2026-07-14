@@ -8,6 +8,13 @@ const VERSION = 1; // permettra de faire évoluer le format sans tout casser
 
 export const NB_SLOTS = 3;
 
+// Emplacement SPÉCIAL de sauvegarde AUTOMATIQUE, séparé des slots manuels 1..3.
+// Le jeu y écrit tout seul (à chaque entrée/sortie de la cité) : un filet de
+// sécurité si le joueur oublie de sauvegarder. On ne sauvegarde JAMAIS dedans à la
+// main (le menu n'y propose que « Load »). La clé "auto" ne collisionne pas avec
+// les numéros → lireSlot/ecrireSlot/effacerSlot fonctionnent tels quels.
+export const SLOT_AUTO = "auto";
+
 // Renvoie le contenu d'un emplacement, ou null s'il est vide/illisible.
 export function lireSlot(n) {
   try {

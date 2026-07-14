@@ -4,8 +4,8 @@
 // - s'il n'existe AUCUNE sauvegarde -> nouvelle partie directement ;
 // - sinon -> on propose "New Game" en haut + les emplacements à charger.
 
-import { tousLesSlots, creerLigneSlot } from "./slots.js";
-import { effacerSlot } from "../systems/sauvegarde.js";
+import { tousLesSlots, slotAuto, creerLigneSlot } from "./slots.js";
+import { effacerSlot, SLOT_AUTO } from "../systems/sauvegarde.js";
 import { demanderConfirmation } from "./confirmation.js";
 
 export function installerDemarrage({ lancer }) {
@@ -25,7 +25,8 @@ export function installerDemarrage({ lancer }) {
   // (Re)construit la liste des emplacements — rappelée après un effacement.
   function remplirSlots() {
     const slots = tousLesSlots();
-    const aDesSauvegardes = slots.some(({ donnees }) => donnees);
+    const auto = slotAuto();
+    const aDesSauvegardes = slots.some(({ donnees }) => donnees) || Boolean(auto.donnees);
     conteneurSlots.replaceChildren();
     if (!aDesSauvegardes) return;
     for (const { numero, donnees } of slots) {
@@ -51,6 +52,12 @@ export function installerDemarrage({ lancer }) {
         ])
       );
     }
+    // Sauvegarde AUTO (séparée) : Load uniquement, écrite par le jeu en ville.
+    conteneurSlots.append(
+      creerLigneSlot(SLOT_AUTO, auto.donnees, [
+        { texte: "Load", desactive: !auto.donnees, surClic: () => lancerUneFois(auto.donnees) },
+      ], "Auto-save (auto only)", "menu-slot--auto")
+    );
   }
 
   // Focus automatique : Enter/Espace déclenchent Play sans souris.

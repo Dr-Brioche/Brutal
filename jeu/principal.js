@@ -26,6 +26,7 @@ import { installerTalents } from "./ui/talents.js";
 import { appliquerTalents } from "./systems/talents.js";
 import { installerButin } from "./ui/butin.js";
 import { installerMenu } from "./ui/menu.js";
+import { ecrireSlot, SLOT_AUTO } from "./systems/sauvegarde.js";
 import { afficherMessage, flashCombat, fondu, alerteVie } from "./ui/effets.js";
 import { ouvrirDialogue, dialogueActif, rafraichirChoix, fermerDialogue } from "./ui/dialogue.js";
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
@@ -1243,6 +1244,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (enTransition) return;
     enTransition = true;
     enPause = true;
+    const zoneAvant = zoneActuelle; // pour détecter une entrée/sortie de la cité
     await fondu(1);                  // écran au noir
     const statique = typeof zoneOuId === "string";
     const zone = statique ? ZONES[zoneOuId] : zoneOuId;
@@ -1268,6 +1270,15 @@ export async function demarrerJeu(donneesInitiales = null) {
     await fondu(0);                  // on rouvre l'écran
     enPause = false;
     enTransition = false;
+
+    // SAUVEGARDE AUTO : à chaque fois qu'on ENTRE ou qu'on SORT de la cité, on
+    // écrit dans le slot spécial « auto » — un filet de sécurité si le joueur
+    // oublie de sauvegarder. On sauvegarde APRÈS la transition (état cohérent) et
+    // seulement vers/depuis une zone STATIQUE (jamais en mine, non sérialisable ;
+    // or une entrée/sortie de cité va toujours ville ↔ zone statique).
+    if ((zoneAvant === "city" || assetZone === "city") && zoneAvant !== assetZone) {
+      ecrireSlot(SLOT_AUTO, obtenirEtat());
+    }
   }
 
   // Entrée de mine : marcher sur une tuile `M` GÉNÈRE une mine et y descend.

@@ -8,8 +8,8 @@
 //   - appliquerEtat(donnees): applique un état chargé au jeu
 //   - surChangementPause(b) : prévenu quand le menu s'ouvre (true) / ferme (false)
 
-import { lireSlot, ecrireSlot, effacerSlot } from "../systems/sauvegarde.js";
-import { tousLesSlots, creerLigneSlot } from "./slots.js";
+import { lireSlot, ecrireSlot, effacerSlot, SLOT_AUTO } from "../systems/sauvegarde.js";
+import { tousLesSlots, slotAuto, creerLigneSlot } from "./slots.js";
 import { demanderConfirmation } from "./confirmation.js";
 import {
   reglerVolumeMusique, reglerVolumeBruitages, reglerVolumeMusiqueCombat,
@@ -122,6 +122,18 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
         ])
       );
     }
+    // Emplacement de SAUVEGARDE AUTO (séparé) : Load uniquement — on n'y sauvegarde
+    // jamais à la main. Le jeu l'écrit tout seul en entrant/sortant de la cité.
+    const { donnees: donneesAuto } = slotAuto();
+    conteneurSlots.append(
+      creerLigneSlot(SLOT_AUTO, donneesAuto, [
+        {
+          texte: "Load",
+          desactive: !donneesAuto,
+          surClic: () => { appliquerEtat(lireSlot(SLOT_AUTO)); fermer(); },
+        },
+      ], "Auto-save (auto only)", "menu-slot--auto")
+    );
   }
 
   // `sansSauvegarde` (true en COMBAT) masque les emplacements Save/Load : on ne

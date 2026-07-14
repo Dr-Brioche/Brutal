@@ -1,7 +1,7 @@
 // Petits outils partagés par les écrans qui affichent les emplacements
 // de sauvegarde : l'écran de démarrage et le menu pause.
 
-import { NB_SLOTS, lireSlot } from "../systems/sauvegarde.js";
+import { NB_SLOTS, SLOT_AUTO, lireSlot } from "../systems/sauvegarde.js";
 
 // Tous les emplacements : [{ numero, donnees ou null }, ...]
 export function tousLesSlots() {
@@ -10,6 +10,11 @@ export function tousLesSlots() {
     liste.push({ numero: n, donnees: lireSlot(n) });
   }
   return liste;
+}
+
+// L'emplacement de sauvegarde AUTOMATIQUE (séparé des slots manuels).
+export function slotAuto() {
+  return { numero: SLOT_AUTO, donnees: lireSlot(SLOT_AUTO) };
 }
 
 // Texte affiché pour un emplacement (vide, ou équipement + date)
@@ -21,15 +26,17 @@ export function resumeSlot(donnees) {
 
 // Construit une ligne d'emplacement, avec les boutons d'action demandés :
 // boutons = [{ texte, desactive, surClic }, ...]
-export function creerLigneSlot(numero, donnees, boutons) {
+// `label` : intitulé personnalisé (défaut « Slot N ») ; `classe` : classe CSS
+// supplémentaire (ex. slot auto, visuellement distinct).
+export function creerLigneSlot(numero, donnees, boutons, label = null, classe = "") {
   const ligne = document.createElement("div");
-  ligne.className = "menu-slot";
+  ligne.className = "menu-slot" + (classe ? " " + classe : "");
 
   const info = document.createElement("div");
   info.className = "menu-slot-info";
   const nom = document.createElement("span");
   nom.className = "menu-slot-nom";
-  nom.textContent = `Slot ${numero}`;
+  nom.textContent = label ?? `Slot ${numero}`;
   const res = document.createElement("span");
   res.className = "menu-slot-resume";
   res.textContent = resumeSlot(donnees);
