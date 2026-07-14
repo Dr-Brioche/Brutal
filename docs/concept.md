@@ -69,9 +69,13 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   neuve. La rareté des trouvailles monte avec la profondeur (et la difficulté aussi) :
   chaque minerai a une **fenêtre de profondeur** — il apparaît à partir d'un étage,
   puis **disparaît** quand on descend trop (les communs s'effacent après quelques
-  étages → la liste des minerais reste lisible, jamais vide). Les **grottes à thème**
-  (cristal / glace / lave, cf. plus bas) donnent **+15 %** à leur minerai emblématique
-  (diamant / lapis-lazuli / rubis) s'il est déjà trouvable à l'étage.
+  étages → la liste des minerais reste lisible, jamais vide). Les **biomes de mine**
+  (décor, palette et **fonds de combat** dédiés) apparaissent selon la profondeur :
+  **glace ≥ 3**, **lave ≥ 4**, **inondée ≥ 5**, **cristal ≥ 6** (à partir de l'étage 6
+  les quatre sont possibles ; ~60 % des étages restent normaux). Chaque biome donne
+  **+15 %** à son minerai emblématique s'il est déjà trouvable à l'étage : **lave→rubis**,
+  **cristal→diamant**, **glace→lapis-lazuli**, **inondée→titane**. Les mines profondes
+  sans biome utilisent un décor de combat « profondeur » générique.
   **La descente est un « RUN »** : à chaque étage (entrée + descente `>`) on choisit
   **1 buff parmi 2** (Force, Célérité, Armure de départ, ou Or à la sortie) qui
   **s'accumulent** toute la visite et **disparaissent en ressortant** (l'or n'est
