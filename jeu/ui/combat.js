@@ -1804,7 +1804,7 @@ const SKINS_ARME_2M = {
 const imgEpeeLumiere = new Image();
 imgEpeeLumiere.src = "images/armes/epee-lumiere-combat.png";
 const SKINS_ARME_1M = {
-  "epee-sacree": { img: imgEpeeLumiere, gcx: 235, gcy: 197, echelle: 0.13, angle: 20, fx: 0.80, fy: 0.47, poingsFrac: 0.71, poingsTopFrac: 0.15 },
+  "epee-sacree": { img: imgEpeeLumiere, gcx: 235, gcy: 197, echelle: 0.13, angle: 55, fx: 0.80, fy: 0.47, poingsFrac: 0.71, poingsTopFrac: 0.15 },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
