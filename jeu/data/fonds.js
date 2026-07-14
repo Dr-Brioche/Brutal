@@ -17,9 +17,13 @@ export const FONDS_COMBAT = {
   // Eastern Under-tunnels — souterrains à l'est de Brütàl : repaire des gobelins.
   // (clé entre guillemets : le tiret interdit la forme nue eastern-under-tunnels)
   "eastern-under-tunnels": [
-    // ESSAI : les anciens fonds sont remplacés par le grand hall doré, le temps
-    // de juger. Pour revenir en arrière : décommenter 1 et 2, retirer hall-dore.
+    // Boucle aléatoire : à chaque combat, un de ces fonds est tiré au hasard.
+    // Tous partagent le même format (ratio ~2.4, sol dallé en bas).
     "images/fonds/eastern-under-tunnels/hall-dore.jpg",
+    "images/fonds/eastern-under-tunnels/tour-pont.jpg",
+    "images/fonds/eastern-under-tunnels/cite-lointaine.jpg",
+    "images/fonds/eastern-under-tunnels/ruines-tour.jpg",
+    // Anciens fonds (désactivés). Pour les réactiver : décommenter.
     // "images/fonds/eastern-under-tunnels/nouveau.png",
     // "images/fonds/eastern-under-tunnels/1.png",
     // "images/fonds/eastern-under-tunnels/2.png",
