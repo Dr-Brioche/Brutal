@@ -82,10 +82,10 @@ export const ENNEMIS = [
     // Skin DÉDIÉ : illustration fournie (fond vert détouré par preparer_skin.py).
     // Rendue vivante par le CODE (image fixe + effets) — encapuchonné, deux dagues.
     planche: "images/ennemis/gobelin-vif.png",
-    portrait: { sx: 8, sy: 3, sw: 67, sh: 67 }, // la tête encapuchonnée (file des tours)
+    portrait: { sx: 8, sy: 3, sw: 64, sh: 64 }, // la tête encapuchonnée (file des tours)
     sprite: {
-      caseL: 159,
-      caseH: 134,   // même taille que les autres gobelins (petite créature)
+      caseL: 152,
+      caseH: 128,   // calé sur la TÊTE (même visage que les autres gobelins)
       statique: true,  // une seule image (frame 0) ; animation 100 % par le code
       anims: {
         idle:    { frames: [0], ips: 1, boucle: true },
@@ -116,10 +116,10 @@ export const ENNEMIS = [
     // Skin DÉDIÉ : illustration fournie (fond vert détouré par preparer_skin.py).
     // Vrai « lanceur de sorts » : bâton à crâne, robe sombre. Rendu lisse.
     planche: "images/ennemis/gobelin-chaman.png",
-    portrait: { sx: 6, sy: 4, sw: 52, sh: 52 }, // la tête (file des tours)
+    portrait: { sx: 52, sy: 28, sw: 58, sh: 58 }, // la tête (basse : le bâton occupe le haut)
     sprite: {
-      caseL: 124,
-      caseH: 182,   // même gabarit de créature ; le bâton dépasse au-dessus
+      caseL: 153,
+      caseH: 224,   // calé sur la TÊTE (même visage) ; le grand bâton dépasse au-dessus
       statique: true,  // une seule image (frame 0) ; animation 100 % par le code
       anims: {
         idle:    { frames: [0], ips: 1, boucle: true },
