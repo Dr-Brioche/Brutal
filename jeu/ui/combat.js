@@ -38,9 +38,9 @@ import {
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
 const ECHELLE_HEROS = 3;            // 64×64 → 192×192 (avant dézoom de scène)
-const SOL_Y = 215;                  // pieds des sprites
+const SOL_Y = 224;                  // pieds des sprites (abaissés : bien sur la zone de combat)
 const SOL_FOND = 268;               // séparateur visuel fond PNG / interface
-const ECHELLE_SCENE = 0.4;          // dézoom de référence (avant-plan)
+const ECHELLE_SCENE = 0.36;          // dézoom de référence (avant-plan)
 const ECHELLE_AVANT   = ECHELLE_SCENE;        // rang avant  : taille normale
 const ECHELLE_ARRIERE = ECHELLE_SCENE * 0.85; // rang arrière : 15 % plus petit
 const RATIO_ARRIERE   = ECHELLE_ARRIERE / ECHELLE_AVANT; // facteur UI arrière (0.85)
@@ -49,23 +49,23 @@ const PIVOT_SCENE = { x: 320, y: SOL_Y };
 const HEROS_ECRAN_CX = 140;         // centre du héros à l'écran (scène)
 // Le groupe d'ennemis est centré à droite ; ils s'étalent autour de ce centre.
 const ENNEMIS_CX = 425;
-const ENNEMIS_ESPACE = 96;          // écart horizontal entre deux ennemis (scène)
+const ENNEMIS_ESPACE = 78;          // écart horizontal entre deux ennemis (scène)
 function versOrigine(cxEcran) {
   return PIVOT_SCENE.x + (cxEcran - PIVOT_SCENE.x) / ECHELLE_SCENE;
 }
 // Centres horizontaux (écran) de N ennemis, centrés sur ENNEMIS_CX.
 // Au-delà de 3 monstres, on RESSERRE l'écart pour que 4-5 sprites tiennent dans
 // le cadre (640 px) sans déborder à droite. À 1-3 monstres, l'écart est inchangé.
-const ENNEMIS_LARGEUR = 250;        // largeur max occupée par le groupe (écran)
+const ENNEMIS_LARGEUR = 205;        // largeur max occupée par le groupe (écran)
 function poserEnnemis(n) {
   const espace = Math.min(ENNEMIS_ESPACE, ENNEMIS_LARGEUR / Math.max(1, n - 1));
   const x0 = ENNEMIS_CX - ((n - 1) * espace) / 2;
   return Array.from({ length: n }, (_, i) => x0 + i * espace);
 }
 // Barre de vie sous chaque perso (unités SCÈNE, taille réelle, PV chiffrés dedans).
-const BAR_L = 80, BAR_H = 11;
-const VIE_SOUS = 18;           // écart pieds (sol) → haut de la barre (loge la rangée de BONUS au-dessus de la barre, sous les pieds)
-const ETATS_SOUS = 14;         // écart bas de la barre → rangée d'états (laisse place à l'init)
+const BAR_L = 56, BAR_H = 8;
+const VIE_SOUS = 11;           // écart pieds (sol) → haut de la barre (loge la rangée de BONUS au-dessus de la barre, sous les pieds)
+const ETATS_SOUS = 11;         // écart bas de la barre → rangée d'états (laisse place à l'init)
 // File d'ordre des tours (en haut) : carrés-portraits des prochains acteurs.
 const FILE_N = 5, FILE_TAILLE = 40, FILE_ESPACE = 8, FILE_Y = 12;
 // Portrait du héros = zone de la tête dans la planche du nain (frame face, à ajuster).
