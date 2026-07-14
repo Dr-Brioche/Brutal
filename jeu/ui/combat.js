@@ -1480,7 +1480,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         const sArme = skinArme.echelle * HH / imgHero.naturalHeight;
         // HALO doré (épée de lumière) DERRIÈRE l'arme, en additif + léger pouls lumineux.
         if (skinArme.halo && skinArme.halo.complete && skinArme.halo.naturalWidth) {
-          const pouls = 0.72 + 0.28 * Math.sin(temps * 3.0); // respiration de la lumière
+          const pouls = 0.42 + 0.16 * Math.sin(temps * 3.0); // léger scintillement (l'illu brille déjà)
           const rh = imageReduite(skinArme.halo, sArme); // pré-réduit (netteté)
           ctx.save();
           ctx.globalCompositeOperation = "lighter";
