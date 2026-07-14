@@ -109,8 +109,11 @@ def lire_monstres(wb):
         except (TypeError, ValueError):
             raise SystemExit(f"« Monstres » ligne {i} ({iid}) : pv/attaque/xp/vitesse illisible.")
         actions = lire_actions(champ(8), iid, i)
-        monstres.append(dict(id=iid, nom=nom, niveau=niveau, famille=famille,
-                             pv=pv, attaque=attaque, xp=xp, vitesse=vitesse, actions=actions))
+        # Colonne J = « grand » : 1/oui/true → monstre GRAND (occupe 2 places, rare).
+        gv = str(champ(9)).strip().lower() if champ(9) is not None else ""
+        grand = gv in ("1", "oui", "true", "vrai", "x")
+        monstres.append(dict(id=iid, nom=nom, niveau=niveau, famille=famille, pv=pv,
+                             attaque=attaque, xp=xp, vitesse=vitesse, actions=actions, grand=grand))
     if not monstres:
         raise SystemExit("Aucun monstre trouvé dans l'onglet « Monstres ».")
     return monstres
@@ -135,6 +138,8 @@ def bloc_js(monstres):
             champs.append(f'actions: [{acts}]')
         else:
             champs.append("actions: []")
+        if m["grand"]:
+            champs.append("grand: true")
         lignes.append(f'  "{m["id"]}": {{ ' + ", ".join(champs) + " },")
     lignes.append("};")
     return "\n".join(lignes) + "\n"

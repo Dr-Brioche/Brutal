@@ -30,7 +30,7 @@ const STATS_MONSTRES = {
   "gobelin": { nom: "Cave Goblin", niveau: 1, famille: "gobelin", pv: 24, attaque: 4, xp: 6, vitesse: 10, actions: [] },
   "gobelin-vif": { nom: "Goblin Skirmisher", niveau: 1, famille: "gobelin", pv: 16, attaque: 3, xp: 7, vitesse: 18, actions: [] },
   "gobelin-chaman": { nom: "Goblin Shaman", niveau: 1, famille: "gobelin", pv: 14, attaque: 2, xp: 12, vitesse: 7, actions: [{ type: "soigner", valeur: 10, poids: 50 }, { type: "haste-allie", valeur: 2, poids: 30 }, { type: "attaque", valeur: 2, poids: 20 }] },
-  "ogre-masque": { nom: "Masked Ogre", niveau: 3, famille: "animal", pv: 58, attaque: 9, xp: 24, vitesse: 6, actions: [] },
+  "ogre-masque": { nom: "Masked Ogre", niveau: 3, famille: "animal", pv: 58, attaque: 9, xp: 24, vitesse: 6, actions: [], grand: true },
 };
 // <<FIN-MONSTRES-AUTO>>
 
@@ -152,10 +152,10 @@ export const ENNEMIS = [
     affix: "melee",      // position visuelle : avant-plan
     // Illustration fournie (fond vert détouré par preparer_skin.py). Rendu lisse.
     planche: "images/ennemis/ogre.png",
-    portrait: { sx: 9, sy: 4, sw: 75, sh: 75 }, // la tête casquée (file des tours)
+    portrait: { sx: 12, sy: 6, sw: 103, sh: 103 }, // la tête casquée (file des tours)
     sprite: {
-      caseL: 179,
-      caseH: 205,        // le plus GROS (brute) — nettement plus grand que les gobelins
+      caseL: 245,
+      caseH: 280,        // GRAND monstre (grand: true) : occupe 2 places, bien plus gros
       statique: true,    // une seule image (frame 0) ; animation 100 % par le code
       anims: {
         idle:    { frames: [0], ips: 1, boucle: true },
@@ -213,14 +213,23 @@ export const DISTRIBUTION_GROUPE = [0.30, 0.30, 0.20, 0.15, 0.05];
 // Chaque niveau AU-DESSUS du plus bas de la zone divise la fréquence par ce facteur
 // (2 = « un niveau de plus ⇒ ~2× plus rare »). Régler ici pour toutes les zones.
 const FACTEUR_NIVEAU = 2;
+// Les monstres GRANDS (occupent 2 places, cf. `grand: true`) apparaissent en plus
+// RAREMENT : leur poids est multiplié par ce facteur (0,5 = 2× moins souvent), EN PLUS
+// de la pondération par niveau. Un seul réglage pour tous les grands monstres.
+const GRAND_RARETE = 0.5;
 
-// Tire UN monstre du pool, pondéré par niveau (plus bas = plus probable).
+// Tire UN monstre du pool, pondéré par niveau (plus bas = plus probable) et par la
+// rareté « grand ».
 function tirerMonstrePondere(pool, niveauMin, rng = Math.random) {
-  const poids = pool.map((d) => 1 / Math.pow(FACTEUR_NIVEAU, (d.niveau ?? 1) - niveauMin));
+  const poids = pool.map((d) =>
+    (1 / Math.pow(FACTEUR_NIVEAU, (d.niveau ?? 1) - niveauMin)) * (d.grand ? GRAND_RARETE : 1));
   let r = rng() * poids.reduce((s, w) => s + w, 0);
   for (let i = 0; i < pool.length; i++) { r -= poids[i]; if (r < 0) return pool[i]; }
   return pool[pool.length - 1];
 }
+
+// Nombre d'EMPLACEMENTS occupés par un monstre (grand = 2, normal = 1).
+export function placesMonstre(def) { return def?.grand ? 2 : 1; }
 
 // Tire une taille de groupe selon une distribution cumulée.
 function tirerTaille(distribution) {
@@ -236,22 +245,31 @@ function tirerTaille(distribution) {
 // Compose un groupe d'ennemis pour une rencontre, à partir des IDS de monstres
 // d'une zone. Renvoie un tableau de DÉFINITIONS (data), trié melee → range pour
 // que les monstres distants soient toujours placés à l'arrière en combat.
-//   - taille < 3 : on ne tire que parmi les monstres MELEE de la zone ;
-//   - taille ≥ 3 : on tire parmi TOUS les monstres (melee + range).
-// Dans les deux cas, le tirage est PONDÉRÉ PAR NIVEAU (plus bas = plus fréquent),
-// relativement au monstre le plus faible de la zone.
+// La taille tirée est un nombre d'EMPLACEMENTS (1 à 5). On remplit ces emplacements :
+//   - un monstre normal prend 1 place, un GRAND en prend 2 ;
+//   - un grand ne peut sortir que s'il reste ≥ 2 places libres ;
+//   - range seulement si la taille ≥ 3 emplacements ;
+//   - tirage PONDÉRÉ par niveau (faible = fréquent) et par la rareté « grand ».
 // `opts.distribution` permet à une zone d'imposer sa propre courbe de tailles.
 export function composerGroupe(monstreIds, opts = {}) {
   const defs = (monstreIds ?? []).map(ennemiParId).filter(Boolean);
   if (defs.length === 0) return [];
   const melee = defs.filter((d) => d.affix !== "range");
   const niveauMin = Math.min(...defs.map((d) => d.niveau ?? 1)); // réf. de la fourchette
-  const taille = tirerTaille(opts.distribution ?? DISTRIBUTION_GROUPE);
-  // En groupe de 1-2 : que du melee. (Repli sur `defs` si la zone n'a aucun
-  // melee — cas théorique d'une zone 100 % distance.)
-  const pool = taille >= 3 ? defs : (melee.length ? melee : defs);
-  const groupe = Array.from({ length: taille }, () =>
-    tirerMonstrePondere(pool, niveauMin));
+  const taille = tirerTaille(opts.distribution ?? DISTRIBUTION_GROUPE); // EN EMPLACEMENTS
+  // En groupe de 1-2 places : que du melee (règle range inchangée).
+  const poolBase = taille >= 3 ? defs : (melee.length ? melee : defs);
+  const groupe = [];
+  let libres = taille;
+  while (libres > 0) {
+    // Un grand n'est éligible que s'il reste ≥ 2 places.
+    let pool = poolBase.filter((d) => !d.grand || libres >= 2);
+    if (!pool.length) pool = poolBase.filter((d) => !d.grand); // dernière place : que du normal
+    if (!pool.length) break; // (cas extrême zone 100 % grand + 1 place : on laisse la place vide)
+    const pick = tirerMonstrePondere(pool, niveauMin);
+    groupe.push(pick);
+    libres -= placesMonstre(pick);
+  }
   // Tri stable melee d'abord, range à la fin (positionnement visuel du combat).
   groupe.sort((a, b) => (a.affix === "range" ? 1 : 0) - (b.affix === "range" ? 1 : 0));
   return groupe;

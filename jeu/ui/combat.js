@@ -152,10 +152,19 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // combat.ennemis ; ici on tient le sprite, la position, les animations).
   // Quinconce STRICT par position : indices pairs = avant-plan, impairs =
   // arrière-plan (1 devant, 1 derrière, 1 devant…), quel que soit l'affixe.
-  const cxs = poserEnnemis(combat.ennemis.length);
+  // Placement par EMPLACEMENTS : un GRAND monstre (def.grand) occupe 2 places et se
+  // CENTRE dessus ; un normal, 1 place. On assigne chaque monstre à ses places.
+  const spans = combat.ennemis.map((e) => (e.def.grand ? 2 : 1));
+  const placeCx = poserEnnemis(spans.reduce((a, b) => a + b, 0));
+  let _place = 0;
+  const cxs = spans.map((span) => {
+    const c = (placeCx[_place] + placeCx[_place + span - 1]) / 2;
+    _place += span;
+    return c;
+  });
   const ennemisUI = combat.ennemis.map((e, i) => {
     const spr = e.def.sprite;
-    const avant   = (i % 2 === 0);
+    const avant   = (i % 2 === 0) || !!e.def.grand; // un GRAND monstre est toujours à l'AVANT
     const echelle = avant ? ECHELLE_AVANT : ECHELLE_ARRIERE;
     const solEcran = avant ? SOL_Y : SOL_ARRIERE;
     // Calcul en coordonnées monde à partir de l'échelle propre à cet ennemi.

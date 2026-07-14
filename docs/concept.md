@@ -225,6 +225,13 @@ l'ogre masqué (niv 3) ~9 %. Règle des affixes :
   un même type peut sortir plusieurs fois, et le groupe peut même être **composé
   uniquement de monstres `range`**.
 
+**Grands monstres (`grand: true`, colonne Excel « grand »)** : un GRAND monstre
+occupe **2 emplacements** du groupe (il se centre dessus, affiché plus gros, toujours
+à l'avant) et n'apparaît que s'il reste **≥ 2 places libres**. Il pop **plus
+rarement** (poids × `GRAND_RARETE` = 0,5, en plus de la pondération par niveau). Règle
+**générique** : il suffit de cocher « grand » dans l'Excel pour tout futur gros monstre.
+Ex. l'ogre masqué (niv 3, grand) : présent dans ~6 % des groupes seulement.
+
 Conséquence : un `range` est **plus rare** au global (il lui faut un groupe de 3+),
 mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 
