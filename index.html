@@ -180,6 +180,20 @@
       background: rgba(10, 8, 6, 0.66); border: 1px solid #3a2f26;
       border-radius: 6px; padding: 3px 8px;
     }
+    /* Liste des minerais repliable : en-tête cliquable + liste qui se cache. */
+    #hud-info .hud-min-groupe { display: flex; flex-direction: column; gap: 4px; }
+    #hud-info .hud-min-titre {
+      display: flex; align-items: center; gap: 5px; width: max-content; min-width: 130px;
+      background: rgba(10, 8, 6, 0.66); border: 1px solid #3a2f26; border-radius: 6px;
+      padding: 3px 8px; cursor: pointer; color: inherit; font: inherit; text-align: left;
+    }
+    #hud-info .hud-min-titre:hover { border-color: #6b5636; }
+    #hud-info .hud-min-titre:focus-visible { outline: 2px solid #ffcf57; outline-offset: 1px; }
+    #hud-info .hud-min-fleche { display: inline-block; transition: transform 0.15s; font-size: 0.85em; }
+    #hud-info .hud-min-compte { margin-left: auto; padding-left: 8px; opacity: 0.6; font-weight: 400; }
+    #hud-info .hud-min-liste { display: flex; flex-direction: column; gap: 4px; }
+    #hud-info .hud-min--replie .hud-min-liste { display: none; }
+    #hud-info .hud-min--replie .hud-min-fleche { transform: rotate(-90deg); }
     #hud-info .hud-logo { font-size: 1.1em; }
     #hud-info .hud-icone {
       width: 0.9em; height: 0.9em; border-radius: 2px; border: 1px solid rgba(0,0,0,.5);

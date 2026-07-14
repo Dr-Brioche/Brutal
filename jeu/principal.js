@@ -66,7 +66,7 @@ import {
 import { installerChoixProfondeur, ouvrirChoixProfondeur } from "./ui/profondeur.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
-import { getPreference } from "./systems/preferences.js";
+import { getPreference, setPreference } from "./systems/preferences.js";
 
 const canvas = document.getElementById("jeu");
 const ctx = canvas.getContext("2d");
@@ -1201,10 +1201,17 @@ export async function demarrerJeu(donneesInitiales = null) {
       + `<span class="hud-logo">⚔</span> Lv ${z.niveauMobs[0]}–${z.niveauMobs[1]}</div>`;
     if (z.estMine) {
       const dist = distributionMinerais(z.niveau ?? 1, z.materiaux, z.theme);
-      html += dist.map(e => {
+      // Liste des minerais REPLIABLE : un en-tête cliquable (⛏ Ores ▾/▸) cache ou
+      // montre la liste. L'état est retenu dans les préférences (mineraisReplies).
+      const replie = getPreference("mineraisReplies");
+      const lignes = dist.map(e => {
         const d = itemDef(e.id);
         return `<div class="hud-min"><i class="hud-icone" style="background:${d.icone}"></i>${d.nom}<span class="hud-pct">${e.pct}%</span></div>`;
       }).join("");
+      html += `<div class="hud-min-groupe${replie ? " hud-min--replie" : ""}">`
+        + `<button type="button" class="hud-min-titre" id="hud-min-toggle" aria-expanded="${!replie}">`
+        + `<span class="hud-min-fleche">▾</span> Ores <span class="hud-min-compte">${dist.length}</span></button>`
+        + `<div class="hud-min-liste">${lignes}</div></div>`;
       // Bandeau des buffs de RUN actifs (accumulés en descendant).
       if (runActif(runProfondeur)) {
         html += `<div class="hud-run">` + resumeRun(runProfondeur)
@@ -1213,6 +1220,12 @@ export async function demarrerJeu(donneesInitiales = null) {
       }
     }
     hudInfo.innerHTML = html;
+    // (Re)brancher le bouton de repli après reconstruction du HTML.
+    const toggle = hudInfo.querySelector("#hud-min-toggle");
+    if (toggle) toggle.addEventListener("click", () => {
+      setPreference("mineraisReplies", !getPreference("mineraisReplies"));
+      majHudInfo();
+    });
   }
 
   // Les portes : marcher sur une tuile-porte fait passer dans la zone reliée.

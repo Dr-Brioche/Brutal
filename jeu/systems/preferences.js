@@ -6,6 +6,7 @@ const CLE = "brutal_prefs";
 const DEFAUTS = {
   confirmVente: true,    // Confirm before selling rare+ items (cochée par défaut)
   gameplayRapide: false, // Combat au rythme RAPIDE (décochée = rythme posé, lisible)
+  mineraisReplies: false, // Liste des minerais du HUD repliée (false = dépliée)
 };
 
 let prefs = { ...DEFAUTS };
