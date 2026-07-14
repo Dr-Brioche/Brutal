@@ -1481,20 +1481,22 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         // HALO doré (épée de lumière) DERRIÈRE l'arme, en additif + léger pouls lumineux.
         if (skinArme.halo && skinArme.halo.complete && skinArme.halo.naturalWidth) {
           const pouls = 0.72 + 0.28 * Math.sin(temps * 3.0); // respiration de la lumière
+          const rh = imageReduite(skinArme.halo, sArme); // pré-réduit (netteté)
           ctx.save();
           ctx.globalCompositeOperation = "lighter";
           ctx.globalAlpha = pouls;
           ctx.translate(gX, gY);
           ctx.rotate(-skinArme.angle * Math.PI / 180);
-          ctx.scale(sArme, sArme);
-          ctx.drawImage(skinArme.halo, -skinArme.gcx, -skinArme.gcy);
+          ctx.scale(sArme * rh.r, sArme * rh.r);
+          ctx.drawImage(rh.bmp, -skinArme.gcx / rh.r, -skinArme.gcy / rh.r);
           ctx.restore();
         }
+        const ra = imageReduite(skinArme.img, sArme); // pré-réduit (netteté)
         ctx.save();
         ctx.translate(gX, gY);
         ctx.rotate(-skinArme.angle * Math.PI / 180); // + = lame vers le haut
-        ctx.scale(sArme, sArme);
-        ctx.drawImage(skinArme.img, -skinArme.gcx, -skinArme.gcy); // point de prise à l'origine
+        ctx.scale(sArme * ra.r, sArme * ra.r);
+        ctx.drawImage(ra.bmp, -skinArme.gcx / ra.r, -skinArme.gcy / ra.r); // point de prise à l'origine
         ctx.restore();
         // Re-pose la MAIN au-dessus de l'arme (les doigts tiennent l'arme). Deux modes :
         //  - `poingsBox` {x0,y0,x1,y1} (fractions) : ne repose QUE cette boîte = la main
@@ -1800,6 +1802,39 @@ const imgHeroCombat = new Image();
 imgHeroCombat.src = "images/heros/nain-combat.png";
 const imgHeroCombat2Mains = new Image();
 imgHeroCombat2Mains.src = "images/heros/nain-combat-2mains.png";
+
+// NETTETÉ DES ARMES ─────────────────────────────────────────────────────────
+// Les illustrations d'armes sont en HAUTE définition (~1400 px) mais affichées
+// tout petit (~180 px). Les réduire d'un coup (÷7) dans un seul drawImage force
+// le navigateur à sous-échantillonner grossièrement → l'arme devient FLOUE.
+// Solution : on la pré-réduit par MOITIÉS successives (÷2 à chaque fois = un
+// filtrage propre, comme une pyramide d'images), une seule fois, mise en cache.
+// On dessine ensuite cette version réduite avec un facteur DOUX (entre 0.5 et 1)
+// → l'arme reste nette. `r` = facteur de réduction déjà appliqué (à recompenser
+// à l'affichage et sur le point de prise gcx/gcy).
+const _reduiteCache = new Map();
+function imageReduite(img, facteurDessin) {
+  if (!img.naturalWidth) return { bmp: img, r: 1 }; // pas encore chargée
+  let n = 0; // nombre de divisions par 2 pour ramener le dessin dans [0.5, 1]
+  while (facteurDessin * (1 << (n + 1)) <= 1) n++;
+  if (n === 0) return { bmp: img, r: 1 };
+  const cle = img.src + "@" + n;
+  const enCache = _reduiteCache.get(cle);
+  if (enCache) return enCache;
+  let cur = img, w = img.naturalWidth, h = img.naturalHeight;
+  for (let i = 0; i < n; i++) {
+    const nw = Math.max(1, Math.round(w / 2)), nh = Math.max(1, Math.round(h / 2));
+    const c = document.createElement("canvas");
+    c.width = nw; c.height = nh;
+    const cx = c.getContext("2d");
+    cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = "high";
+    cx.drawImage(cur, 0, 0, nw, nh); // réduction 2:1 = filtrage propre
+    cur = c; w = nw; h = nh;
+  }
+  const res = { bmp: cur, r: (1 << n) };
+  _reduiteCache.set(cle, res);
+  return res;
+}
 
 // SKINS d'ARME à deux mains : l'arme est dessinée DERRIÈRE le nain (poings tendus),
 // sa poignée placée dans les mains → la lame ressort vers l'avant, le manche qui
