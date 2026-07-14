@@ -95,6 +95,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const itemsEquipes = Object.values(inventaire.slots ?? {}).filter(Boolean).map(itemDef).filter(Boolean);
   // Arme à DEUX MAINS équipée ? → choisit l'illustration « poings tendus » du héros.
   const armeDeuxMains = itemDef(inventaire.slots?.arme1)?.mains === 2;
+  // Skin d'arme à poser dans les mains (si l'arme 2 mains équipée en a un défini).
+  const skinArme = armeDeuxMains ? (SKINS_ARME_2M[inventaire.slots?.arme1] ?? null) : null;
   // Armure de départ : somme des armureDepart de tous les items équipés (+ run).
   const armureDepart = itemsEquipes.reduce((s, d) => s + (d.armureDepart ?? 0), 0) + (run.armureDepart ?? 0);
   // Célérité passive (% d'initiative de combat) des items (+ run). Le « move speed »
@@ -1455,6 +1457,18 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const aX = hxI + HW / 2, aY = solHeros;
       ctx.translate(aX, aY); ctx.scale(1 - 0.015 * brH, 1 + 0.025 * brH); ctx.translate(-aX, -aY);
       ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+      // ARME à deux mains DERRIÈRE le nain (avant son sprite) : poignée dans les mains,
+      // lame vers l'avant. Le manche qui dépasse passe donc derrière la main.
+      if (skinArme && skinArme.img.complete && skinArme.img.naturalWidth) {
+        const gX = hxI + skinArme.fx * HW, gY = hyI + skinArme.fy * HH;
+        const sArme = skinArme.echelle * HH / imgHero.naturalHeight;
+        ctx.save();
+        ctx.translate(gX, gY);
+        ctx.rotate(-skinArme.angle * Math.PI / 180); // + = lame vers le haut
+        ctx.scale(sArme, sArme);
+        ctx.drawImage(skinArme.img, -skinArme.gcx, -skinArme.gcy); // point de prise à l'origine
+        ctx.restore();
+      }
       ctx.drawImage(imgHero, hxI, hyI, HW, HH);
       if (flashH > 0.05) {
         const ga = ctx.globalAlpha;
@@ -1734,6 +1748,18 @@ const imgHeroCombat = new Image();
 imgHeroCombat.src = "images/heros/nain-combat.png";
 const imgHeroCombat2Mains = new Image();
 imgHeroCombat2Mains.src = "images/heros/nain-combat-2mains.png";
+
+// SKINS d'ARME à deux mains : l'arme est dessinée DERRIÈRE le nain (poings tendus),
+// sa poignée placée dans les mains → la lame ressort vers l'avant, le manche qui
+// dépasse passe derrière la main. Un skin par arme (id = clé). Réglages :
+//   gcx,gcy = point de PRISE dans l'image de l'arme (px) ; echelle = taille relative
+//   à l'illustration du héros ; angle = inclinaison (° ; + = lame vers le haut) ;
+//   fx,fy = point de prise sur le héros (fraction de sa largeur/hauteur dessinée).
+const imgClaymore = new Image();
+imgClaymore.src = "images/armes/claymore-combat.png";
+const SKINS_ARME_2M = {
+  "epee-large": { img: imgClaymore, gcx: 88, gcy: 52, echelle: 0.48, angle: 11, fx: 0.89, fy: 0.42 },
+};
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
 // COURTE et vive, lent = ample et lourde. (Sert de multiplicateur de durée.)
