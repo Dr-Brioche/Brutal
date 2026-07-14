@@ -23,10 +23,6 @@ export const FONDS_COMBAT = {
     "images/fonds/eastern-under-tunnels/tour-pont.jpg",
     "images/fonds/eastern-under-tunnels/cite-lointaine.jpg",
     "images/fonds/eastern-under-tunnels/ruines-tour.jpg",
-    // Anciens fonds (désactivés). Pour les réactiver : décommenter.
-    // "images/fonds/eastern-under-tunnels/nouveau.png",
-    // "images/fonds/eastern-under-tunnels/1.png",
-    // "images/fonds/eastern-under-tunnels/2.png",
   ],
 };
 
