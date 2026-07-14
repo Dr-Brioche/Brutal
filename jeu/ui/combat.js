@@ -1141,17 +1141,24 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (evt.mortStatut) { if (!u.mort.actif && !u.partis) exploser(u); return; }
     if (evt.attaque > 0 || evt.armureAbsorbe > 0) { // il frappe : PV perdus OU armure entamée
       jouerAnim(u, "attaque");
-      // Poussière d'impact synchronisée sur le BOND (après la phase d'armement).
-      setTimeout(() => poufImpact(heroEcran.cx, heroEcran.sol), 230 * (u.vitAnim ?? 1));
-      secousseHeros = 0.3;
-      // PV perdus → chiffre rouge ; coup entièrement encaissé par la Pierre → chiffre bleu.
-      if (evt.attaque > 0) ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
-      else ajouterFlottant(`-${evt.armureAbsorbe}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
-      if (pierreAvantTour > 0) jouerSonCoupArmure(); else jouerSonCoup();
-      // Set Onyx : l'attaquant prend du feu de rétorsion → chiffre sur LUI.
-      if (evt.brulureRetour > 0) ajouterFlottant(`🔥${evt.brulureRetour}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c");
-      // Set Croisé : l'attaquant est ébloui (confusion) → étoiles sur LUI.
-      if (evt.confusionRetour > 0) ajouterFlottant(`✨${evt.confusionRetour}`, u.ecran.cx, u.ecran.sommet - 32, "#ffe9a8");
+      // SYNCHRO : tout l'IMPACT (poussière, secousse + flash blanc du héros, chiffre
+      // de dégât, son, rétorsions) est retardé jusqu'au CONTACT — le pic du bond
+      // (p≈0.56 de l'anim d'attaque, cf. dessinerEnnemiStatique) — pour qu'il tombe
+      // pile quand le monstre touche vraiment le héros, et non pendant sa phase
+      // d'armement (où il RECULE encore). Le délai suit la vitesse du monstre.
+      const delaiImpact = DUREE_ATTAQUE_PROC * 0.56 * (u.vitAnim ?? 1) * 1000; // ms
+      setTimeout(() => {
+        poufImpact(heroEcran.cx, heroEcran.sol);
+        secousseHeros = 0.3;
+        // PV perdus → chiffre rouge ; coup entièrement encaissé par la Pierre → chiffre bleu.
+        if (evt.attaque > 0) ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
+        else ajouterFlottant(`-${evt.armureAbsorbe}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
+        if (pierreAvantTour > 0) jouerSonCoupArmure(); else jouerSonCoup();
+        // Set Onyx : l'attaquant prend du feu de rétorsion → chiffre sur LUI.
+        if (evt.brulureRetour > 0) ajouterFlottant(`🔥${evt.brulureRetour}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c");
+        // Set Croisé : l'attaquant est ébloui (confusion) → étoiles sur LUI.
+        if (evt.confusionRetour > 0) ajouterFlottant(`✨${evt.confusionRetour}`, u.ecran.cx, u.ecran.sommet - 32, "#ffe9a8");
+      }, delaiImpact);
     }
     if (evt.attaqueAllie > 0) { // Confusion : il frappe un allié (ou lui-même) au lieu du héros
       jouerAnim(u, "attaque");
