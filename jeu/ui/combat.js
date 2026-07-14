@@ -1019,6 +1019,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // puis on enchaîne après une courte pause (lisibilité).
   const PAS_AVANT = 0.7 * lenteur;   // pause après End Turn AVANT le 1er ennemi (respire un peu)
   const PAS_ENNEMI = 0.55 * lenteur; // pause après CHAQUE action ennemie (× lenteur)
+  const PAUSE_AVANT_PIOCHE = 500;    // pause (ms) après la fin des attaques ennemies AVANT la pioche du héros
 
   function finDeTour() {
     if (phaseCiblage || combat.fini || !combat.tourJoueur) return;
@@ -1114,7 +1115,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         enAnimPioche = true; // verrouille la main pendant l'attente
         setTimeout(lancerPioche, 1000);
       } else {
-        lancerPioche();
+        // Pause AVANT la pioche : laisse respirer entre la fin des attaques des
+        // monstres et l'arrivée de la nouvelle main (+0,5 s, cf. PAUSE_AVANT_PIOCHE).
+        enAnimPioche = true; // verrouille la main pendant l'attente
+        setTimeout(lancerPioche, PAUSE_AVANT_PIOCHE);
       }
     } else {
       const pierreAvantTour = combat.pierre;
