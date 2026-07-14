@@ -127,7 +127,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   let fogCanvas = null, fogCtx = null; // masque basse résolution du brouillard (1 px = 1 case), réutilisé
   let carte = creerCarte(CITY);
   let rencontres = creerRencontres();
-  prechargerFonds(zoneActuelle);                // fonds de combat prêts en cache
+  prechargerFonds(zoneActuelle, zoneCourante);  // fonds de combat prêts en cache
   prechargerMusiquesCombat(zoneActuelle);       // musiques de combat prêtes en cache
   if (CITY.musique) jouerMusique(CITY.musique); // ambiance ville dès le lancement
   const camera = creerCamera();
@@ -1265,7 +1265,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     carte = creerCarte(zone);
     zoneActuelle = assetZone;
     zoneCourante = zone;
-    prechargerFonds(assetZone);          // télécharge les fonds pendant l'explo
+    prechargerFonds(assetZone, zone);    // télécharge les fonds (biome/profondeur) pendant l'explo
     prechargerMusiquesCombat(assetZone); // idem pour les musiques de combat
     poserHeros(heros, entree.colonne, entree.ligne);
     revelerAutour(carte, entree.colonne, entree.ligne, RAYON_VUE); // découvre le point d'arrivée (mine)
@@ -1532,7 +1532,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis, maitrise,
       bonusRun: bonusCombatRun(runProfondeur), // buffs de run (force/célérité/armure)
-      fond: fondCombat(zoneActuelle), // un fond tiré dans la bibliothèque de la zone
+      fond: fondCombat(zoneActuelle, zoneCourante), // fond tiré selon le biome/la profondeur
       // Échap en combat : ouvre le menu pause (réglages son), SANS Save/Load.
       surPause: () => menu.ouvrir({ sansSauvegarde: true }),
       surFin: (resultat) => {
