@@ -37,8 +37,10 @@
 - Ovale dégradé sombre sous **chaque ennemi ET sous le nain**.
 - Calée sous les **pieds RÉELS** (détectés par scan du bas de l'illustration, en cache) —
   car les persos ne sont pas centrés dans leur image. Marche pour tout futur monstre sans réglage.
-- Large (couvre les jambes écartées), noir qui tient jusqu'à 70 % du rayon.
-  Plus grande sous un **grand monstre** (×1.12).
+- Large (couvre les jambes écartées). **Bien visible** : ovale peu aplati (ry = 34 % du
+  rayon), foncé (cœur 0.75), **posé sous les pieds** (légèrement descendu pour ne pas être
+  coupé en deux par le sprite). Plus grande sous un **grand monstre** (×1.12).
+  Helper `ombreOvale` (partagé nain + ennemis).
 
 **Fonds de combat** : voir §4.
 
@@ -92,8 +94,11 @@ l'illustration « poings tendus » (`images/heros/nain-combat-2mains.png`).
 - `poingsFrac` : à partir de quelle fraction de largeur on repose les poings (~0.71).
 - `poingsTopFrac` : au-dessus de cette fraction de hauteur, poings NON reposés (détail subtil, ~0.15).
 
-**Claymore** (`epee-large`) — valeurs validées : `angle 73`, `fx 0.94`, `fy 0.37`,
-`echelle 0.1783`, `poingsFrac 0.71`, `poingsTopFrac 0.15`.
+**Armes validées** (valeurs dans `SKINS_ARME_2M`) :
+- **Claymore** (`epee-large`) : `angle 73`, `fx 0.94`, `fy 0.37`, `echelle 0.1783`,
+  `poingsFrac 0.71`, `poingsTopFrac 0.15`.
+- **War Axe** (`hache-de-guerre`) : `angle 73`, `fx 0.90`, `fy 0.40`, `echelle 0.21`,
+  `gcx 470`, `gcy 285`, `poingsFrac 0.71`, `poingsTopFrac 0.15`.
 
 **Règles pour les futures armes** :
 - Fournir l'image (fond vert de préférence), orientée **manche à gauche / lame à droite, horizontale**.
