@@ -773,6 +773,20 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     carteJouee = true; // une carte a été jouée → on ne pourra plus fuir ce tour
     if (maitrise) incrementerMaitrise(maitrise, heros, carte.id);
 
+    // Cartes PIOCHÉES par la carte jouée (effet « piocher ») : on les retire de la
+    // main IMMÉDIATEMENT (synchrone) et on verrouille l'agrandissement. Sinon,
+    // pendant le délai carte→effet, une de ces cartes s'affichait en grand dans la
+    // main (~0,5 s) avant sa vraie révélation au centre. On les révélera plus bas.
+    // (Les autres formes de pioche — dés, Lucky Draw, échange — gèrent leur cas.)
+    let piocheDifferee = null;
+    if (!combat.dernierGainAleatoire && !combat.dernieresPiochesFiltre && !combat.dernierEchangeMain) {
+      const drawn = combat.main.length - nbAvant + 1;
+      if (drawn > 0) {
+        piocheDifferee = combat.main.splice(combat.main.length - drawn, drawn);
+        enAnimPioche = true; // plus aucune carte de main agrandie pendant l'attente
+      }
+    }
+
     if (elJouee) animerCarteJouee(elJouee); // la carte sort, grandit, puis disparaît
 
     // Input réactivé TOUT DE SUITE (ciblage, main) ; la résolution VISUELLE des
@@ -906,22 +920,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         animerDefausse(defaussees, () =>
           animerPioche(piochees, null, (c) => combat.main.push(c))
         );
-      } else {
-        // Cartes piochées EN COURS DE TOUR (effet « piocher »/« piocher-par-ennemi »…).
-        // drawn = nb cartes ajoutées : (taille après) - (taille avant - 1 carte jouée).
-        // On les RETIRE de la main pour les révéler EN GRAND une à une (exactement
-        // comme la pioche de début de tour) ; elles n'arrivent dans la main qu'au fil
-        // de l'animation (ajouterAMain). Sinon on les verrait déjà en main AVANT leur
-        // révélation.
-        const drawn = combat.main.length - nbAvant + 1;
-        if (drawn > 0) {
-          const aReveler = combat.main.splice(combat.main.length - drawn, drawn);
-          rafraichir(); // la main n'affiche pas encore les cartes piochées
-          // Petite PAUSE (~0,3 s) AVANT la pioche : piocher instantané est trop sec,
-          // on laisse « respirer » entre la carte jouée et les cartes qui arrivent.
-          enAnimPioche = true; // verrou pendant l'attente
-          setTimeout(() => animerPioche(aReveler, null, (c) => combat.main.push(c)), 300);
-        }
+      } else if (piocheDifferee) {
+        // Cartes piochées EN COURS DE TOUR, déjà retirées de la main plus haut (dès
+        // le jeu de la carte). Petite PAUSE (~0,3 s) — piocher instantané est trop
+        // sec — puis on les révèle EN GRAND une à une, comme la pioche de début de
+        // tour. Le verrou enAnimPioche est déjà posé (aucune carte agrandie entre-temps).
+        setTimeout(() => animerPioche(piocheDifferee, null, (c) => combat.main.push(c)), 300);
       }
     }
     }, DELAI_CARTE); // fin de la résolution visuelle différée (délai « carte → effet »)
