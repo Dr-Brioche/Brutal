@@ -1688,17 +1688,18 @@ function dessinerOmbreSol(ctx, u) {
   const m = metriquesPieds(u); // pieds réels (sinon milieu de l'image en secours)
   const cx = u.localX + (m ? m.cx : spr.caseL / 2);
   const cy = u.localY + spr.caseH - 1; // sur la ligne des pieds
-  // Largeur : couvre les deux pieds (un peu plus large), plancher pour les petits.
-  const base = m ? Math.max(m.demi * 1.25, spr.caseL * 0.30) : spr.caseL * 0.42;
+  // Largeur : couvre LARGEMENT les deux pieds (jambes écartées incluses), plancher
+  // pour les petits. Le noir tient jusqu'à 70 % du rayon → l'ombre porte vraiment.
+  const base = m ? Math.max(m.demi * 1.55, spr.caseL * 0.38) : spr.caseL * 0.48;
   const rx = base * (u.e.def.grand ? 1.12 : 1);
-  const ry = rx * 0.24;                // ovale aplati (vu de face)
+  const ry = rx * 0.26;                // ovale aplati (vu de face)
   ctx.save();
   ctx.imageSmoothingEnabled = true;
   ctx.translate(cx, cy);
   ctx.scale(1, ry / rx);               // cercle -> ellipse aplatie
   const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
-  g.addColorStop(0, "rgba(0,0,0,0.55)");   // plus marquée qu'avant
-  g.addColorStop(0.6, "rgba(0,0,0,0.30)");
+  g.addColorStop(0, "rgba(0,0,0,0.55)");   // cœur bien marqué
+  g.addColorStop(0.7, "rgba(0,0,0,0.30)"); // le noir tient large avant de s'estomper
   g.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = g;
   ctx.beginPath();
