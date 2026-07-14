@@ -1478,6 +1478,18 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (skinArme && skinArme.img.complete && skinArme.img.naturalWidth) {
         const gX = hxI + skinArme.fx * HW, gY = hyI + skinArme.fy * HH;
         const sArme = skinArme.echelle * HH / imgHero.naturalHeight;
+        // HALO doré (épée de lumière) DERRIÈRE l'arme, en additif + léger pouls lumineux.
+        if (skinArme.halo && skinArme.halo.complete && skinArme.halo.naturalWidth) {
+          const pouls = 0.72 + 0.28 * Math.sin(temps * 3.0); // respiration de la lumière
+          ctx.save();
+          ctx.globalCompositeOperation = "lighter";
+          ctx.globalAlpha = pouls;
+          ctx.translate(gX, gY);
+          ctx.rotate(-skinArme.angle * Math.PI / 180);
+          ctx.scale(sArme, sArme);
+          ctx.drawImage(skinArme.halo, -skinArme.gcx, -skinArme.gcy);
+          ctx.restore();
+        }
         ctx.save();
         ctx.translate(gX, gY);
         ctx.rotate(-skinArme.angle * Math.PI / 180); // + = lame vers le haut
@@ -1811,8 +1823,12 @@ const SKINS_ARME_2M = {
 // nain « mains vides » (nain-combat.png) — l'arme est posée dans le poing avant.
 const imgEpeeLumiere = new Image();
 imgEpeeLumiere.src = "images/armes/epee-lumiere-combat.png";
+// Halo doré pré-généré (glow suivant les bords de la LAME, manche exclu). Dessiné
+// DERRIÈRE l'épée, avec un léger pouls lumineux. Aligné sur la même image (mêmes gcx/gcy).
+const imgEpeeLumiereHalo = new Image();
+imgEpeeLumiereHalo.src = "images/armes/epee-lumiere-halo.png";
 const SKINS_ARME_1M = {
-  "epee-sacree": { img: imgEpeeLumiere, gcx: 235, gcy: 197, echelle: 0.13, angle: 50, fx: 0.82, fy: 0.494, poingsBox: { x0: 0.70, y0: 0.38, x1: 0.93, y1: 0.58 } },
+  "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 235, gcy: 197, echelle: 0.13, angle: 50, fx: 0.82, fy: 0.494, poingsBox: { x0: 0.70, y0: 0.38, x1: 0.93, y1: 0.58 } },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
