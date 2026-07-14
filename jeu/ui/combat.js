@@ -68,7 +68,12 @@ const VIE_SOUS = 11;           // écart pieds (sol) → haut de la barre (loge 
 const ETATS_SOUS = 11;         // écart bas de la barre → rangée d'états (laisse place à l'init)
 // File d'ordre des tours (en haut) : carrés-portraits des prochains acteurs.
 const FILE_N = 5, FILE_TAILLE = 40, FILE_ESPACE = 8, FILE_Y = 12;
-// Portrait du héros = zone de la tête dans la planche du nain (frame face, à ajuster).
+// Portrait du héros dans la file des tours : on découpe la TÊTE dans l'illustration
+// de combat (images/heros/nain-combat.png) — même image que le héros affiché en
+// scène, donc plus cohérent que l'ancienne vignette pixel-art de la planche.
+const TETE_HEROS_COMBAT = { sx: 72, sy: 2, sw: 60, sh: 60 };
+// Repli : ancienne zone de tête dans la planche du nain (si l'illustration n'est
+// pas encore chargée au tout premier rendu).
 const PORTRAIT_HEROS = { sx: 17, sy: 4, sw: 30, sh: 30 };
 // ---------------------------------------------------------------------------
 
@@ -1355,10 +1360,15 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const largeur = file.length * FILE_TAILLE + (file.length - 1) * FILE_ESPACE;
     let x = 320 - largeur / 2;
     file.forEach((a, k) => {
-      let planche = null, portrait = null, teinte = null;
-      if (a.id === "heros") { planche = heros.plancheArmure; portrait = PORTRAIT_HEROS; }
-      else { const u = ennemisUI[a.i]; if (u) { planche = u.planche; portrait = u.e.def.portrait; teinte = u.e.def.teinte; } }
-      dessinerCarreTete(ctx, x, FILE_Y, FILE_TAILLE, planche, portrait, k === 0, teinte);
+      let planche = null, portrait = null, teinte = null, lisse = false;
+      if (a.id === "heros") {
+        // Tête découpée dans l'illustration de combat (lissée : c'est une image, pas
+        // du pixel-art). Repli sur l'ancienne planche tant qu'elle n'est pas chargée.
+        if (imgHeroCombat.complete && imgHeroCombat.naturalWidth) {
+          planche = imgHeroCombat; portrait = TETE_HEROS_COMBAT; lisse = true;
+        } else { planche = heros.plancheArmure; portrait = PORTRAIT_HEROS; }
+      } else { const u = ennemisUI[a.i]; if (u) { planche = u.planche; portrait = u.e.def.portrait; teinte = u.e.def.teinte; } }
+      dessinerCarreTete(ctx, x, FILE_Y, FILE_TAILLE, planche, portrait, k === 0, teinte, lisse);
       x += FILE_TAILLE + FILE_ESPACE;
     });
   }
@@ -1760,14 +1770,14 @@ function dessinerBarreInit(ctx, x, y, l, ratio) {
 
 // Un carré-portrait de la file : fond, tête (planche découpée au `portrait`),
 // bordure blanche (dorée + épaisse pour l'acteur courant).
-function dessinerCarreTete(ctx, x, y, t, planche, portrait, courant, teinte) {
+function dessinerCarreTete(ctx, x, y, t, planche, portrait, courant, teinte, lisse = false) {
   ctx.save();
   cheminArrondi(ctx, x, y, t, t, 6);
   ctx.fillStyle = "#15110c";
   ctx.fill();
   ctx.clip(); // la tête reste dans le carré arrondi
   if (planche && portrait) {
-    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = lisse; // lisse pour une illustration, net pour le pixel-art
     if (teinte) ctx.filter = teinte; // même teinte que le sprite (reconnaître le rapide)
     ctx.drawImage(planche, portrait.sx, portrait.sy, portrait.sw, portrait.sh, x, y, t, t);
   }
