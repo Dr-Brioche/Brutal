@@ -1402,6 +1402,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         ctx.translate(PIVOT_SCENE.x, PIVOT_SCENE.y);
         ctx.scale(u.echelle, u.echelle);
         ctx.translate(-PIVOT_SCENE.x, -PIVOT_SCENE.y);
+        dessinerOmbreSol(ctx, u); // ombre au sol (sous les pieds, avant le sprite)
         if (u.spr.statique)
           dessinerEnnemiStatique(ctx, u, temps, tr);
         else
@@ -1631,6 +1632,31 @@ function dessinerEnnemi(ctx, planche, spr, frame, x, y, teinte) {
     Math.round(x), Math.round(y), spr.caseL, spr.caseH
   );
   if (teinte) ctx.filter = "none";
+}
+
+// Ombre portée au sol sous un ennemi : ovale dégradé sombre, centré sous les
+// pieds. Sa largeur suit la taille du monstre (caseL) → naturellement plus grande
+// sous un grand monstre, avec en plus un bonus explicite pour les `grand:true`.
+// Dessinée AVANT le sprite (donc dessous), dans le même repère à l'échelle.
+function dessinerOmbreSol(ctx, u) {
+  const spr = u.spr;
+  const cx = u.localX + spr.caseL / 2;
+  const cy = u.localY + spr.caseH - 2; // juste sous les pieds
+  const rx = spr.caseL * 0.42 * (u.e.def.grand ? 1.18 : 1);
+  const ry = rx * 0.20;                // ovale bien aplati (vu de face)
+  ctx.save();
+  ctx.imageSmoothingEnabled = true;
+  ctx.translate(cx, cy);
+  ctx.scale(1, ry / rx);               // cercle -> ellipse aplatie
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, "rgba(0,0,0,0.38)");
+  g.addColorStop(0.7, "rgba(0,0,0,0.16)");
+  g.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(0, 0, rx, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 // ---- Animation « image fixe + effets » (sprite.statique) --------------------
