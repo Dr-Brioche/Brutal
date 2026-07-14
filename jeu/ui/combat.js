@@ -793,7 +793,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // effets, elle, est différée de DELAI_CARTE (le temps que la carte s'écarte).
     phaseCiblage = false;
     recalerCible();
-    selection = combat.main.length > 0 ? Math.min(selection, combat.main.length - 1) : -1;
+    // Après avoir joué (clavier OU souris), on ne relève AUCUNE carte par défaut :
+    // l'écran reste lisible pendant l'action. Une carte ne se relève qu'à une action
+    // explicite du joueur — flèche clavier (surTouche) ou survol souris de la main
+    // (pointerenter, ligne ~373). Même principe qu'après « Fin du tour ».
+    selection = -1;
     rafraichir();
 
     setTimeout(() => {
