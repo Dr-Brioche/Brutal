@@ -1638,23 +1638,57 @@ function dessinerEnnemi(ctx, planche, spr, frame, x, y, teinte) {
   if (teinte) ctx.filter = "none";
 }
 
-// Ombre portée au sol sous un ennemi : ovale dégradé sombre, centré sous les
-// pieds. Sa largeur suit la taille du monstre (caseL) → naturellement plus grande
-// sous un grand monstre, avec en plus un bonus explicite pour les `grand:true`.
-// Dessinée AVANT le sprite (donc dessous), dans le même repère à l'échelle.
+// Position RÉELLE des pieds dans une illustration (les monstres ne sont pas centrés
+// dans leur image → une ombre calée sur le milieu de l'image tombe à côté). On
+// scanne UNE FOIS le bas de la planche pour trouver l'étendue X opaque (les pieds),
+// puis on met en cache par planche. Marche pour tout futur monstre, sans réglage.
+// Renvoie { cx, demi } en pixels-sprite (centre des pieds + demi-largeur), ou null.
+const _piedsCache = new WeakMap();
+function metriquesPieds(u) {
+  const spr = u.spr, planche = u.planche;
+  if (!planche || !planche.complete || !planche.naturalWidth) return null;
+  const cache = _piedsCache.get(planche);
+  if (cache !== undefined) return cache;
+  let res = null;
+  try {
+    const cv = document.createElement("canvas");
+    cv.width = spr.caseL; cv.height = spr.caseH;
+    const c = cv.getContext("2d", { willReadFrequently: true });
+    c.drawImage(planche, 0, 0, spr.caseL, spr.caseH, 0, 0, spr.caseL, spr.caseH);
+    const data = c.getImageData(0, 0, spr.caseL, spr.caseH).data;
+    const yDebut = Math.floor(spr.caseH * 0.85); // les ~15 % du bas = les pieds
+    let xmin = spr.caseL, xmax = -1;
+    for (let y = yDebut; y < spr.caseH; y++) {
+      const base = y * spr.caseL;
+      for (let x = 0; x < spr.caseL; x++) {
+        if (data[(base + x) * 4 + 3] > 40) { if (x < xmin) xmin = x; if (x > xmax) xmax = x; }
+      }
+    }
+    if (xmax >= xmin) res = { cx: (xmin + xmax) / 2, demi: (xmax - xmin) / 2 };
+  } catch (_) { res = null; } // canvas « tainted » ou autre : on retombe sur le défaut
+  _piedsCache.set(planche, res);
+  return res;
+}
+
+// Ombre portée au sol sous un ennemi : ovale dégradé sombre, calé sous les PIEDS
+// RÉELS (détectés) et assez large pour couvrir les deux pieds. Plus grande sous un
+// grand monstre. Dessinée AVANT le sprite (donc dessous), dans le repère à l'échelle.
 function dessinerOmbreSol(ctx, u) {
   const spr = u.spr;
-  const cx = u.localX + spr.caseL / 2;
-  const cy = u.localY + spr.caseH - 2; // juste sous les pieds
-  const rx = spr.caseL * 0.42 * (u.e.def.grand ? 1.18 : 1);
-  const ry = rx * 0.20;                // ovale bien aplati (vu de face)
+  const m = metriquesPieds(u); // pieds réels (sinon milieu de l'image en secours)
+  const cx = u.localX + (m ? m.cx : spr.caseL / 2);
+  const cy = u.localY + spr.caseH - 1; // sur la ligne des pieds
+  // Largeur : couvre les deux pieds (un peu plus large), plancher pour les petits.
+  const base = m ? Math.max(m.demi * 1.25, spr.caseL * 0.30) : spr.caseL * 0.42;
+  const rx = base * (u.e.def.grand ? 1.12 : 1);
+  const ry = rx * 0.24;                // ovale aplati (vu de face)
   ctx.save();
   ctx.imageSmoothingEnabled = true;
   ctx.translate(cx, cy);
   ctx.scale(1, ry / rx);               // cercle -> ellipse aplatie
   const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
-  g.addColorStop(0, "rgba(0,0,0,0.38)");
-  g.addColorStop(0.7, "rgba(0,0,0,0.16)");
+  g.addColorStop(0, "rgba(0,0,0,0.55)");   // plus marquée qu'avant
+  g.addColorStop(0.6, "rgba(0,0,0,0.30)");
   g.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = g;
   ctx.beginPath();
