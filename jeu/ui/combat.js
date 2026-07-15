@@ -1496,6 +1496,15 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         ctx.translate(gX, gY);
         ctx.rotate(-skinArme.angle * Math.PI / 180); // + = lame vers le haut
         ctx.scale(sArme * ra.r, sArme * ra.r);
+        // `coupeManche` (px source) : on CACHE tout ce qui est du côté pommeau (source-x
+        // sous ce seuil) par une découpe PERPENDICULAIRE à la lame. Placée au point de
+        // prise, elle est masquée par le poing → « le manche s'arrête à la main ».
+        if (skinArme.coupeManche != null) {
+          const xMin = (skinArme.coupeManche - skinArme.gcx) / ra.r;
+          ctx.beginPath();
+          ctx.rect(xMin, -1e5, 1e6, 2e5);
+          ctx.clip();
+        }
         ctx.drawImage(ra.bmp, -skinArme.gcx / ra.r, -skinArme.gcy / ra.r); // point de prise à l'origine
         ctx.restore();
         // Re-pose la MAIN au-dessus de l'arme (les doigts tiennent l'arme). Deux modes :
@@ -1869,7 +1878,7 @@ const SKINS_ARME_1M = {
   // pommeau se cale juste sous le poing (plus de long manche qui pend jusqu'à la ceinture).
   // poingsBox resserrée sur le POING seul (ne redescend plus sur la ceinture, sinon elle
   // repeignait le corps par-dessus le manche = « trou après la main »).
-  "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 150, gcy: 197, echelle: 0.11055, angle: 53, fx: 0.7925, fy: 0.505, poingsBox: { x0: 0.73, y0: 0.40, x1: 0.93, y1: 0.55 } },
+  "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 150, gcy: 197, echelle: 0.11055, angle: 53, fx: 0.787, fy: 0.5123, coupeManche: 150, poingsBox: { x0: 0.73, y0: 0.40, x1: 0.93, y1: 0.55 } },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
