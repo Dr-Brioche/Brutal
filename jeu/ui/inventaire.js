@@ -23,7 +23,7 @@ function estEquipable(id) {
 import { xpPourNiveau } from "../systems/progression.js";
 import {
   rangsInventaire, colsInventaire, equiper, desequiper, arme2Bloquee,
-  objetSousCase, peutPlacerA, deplacerObjet,
+  objetSousCase, peutPlacerA, deplacerObjet, nbSacs,
 } from "../systems/inventaire.js";
 import { dialogueActif } from "./dialogue.js";
 import { bonusTalents } from "../systems/talents.js";
@@ -76,6 +76,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   const elXpFill = document.getElementById("inv-xp-fill");
   const elXpTxt  = document.getElementById("inv-xp-txt");
   const elGrille = document.getElementById("inv-grille");
+  const elOnglets = document.getElementById("inv-onglets");
   const elOr = document.getElementById("inv-or");
   const elPv = document.getElementById("inv-pv");
   const elMenu = document.getElementById("inv-menu");
@@ -90,6 +91,19 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   // Navigation clavier : un curseur (carré) se promène dans la grille.
   let cursorX = 0, cursorY = 0, cursorVisible = false, kbFocus = false;
+  // ONGLET de sac affiché (0 = sac principal, 1 = 2e sac). Chaque sac est une
+  // grille séparée → on n'en montre qu'UNE à la fois (jamais trop large).
+  let ongletActif = 0;
+
+  // Change d'onglet (clampé au nb de sacs). Si on TIENT un objet, il reste en main :
+  // le poser dans le nouvel onglet l'y déplace (déplacement inter-onglets).
+  function setOnglet(t) {
+    const nb = nbSacs(inventaire);
+    ongletActif = Math.max(0, Math.min(nb - 1, t));
+    cursorX = 0; cursorY = 0;
+    rendre();
+    if (tenu) { const c = calculerCible(cursorX, cursorY); cibleX = c.x; cibleY = c.y; ghostVersCase(cibleX, cibleY); }
+  }
 
   // ---- Prendre / poser ------------------------------------------------------
 
@@ -101,8 +115,8 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   // Coin haut-gauche de pose, clampé à la grille (à partir d'une case d'ancrage).
   function calculerCible(ancreX, ancreY) {
     const d = itemDef(tenu.objet.id);
-    const rangs = rangsInventaire(inventaire);
-    const cols = colsInventaire(inventaire);
+    const rangs = rangsInventaire(inventaire, ongletActif);
+    const cols = colsInventaire(inventaire, ongletActif);
     return {
       x: Math.max(0, Math.min(cols - d.taille.l, ancreX - tenu.offX)),
       y: Math.max(0, Math.min(rangs - d.taille.h, ancreY - tenu.offY)),
@@ -146,7 +160,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     refCible.style.top = cibleY * CASE + "px";
     refCible.style.width = d.taille.l * CASE + "px";
     refCible.style.height = d.taille.h * CASE + "px";
-    const ok = peutPlacerA(inventaire, tenu.objet, cibleX, cibleY);
+    const ok = peutPlacerA(inventaire, tenu.objet, cibleX, cibleY, ongletActif);
     refCible.classList.toggle("inv-cible--ok", ok);
     refCible.classList.toggle("inv-cible--non", !ok);
   }
@@ -173,7 +187,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   function poserA(x, y) {
     if (!tenu) return;
-    if (deplacerObjet(inventaire, tenu.objet, x, y)) { lacher(); rendre(); }
+    if (deplacerObjet(inventaire, tenu.objet, x, y, ongletActif)) { lacher(); rendre(); }
     // Place occupée : on garde l'objet en main (le joueur retente ailleurs).
   }
 
@@ -223,7 +237,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     if (doubleClic) {
       dernierClic.t = 0; // évite qu'un 3e clic enchaîne un autre double-clic
       // Le 1er clic a déjà soulevé l'objet : on l'équipe directement.
-      const o = tenu ? tenu.objet : objetSousCase(inventaire, c.x, c.y);
+      const o = tenu ? tenu.objet : objetSousCase(inventaire, c.x, c.y, ongletActif);
       if (o) {
         if (tenu) lacher();
         essayerEquiper(inventaire, heros, o, surChangement, rendre);
@@ -237,7 +251,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       const cible = calculerCible(c.x, c.y);
       poserA(cible.x, cible.y);
     } else {
-      const o = objetSousCase(inventaire, c.x, c.y);
+      const o = objetSousCase(inventaire, c.x, c.y, ongletActif);
       if (o) { soulever(o, c.x - o.x, c.y - o.y); ghostVersSouris(ev.clientX, ev.clientY); }
     }
   });
@@ -392,14 +406,27 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
     if (!kbFocus) return;
 
+    // Changer d'ONGLET de sac au clavier (A/E = onglet précédent/suivant), quand
+    // il y a un 2e sac. Marche aussi en tenant un objet (pour le poser dans l'autre sac).
+    if ((e.code === "KeyE" || e.code === "BracketRight") && nbSacs(inventaire) > 1) {
+      e.preventDefault(); if (enBoutique) e.stopImmediatePropagation();
+      setOnglet((ongletActif + 1) % nbSacs(inventaire));
+      return;
+    }
+    if (e.code === "BracketLeft" && nbSacs(inventaire) > 1) {
+      e.preventDefault(); if (enBoutique) e.stopImmediatePropagation();
+      setOnglet((ongletActif - 1 + nbSacs(inventaire)) % nbSacs(inventaire));
+      return;
+    }
+
     // Déplacement du curseur case par case (WASD + ZQSD + flèches).
     const ddx = { ArrowLeft: -1, ArrowRight: 1, KeyA: -1, KeyD: 1, KeyQ: -1 };
     const ddy = { ArrowUp: -1, ArrowDown: 1, KeyW: -1, KeyS: 1, KeyZ: -1 };
     if (e.code in ddx || e.code in ddy) {
       e.preventDefault();
       if (enBoutique) e.stopImmediatePropagation();
-      const rangs = rangsInventaire(inventaire);
-      cursorX = Math.max(0, Math.min(colsInventaire(inventaire) - 1, cursorX + (ddx[e.code] || 0)));
+      const rangs = rangsInventaire(inventaire, ongletActif);
+      cursorX = Math.max(0, Math.min(colsInventaire(inventaire, ongletActif) - 1, cursorX + (ddx[e.code] || 0)));
       cursorY = Math.max(0, Math.min(rangs - 1, cursorY + (ddy[e.code] || 0)));
       cursorVisible = true;
       if (tenu) { const c = calculerCible(cursorX, cursorY); cibleX = c.x; cibleY = c.y; }
@@ -416,7 +443,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
         const c = calculerCible(cursorX, cursorY);
         poserA(c.x, c.y);
       } else {
-        const o = objetSousCase(inventaire, cursorX, cursorY);
+        const o = objetSousCase(inventaire, cursorX, cursorY, ongletActif);
         if (o) { soulever(o, cursorX - o.x, cursorY - o.y); ghostVersCase(cibleX, cibleY); }
       }
       return;
@@ -426,7 +453,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     if (e.code === "KeyX") {
       e.preventDefault();
       if (enBoutique) e.stopImmediatePropagation();
-      const o = tenu ? tenu.objet : objetSousCase(inventaire, cursorX, cursorY);
+      const o = tenu ? tenu.objet : objetSousCase(inventaire, cursorX, cursorY, ongletActif);
       if (o) {
         if (tenu) lacher();
         ouvrirContexteCase(cursorX, cursorY, menuSac(o));
@@ -444,9 +471,10 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
         ? "Drop on the merchant to sell · on a slot to equip · in the void to discard · Esc: cancel"
         : "Drop on a cell to move · on a slot to equip · in the void to discard · Esc: cancel";
     } else if (!enBoutique) {
+      const bagHint = nbSacs(inventaire) > 1 ? " · [E] switch bag" : "";
       elAide.textContent = cursorVisible
-        ? "Arrows: move · Enter: pick up/drop · X: equip/discard · [B] to close"
-        : "Click an item to pick it up · drop it where you want or on a slot · [B] to close · arrows: keyboard mode";
+        ? "Arrows: move · Enter: pick up/drop · X: equip/discard" + bagHint + " · [B] to close"
+        : "Click an item to pick it up · drop it where you want or on a slot" + bagHint + " · [B] to close";
     } else {
       elAide.textContent = kbFocus
         ? "Arrows: move · Enter: pick up/drop · X: equip/discard · [Tab]: back to merchant"
@@ -604,24 +632,18 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   function rendreGrille() {
     elGrille.replaceChildren();
-    const rangs = rangsInventaire(inventaire);
-    const cols  = colsInventaire(inventaire);
+    const rangs = rangsInventaire(inventaire, ongletActif);
+    const cols  = colsInventaire(inventaire, ongletActif);
     elGrille.style.width  = cols  * CASE + "px";
     elGrille.style.height = rangs * CASE + "px";
 
-    // Séparateur vertical entre sac principal et sac2 (quand ce dernier est équipé).
-    if (inventaire.slots.sac2 && cols > inventaire.cols) {
-      const sep = document.createElement("div");
-      sep.style.cssText = `position:absolute;left:${inventaire.cols * CASE}px;top:0;width:2px;height:100%;background:rgba(255,255,255,0.15);pointer-events:none;`;
-      elGrille.append(sep);
-    }
-
     // Item sous le curseur clavier (null si case vide ou pas de curseur).
     const objetSousCurseur = (cursorVisible && !tenu)
-      ? objetSousCase(inventaire, cursorX, cursorY)
+      ? objetSousCase(inventaire, cursorX, cursorY, ongletActif)
       : null;
 
     for (const o of inventaire.objets) {
+      if ((o.sac ?? 0) !== ongletActif) continue; // seulement les objets de l'onglet affiché
       const d = itemDef(o.id);
       const ic = iconeItem(o.id, o.qualite);
       if (tenu && o === tenu.objet) ic.classList.add("inv-item--tenu"); // grisé (en main)
@@ -672,14 +694,34 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     rendreColonne(elArmes, SLOTS_ARME);
     rendreHero();
     rendreStats();
+    rendreOnglets();
     rendreGrille();
     majAide();
   }
 
   function clamperCurseur() {
-    const rangs = rangsInventaire(inventaire);
-    cursorX = Math.max(0, Math.min(colsInventaire(inventaire) - 1, cursorX));
+    if (ongletActif >= nbSacs(inventaire)) ongletActif = 0; // 2e sac retiré → retour onglet 1
+    const rangs = rangsInventaire(inventaire, ongletActif);
+    cursorX = Math.max(0, Math.min(colsInventaire(inventaire, ongletActif) - 1, cursorX));
     cursorY = Math.max(0, Math.min(rangs - 1, cursorY));
+  }
+
+  // Barre d'ONGLETS de sac (au-dessus de la grille). Un onglet par sac équipé ;
+  // clic pour basculer (souris). En tenant un objet, basculer permet de le poser
+  // dans l'autre sac. Toujours au moins l'onglet « Bag ».
+  function rendreOnglets() {
+    if (!elOnglets) return;
+    const nb = nbSacs(inventaire);
+    const noms = ["Bag", "Bag 2"];
+    const boutons = [];
+    for (let t = 0; t < nb; t++) {
+      const b = document.createElement("button");
+      b.className = "inv-onglet" + (t === ongletActif ? " inv-onglet--actif" : "");
+      b.textContent = nb > 1 ? noms[t] : "Bag";
+      b.addEventListener("click", () => setOnglet(t));
+      boutons.push(b);
+    }
+    elOnglets.replaceChildren(...boutons);
   }
 
   return {
@@ -689,7 +731,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       // Tab bascule vers l'inventaire (et retour).
       const enButinNow = document.body.classList.contains("en-butin");
       kbFocus = !dialogueActif() && !enButinNow;
-      cursorX = 0; cursorY = 0; cursorVisible = false;
+      cursorX = 0; cursorY = 0; cursorVisible = false; ongletActif = 0;
       overlay.querySelector(".inv-panneau").classList.toggle("inv-panneau--focus", kbFocus);
       rendre();
       overlay.hidden = false;

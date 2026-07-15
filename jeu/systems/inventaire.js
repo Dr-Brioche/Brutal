@@ -25,23 +25,36 @@ export function creerInventaire() {
   return { cols: COLS, rangs: RANGS_BASE, objets: [], slots, qualites: {}, or: 0 };
 }
 
-// Hauteur réelle de la grille (le sac principal ajoute ses rangées).
-// Le sac2 ajoute des COLONNES (à droite), pas des rangées — cf. colsInventaire.
-export function rangsInventaire(inv) {
+// ONGLETS DE SAC : chaque sac équipé est une GRILLE séparée (un « onglet »), au
+// lieu d'agrandir une seule grille (qui devenait trop large/haute). L'onglet 0 =
+// le sac principal (slot `sac`) ; l'onglet 1 = le 2e sac (slot `sac2`). Chaque
+// objet porte `sac` = l'index de son onglet (0 par défaut). Toutes les fonctions
+// de placement prennent donc un `tab`.
+export function nbSacs(inv) {
+  return inv.slots?.sac2 ? 2 : 1;
+}
+
+// Hauteur de l'onglet `tab` : onglet 0 = base + rangées du sac principal ; onglet
+// 1 = les rangées propres du 2e sac. Toutes les grilles font COLS de large.
+export function rangsInventaire(inv, tab = 0) {
+  if (tab === 1) {
+    const sac2 = inv.slots.sac2 ? itemDef(inv.slots.sac2) : null;
+    return sac2?.rangsBonus ?? 0;
+  }
   const sac = inv.slots.sac ? itemDef(inv.slots.sac) : null;
   return inv.rangs + (sac?.rangsBonus ?? 0);
 }
 
-// Largeur réelle de la grille (le sac2 ajoute ses « rangsBonus » en colonnes).
-export function colsInventaire(inv) {
-  const sac2 = inv.slots.sac2 ? itemDef(inv.slots.sac2) : null;
-  return inv.cols + (sac2?.rangsBonus ?? 0);
+// Largeur d'un onglet : toujours COLS (plus de colonnes ajoutées → jamais trop large).
+export function colsInventaire(inv, _tab = 0) {
+  return inv.cols;
 }
 
-function casesOccupees(inv, sauf = null) {
+function casesOccupees(inv, tab, sauf = null) {
   const occ = new Set();
   for (const o of inv.objets) {
-    if (o === sauf) continue; // on peut exclure l'objet qu'on déplace
+    if (o === sauf) continue;        // on peut exclure l'objet qu'on déplace
+    if ((o.sac ?? 0) !== tab) continue; // seulement l'onglet demandé
     const d = itemDef(o.id);
     for (let dy = 0; dy < d.taille.h; dy++)
       for (let dx = 0; dx < d.taille.l; dx++)
@@ -50,22 +63,31 @@ function casesOccupees(inv, sauf = null) {
   return occ;
 }
 
-function tient(inv, x, y, l, h, occ) {
-  if (x < 0 || y < 0 || x + l > colsInventaire(inv) || y + h > rangsInventaire(inv)) return false;
+function tient(inv, tab, x, y, l, h, occ) {
+  if (x < 0 || y < 0 || x + l > colsInventaire(inv, tab) || y + h > rangsInventaire(inv, tab)) return false;
   for (let dy = 0; dy < h; dy++)
     for (let dx = 0; dx < l; dx++)
       if (occ.has((x + dx) + "," + (y + dy))) return false;
   return true;
 }
 
-// Première place libre pour une empreinte l×h, ou null si le sac est plein.
-function premierePlaceLibre(inv, l, h) {
-  const occ = casesOccupees(inv);
-  const rangs = rangsInventaire(inv);
-  const cols  = colsInventaire(inv);
+// Première place libre dans l'onglet `tab` pour une empreinte l×h, ou null si plein.
+function premierePlaceLibre(inv, tab, l, h) {
+  const occ = casesOccupees(inv, tab);
+  const rangs = rangsInventaire(inv, tab);
+  const cols  = colsInventaire(inv, tab);
   for (let y = 0; y <= rangs - h; y++)
     for (let x = 0; x <= cols - l; x++)
-      if (tient(inv, x, y, l, h, occ)) return { x, y };
+      if (tient(inv, tab, x, y, l, h, occ)) return { x, y };
+  return null;
+}
+
+// Première place libre TOUS ONGLETS confondus : renvoie { tab, x, y } ou null.
+function premierePlaceTousOnglets(inv, l, h) {
+  for (let t = 0; t < nbSacs(inv); t++) {
+    const pos = premierePlaceLibre(inv, t, l, h);
+    if (pos) return { tab: t, x: pos.x, y: pos.y };
+  }
   return null;
 }
 
@@ -89,19 +111,19 @@ export function ajouterObjet(inv, id, n = 1, champs = null) {
       }
     }
     while (reste > 0) {                            // créer de nouvelles piles
-      const pos = premierePlaceLibre(inv, d.taille.l, d.taille.h);
-      if (!pos) return false;                      // sac plein
+      const pos = premierePlaceTousOnglets(inv, d.taille.l, d.taille.h);
+      if (!pos) return false;                      // tous les sacs pleins
       const add = Math.min(max, reste);
-      inv.objets.push({ id, x: pos.x, y: pos.y, quantite: add });
+      inv.objets.push({ id, x: pos.x, y: pos.y, sac: pos.tab, quantite: add });
       reste -= add;
     }
     return true;
   }
-  const pos = premierePlaceLibre(inv, d.taille.l, d.taille.h);
+  const pos = premierePlaceTousOnglets(inv, d.taille.l, d.taille.h);
   if (!pos) return false;
   // `champs` : données d'INSTANCE en plus (ex. { qualite: "maitre" } pour une arme
   // forgée). Ignoré pour les empilables. Les objets lootés n'en ont pas (= normale).
-  inv.objets.push({ id, x: pos.x, y: pos.y, ...(champs || {}) });
+  inv.objets.push({ id, x: pos.x, y: pos.y, sac: pos.tab, ...(champs || {}) });
   return true;
 }
 
@@ -130,17 +152,11 @@ export function retirerRessource(inv, id, n = 1) {
   return n - reste;
 }
 
-// Vérifie sans muter si `id` trouverait une place dans le sac tel qu'il est.
+// Vérifie sans muter si `id` trouverait une place dans UN des sacs.
 function peutAjouter(inv, id) {
   const d = itemDef(id);
   if (!d) return false;
-  const occ = casesOccupees(inv);
-  const rangs = rangsInventaire(inv);
-  const cols  = colsInventaire(inv);
-  for (let y = 0; y <= rangs - d.taille.h; y++)
-    for (let x = 0; x <= cols - d.taille.l; x++)
-      if (tient(inv, x, y, d.taille.l, d.taille.h, occ)) return true;
-  return false;
+  return premierePlaceTousOnglets(inv, d.taille.l, d.taille.h) != null;
 }
 
 // Y aura-t-il la place pour l'objet FORGÉ `resultatId` une fois les ingrédients
@@ -154,28 +170,32 @@ export function placePourFabrication(inv, resultatId, besoin) {
   return peutAjouter(copie, resultatId);
 }
 
-// L'objet posé sous la case (cx, cy), ou null.
-export function objetSousCase(inv, cx, cy) {
+// L'objet posé sous la case (cx, cy) de l'onglet `tab`, ou null.
+export function objetSousCase(inv, cx, cy, tab = 0) {
   for (const o of inv.objets) {
+    if ((o.sac ?? 0) !== tab) continue;
     const d = itemDef(o.id);
     if (cx >= o.x && cx < o.x + d.taille.l && cy >= o.y && cy < o.y + d.taille.h) return o;
   }
   return null;
 }
 
-// `objet` (déjà dans le sac) tiendrait-il à (x, y) ? Il est exclu du test de
-// collision (on le déplace), donc le reposer sur sa propre place reste valide.
-export function peutPlacerA(inv, objet, x, y) {
+// `objet` tiendrait-il à (x, y) dans l'onglet `tab` (par défaut le sien) ? Il est
+// exclu du test de collision (on le déplace), donc le reposer sur sa propre place
+// reste valide. `tab` différent de son onglet actuel = déplacement inter-onglets.
+export function peutPlacerA(inv, objet, x, y, tab = objet.sac ?? 0) {
   const d = itemDef(objet.id);
   if (!d) return false;
-  return tient(inv, x, y, d.taille.l, d.taille.h, casesOccupees(inv, objet));
+  return tient(inv, tab, x, y, d.taille.l, d.taille.h, casesOccupees(inv, tab, objet));
 }
 
-// Déplace `objet` à (x, y) si la place est libre. Renvoie true si déplacé.
-export function deplacerObjet(inv, objet, x, y) {
-  if (!peutPlacerA(inv, objet, x, y)) return false;
+// Déplace `objet` à (x, y) dans l'onglet `tab` si la place est libre. Renvoie true
+// si déplacé (met aussi à jour son onglet → déplacement entre sacs possible).
+export function deplacerObjet(inv, objet, x, y, tab = objet.sac ?? 0) {
+  if (!peutPlacerA(inv, objet, x, y, tab)) return false;
   objet.x = x;
   objet.y = y;
+  objet.sac = tab;
   return true;
 }
 
@@ -312,22 +332,42 @@ export function desequiper(inv, slot) {
   const id = inv.slots[slot];
   if (!id) return false;
   const d = itemDef(id);
-  if (d?.rangsBonus) {
-    if (slot === "sac2") {
-      // sac2 ajoute des colonnes : overflow si un item est dans les colonnes bonus.
-      const overflow = inv.objets.some((o) => o.x >= inv.cols);
-      if (overflow) return "overflow";
-    } else {
-      // sac principal ajoute des rangées : overflow si un item dépasse les rangées futures.
-      const rangsFuturs = rangsInventaire(inv) - d.rangsBonus;
-      const overflow = inv.objets.some((o) => {
-        const h = itemDef(o.id)?.taille?.h ?? 1;
-        return (o.y + h) > rangsFuturs;
-      });
-      if (overflow) return "overflow";
-    }
-  }
   const q = inv.qualites?.[slot] ?? null;              // la qualité repart au sac
+
+  // 2e sac : son ONGLET disparaît. Ses objets (+ le sac lui-même) doivent tenir
+  // dans l'onglet 1. On SIMULE d'abord sur une copie (sans sac2) ; si tout rentre,
+  // on applique : on enlève sac2, on re-range ses objets dans l'onglet 1.
+  if (slot === "sac2" && d?.rangsBonus) {
+    const aReplacer = inv.objets.filter((o) => (o.sac ?? 0) === 1);
+    const copie = {
+      ...inv,
+      slots: { ...inv.slots, sac2: null },
+      objets: inv.objets.filter((o) => (o.sac ?? 0) === 0).map((o) => ({ ...o })),
+    };
+    for (const o of aReplacer)
+      if (!ajouterObjet(copie, o.id, o.quantite ?? 1, o.qualite ? { qualite: o.qualite } : null)) return "overflow";
+    if (!ajouterObjet(copie, id, 1, q ? { qualite: q } : null)) return "overflow";
+    // OK → application réelle.
+    inv.slots.sac2 = null;
+    if (inv.qualites) inv.qualites.sac2 = null;
+    const objTab1 = inv.objets.filter((o) => (o.sac ?? 0) === 1);
+    inv.objets = inv.objets.filter((o) => (o.sac ?? 0) !== 1);
+    for (const o of objTab1) ajouterObjet(inv, o.id, o.quantite ?? 1, o.qualite ? { qualite: o.qualite } : null);
+    ajouterObjet(inv, id, 1, q ? { qualite: q } : null);
+    return true;
+  }
+
+  // Sac principal : les rangées de l'onglet 1 rétrécissent → overflow si un objet
+  // de CET onglet dépasserait les rangées futures.
+  if (d?.rangsBonus) {
+    const rangsFuturs = rangsInventaire(inv, 0) - d.rangsBonus;
+    const overflow = inv.objets.some((o) => {
+      if ((o.sac ?? 0) !== 0) return false;
+      const h = itemDef(o.id)?.taille?.h ?? 1;
+      return (o.y + h) > rangsFuturs;
+    });
+    if (overflow) return "overflow";
+  }
   if (!ajouterObjet(inv, id, 1, q ? { qualite: q } : null)) return false;
   inv.slots[slot] = null;
   if (inv.qualites) inv.qualites[slot] = null;
@@ -412,11 +452,14 @@ export function chargerInventaire(inv, etat) {
     for (const o of etat.objets) {
       if (!itemDef(o?.id)) continue;
       const champs = o.qualite ? { qualite: o.qualite } : null;
+      const qte = Number.isFinite(o.quantite) && o.quantite > 1 ? { quantite: o.quantite } : null;
+      // Onglet 2 seulement s'il existe (sac2 équipé) ; sinon tout retombe sur l'onglet 1.
+      const tab = (o.sac === 1 && nbSacs(inv) > 1) ? 1 : 0;
       if (Number.isInteger(o.x) && Number.isInteger(o.y) &&
-          peutPlacerA(inv, { id: o.id }, o.x, o.y)) {
-        inv.objets.push({ id: o.id, x: o.x, y: o.y, ...(champs || {}) });
+          peutPlacerA(inv, { id: o.id, sac: tab }, o.x, o.y, tab)) {
+        inv.objets.push({ id: o.id, x: o.x, y: o.y, sac: tab, ...(qte || {}), ...(champs || {}) });
       } else {
-        ajouterObjet(inv, o.id, 1, champs);
+        ajouterObjet(inv, o.id, o.quantite ?? 1, champs);
       }
     }
   }

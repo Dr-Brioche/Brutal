@@ -1638,6 +1638,19 @@
     }
     .inv-soustitre { margin: 14px 0 8px; font-size: 0.72rem; letter-spacing: 0.1em;
       text-transform: uppercase; color: #8b8f98; }
+    /* Onglets de sac (au-dessus de la grille) : un onglet par sac équipé. */
+    .inv-onglets { display: flex; gap: 4px; margin: 14px 0 8px; }
+    .inv-onglet {
+      font-family: inherit; font-size: 0.72rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #8b8f98; cursor: pointer;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10);
+      border-radius: var(--rayon); padding: 4px 12px; transition: background 0.12s, color 0.12s;
+    }
+    .inv-onglet:hover { background: rgba(255,255,255,0.09); color: #c8ccd4; }
+    .inv-onglet--actif {
+      color: #f0d69a; background: rgba(224,182,78,0.14);
+      border-color: rgba(224,182,78,0.5);
+    }
 
     /* La fiche : slots à gauche · héros au centre · slots à droite */
     .inv-perso { display: flex; justify-content: center; align-items: flex-start; gap: 12px; margin-top: 12px; }
@@ -2772,7 +2785,7 @@
         </div>
         <div class="inv-colonne" id="inv-droite"></div>
       </div>
-      <div class="inv-soustitre">Bag</div>
+      <div class="inv-onglets" id="inv-onglets"></div>
       <div class="inv-grille" id="inv-grille"></div>
       <p class="inv-aide">Click an item to pick it up · drop it where you want or on a slot · X: equip/discard · [B] to close</p>
     </div>
