@@ -1805,24 +1805,26 @@ imgHeroCombat2Mains.src = "images/heros/nain-combat-2mains.png";
 
 // NETTETÉ DES ARMES ─────────────────────────────────────────────────────────
 // Les illustrations d'armes sont en HAUTE définition (~1400 px) mais affichées
-// tout petit (~180 px). Les réduire d'un coup (÷7) dans un seul drawImage force
+// tout petit (~200 px). Les réduire d'un coup (÷7) dans un seul drawImage force
 // le navigateur à sous-échantillonner grossièrement → l'arme devient FLOUE.
 // Solution : on la pré-réduit par MOITIÉS successives (÷2 à chaque fois = un
 // filtrage propre, comme une pyramide d'images), une seule fois, mise en cache.
-// On dessine ensuite cette version réduite avec un facteur DOUX (entre 0.5 et 1)
-// → l'arme reste nette. `r` = facteur de réduction déjà appliqué (à recompenser
-// à l'affichage et sur le point de prise gcx/gcy).
+// On s'ARRÊTE quand l'image réduite fait encore ~1,5-2× la taille d'affichage :
+// le tracé final est alors un LÉGER dézoom (suréchantillonnage = net + anticrénelé)
+// et non un agrandissement flou. `r` = facteur de réduction déjà appliqué
+// (à recompenser à l'affichage et sur le point de prise gcx/gcy).
 const _reduiteCache = new Map();
 function imageReduite(img, facteurDessin) {
   if (!img.naturalWidth) return { bmp: img, r: 1 }; // pas encore chargée
-  let n = 0; // nombre de divisions par 2 pour ramener le dessin dans [0.5, 1]
-  while (facteurDessin * (1 << (n + 1)) <= 1) n++;
-  if (n === 0) return { bmp: img, r: 1 };
-  const cle = img.src + "@" + n;
+  const cible = img.naturalWidth * facteurDessin * 1.5; // ~1,5× l'affichage
+  let k = 0, wc = img.naturalWidth;
+  while (wc / 2 >= cible) { wc = Math.round(wc / 2); k++; } // nb de divisions par 2
+  if (k === 0) return { bmp: img, r: 1 };
+  const cle = img.src + "@" + k;
   const enCache = _reduiteCache.get(cle);
   if (enCache) return enCache;
   let cur = img, w = img.naturalWidth, h = img.naturalHeight;
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < k; i++) {
     const nw = Math.max(1, Math.round(w / 2)), nh = Math.max(1, Math.round(h / 2));
     const c = document.createElement("canvas");
     c.width = nw; c.height = nh;
@@ -1831,7 +1833,7 @@ function imageReduite(img, facteurDessin) {
     cx.drawImage(cur, 0, 0, nw, nh); // réduction 2:1 = filtrage propre
     cur = c; w = nw; h = nh;
   }
-  const res = { bmp: cur, r: (1 << n) };
+  const res = { bmp: cur, r: (1 << k) };
   _reduiteCache.set(cle, res);
   return res;
 }
@@ -1863,7 +1865,11 @@ imgEpeeLumiere.src = "images/armes/epee-lumiere-combat.png";
 const imgEpeeLumiereHalo = new Image();
 imgEpeeLumiereHalo.src = "images/armes/epee-lumiere-halo.png";
 const SKINS_ARME_1M = {
-  "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 235, gcy: 197, echelle: 0.13, angle: 50, fx: 0.82, fy: 0.494, poingsBox: { x0: 0.70, y0: 0.38, x1: 0.93, y1: 0.58 } },
+  // gcx=150 : on tient le manche PRÈS DU POMMEAU → la garde vient dans la main et le
+  // pommeau se cale juste sous le poing (plus de long manche qui pend jusqu'à la ceinture).
+  // poingsBox resserrée sur le POING seul (ne redescend plus sur la ceinture, sinon elle
+  // repeignait le corps par-dessus le manche = « trou après la main »).
+  "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 150, gcy: 197, echelle: 0.13, angle: 50, fx: 0.82, fy: 0.494, poingsBox: { x0: 0.73, y0: 0.40, x1: 0.93, y1: 0.55 } },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
