@@ -266,6 +266,23 @@ export function equiper(inv, objet, heros, slotForce = null) {
   return true;
 }
 
+// Équipe un objet NEUF (PAS dans le sac) directement dans son slot, à condition
+// qu'il soit LIBRE. Sert au marchand : acheter un SAC alors que le sac est PLEIN
+// doit pouvoir l'équiper d'office — sinon c'est un blocage (il faudrait de la
+// place pour ranger l'objet qui, justement, CRÉE de la place). Ne touche jamais
+// à `inv.objets`. Renvoie le slot équipé, ou null si le slot visé est déjà pris
+// (l'appelant retombe alors sur le rangement normal dans le sac).
+export function equiperNeuf(inv, id, heros) {
+  const d = itemDef(id);
+  if (!d) return null;
+  const slot = slotCible(inv, id, heros);
+  if (!slot || inv.slots[slot]) return null; // slot occupé → pas d'auto-équipement
+  inv.qualites ??= {};
+  inv.slots[slot] = id;
+  inv.qualites[slot] = null;                 // objet neuf = qualité normale
+  return slot;
+}
+
 // Vrai si arme1 est une arme deux mains → arme2 est bloquée.
 export function arme2Bloquee(inv) {
   return itemDef(inv.slots.arme1 ?? "")?.mains === 2;
