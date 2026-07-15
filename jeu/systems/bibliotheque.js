@@ -12,22 +12,23 @@
 import { RECETTES } from "../data/recettes.js";
 import { itemDef } from "../data/items.js";
 
-// Catégorie d'une recette (même libellé que la colonne A de l'Excel).
+// Catégorie d'une recette — libellés EN ANGLAIS (comme tout l'affichage du jeu),
+// cohérents avec les onglets du marchand.
 const LABEL = {
-  bouclier: "Main seconde", armure: "Armure", gant: "Gant",
-  botte: "Botte", bague: "Bague", collier: "Collier",
+  bouclier: "Off-Hand", armure: "Armor", gant: "Gloves",
+  botte: "Boots", bague: "Rings", collier: "Amulets",
 };
 export function categorieRecette(resultatId) {
   const d = itemDef(resultatId);
-  if (!d) return "Autre";
-  if (d.categorie === "arme") return d.mains === 2 ? "Arme à deux mains" : "Arme";
-  return LABEL[d.categorie] ?? "Autre";
+  if (!d) return "Other";
+  if (d.categorie === "arme") return d.mains === 2 ? "Two-Handed Weapons" : "Weapons";
+  return LABEL[d.categorie] ?? "Other";
 }
 
 // Ordre d'affichage des catégories dans le livre.
 export const ORDRE_CATEGORIES = [
-  "Arme", "Arme à deux mains", "Main seconde", "Armure",
-  "Gant", "Botte", "Bague", "Collier", "Autre",
+  "Weapons", "Two-Handed Weapons", "Off-Hand", "Armor",
+  "Gloves", "Boots", "Rings", "Amulets", "Other",
 ];
 
 const idsRecettes = () => new Set(RECETTES.map((r) => r.resultat));
