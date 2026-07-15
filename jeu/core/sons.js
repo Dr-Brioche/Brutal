@@ -12,6 +12,7 @@ const DOSSIER = "sons/";
 
 const BRUITAGES = {
   levelup: "interface/levelup.mp3",
+  victoire: "interface/victoire.mp3", // jingle joué à la fin d'un combat GAGNÉ
 };
 
 // Musiques SIMPLES : un morceau joué en boucle, par nom logique. (Les zones à
