@@ -1870,7 +1870,7 @@ const imgWarAxe = new Image();
 imgWarAxe.src = "images/armes/war-axe-combat.png";
 const SKINS_ARME_2M = {
   "epee-large":     { img: imgClaymore, gcx: 237, gcy: 140, echelle: 0.1783, angle: 73, fx: 0.94, fy: 0.37, poingsFrac: 0.71, poingsTopFrac: 0.15 },
-  "hache-de-guerre": { img: imgWarAxe,  gcx: 626, gcy: 379, echelle: 0.1575, angle: 74, fx: 1.025, fy: 0.20, poingsFrac: 0.80, poingsTopFrac: 0.15 },
+  "hache-de-guerre": { img: imgWarAxe,  gcx: 626, gcy: 379, echelle: 0.1575, angle: 74, fx: 1.016, fy: 0.20, poingsFrac: 0.80, poingsTopFrac: 0.15 },
 };
 // Skins d'ARME à UNE main : MÊME mécanique de calques, mais avec l'illustration du
 // nain « mains vides » (nain-combat.png) — l'arme est posée dans le poing avant.
