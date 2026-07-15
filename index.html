@@ -630,7 +630,8 @@
       position: absolute; top: 0.15cqw; right: 0.3cqw; font-size: 1.05cqw; font-weight: 800;
       color: #ffcf57; opacity: 0.55; font-family: ui-monospace, monospace;
     }
-    .forge-case .forge-pastille { width: 4.8cqw; height: 4.8cqw; border-radius: 0.6cqw; border: 0.2cqw solid #000; }
+    /* La pastille REMPLIT la case de la grille (l'icône occupe tout le carré). */
+    .forge-case .forge-pastille { width: 100%; height: 100%; border-radius: 0.45cqw; border: none; }
     /* Résultat : slot de sortie (aperçu de l'objet) + bouton Forger. */
     .forge-resultat { display: flex; flex-direction: column; align-items: center; gap: 1.6cqw; width: 17cqw; }
     .forge-sortie {
