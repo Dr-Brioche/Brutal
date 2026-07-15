@@ -1513,7 +1513,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         //  - sinon : la fraction DROITE du sprite à partir de poingsFrac, et PAS au-dessus
         //    de poingsTopFrac (le dessus de la main reste derrière la lame → « sort de la main »).
         ctx.save();
-        if (skinArme.poingsBox) {
+        if (skinArme.poingsOvale) {
+          // Masque OVALE du poing : la re-pose de la main suit la COURBE du poing
+          // (pas un bord droit de rectangle) → l'arme passe proprement derrière la
+          // main, le pommeau réapparaît derrière/sous elle.
+          const o = skinArme.poingsOvale;
+          ctx.beginPath();
+          ctx.ellipse(hxI + o.cx * HW, hyI + o.cy * HH, o.rx * HW, o.ry * HH, 0, 0, Math.PI * 2);
+        } else if (skinArme.poingsBox) {
           const b = skinArme.poingsBox;
           ctx.beginPath();
           ctx.rect(hxI + b.x0 * HW, hyI + b.y0 * HH, (b.x1 - b.x0) * HW, (b.y1 - b.y0) * HH);
@@ -1874,11 +1881,10 @@ imgEpeeLumiere.src = "images/armes/epee-lumiere-combat.png";
 const imgEpeeLumiereHalo = new Image();
 imgEpeeLumiereHalo.src = "images/armes/epee-lumiere-halo.png";
 const SKINS_ARME_1M = {
-  // gcx=150 : on tient le manche PRÈS DU POMMEAU → la garde vient dans la main et le
-  // pommeau se cale juste sous le poing (plus de long manche qui pend jusqu'à la ceinture).
-  // poingsBox resserrée sur le POING seul (ne redescend plus sur la ceinture, sinon elle
-  // repeignait le corps par-dessus le manche = « trou après la main »).
-  "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 150, gcy: 197, echelle: 0.11055, angle: 53, fx: 0.7815, fy: 0.5196, coupeManche: 150, poingsBox: { x0: 0.73, y0: 0.40, x1: 0.93, y1: 0.55 } },
+  // gcx=150 : on tient le manche PRÈS DU POMMEAU. La main est re-posée par un masque
+  // OVALE (poingsOvale) qui épouse la courbe du poing → l'épée passe derrière la main,
+  // le pommeau réapparaît derrière/sous elle sans bord droit disgracieux.
+  "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 150, gcy: 197, echelle: 0.11055, angle: 53, fx: 0.7815, fy: 0.5196, poingsOvale: { cx: 0.828, cy: 0.487, rx: 0.098, ry: 0.086 } },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
