@@ -194,7 +194,7 @@ function pastilleFond(el, d) {
     el.style.backgroundSize = "contain";
     el.style.backgroundRepeat = "no-repeat";
     el.style.backgroundPosition = "center";
-    el.style.borderColor = "transparent";
+    el.style.backgroundColor = "#e6d9bd";
   } else {
     el.style.background = d?.icone;
   }
@@ -217,7 +217,7 @@ function rafraichir() {
     const tuile = document.createElement("div");
     tuile.className = "forge-palette-tuile" + (id === ressourceSel ? " sel" : "");
     const styleP = d.image
-      ? `background-image:url('${d.image}');background-size:contain;background-repeat:no-repeat;background-position:center;border-color:transparent`
+      ? `background-image:url('${d.image}');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#e6d9bd`
       : `background:${d.icone}`;
     tuile.innerHTML =
       `<span class="forge-pastille" style="${styleP}"></span>` +
