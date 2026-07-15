@@ -187,6 +187,19 @@ function choisirRessource(id) {
   rafraichir();
 }
 
+// Fond d'une pastille : vraie IMAGE (ressource détourée) si dispo, sinon la couleur.
+function pastilleFond(el, d) {
+  if (d?.image) {
+    el.style.backgroundImage = `url('${d.image}')`;
+    el.style.backgroundSize = "contain";
+    el.style.backgroundRepeat = "no-repeat";
+    el.style.backgroundPosition = "center";
+    el.style.borderColor = "transparent";
+  } else {
+    el.style.background = d?.icone;
+  }
+}
+
 function rafraichir() {
   // 1) PALETTE : les ressources du sac, avec le « restant » (possédé − déjà posé).
   elPalette.replaceChildren();
@@ -203,8 +216,11 @@ function rafraichir() {
     const restant = compte[id] - posesTotal(id);
     const tuile = document.createElement("div");
     tuile.className = "forge-palette-tuile" + (id === ressourceSel ? " sel" : "");
+    const styleP = d.image
+      ? `background-image:url('${d.image}');background-size:contain;background-repeat:no-repeat;background-position:center;border-color:transparent`
+      : `background:${d.icone}`;
     tuile.innerHTML =
-      `<span class="forge-pastille" style="background:${d.icone}"></span>` +
+      `<span class="forge-pastille" style="${styleP}"></span>` +
       `<span class="forge-palette-nom"></span>` +
       `<span class="forge-palette-qte">${restant}</span>` +
       (i < 9 ? `<span class="forge-palette-touche">${i + 1}</span>` : "");
@@ -224,7 +240,7 @@ function rafraichir() {
       if (id) {
         const p = document.createElement("span");
         p.className = "forge-pastille";
-        p.style.background = itemDef(id).icone;
+        pastilleFond(p, itemDef(id));
         cell.appendChild(p);
       }
     }
@@ -238,7 +254,7 @@ function rafraichir() {
     elSortie.classList.add("pleine");
     const p = document.createElement("span");
     p.className = "forge-pastille";
-    p.style.background = d.icone;
+    pastilleFond(p, d);
     const nom = document.createElement("span");
     nom.className = "forge-sortie-nom";
     nom.textContent = d.nom;

@@ -127,14 +127,19 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const d = itemDef(objet.id);
     const g = document.createElement("div");
     g.className = "inv-item inv-ghost";
-    g.style.background = d.icone;
     g.style.borderColor = couleurRarete(objet.id);
     g.style.width = d.taille.l * CASE - 4 + "px";
     g.style.height = d.taille.h * CASE - 4 + "px";
-    const t = document.createElement("span");
-    t.textContent = d.nom;
-    t.style.color = couleurRarete(objet.id);
-    g.append(t);
+    if (d.image) {
+      g.classList.add("inv-item--img");
+      g.style.backgroundImage = `url("${d.image}")`;
+    } else {
+      g.style.background = d.icone;
+      const t = document.createElement("span");
+      t.textContent = d.nom;
+      t.style.color = couleurRarete(objet.id);
+      g.append(t);
+    }
     document.body.append(g);
     return g;
   }
@@ -488,12 +493,18 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const d = itemDef(id);
     const el = document.createElement("div");
     el.className = "inv-item";
-    el.style.background = d.icone;
     el.style.borderColor = couleurRarete(id);
-    const t = document.createElement("span");
-    t.textContent = d.nom;
-    t.style.color = couleurRarete(id);
-    el.append(t);
+    if (d.image) {
+      // Vraie icône (ressource détourée) : image en fond, pas de nom (l'image parle).
+      el.classList.add("inv-item--img");
+      el.style.backgroundImage = `url("${d.image}")`;
+    } else {
+      el.style.background = d.icone;
+      const t = document.createElement("span");
+      t.textContent = d.nom;
+      t.style.color = couleurRarete(id);
+      el.append(t);
+    }
     // Bulle d'info au survol — sauf quand on tient un objet (geste en cours).
     el.addEventListener("mouseenter", (e) => { if (!tenu) montrerInfobulle(id, e, qualite); });
     el.addEventListener("mousemove", (e) => { if (!tenu) suivreInfobulle(e); });
