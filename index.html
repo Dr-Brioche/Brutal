@@ -585,6 +585,14 @@
       max-height: 46cqw;
     }
     /* Palette : les ressources du sac, en colonne, cliquables (icône + quantité). */
+    .forge-recherche {
+      width: 100%; box-sizing: border-box; margin-bottom: 0.8cqw;
+      font-family: inherit; font-size: 1.5cqw; color: #eee;
+      background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.14);
+      border-radius: var(--rayon); padding: 0.6cqw 0.9cqw; outline: none;
+    }
+    .forge-recherche::placeholder { color: #8b8f98; }
+    .forge-recherche:focus { border-color: #c98a3a; }
     .forge-palette {
       display: flex; flex-direction: column; gap: 1cqw;
       max-height: 28cqw; overflow-y: auto; padding: 0.4cqw;
@@ -2634,6 +2642,9 @@
         <div class="forge-gauche">
           <!-- Référence : la recette choisie dans le livre, en petit (modèle). -->
           <div class="forge-ref" id="forge-ref" hidden></div>
+          <!-- Recherche rapide par nom dans la palette (filtre les composants). -->
+          <input type="text" class="forge-recherche" id="forge-recherche"
+                 placeholder="Search components…" autocomplete="off" spellcheck="false">
           <!-- Palette : les ressources du sac, cliquables (clic = on prend, clic sur
                une case = on pose). Remplie par ui/forge.js. -->
           <div class="forge-palette" id="forge-palette"></div>
