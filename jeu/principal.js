@@ -14,6 +14,7 @@ import { ITEMS, itemDef, prixVente, RARETES, rareteAuMoins, distributionMinerais
 import {
   creerInventaire, appliquerEquipement, armeEquipee, armureEquipee,
   ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
+  equiperNeuf,
 } from "./systems/inventaire.js";
 import {
   creerMaitrise, etatMaitrise, chargerMaitrise,
@@ -850,7 +851,12 @@ export async function demarrerJeu(donneesInitiales = null) {
           itemId: it.id,
           action: () => {
             prochainMenu = () => menuCategorie(c, fullIdx, selRoot);
-            if (ajouterObjet(inventaire, it.id)) afficherMessage(`🛒 ${it.nom} added to your bag.`);
+            // Un SAC s'ÉQUIPE d'office dans un slot de sac libre (il ne va pas DANS
+            // le sac : il EST le sac). Ça évite le blocage « sac plein » quand on
+            // achète un 2e sac pour justement AGRANDIR l'inventaire.
+            const slotSac = it.categorie === "sac" ? equiperNeuf(inventaire, it.id, heros) : null;
+            if (slotSac) afficherMessage(`🎒 ${it.nom} equipped.`);
+            else if (ajouterObjet(inventaire, it.id)) afficherMessage(`🛒 ${it.nom} added to your bag.`);
             else afficherMessage("Your bag is full — equip or drop something first.");
             inventaireUI.rendre();
           },
