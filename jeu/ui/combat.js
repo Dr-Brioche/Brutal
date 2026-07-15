@@ -1869,7 +1869,7 @@ const SKINS_ARME_1M = {
   // pommeau se cale juste sous le poing (plus de long manche qui pend jusqu'à la ceinture).
   // poingsBox resserrée sur le POING seul (ne redescend plus sur la ceinture, sinon elle
   // repeignait le corps par-dessus le manche = « trou après la main »).
-  "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 150, gcy: 197, echelle: 0.0975, angle: 50, fx: 0.82, fy: 0.494, poingsBox: { x0: 0.73, y0: 0.40, x1: 0.93, y1: 0.55 } },
+  "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 150, gcy: 197, echelle: 0.11055, angle: 50, fx: 0.82, fy: 0.494, poingsBox: { x0: 0.73, y0: 0.40, x1: 0.93, y1: 0.55 } },
 };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
