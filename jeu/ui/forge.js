@@ -318,11 +318,26 @@ function rendreReference() {
 
 // ----- Mini-jeu de forge ---------------------------------------------------
 
-// Ce que le craft va CONSOMMER : les ingrédients du motif + le carburant chargé.
+// Le carburant RÉELLEMENT brûlé : juste ce qu'il faut pour atteindre le requis.
+// Le SURPLUS chargé n'est PAS perdu (il reste dans le feu). On brûle le BOIS en
+// premier (moins précieux + granularité ½ → moins de gaspillage), puis le charbon.
+function carburantAConsommer() {
+  let reste = feuRequis();
+  const brule = { charbon: 0, bois: 0 };
+  for (const id of ["bois", "charbon"]) {
+    const v = valeurCarburant(id);
+    while (reste > 1e-9 && (carburant[id] ?? 0) > brule[id]) { brule[id]++; reste -= v; }
+  }
+  return brule;
+}
+
+// Ce que le craft va CONSOMMER : les ingrédients du motif + le carburant brûlé
+// (le juste nécessaire, PAS tout le carburant chargé).
 function besoinCraft() {
   const besoin = {};
   for (const id of ingredientsPoses(grille)) besoin[id] = (besoin[id] ?? 0) + 1;
-  for (const id of CARBURANTS) if (carburant[id]) besoin[id] = (besoin[id] ?? 0) + carburant[id];
+  const brule = carburantAConsommer();
+  for (const id of CARBURANTS) if (brule[id]) besoin[id] = (besoin[id] ?? 0) + brule[id];
   return besoin;
 }
 
@@ -383,10 +398,12 @@ function validerFrappe() {
 }
 
 function resoudreCraft(marqueur) {
-  // Les ingrédients ET le carburant sont TOUJOURS consommés à la frappe (le feu a brûlé).
+  // Les ingrédients ET le carburant NÉCESSAIRE sont consommés à la frappe (le feu a
+  // brûlé). Le surplus de carburant chargé n'est PAS perdu : il RESTE dans le feu.
+  const brule = carburantAConsommer();
   const besoin = besoinCraft();
   for (const id of Object.keys(besoin)) retirerRessource(inv, id, besoin[id]);
-  carburant = { charbon: 0, bois: 0 }; // le feu est consommé
+  for (const id of CARBURANTS) carburant[id] = Math.max(0, (carburant[id] ?? 0) - brule[id]);
 
   const qualite = QUALITE_PAR_MARQUEUR[marqueur]; // undefined si "rouge"
   const d = itemDef(recetteCourante.resultat);
