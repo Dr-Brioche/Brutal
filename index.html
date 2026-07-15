@@ -585,6 +585,14 @@
       max-height: 46cqw;
     }
     /* Palette : les ressources du sac, en colonne, cliquables (icône + quantité). */
+    .forge-recherche {
+      width: 100%; box-sizing: border-box; margin-bottom: 0.8cqw;
+      font-family: inherit; font-size: 1.5cqw; color: #eee;
+      background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.14);
+      border-radius: var(--rayon); padding: 0.6cqw 0.9cqw; outline: none;
+    }
+    .forge-recherche::placeholder { color: #8b8f98; }
+    .forge-recherche:focus { border-color: #c98a3a; }
     .forge-palette {
       display: flex; flex-direction: column; gap: 1cqw;
       max-height: 28cqw; overflow-y: auto; padding: 0.4cqw;
@@ -787,7 +795,7 @@
     .hv-ressources {
       flex: 1; min-height: 0; overflow-y: auto; padding-right: 0.4cqw;
       display: flex; flex-direction: column; gap: 0.55cqw;
-      scrollbar-width: thin; scrollbar-color: #2a3350 transparent;
+      scrollbar-width: thin; scrollbar-color: #3a2840 #0f0d15;
     }
     .hv-ligne {
       display: flex; align-items: center; gap: 1cqw;
@@ -846,7 +854,7 @@
     .hv-annonces {
       flex: 1; min-height: 0; overflow-y: auto;
       display: flex; flex-direction: column; gap: 0.4cqw;
-      scrollbar-width: thin; scrollbar-color: #2a3350 transparent;
+      scrollbar-width: thin; scrollbar-color: #3a2840 #0f0d15;
     }
     .hv-annonces:empty::after { content: "No items listed."; color: #6a7290; font-size: 1.4cqw; font-style: italic; }
     .hv-annonce {
@@ -878,7 +886,7 @@
     }
     .hv-vente-liste {
       overflow-y: auto; display: flex; flex-direction: column; gap: 0.4cqw;
-      scrollbar-width: thin; scrollbar-color: #2a3350 transparent;
+      scrollbar-width: thin; scrollbar-color: #3a2840 #0f0d15;
     }
     .hv-vente-liste:empty::after { content: "Nothing to sell in your bag."; color: #6a7290; font-size: 1.5cqw; font-style: italic; }
     .hv-vente-item {
@@ -1508,7 +1516,7 @@
     }
     /* La LISTE d'options est bornée (et défile) : utile pour le marchand dont le
        catalogue peut être long. Les dialogues de PNJ (2-4 choix) n'y touchent pas. */
-    .dialogue-choix { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; min-height: 0; max-height: calc(var(--zh) - 2 * var(--ouv-y) - 6.5rem); scrollbar-width: thin; scrollbar-color: #3b2030 transparent; }
+    .dialogue-choix { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; min-height: 0; max-height: calc(var(--zh) - 2 * var(--ouv-y) - 6.5rem); scrollbar-width: thin; scrollbar-color: #3a2840 #0f0d15; }
     .dialogue-option {
       padding: 9px 12px;
       font-size: 0.98rem;
@@ -1608,23 +1616,14 @@
       border-radius: 14px;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
     }
-    /* Scrollbar intégrée au style du jeu pour tous les panneaux-menus. */
-    .inv-panneau, .tal-panneau, .deck-panneau {
-      scrollbar-width: thin;
-      scrollbar-color: #3a2840 #0f0d15;
-    }
-    .inv-panneau::-webkit-scrollbar,
-    .tal-panneau::-webkit-scrollbar,
-    .deck-panneau::-webkit-scrollbar { width: 6px; }
-    .inv-panneau::-webkit-scrollbar-track,
-    .tal-panneau::-webkit-scrollbar-track,
-    .deck-panneau::-webkit-scrollbar-track { background: #0f0d15; border-radius: 3px; }
-    .inv-panneau::-webkit-scrollbar-thumb,
-    .tal-panneau::-webkit-scrollbar-thumb,
-    .deck-panneau::-webkit-scrollbar-thumb { background: #3a2840; border-radius: 3px; }
-    .inv-panneau::-webkit-scrollbar-thumb:hover,
-    .tal-panneau::-webkit-scrollbar-thumb:hover,
-    .deck-panneau::-webkit-scrollbar-thumb:hover { background: #6a3870; }
+    /* Scrollbar UNIFIÉE pour TOUT le jeu (même visuel que le marchand/inventaire).
+       Un style global évite les barres blanches par défaut (palette forge, livre,
+       enchères…). Firefox : scrollbar-color ; Chrome/Safari : ::-webkit-scrollbar. */
+    * { scrollbar-width: thin; scrollbar-color: #3a2840 #0f0d15; }
+    *::-webkit-scrollbar { width: 8px; height: 8px; }
+    *::-webkit-scrollbar-track { background: #0f0d15; border-radius: 4px; }
+    *::-webkit-scrollbar-thumb { background: #3a2840; border-radius: 4px; }
+    *::-webkit-scrollbar-thumb:hover { background: #6a3870; }
     .inv-entete { display: flex; align-items: center; justify-content: space-between; }
     .inv-titre { font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
     .inv-pv-boite { color: #ff6b6b; font-weight: 700; font-family: ui-monospace, monospace; }
@@ -2643,6 +2642,9 @@
         <div class="forge-gauche">
           <!-- Référence : la recette choisie dans le livre, en petit (modèle). -->
           <div class="forge-ref" id="forge-ref" hidden></div>
+          <!-- Recherche rapide par nom dans la palette (filtre les composants). -->
+          <input type="text" class="forge-recherche" id="forge-recherche"
+                 placeholder="Search components…" autocomplete="off" spellcheck="false">
           <!-- Palette : les ressources du sac, cliquables (clic = on prend, clic sur
                une case = on pose). Remplie par ui/forge.js. -->
           <div class="forge-palette" id="forge-palette"></div>

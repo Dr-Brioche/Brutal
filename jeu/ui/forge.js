@@ -47,6 +47,8 @@ let recetteCourante = null;
 // Navigation CLAVIER : curseur sur la table + palette ordonnée (touches 1-9).
 let curLig = 0, curCol = 0, curseurVisible = false;
 let paletteIds = [];
+let recherche = "";       // filtre de recherche de la palette (par nom)
+let elRecherche = null;
 // État du mini-jeu.
 let miniActif = false, mjRaf = 0, mjCentre = 0.5, mjDebut = 0, mjPos = 0, mjPeriode = 1300;
 
@@ -54,6 +56,13 @@ export function installerForge() {
   overlay = document.getElementById("forge");
   boutonFermer = document.getElementById("forge-fermer");
   elPalette = document.getElementById("forge-palette");
+  elRecherche = document.getElementById("forge-recherche");
+  // Recherche rapide par nom : filtre la palette à la frappe (n'interfère pas avec
+  // les raccourcis clavier de la forge tant qu'on tape dans le champ).
+  if (elRecherche) {
+    elRecherche.addEventListener("input", () => { recherche = elRecherche.value.trim().toLowerCase(); rafraichir(); });
+    elRecherche.addEventListener("keydown", (e) => e.stopPropagation()); // taper ≠ raccourcis forge
+  }
   elTable = document.getElementById("forge-table");
   elSortie = document.getElementById("forge-sortie");
   elForger = document.getElementById("forge-forger");
@@ -100,6 +109,7 @@ export function ouvrirForge(inventaire, herosRef = null, surFermer = null, opts 
   ressourceSel = null;
   curLig = 0; curCol = 0; curseurVisible = false; // curseur clavier au repos
   carburant = { charbon: 0, bois: 0 }; // feu vide à l'ouverture
+  recherche = ""; if (elRecherche) elRecherche.value = ""; // recherche vide à l'ouverture
   miniActif = false;                 // sécurité : jamais de mini-jeu « collé » d'une session précédente
   cancelAnimationFrame(mjRaf);
   elMiniJeu.hidden = true;
@@ -185,7 +195,9 @@ function rafraichir() {
     if (itemDef(o.id)?.categorie !== "ressource") continue;
     compte[o.id] = (compte[o.id] ?? 0) + (o.quantite ?? 1);
   }
-  paletteIds = Object.keys(compte); // ordre stable → touches 1-9 sélectionnent la Nᵉ
+  // Filtre de recherche (par nom) : n'affiche que les composants qui matchent.
+  paletteIds = Object.keys(compte)
+    .filter((id) => !recherche || (itemDef(id)?.nom ?? "").toLowerCase().includes(recherche)); // touches 1-9 = Nᵉ affiché
   paletteIds.forEach((id, i) => {
     const d = itemDef(id);
     const restant = compte[id] - posesTotal(id);
@@ -318,11 +330,26 @@ function rendreReference() {
 
 // ----- Mini-jeu de forge ---------------------------------------------------
 
-// Ce que le craft va CONSOMMER : les ingrédients du motif + le carburant chargé.
+// Le carburant RÉELLEMENT brûlé : juste ce qu'il faut pour atteindre le requis.
+// Le SURPLUS chargé n'est PAS perdu (il reste dans le feu). On brûle le BOIS en
+// premier (moins précieux + granularité ½ → moins de gaspillage), puis le charbon.
+function carburantAConsommer() {
+  let reste = feuRequis();
+  const brule = { charbon: 0, bois: 0 };
+  for (const id of ["bois", "charbon"]) {
+    const v = valeurCarburant(id);
+    while (reste > 1e-9 && (carburant[id] ?? 0) > brule[id]) { brule[id]++; reste -= v; }
+  }
+  return brule;
+}
+
+// Ce que le craft va CONSOMMER : les ingrédients du motif + le carburant brûlé
+// (le juste nécessaire, PAS tout le carburant chargé).
 function besoinCraft() {
   const besoin = {};
   for (const id of ingredientsPoses(grille)) besoin[id] = (besoin[id] ?? 0) + 1;
-  for (const id of CARBURANTS) if (carburant[id]) besoin[id] = (besoin[id] ?? 0) + carburant[id];
+  const brule = carburantAConsommer();
+  for (const id of CARBURANTS) if (brule[id]) besoin[id] = (besoin[id] ?? 0) + brule[id];
   return besoin;
 }
 
@@ -383,10 +410,12 @@ function validerFrappe() {
 }
 
 function resoudreCraft(marqueur) {
-  // Les ingrédients ET le carburant sont TOUJOURS consommés à la frappe (le feu a brûlé).
+  // Les ingrédients ET le carburant NÉCESSAIRE sont consommés à la frappe (le feu a
+  // brûlé). Le surplus de carburant chargé n'est PAS perdu : il RESTE dans le feu.
+  const brule = carburantAConsommer();
   const besoin = besoinCraft();
   for (const id of Object.keys(besoin)) retirerRessource(inv, id, besoin[id]);
-  carburant = { charbon: 0, bois: 0 }; // le feu est consommé
+  for (const id of CARBURANTS) carburant[id] = Math.max(0, (carburant[id] ?? 0) - brule[id]);
 
   const qualite = QUALITE_PAR_MARQUEUR[marqueur]; // undefined si "rouge"
   const d = itemDef(recetteCourante.resultat);
