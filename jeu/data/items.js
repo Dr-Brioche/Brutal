@@ -722,6 +722,19 @@ export const ITEMS = {
     cartes: ["des-1", "des-2", "pioche-chanceuse"] },
 };
 
+// ─── ICÔNES DE RESSOURCES ─────────────────────────────────────────────────────
+// Les minerais/bois/cuirs ont une vraie image (détourée dans images/ressources/)
+// affichée dans l'inventaire ET à la forge, à la place du carré de couleur `icone`.
+// Rattachées par convention de nom : id → images/ressources/<id>.png.
+const RESSOURCES_AVEC_IMAGE = [
+  "pierre-taillee", "charbon", "cuivre", "fer", "argent", "or", "malachite", "lapis",
+  "amethyste", "titane", "emeraude", "rubis", "saphir", "diamant", "mithril", "onyx",
+  "pierre-solaire", "bois", "cuir", "cuir-epais", "cuir-etrange", "bois-sombre", "bois-enchante",
+];
+for (const id of RESSOURCES_AVEC_IMAGE) {
+  if (ITEMS[id]) ITEMS[id].image = `images/ressources/${id}.png`;
+}
+
 // ─── PARCHEMINS DE RECETTE (auto-générés) ─────────────────────────────────────
 // UN parchemin par recette : le LIRE apprend la recette (cf. ui/parchemin.js +
 // systems/bibliotheque.js). Générés à partir de RECETTES pour rester TOUJOURS

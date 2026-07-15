@@ -33,7 +33,7 @@ import { getPreference } from "../systems/preferences.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
 import {
   jouerSonCoup, jouerSonCoupArmure, jouerSonSortilege, jouerSonPierre, jouerSonPioche,
-  jouerSonNegatif,
+  jouerSonNegatif, jouerSon,
 } from "../core/sons.js";
 
 // ----- Placement sur la scène (canvas 640×360) -----------------------------
@@ -339,6 +339,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   function verifierFin() {
     if (combat.fini && delaiFin < 0) {
       delaiFin = combat.resultat === "victoire" ? 0.7 : 0.45;
+      if (combat.resultat === "victoire") jouerSon("victoire"); // jingle de victoire (une fois)
     }
   }
 
