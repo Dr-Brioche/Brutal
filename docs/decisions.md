@@ -172,6 +172,13 @@ et disparaissent en ressortant. Pas de boon au tout 1er étage (option C), seule
   l'infobulle (`bonusPassifs` dans `items.js`) : Pierre au combat/par tour, Agilité, Move Speed,
   passif spécial. (Ex. bottes : « +18 Agility · +50 % Move Speed ».)
 - **Bonus de set d'armure actif** affiché en haut à gauche en combat.
+- **Parchemins de recette (`categorie:"parchemin"`)** — un parchemin par recette, **auto-généré**
+  à partir de `RECETTES` dans `items.js` (reste toujours synchro : ajouter une recette crée son
+  parchemin). Le **lire** (« 📜 Read » dans l'inventaire) apprend la recette (→ bibliothèque, forge).
+  Nom « Recipe: <objet> », rareté = celle de l'objet, valeur par rareté. Ils apparaissent tout
+  seuls dans l'onglet **« Scrolls »** du marchand (qui liste dynamiquement la catégorie). Un
+  parchemin **fait main** existant (ex. `parchemin-pioche`, lore soigné) n'est **pas** regénéré.
+  État actuel : **gratuits** (marchand de test) — passer en « payant » = ajouter prix + déduction d'or.
 
 ---
 

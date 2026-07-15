@@ -23,7 +23,7 @@
 // « Valeurs »), régénérée dans data/valeurs.js par outils/importer_valeurs.py.
 // Cf. valeurEstimee() / prixVente() plus bas.
 import { VALEUR_OBJET } from "./valeurs.js";
-import { multQualite } from "./recettes.js";
+import { multQualite, RECETTES } from "./recettes.js";
 
 // Raretés, du plus commun au plus précieux. `rang` = ordre (sert à comparer
 // « au moins rare » sans coder en dur les noms — cf. rareteAuMoins).
@@ -721,6 +721,40 @@ export const ITEMS = {
     taille: { l: 2, h: 1 }, icone: "#5ad98a",
     cartes: ["des-1", "des-2", "pioche-chanceuse"] },
 };
+
+// ─── PARCHEMINS DE RECETTE (auto-générés) ─────────────────────────────────────
+// UN parchemin par recette : le LIRE apprend la recette (cf. ui/parchemin.js +
+// systems/bibliotheque.js). Générés à partir de RECETTES pour rester TOUJOURS
+// synchro : ajouter une recette crée son parchemin sans rien toucher d'autre.
+// Ils apparaissent tout seuls dans l'onglet « Scrolls » du marchand
+// (menuCategorie liste tout objet categorie:"parchemin"). Valeur par rareté.
+const VALEUR_PARCHEMIN = { commun: 20, uncommon: 60, rare: 180, epique: 600, legendaire: 1800 };
+// Résultats DÉJÀ couverts par un parchemin FAIT MAIN (ex. parchemin-pioche, avec
+// son lore soigné) : on ne les regénère pas (pas de doublon, on garde le fait main).
+const dejaRevele = new Set(
+  Object.values(ITEMS).filter((it) => it.categorie === "parchemin").map((it) => it.revele),
+);
+for (const r of RECETTES) {
+  const res = ITEMS[r.resultat];
+  if (!res) continue;                          // recette sans objet connu → on saute
+  if (dejaRevele.has(r.resultat)) continue;    // déjà un parchemin fait main pour ce résultat
+  const id = "parchemin-" + r.resultat;
+  if (ITEMS[id]) continue;                      // sécurité : id déjà pris
+  const rarete = res.rarete ?? "commun";
+  const valeur = VALEUR_PARCHEMIN[rarete] ?? 20;
+  ITEMS[id] = {
+    id,
+    nom: `Recipe: ${res.nom}`,
+    categorie: "parchemin",
+    rarete,
+    taille: { l: 1, h: 1 },
+    icone: "#c9a24a",                           // parchemin (tan doré) — vraie icône plus tard
+    revele: r.resultat,                          // ce que le parchemin enseigne (→ ouvrirParchemin)
+    lore: `Aged forging instructions for the ${res.nom}. Read it to learn the recipe.`,
+    valeur,
+    valeurVente: Math.max(1, Math.round(valeur * 0.4)),
+  };
+}
 
 export function itemDef(id) {
   return ITEMS[id] ?? null;
