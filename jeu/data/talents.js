@@ -44,6 +44,14 @@ export const TALENTS = {
     effet: { agilite: 3 },
     description: "Nimble hands: +3 Agility per rank (3 ranks). Agility quickens your strikes in combat AND slows the forge bar, making high-quality crafts easier.",
   },
+  // Talent de FARM : agrandit le rayon de vision (découverte du brouillard) dans les
+  // mines → on repère les minerais et les passages de plus loin. 2 rangs, +1 case chacun.
+  visionMine: {
+    id: "visionMine", nom: "Miner's Sight", branche: "forge",
+    x: 0, y: 2, cout: 1, rangMax: 2, requis: ["artisanat"],
+    effet: { visionMine: 1 },
+    description: "Miner's eye: +1 mine sight radius per rank (2 ranks) — reveal the fog of war farther around you while exploring the depths.",
+  },
 
   // ---- BRANCHE COMBAT (col 1-3) ---------------------------------------------
   // Chaleur de Forge = ÉNERGIE DE COMBAT (colonne 1, chaîne verticale).
@@ -220,6 +228,7 @@ const NOM_EFFET = {
   artisanat: "Slower forge bar",
   choixProfondeur: "Depth boon choices",
   descenteBonus: "Deeper-passage chance",
+  visionMine: "Mine sight radius",
 };
 
 // Décrit l'effet d'un nœud, ex. "+10 Max HP".

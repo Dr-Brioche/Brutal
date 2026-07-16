@@ -48,6 +48,8 @@ export function appliquerTalents(heros) {
   // l'agilité de l'équipement (heros.agiliteEquip) : leur somme accélère les frappes
   // en combat ET ralentit la barre du mini-jeu de forge.
   heros.agiliteTalent = b.agilite || 0;
+  // Rayon de vision bonus dans les mines (talent « Miner's Sight »).
+  heros.visionMine = b.visionMine || 0;
   // Réduction des rencontres (0..0.8), alimentée par les talents type « Tunnel Sense ».
   heros.evasionRencontre = Math.min(0.8, (b.evasion || 0) / 100);
   heros.sansRencontre = (b.sansRencontre || 0) > 0; // talent de TEST : annule TOUTE rencontre
