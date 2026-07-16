@@ -14,6 +14,8 @@ const LABEL_EFFET = {
   agilite: (v) => `+${v} Agility`,
   soin: (v) => `Heal ${v} HP`,
   porte: () => `Guaranteed passage`, // garantit une porte de descente sur cet étage
+  "pop-monstre": () => `No monsters`,        // aucun monstre sur l'étage à venir
+  "chance-minerais": (v) => `+${v}% ore`,    // plus de minerais sur l'étage à venir
 };
 function texteEffet(loot) {
   return (LABEL_EFFET[loot.effet] ?? ((v) => `+${v}`))(loot.valeur);

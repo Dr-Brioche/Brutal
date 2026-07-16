@@ -80,10 +80,18 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   **+15 %** à son minerai emblématique s'il est déjà trouvable à l'étage : **lave→rubis**,
   **cristal→diamant**, **glace→lapis-lazuli**, **inondée→titane**. Les mines profondes
   sans biome utilisent un décor de combat « profondeur » générique.
-  **La descente est un « RUN »** : à chaque étage (entrée + descente `>`) on choisit
-  **1 buff parmi 2** (Force, Célérité, Armure de départ, ou Or à la sortie) qui
-  **s'accumulent** toute la visite et **disparaissent en ressortant** (l'or n'est
-  versé que si on sort vivant). Le talent **Deep Prospector** monte à 3-4 choix.
+  **La descente est un « RUN »** : à chaque descente `>`, on **valide la descente**,
+  puis on **choisit 1 butin parmi 2**, et **ensuite** le jeu **génère l'étage suivant
+  en fonction du choix** (révisé 16/07/2026 : le choix précède la génération). Butins :
+  - **cumulatifs** (gardés toute la descente, perdus en ressortant) : **Force**, **Agility
+    Stone** (+agilité de combat), **Armure de départ**, **Or à la sortie** (versé si on
+    sort vivant) ;
+  - **ponctuels** : **Ruby Dust** (soin immédiat) ;
+  - **agissant à la génération de l'étage** : **Depth Portal** (passage `>` garanti),
+    **Lucky Stone** (+% de minerais), **Wave of Calm** (aucun monstre sur l'étage — **épique
+    uniquement**).
+
+  Le talent **Deep Prospector** monte à 3-4 choix.
   **→ Design complet + journal d'avancement : [`docs/mines.md`](mines.md).**
   *(en cours d'implémentation)*
 - **Monstres invisibles sur la carte** : pas de sprite d'ennemi en exploration.

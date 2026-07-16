@@ -95,6 +95,8 @@ const DIST_MIN_ENTREE = 7;
 // échoue (trop peu de salles / non connexe) ; en dernier recours on force.
 export function genererMine(profil = {}) {
   const cfg = { ...PROFIL_DEFAUT, ...profil };
+  // Butin « Wave of Calm » : plus aucune rencontre de monstre sur cet étage.
+  if (cfg.sansMonstres) cfg.tauxRencontre = 0;
   // Thème d'étage : tiré une seule fois (constant sur les 40 essais de construction).
   cfg.theme = cfg.theme ?? tirerTheme(cfg.niveau);
   if (cfg.theme) appliquerThemeCfg(cfg);
@@ -221,7 +223,9 @@ function finaliser(g, salles, cfg) {
     }
   }
   melanger(parois);
-  const nb = entier(cfg.nbVeines[0], cfg.nbVeines[1]);
+  // Butin « Lucky Stone » : +cfg.bonusMineraisPct % de veines de minerai sur cet étage.
+  let nb = entier(cfg.nbVeines[0], cfg.nbVeines[1]);
+  if (cfg.bonusMineraisPct) nb = Math.round(nb * (1 + cfg.bonusMineraisPct / 100));
   const veines = [];
   for (let i = 0; i < nb && i < parois.length; i++) {
     const [x, y] = parois[i];
@@ -249,7 +253,8 @@ function finaliser(g, salles, cfg) {
   // Passage de descente vers l'étage suivant : présent selon la chance de l'étage,
   // + le bonus du talent « Deep Experience » (cfg.bonusDescente, en points de %).
   // Posé sur une case sol d'exploration LIBRE (pas sur le méga-gisement), tuile `>`.
-  const chancePorte = Math.min(95, chanceDescente(cfg.niveau) + (cfg.bonusDescente ?? 0));
+  // Butin « Depth Portal » (porteGarantie) : passage de descente garanti sur cet étage.
+  const chancePorte = cfg.porteGarantie ? 100 : Math.min(95, chanceDescente(cfg.niveau) + (cfg.bonusDescente ?? 0));
   if (Math.random() * 100 < chancePorte) {
     const libres = solExplo.filter(([x, y]) => !(megaTile && x === megaTile[0] && y === megaTile[1]));
     if (libres.length) {
