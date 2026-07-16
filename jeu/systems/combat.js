@@ -536,6 +536,9 @@ function appliquerEffet(combat, effet, ennemi) {
     combat.chaleur = Math.min(combat.chaleurMax, combat.chaleur + gain);
   } else if (effet.type === "soin-par-sang") {
     soinnerHeros(combat, effet.valeur * sangTotal(combat));
+  } else if (effet.type === "soin-par-sang-cible") {
+    // Bloodthirst : soigne le héros d'autant que la cible a de saignement actif (×valeur).
+    if (ennemi) soinnerHeros(combat, effet.valeur * (ennemi.sang || 0));
   } else if (effet.type === "absorption-sang") {
     // Blood Absorption : soigne `valeur` PV par saignement TOTAL, puis efface TOUT
     // le saignement des ennemis (on « boit » les plaies — ne touche que les ennemis).
@@ -869,13 +872,15 @@ function resoudreAOE(combat, carte) {
     } else if (effet.type === "danse-poison") {
       // Danse empoisonnée : `hits` frappes sur TOUS les ennemis. Chaque frappe
       // inflige `degats` et empoisonne. Combo : un ennemi DÉJÀ empoisonné avant
-      // la carte prend 2 poison/frappe au lieu de 1 (déterminé une fois, au début).
+      // la carte prend le DOUBLE de poison/frappe (déterminé une fois, au début).
+      // `poison` = poison de base par frappe (défaut 1).
+      const basePoison = effet.poison ?? 1;
       const dejaPoison = new Map(vivants.map((e) => [e, e.poison > 0]));
       for (let h = 0; h < effet.hits; h++) {
         for (const e of vivants) {
           if (!ennemiVivant(e)) continue;
           blesser(e, effet.degats);
-          e.poison += dejaPoison.get(e) ? 2 : 1;
+          e.poison += dejaPoison.get(e) ? basePoison * 2 : basePoison;
         }
       }
     } else if (effet.type === "forgeage") {
