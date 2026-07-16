@@ -1142,9 +1142,12 @@ export function agirEnnemi(combat, i) {
     poison: 0, feu: 0, sang: 0, soin: 0, mortStatut: false,
     attaque: 0, armureAbsorbe: 0, stun: false,
     soin_allie: 0,  // PV soignés sur un allié
-    idx_soin: -1,   // index de l'ennemi soigné (pour le floater UI)
+    idx_soin: -1,   // index de l'ennemi RÉELLEMENT soigné (pour le floater UI)
+    idx_soin_prevu: -1, // index de la cible AFFICHÉE du soin (le fil vert de preview) — pour l'anim de bascule
     soin_heros: 0,  // PV soignés AU HÉROS par un soin CONFUS (le caster soigne son ennemi par erreur)
-    haste_allie: 0, // tours de hâte donnés aux alliés vivants
+    haste_allie: 0, // tours de hâte donnés aux alliés vivants (ou à UN seul si confus, cf. idx_haste)
+    idx_haste: -1,  // index de l'UNIQUE allié accéléré par un buff CONFUS (−1 = tout le groupe, cas normal)
+    haste_heros: 0, // tours de Hâte donnés AU HÉROS par un buff CONFUS (le caster accélère son ennemi)
     brulureRetour: 0, // brûlure renvoyée à l'attaquant par un passif (set Onyx)
     confusionRetour: 0, // confusion infligée à l'attaquant par un passif (set Croisé)
     confus: false,  // true = l'attaque a été déviée par la Confusion
@@ -1227,6 +1230,10 @@ export function agirEnnemi(combat, i) {
       evt.idxAttaqueAllie = cibleConf;
     }
   } else if (e.intention?.type === "soigner") {
+    // Cible AFFICHÉE du soin (le fil vert de preview) : mémorisée pour l'animation de
+    // BASCULE quand l'attaque est confuse (le fil part vers elle, puis dévie).
+    const prevu = cibleSoinVerrou(combat, e);
+    evt.idx_soin_prevu = prevu ? combat.ennemis.indexOf(prevu) : -1;
     if (confusActif) {
       // Confusion : le soin part AU HASARD à la résolution — un ennemi vivant (dont
       // lui-même) OU le HÉROS (le caster soigne son ennemi par erreur). L'intention/
@@ -1245,22 +1252,36 @@ export function agirEnnemi(combat, i) {
         evt.soin_allie = choix.o.pv - avant;
         evt.idx_soin = choix.j;
       }
-    } else {
+    } else if (prevu) {
       // Soigne la cible VERROUILLÉE à la préparation (l'allié au % le plus bas
       // alors), sauf si elle est morte entre-temps → une nouvelle est verrouillée.
-      const cible = cibleSoinVerrou(combat, e);
-      if (cible) {
-        const avant = cible.pv;
-        cible.pv = Math.min(cible.pvMax, cible.pv + e.intention.valeur);
-        evt.soin_allie = cible.pv - avant;
-        evt.idx_soin = combat.ennemis.indexOf(cible);
-      }
+      const avant = prevu.pv;
+      prevu.pv = Math.min(prevu.pvMax, prevu.pv + e.intention.valeur);
+      evt.soin_allie = prevu.pv - avant;
+      evt.idx_soin = combat.ennemis.indexOf(prevu);
     }
   } else if (e.intention?.type === "haste-allie") {
-    // Célérité à tous les alliés vivants (pas le chaman lui-même).
-    const alliés = combat.ennemis.filter((a, j) => j !== i && ennemiVivant(a));
-    for (const a of alliés) a.haste += e.intention.valeur;
-    evt.haste_allie = alliés.length ? e.intention.valeur : 0;
+    if (confusActif) {
+      // Confusion : le buff part sur UN SEUL bénéficiaire au hasard — un ennemi vivant
+      // (dont lui-même) OU le HÉROS (le caster accélère son adversaire par erreur !).
+      evt.confus = true;
+      const pool = [{ t: "heros" }];
+      combat.ennemis.forEach((o, j) => { if (ennemiVivant(o)) pool.push({ t: "ennemi", o, j }); });
+      const choix = pool[Math.floor(Math.random() * pool.length)];
+      if (choix.t === "heros") {
+        combat.hate += e.intention.valeur;      // le héros gagne de la Hâte (bénéfice pour le joueur)
+        evt.haste_heros = e.intention.valeur;
+      } else {
+        choix.o.haste += e.intention.valeur;
+        evt.haste_allie = e.intention.valeur;
+        evt.idx_haste = choix.j;                // un seul allié touché (pas tout le groupe)
+      }
+    } else {
+      // Normal : célérité à tous les alliés vivants (pas le chaman lui-même).
+      const alliés = combat.ennemis.filter((a, j) => j !== i && ennemiVivant(a));
+      for (const a of alliés) a.haste += e.intention.valeur;
+      evt.haste_allie = alliés.length ? e.intention.valeur : 0;
+    }
   }
   // Hâte à 10 : l'ennemi qui vient d'AGIR rejoue tout de suite — on remet sa jauge
   // d'initiative au seuil (elle sera reprise au prochain pas) et on consomme TOUS

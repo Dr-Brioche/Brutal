@@ -259,6 +259,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   let delaiFin = -1, termine = false;
   let minuterie = 0;          // compte à rebours entre les pas de la timeline (ATB)
   let acteurCourant = null;   // qui agit en ce moment (pour la file des tours)
+  // Fil de sort CONFUS : animation où le trait part vers la cible AFFICHÉE puis DÉVIE
+  // vers la cible réelle (montre clairement que la confusion a redirigé l'action).
+  let lienConfus = null;      // { casterIdx, src, locked, real, couleur, t0 } ou null
+  const LC_VISE = 0.35, LC_DEVIE = 0.30, LC_TIENT = 0.35; // durées (s) : vise → dévie → tient
+  const LC_TOTAL = LC_VISE + LC_DEVIE + LC_TIENT;
+  function lancerLienConfus(casterIdx, src, locked, real, couleur) {
+    lienConfus = { casterIdx, src, locked: locked ?? real, real, couleur, t0: temps };
+  }
 
   // Ciblage clavier : carte « armée » en attente de cible.
   let phaseCiblage = false;
@@ -1138,8 +1146,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       }
     } else {
       const pierreAvantTour = combat.pierre;
-      animerEnnemi(acteur.i, agirEnnemi(combat, acteur.i), pierreAvantTour);
-      minuterie = PAS_ENNEMI;
+      const evt = agirEnnemi(combat, acteur.i);
+      animerEnnemi(acteur.i, evt, pierreAvantTour);
+      // Une action CONFUSE joue son fil de bascule : on laisse le temps à l'animation
+      // avant de passer à l'acteur suivant.
+      minuterie = PAS_ENNEMI + (evt.confus ? LC_TOTAL : 0);
       if (combat.fini) { rafraichir(); verifierFin(); }
     }
   }
@@ -1203,6 +1214,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       jouerAnim(u, "attaque");
       const victime = ennemisUI[evt.idxAttaqueAllie];
       if (victime) {
+        // Attaquant À DISTANCE confus : fil rouge qui visait le héros puis dévie sur
+        // la victime réelle (les mêlées, elles, montrent déjà le coup par la secousse).
+        if (u.e.def?.affix === "range") lancerLienConfus(i, u.ecran, heroEcran, victime.ecran, "#ff7a7a");
         victime.secousse = Math.max(victime.secousse, 0.3);
         if (combat.ennemis[evt.idxAttaqueAllie]?.pv <= 0) exploser(victime);
         else jouerAnim(victime, "touche");
@@ -1211,23 +1225,41 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       }
       jouerSonCoup();
     }
-    if (evt.soin_allie > 0) { // le chaman soigne un allié
+    // SOIN du chaman. Normal : le fil vert de preview a déjà pointé la cible ; on
+    // pose le floater tout de suite. CONFUS : le fil part vers la cible affichée puis
+    // DÉVIE vers la cible réelle (héros ou autre allié) — floater à l'arrivée du fil.
+    if (evt.soin_allie > 0 || evt.soin_heros > 0) {
       jouerAnim(u, "attaque");
-      const cible = ennemisUI[evt.idx_soin];
-      const cx = cible ? cible.ecran.cx : u.ecran.cx;
-      const cy = cible ? cible.ecran.sommet : u.ecran.sommet;
-      ajouterFlottant(`💚+${evt.soin_allie}`, cx, cy, "#7edf82");
-      jouerSonSortilege();
+      const versHeros = evt.soin_heros > 0;
+      const realEcran = versHeros ? heroEcran : (ennemisUI[evt.idx_soin]?.ecran ?? u.ecran);
+      const valeur = versHeros ? evt.soin_heros : evt.soin_allie;
+      const floater = () => ajouterFlottant(`💚+${valeur}`, realEcran.cx, realEcran.sommet - (versHeros ? 16 : 0), "#7edf82");
+      if (evt.confus) {
+        const prevu = ennemisUI[evt.idx_soin_prevu]?.ecran ?? realEcran;
+        lancerLienConfus(i, u.ecran, prevu, realEcran, "#7edf82");
+        setTimeout(() => { floater(); jouerSonSortilege(); }, (LC_VISE + LC_DEVIE) * 1000);
+      } else {
+        floater(); jouerSonSortilege();
+      }
     }
-    if (evt.soin_heros > 0) { // soin CONFUS qui atterrit sur le HÉROS (erreur du caster)
+    // BUFF de Hâte. Normal : tout le groupe (floater sur le chaman). CONFUS : un SEUL
+    // bénéficiaire au hasard (un allié, ou le HÉROS par erreur) → fil qui dévie vers lui.
+    if (evt.haste_allie > 0 || evt.haste_heros > 0) {
       jouerAnim(u, "attaque");
-      ajouterFlottant(`💚+${evt.soin_heros}`, heroEcran.cx, heroEcran.sommet - 16, "#7edf82");
-      jouerSonSortilege();
-    }
-    if (evt.haste_allie > 0) { // le chaman accélère ses alliés
-      jouerAnim(u, "attaque");
-      ajouterFlottant(`⚡×${evt.haste_allie}`, u.ecran.cx, u.ecran.sommet, "#dff4ff");
-      jouerSonSortilege();
+      if (evt.confus) {
+        const versHeros = evt.haste_heros > 0;
+        const realEcran = versHeros ? heroEcran : (ennemisUI[evt.idx_haste]?.ecran ?? u.ecran);
+        const valeur = versHeros ? evt.haste_heros : evt.haste_allie;
+        lancerLienConfus(i, u.ecran, null, realEcran, "#dff4ff");
+        setTimeout(() => {
+          ajouterFlottant(`⚡×${valeur}`, realEcran.cx, realEcran.sommet, "#dff4ff");
+          if (versHeros) ajouterFlottant("✨", u.ecran.cx, u.ecran.sommet - 16, "#ffe9a8");
+          jouerSonSortilege();
+        }, (LC_VISE + LC_DEVIE) * 1000);
+      } else {
+        ajouterFlottant(`⚡×${evt.haste_allie}`, u.ecran.cx, u.ecran.sommet, "#dff4ff");
+        jouerSonSortilege();
+      }
     }
     // evt.stun → on n'affiche AUCUNE animation
     // Filet de sécurité : si l'ennemi est MORT au cours de sa propre action sans que
@@ -1580,10 +1612,29 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     for (let ci = 0; ci < ennemisUI.length; ci++) {
       const cham = ennemisUI[ci];
       if (!ennemiVivant(cham.e) || cham.e.stun > 0) continue;
+      if (lienConfus && lienConfus.casterIdx === ci) continue; // ce chaman a un fil de bascule en cours
       if (cham.e.intention?.type === "soigner") {
         const cible = cibleSoinVerrou(combat, cham.e);
         const idx = cible ? combat.ennemis.indexOf(cible) : ci;
         dessinerLienSort(ctx, cham.ecran, ennemisUI[idx].ecran, temps, "#7edf82");
+      }
+    }
+
+    // Fil de sort CONFUS : vise la cible affichée (LC_VISE), puis DÉVIE vers la cible
+    // réelle (LC_DEVIE), puis tient un instant (LC_TIENT). Montre nettement la bascule.
+    if (lienConfus) {
+      const el = temps - lienConfus.t0;
+      if (el >= LC_TOTAL) {
+        lienConfus = null;
+      } else {
+        const { src, locked, real, couleur } = lienConfus;
+        let dst = real;
+        if (el < LC_VISE) dst = locked;
+        else if (el < LC_VISE + LC_DEVIE) {
+          const k = (el - LC_VISE) / LC_DEVIE; // 0→1 : bascule fluide
+          dst = { cx: locked.cx + (real.cx - locked.cx) * k, haut: locked.haut + (real.haut - locked.haut) * k };
+        }
+        dessinerLienSort(ctx, src, dst, temps, couleur);
       }
     }
 

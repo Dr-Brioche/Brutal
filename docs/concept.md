@@ -542,14 +542,23 @@ combat (avec tooltip).
     plusieurs tours). Affiché en badge `💫 N` sous l'ennemi (N = tours restants), et
     son intention d'attaque est masquée. Ex. *Tower Shield* (bouclier) → carte
     *Shield Bash* (10 dégâts + stun 3).
-  - **Confusion (éblouissement) — implémenté** : l'ennemi **ébloui** frappe une
-    cible **AU HASARD** parmi le **héros**, **un autre ennemi**, ou **lui-même**
-    (tirage à chances égales à chaque attaque). Sa puissance d'attaque ne change
-    pas, seul le destinataire devient aléatoire → redoutable à plusieurs ennemis
-    (ils se tapent dessus). Compteur en **tours**, baisse de 1 par tour de l'ennemi,
-    **cumulable**. Badge `✨ N` sous l'ennemi. L'intention reste affichée (on voit
-    la valeur du coup, mais pas qui il touchera). Vient des cartes de **lumière**
-    du set *Chevalier Croisé* et de son bonus de panoplie.
+  - **Confusion (éblouissement) — implémenté** : l'ennemi **ébloui** voit son action
+    partir **AU HASARD** à la résolution — **quelle que soit** son type d'action :
+    - une **attaque** frappe le héros, un autre ennemi ou lui-même ;
+    - un **soin** atterrit sur un allié au hasard **ou sur le HÉROS** (le caster soigne
+      son adversaire par erreur) ;
+    - un **buff de Hâte** (normalement tout le groupe) ne va plus qu'à **UN seul**
+      bénéficiaire au hasard — un allié **ou le héros** (il accélère son ennemi !).
+
+    La puissance ne change pas, seul le **destinataire** devient aléatoire → redoutable
+    à plusieurs ennemis (ils se soignent/tapent/accélèrent au mauvais endroit).
+    **Animation de bascule (16/07/2026)** : pour un ennemi **à distance** (chaman…),
+    le **fil** de son sort part d'abord vers la cible **affichée** (le trait vert
+    habituel), puis **dévie** nettement vers la cible **réelle** avant que l'effet ne
+    s'applique — on voit donc clairement qui est finalement touché. Compteur en
+    **tours**, baisse de 1 par tour de l'ennemi, **cumulable**. Badge `✨ N` sous
+    l'ennemi. Vient des cartes de **lumière** du set *Chevalier Croisé* et de son bonus
+    de panoplie.
 - **Actions au RALENTI** : chaque action (ennemi qui attaque, etc.) se joue **une
   à la fois**, avec une petite pause, pilotée par l'**initiative** (voir la section
   *Initiative / vitesse* plus haut) — on comprend ce qui arrive.
