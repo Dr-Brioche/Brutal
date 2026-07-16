@@ -48,7 +48,8 @@ export const ENNEMIS = [
     // Illustration fournie (fond vert détouré par outils/preparer_skin.py).
     // Rendue vivante par le CODE (image fixe + effets), en lisse.
     planche: "images/ennemis/gobelin.png",
-    portrait: { sx: 7, sy: 3, sw: 56, sh: 56 }, // la tête (file des tours)
+    portrait: { sx: 20, sy: 2, sw: 62, sh: 62 }, // la tête centrée (file des tours)
+    tailleRel: 0.8, // rétréci d'1/5 : il paraissait un peu grand parmi les gobelins
     sprite: {
       caseL: 133,
       caseH: 140,   // petite créature
