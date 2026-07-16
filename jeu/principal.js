@@ -1274,7 +1274,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     prechargerFonds(assetZone, zone);    // télécharge les fonds (biome/profondeur) pendant l'explo
     prechargerMusiquesCombat(assetZone); // idem pour les musiques de combat
     poserHeros(heros, entree.colonne, entree.ligne);
-    revelerAutour(carte, entree.colonne, entree.ligne, RAYON_VUE); // découvre le point d'arrivée (mine)
+    revelerAutour(carte, entree.colonne, entree.ligne, RAYON_VUE + (heros.visionMine ?? 0)); // découvre le point d'arrivée (mine)
     rencontres = creerRencontres();  // période de grâce fraîche dans la zone
     veines = zone.veines ?? [];      // veines minables (mine) ; vide ailleurs
     minage = null; veineProche = null;
@@ -1709,7 +1709,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (minage) avancerMinage(dt);
       else mettreAJourHeros(heros, clavier, dt, carte, obstaclesVille());
       const tuile = tuileSousLesPieds(carte, heros);
-      revelerAutour(carte, tuile.colonne, tuile.ligne, RAYON_VUE); // brouillard : on éclaire autour de soi
+      revelerAutour(carte, tuile.colonne, tuile.ligne, RAYON_VUE + (heros.visionMine ?? 0)); // brouillard : on éclaire autour de soi (+ talent Miner's Sight)
       verifierPointsInteret(tuile);
       verifierPorte(tuile);
       verifierEntreeMine(tuile); // marcher sur `M` descend dans une mine générée
