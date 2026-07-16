@@ -44,6 +44,10 @@ export function appliquerTalents(heros) {
   const b = bonusTalents(heros);
   heros.pvMax = PV_BASE + (b.pvMax || 0);
   heros.vitesse = VITESSE_BASE + (b.vitesse || 0);
+  // Agilité donnée par les TALENTS (Nimble Smith, Fleet Strikes…). S'ajoute à
+  // l'agilité de l'équipement (heros.agiliteEquip) : leur somme accélère les frappes
+  // en combat ET ralentit la barre du mini-jeu de forge.
+  heros.agiliteTalent = b.agilite || 0;
   // Réduction des rencontres (0..0.8), alimentée par les talents type « Tunnel Sense ».
   heros.evasionRencontre = Math.min(0.8, (b.evasion || 0) / 100);
   heros.sansRencontre = (b.sansRencontre || 0) > 0; // talent de TEST : annule TOUTE rencontre

@@ -18,7 +18,7 @@ import { itemDef, couleurRarete } from "../data/items.js";
 import { QUALITES, forceQualite, carburantRequis, valeurCarburant } from "../data/recettes.js";
 import {
   trouverRecette, ingredientsPoses,
-  centreMarqueur, outcomeFrappe, QUALITE_PAR_MARQUEUR, MJ, periodeMiniJeu,
+  centreMarqueur, outcomeFrappe, QUALITE_PAR_MARQUEUR, MJ, periodeMiniJeu, ralentiAgilite,
 } from "../systems/craft.js";
 import { compterRessource, retirerRessource, ajouterObjet, placePourFabrication } from "../systems/inventaire.js";
 import { ouvrirLivre } from "./livre.js";
@@ -27,7 +27,7 @@ import { afficherMessage } from "./effets.js";
 const TAILLE = 5;         // table 5×5
 
 let overlay, boutonFermer, elPalette, elTable, elSortie, elForger;
-let elMiniJeu, elCurseur, elMGrand, elMMoyen, elMPetit, elMJTitre, elMJAide;
+let elMiniJeu, elCurseur, elMGrand, elMMoyen, elMPetit, elMJTitre, elMJAide, elMJInfo;
 let elLivreBtn, elRef;
 let elFeuJauge, elFeuFill, elFeuCharbon, elFeuBois, elFeuVider;
 
@@ -80,6 +80,7 @@ export function installerForge() {
   elMPetit = document.getElementById("forge-mj-petit");
   elMJTitre = document.getElementById("forge-mj-titre");
   elMJAide = document.getElementById("forge-mj-aide");
+  elMJInfo = document.getElementById("forge-mj-info");
   elLivreBtn = document.getElementById("forge-livre");
   elRef = document.getElementById("forge-ref");
   elFeuJauge = document.getElementById("forge-feu-jauge");
@@ -410,11 +411,18 @@ function placerBande(el, centre, demi) {
 }
 
 function lancerMiniJeu() {
-  // Vitesse du curseur = selon la RARETÉ de l'objet, ralentie par le talent
-  // « Master Craftsman » (rang lu sur le héros).
+  // Vitesse du curseur = selon la RARETÉ de l'objet, RALENTIE par l'AGILITÉ totale
+  // du héros (talents + équipement) : plus agile = meilleur forgeron.
   const rarete = itemDef(recetteCourante.resultat)?.rarete;
-  const rangArtisanat = heros?.talents?.artisanat ?? 0;
-  mjPeriode = periodeMiniJeu(rarete, rangArtisanat);
+  const agilite = (heros?.agiliteTalent ?? 0) + (heros?.agiliteEquip ?? 0);
+  mjPeriode = periodeMiniJeu(rarete, agilite);
+  // Barre info : rappelle que l'agilité ralentit la forge (et de combien).
+  if (elMJInfo) {
+    const pct = Math.round(ralentiAgilite(agilite) * 100);
+    elMJInfo.textContent = agilite > 0
+      ? `⚡ Agility ${agilite} — forge bar ${pct}% slower (easier to land quality)`
+      : "⚡ Agility 0 — raise Agility (gear or Nimble Smith talent) to slow the forge bar";
+  }
   mjCentre = centreMarqueur(Math.random());
   placerBande(elMGrand, mjCentre, MJ.HG);
   placerBande(elMMoyen, mjCentre, MJ.HM);

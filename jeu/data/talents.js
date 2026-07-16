@@ -35,11 +35,14 @@ export const TALENTS = {
   // ---- BRANCHE FORGE (col 0) : artisanat (qualité au craft) ------------------
   // Maîtrise d'artisan → la barre du mini-jeu de forge défile plus LENTEMENT
   // (plus facile d'atteindre Master/Exceptional). 3 rangs, −15 % de vitesse chacun.
+  // Forgeron agile : donne de l'AGILITÉ (+3/rang). L'agilité accélère les frappes
+  // en combat ET ralentit la barre du mini-jeu de forge (cf. periodeMiniJeu) — donc
+  // « plus agile = meilleur forgeron ». (id conservé pour ne pas casser les sauvegardes.)
   artisanat: {
-    id: "artisanat", nom: "Master Craftsman", branche: "forge",
+    id: "artisanat", nom: "Nimble Smith", branche: "forge",
     x: 0, y: 1, cout: 1, rangMax: 3, requis: ["racine"],
-    effet: { artisanat: 1 },
-    description: "Craft mastery: the forge quality bar sweeps 15% slower per rank (3 ranks) — landing high quality gets easier, above all on rare and epic gear.",
+    effet: { agilite: 3 },
+    description: "Nimble hands: +3 Agility per rank (3 ranks). Agility quickens your strikes in combat AND slows the forge bar, making high-quality crafts easier.",
   },
 
   // ---- BRANCHE COMBAT (col 1-3) ---------------------------------------------
