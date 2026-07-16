@@ -82,7 +82,7 @@ const GEL_MULT  = 0.70; // « Gel » (lenteur)   : vitesse de l'ennemi ×0.70 pe
 // À GEL_EXPLOSION stacks de Gel, l'ennemi est immédiatement étourdi (1 tour) et
 // perd GEL_EXPLOSION stacks ; le surplus est conservé. Héros : identique mais déclenché
 // au début de son tour (aucun ennemi ne le gèle pour l'instant).
-const GEL_EXPLOSION = 5;        // seuil de stacks qui déclenche l'étourdissement
+export const GEL_EXPLOSION = 8; // seuil de stacks qui déclenche l'étourdissement (glace brisée)
 const DEGATS_GEL_EXPLOSION = 5; // dégâts directs héros quand la glace se brise (conservé)
 // ---------------------------------------------------------------------------
 
@@ -193,7 +193,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     poisonHeros: 0,
     feuHeros: 0,
     gelHeros: 0,    // gel du héros : ralentit (−30% vitesse) ; annulé par feuHeros et vice-versa
-    tourSaute: false,        // true = le héros saute son tour (glace brisée à 5 stacks)
+    tourSaute: false,        // true = le héros saute son tour (glace brisée à 8 stacks)
     gelExplosionHeros: 0,    // dégâts subis par la glace brisée (pour le floater UI)
     // Chaleur de Forge + surchauffe (réglages modifiés par l'équipement)
     chaleur: chaleurDepart,
@@ -590,7 +590,7 @@ function appliquerEffet(combat, effet, ennemi) {
       // Gel sur ennemi brûlant : la glace éteint le feu (brûlure annulée), gel appliqué normalement.
       if (ennemi.feu > 0) { ennemi.feu = 0; ennemi.feuDeCarte = false; }
       ennemi.gel += effet.valeur;
-      verifierGelEnnemi(ennemi); // stun immédiat si ≥ 5 stacks
+      verifierGelEnnemi(ennemi); // stun immédiat si ≥ 8 stacks
     }
   } else if (effet.type === "piocher") {
     // Pioche `valeur` cartes dans la main (recompose la pioche depuis la défausse
@@ -967,7 +967,7 @@ function resoudreCiblee(combat, carte, cible) {
     if (ennemi.feu > 0) { ennemi.feu = 0; ennemi.feuDeCarte = false; } // gel éteint le feu
     let propage = ennemi.gel > 0;   // « était déjà gelée » (avant l'ajout du Gel)
     ennemi.gel += casc.gel;
-    verifierGelEnnemi(ennemi);      // stun immédiat si ≥ 5 stacks
+    verifierGelEnnemi(ennemi);      // stun immédiat si ≥ 8 stacks
     let i = combat.ennemis.indexOf(ennemi);
     while (propage) {
       do { i++; } while (i < combat.ennemis.length && !ennemiVivant(combat.ennemis[i]));
@@ -1147,7 +1147,7 @@ export function agirEnnemi(combat, i) {
     confus: false,  // true = l'attaque a été déviée par la Confusion
     attaqueAllie: 0, // PV retirés à un allié/soi-même par une attaque confuse
     idxAttaqueAllie: -1, // index de la victime de l'attaque confuse (pour le floater UI)
-    gelExplosion: 0, // dégâts subis par la « glace brisée » (5 stacks de Gel atteints)
+    gelExplosion: 0, // dégâts subis par la « glace brisée » (8 stacks de Gel atteints)
     riposteRenvoi: 0, // dégâts renvoyés à l'attaquant par la Riposte (Rebond)
   };
   if (!e || e.pv <= 0) return evt;

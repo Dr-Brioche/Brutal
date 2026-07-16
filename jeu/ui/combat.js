@@ -17,7 +17,7 @@ import {
   creerCombat, jouerCarte, degatsSurchauffe, necessiteCiblage,
   ennemiVivant, agirEnnemi, commencerTourHeros, finirTourHeros, avancerInitiative,
   simulerFile, ratioInitiativeHeros, ratioInitiativeEnnemi, cibleSoinVerrou,
-  appliquerResultatAleatoire, fuirCombat,
+  appliquerResultatAleatoire, fuirCombat, GEL_EXPLOSION,
 } from "../systems/combat.js";
 import { cartesEquipees, slotsOccupes } from "../systems/inventaire.js";
 import { setsActifs, itemDef, comboArmeActif } from "../data/items.js";
@@ -1151,7 +1151,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (combat.dernierGainPierrePerm > 0) ajouterFlottant(`🛡+${combat.dernierGainPierrePerm}`, heroEcran.cx, heroEcran.sommet - 64, "#ffd24a"); // pierre permanente par tour (armures lourdes)
   }
 
-  // Glace brisée sur le HÉROS : il a atteint 5 stacks de Gel → dégâts + tour sauté.
+  // Glace brisée sur le HÉROS : il a atteint 8 stacks de Gel → dégâts + tour sauté.
   function animerGelExplosionHeros() {
     secousseHeros = 0.4;
     ajouterFlottant(`❄💥 -${combat.gelExplosionHeros}`, heroEcran.cx, heroEcran.sommet - 48, "#9fdfff");
@@ -1166,7 +1166,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (evt.poison > 0) { u.secousse = 0.3; ajouterFlottant(`☠${evt.poison}`, u.ecran.cx, u.ecran.sommet, "#7ec850"); }
     if (evt.feu > 0) { u.secousse = 0.3; ajouterFlottant(`🔥${evt.feu}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c"); }
     if (evt.sang > 0) { u.secousse = 0.3; ajouterFlottant(`🩸${evt.sang}`, u.ecran.cx, u.ecran.sommet - 32, "#e05a5a"); }
-    // Glace brisée : 5 stacks de Gel atteints → l'ennemi se brise (dégâts + tour sauté).
+    // Glace brisée : 8 stacks de Gel atteints → l'ennemi se brise (dégâts + tour sauté).
     if (evt.gelExplosion > 0) {
       u.secousse = 0.4;
       ajouterFlottant(`❄💥 -${evt.gelExplosion}`, u.ecran.cx, u.ecran.sommet - 48, "#9fdfff");
@@ -1357,7 +1357,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (combat.toursBonus > 0) l.push({ texte: `⏩${combat.toursBonus}`, couleur: "#ffe9a8", nature: "buff" }); // Tours bonus (Unstoppable)
     if (combat.poisonHeros > 0) l.push({ texte: `☠${combat.poisonHeros}`, couleur: "#7ec850", nature: "malus" });
     if (combat.feuHeros > 0) l.push({ texte: `🔥${combat.feuHeros}`, couleur: "#ff8a2c", nature: "malus" });
-    if (combat.gelHeros > 0) l.push({ texte: combat.gelHeros >= 5 ? `❄💥${combat.gelHeros}` : `❄${combat.gelHeros}`, couleur: "#9fdfff", nature: "malus" });
+    if (combat.gelHeros > 0) l.push({ texte: combat.gelHeros >= GEL_EXPLOSION ? `❄💥${combat.gelHeros}` : `❄${combat.gelHeros}`, couleur: "#9fdfff", nature: "malus" });
     return l;
   }
   function etatsEnnemi(e) {
@@ -1367,8 +1367,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (e.feu > 0) l.push({ texte: `🔥${e.feu}`, couleur: "#ff8a2c", nature: "malus" });
     if (e.sang > 0) l.push({ texte: `🩸${e.sang}`, couleur: "#e05a5a", nature: "malus" });
     if (e.stun > 0) l.push({ texte: `💫${e.stun}`, couleur: "#ffd966", nature: "malus" }); // tours d'étourdissement restants
-    // Gel (−30% vitesse) ; à 5 stacks la glace va se briser au prochain tour → 💥 télégraphe.
-    if (e.gel > 0) l.push({ texte: e.gel >= 5 ? `❄💥${e.gel}` : `❄${e.gel}`, couleur: "#9fdfff", nature: "malus" });
+    // Gel (−30% vitesse) ; à 8 stacks la glace va se briser au prochain tour → 💥 télégraphe.
+    if (e.gel > 0) l.push({ texte: e.gel >= GEL_EXPLOSION ? `❄💥${e.gel}` : `❄${e.gel}`, couleur: "#9fdfff", nature: "malus" });
     if (e.confusion > 0) l.push({ texte: `✨${e.confusion}`, couleur: "#ffe9a8", nature: "malus" }); // Confusion (frappe au hasard)
     return l;
   }

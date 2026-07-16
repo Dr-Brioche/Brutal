@@ -164,15 +164,15 @@ joue, End Turn) ou **une attaque** pour un ennemi.
   gel s'applique normalement. Vaut aussi **sur le héros** (futur, si des ennemis
   peuvent appliquer ces statuts au héros). Les deux éléments s'annulent toujours
   en totalité — pas de neutralisation partielle.
-- **Glace brisée (révisé 21/06/2026)** : le Gel **s'empile** (chaque carte de givre
-  en ajoute). Au **début de son tour**, tout combattant — **héros OU ennemi** — qui a
-  **5 stacks de Gel ou plus** se **brise** : il **saute ce tour**, **perd 5 stacks** de
-  Gel (le surplus reste : 7 → 2) et subit **5 dégâts directs** (ignorent la Pierre).
-  Le Gel **continue par ailleurs de s'écouler de 1 par tour** comme une durée de
-  ralentissement (choix de design : règle ajoutée *par-dessus* le ralentissement, pas
-  à la place) → il faut **empiler vite** pour atteindre 5 avant qu'il fonde. Le badge
-  `❄N` passe à **`❄💥N`** dès 5 stacks pour **télégraphier** la brisure imminente.
-  *(Réglages — seuil 5, dégâts 5 — calibrables plus tard.)*
+- **Glace brisée (révisé 16/07/2026 : seuil 5 → 8)** : le Gel **s'empile** (chaque
+  carte de givre en ajoute). Au **début de son tour**, tout combattant — **héros OU
+  ennemi** — qui a **8 stacks de Gel ou plus** se **brise** : il **saute ce tour**,
+  **perd 8 stacks** de Gel (le surplus reste : 10 → 2) et subit **5 dégâts directs**
+  (ignorent la Pierre). Le Gel **continue par ailleurs de s'écouler de 1 par tour**
+  comme une durée de ralentissement (choix de design : règle ajoutée *par-dessus* le
+  ralentissement, pas à la place) → il faut **empiler vite** pour atteindre 8 avant
+  qu'il fonde. Le badge `❄N` passe à **`❄💥N`** dès 8 stacks pour **télégraphier** la
+  brisure imminente. *(Réglages — seuil 8, dégâts 5 — calibrables plus tard.)*
 - **Tension** : chaque tour du héros recharge la Chaleur **et** subit la surchauffe
   → foncer vite quand on est en surchauffe, ça brûle plus souvent.
 - **Affichage** : une **file d'ordre des tours** en haut (carrés-portraits : tête
