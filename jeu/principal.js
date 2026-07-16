@@ -1377,6 +1377,11 @@ export async function demarrerJeu(donneesInitiales = null) {
           afficherMessage(ok
             ? "🕳 Depth Portal — a passage deeper is guaranteed on this floor. Go find it!"
             : "🕳 Depth Portal — this floor already has a way down.");
+        } else if (loot.effet === "soin") {
+          // « Ruby Dust » : soigne le héros IMMÉDIATEMENT (effet ponctuel, pas un buff cumulé).
+          const soigne = Math.min(loot.valeur, heros.pvMax - heros.pv);
+          heros.pv = Math.min(heros.pvMax, heros.pv + loot.valeur);
+          afficherMessage(`❤ Ruby Dust — healed ${soigne} HP.`);
         } else {
           appliquerLoot(runProfondeur, loot);
           afficherMessage(`⛏ Depth boon: ${loot.nom} — ${etiquetteLoot(loot)}.`);
@@ -1414,6 +1419,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     const t = {
       force: `+${loot.valeur} Force`, gold: `+${loot.valeur} gold on exit`,
       celerite: `+${loot.valeur}% combat speed`, armure: `+${loot.valeur} start armor`,
+      agilite: `+${loot.valeur} Agility`, soin: `Heal ${loot.valeur} HP`,
+      porte: `guaranteed passage down`,
     };
     return t[loot.effet] ?? `+${loot.valeur}`;
   }

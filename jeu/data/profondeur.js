@@ -10,6 +10,7 @@ export const LOOTS_PROFONDEUR = [
   { id: "pierre-celerite", nom: "Agility Stone", effet: "agilite", icone: "#5fb0e8", valeurs: { normale: 1, rare: 2, epique: 4 } },
   { id: "plaque-renforcement", nom: "Reinforcement Plate", effet: "armure", icone: "#9cd3ff", valeurs: { normale: 10, rare: 20, epique: 50 } },
   { id: "portail-profondeur", nom: "Depth Portal", effet: "porte", icone: "#5fd08a", valeurs: { normale: 1, rare: 1, epique: 1 } },
+  { id: "poussiere-rubis", nom: "Ruby Dust", effet: "soin", icone: "#e0555f", valeurs: { normale: 20, rare: 40, epique: 80 } },
 ];
 
 // Chance de tirer chaque rareté à CHAQUE choix (somme = 1).
