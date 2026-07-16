@@ -1040,6 +1040,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (enAnimPioche) return;
     const feuAvants = combat.ennemis.map((e) => e.feu);
     finirTourHeros(combat); // défausse la main + propage le Feu → l'initiative reprend
+    // Hâte à 10 : le héros rejoue tout de suite (tous ses stacks de Hâte consommés).
+    if (combat.doubleTourHate) ajouterFlottant("⏩ Double turn!", heroEcran.cx, heroEcran.sommet - 64, "#ffe9a8");
     // Propagation du Feu (fin de tour) : un floater 🔥 sur chaque voisin qui en reçoit.
     let propage = false;
     combat.ennemis.forEach((e, idx) => {
@@ -1163,6 +1165,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   function animerEnnemi(i, evt, pierreAvantTour = 0) {
     const u = ennemisUI[i];
     if (!u) return;
+    // Hâte à 10 : l'ennemi rejoue tout de suite (ses stacks de Hâte sont consommés).
+    if (evt.doubleTour) ajouterFlottant("⏩ x2", u.ecran.cx, u.ecran.sommet - 64, "#ffe9a8");
     if (evt.poison > 0) { u.secousse = 0.3; ajouterFlottant(`☠${evt.poison}`, u.ecran.cx, u.ecran.sommet, "#7ec850"); }
     if (evt.feu > 0) { u.secousse = 0.3; ajouterFlottant(`🔥${evt.feu}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c"); }
     if (evt.sang > 0) { u.secousse = 0.3; ajouterFlottant(`🩸${evt.sang}`, u.ecran.cx, u.ecran.sommet - 32, "#e05a5a"); }
