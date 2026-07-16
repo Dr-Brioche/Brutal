@@ -11,6 +11,10 @@ export const LOOTS_PROFONDEUR = [
   { id: "plaque-renforcement", nom: "Reinforcement Plate", effet: "armure", icone: "#9cd3ff", valeurs: { normale: 10, rare: 20, epique: 50 } },
   { id: "portail-profondeur", nom: "Depth Portal", effet: "porte", icone: "#5fd08a", valeurs: { normale: 1, rare: 1, epique: 1 } },
   { id: "poussiere-rubis", nom: "Ruby Dust", effet: "soin", icone: "#e0555f", valeurs: { normale: 20, rare: 40, epique: 80 } },
+  // Butins qui influencent la GÉNÉRATION de l'étage suivant (choisis AVANT de descendre).
+  // `null` à une rareté = indisponible à cette rareté (« / » dans l'Excel).
+  { id: "onde-tranquilite", nom: "Wave of Calm", effet: "pop-monstre", icone: "#a8e0d0", valeurs: { normale: null, rare: null, epique: 1 } },
+  { id: "pierre-chance", nom: "Lucky Stone", effet: "chance-minerais", icone: "#7ed957", valeurs: { normale: 3, rare: 6, epique: 12 } },
 ];
 
 // Chance de tirer chaque rareté à CHAQUE choix (somme = 1).

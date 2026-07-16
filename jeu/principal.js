@@ -1346,42 +1346,55 @@ export async function demarrerJeu(donneesInitiales = null) {
     }
     surDescente = tuile.caractere === ">";
   }
-  async function descendre() {
-    const mine = genererMine({
-      niveau: (zoneCourante.niveau ?? 1) + 1,
-      monstres: zoneCourante.monstres,
-      musique: zoneCourante.musique,
-      assetZone: zoneActuelle,
-      retour: zoneCourante.retour,        // la sortie ramène toujours à l'ENTRÉE DU MONDE
-      materiaux: zoneCourante.materiaux,  // même table de drop (même grotte)
-      bonusDescente: heros.descenteBonus ?? 0, // talent « Deep Experience »
-    });
+  function descendre() {
     if (!runProfondeur) runProfondeur = creerRunProfondeur(); // filet (ne devrait pas arriver)
-    await allerVersZone(mine, mine.depart);
-    offrirChoixProfondeur();              // étage plus profond : encore un butin de run
+    // NOUVEAU FLUX (16/07/2026) : on valide la descente → on CHOISIT le butin → PUIS
+    // le jeu génère l'étage suivant EN FONCTION du choix (certains butins agissent à
+    // la génération : pas de monstres / plus de minerais / porte garantie).
+    offrirChoixProfondeur(async (genOpts) => {
+      const mine = genererMine({
+        niveau: (zoneCourante.niveau ?? 1) + 1,
+        monstres: zoneCourante.monstres,
+        musique: zoneCourante.musique,
+        assetZone: zoneActuelle,
+        retour: zoneCourante.retour,        // la sortie ramène toujours à l'ENTRÉE DU MONDE
+        materiaux: zoneCourante.materiaux,  // même table de drop (même grotte)
+        bonusDescente: heros.descenteBonus ?? 0, // talent « Deep Experience »
+        ...genOpts,                          // effets du butin sur la génération
+      });
+      await allerVersZone(mine, mine.depart);
+    });
   }
 
-  // Propose le choix de buff à l'arrivée sur un étage. Modale OBLIGATOIRE : le
-  // monde reste figé tant qu'on n'a pas choisi. Le nombre de choix = 2 de base,
-  // +1 par rang du talent « Deep Prospector » (jusqu'à 4).
-  function offrirChoixProfondeur() {
-    if (!runProfondeur) return;
+  // Propose le choix de butin AVANT de générer l'étage suivant. Modale OBLIGATOIRE :
+  // le monde reste figé tant qu'on n'a pas choisi. `surGenerer(genOpts)` est appelé
+  // avec les options de génération dérivées du butin (pop-monstre, chance-minerais,
+  // porte). Nombre de choix = 2 + rang de « Deep Prospector » (jusqu'à 4).
+  function offrirChoixProfondeur(surGenerer) {
+    if (!runProfondeur) { surGenerer?.({}); return; }
     const nbChoix = heros.choixLootProfondeur ?? 2;
     const choix = tirerChoix(nbChoix);
     enPause = true; invite.hidden = true;
     ouvrirChoixProfondeur(choix, {
       surChoisir: (loot) => {
+        const genOpts = {};
         if (loot.effet === "porte") {
-          // « Depth Portal » : garantit une porte de descente sur CET étage.
-          const ok = garantirPorteCourante();
-          afficherMessage(ok
-            ? "🕳 Depth Portal — a passage deeper is guaranteed on this floor. Go find it!"
-            : "🕳 Depth Portal — this floor already has a way down.");
+          // « Depth Portal » : garantit une porte de descente sur l'étage à venir.
+          genOpts.porteGarantie = true;
+          afficherMessage("🕳 Depth Portal — the floor below is guaranteed to have a way down.");
         } else if (loot.effet === "soin") {
-          // « Ruby Dust » : soigne le héros IMMÉDIATEMENT (effet ponctuel, pas un buff cumulé).
+          // « Ruby Dust » : soigne le héros IMMÉDIATEMENT (effet ponctuel).
           const soigne = Math.min(loot.valeur, heros.pvMax - heros.pv);
           heros.pv = Math.min(heros.pvMax, heros.pv + loot.valeur);
           afficherMessage(`❤ Ruby Dust — healed ${soigne} HP.`);
+        } else if (loot.effet === "pop-monstre") {
+          // « Wave of Calm » : aucun monstre sur l'étage à venir.
+          genOpts.sansMonstres = true;
+          afficherMessage("🕊 Wave of Calm — no monsters will stir on the floor below.");
+        } else if (loot.effet === "chance-minerais") {
+          // « Lucky Stone » : +valeur% de minerais sur l'étage à venir.
+          genOpts.bonusMineraisPct = loot.valeur;
+          afficherMessage(`🍀 Lucky Stone — +${loot.valeur}% ore on the floor below.`);
         } else {
           appliquerLoot(runProfondeur, loot);
           afficherMessage(`⛏ Depth boon: ${loot.nom} — ${etiquetteLoot(loot)}.`);
@@ -1389,6 +1402,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         etageSuivant(runProfondeur);
         majHudInfo();                     // le bandeau des buffs actifs se met à jour
         enPause = false;
+        surGenerer?.(genOpts);            // génère l'étage APRÈS le choix
       },
     });
   }

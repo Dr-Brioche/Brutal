@@ -47,12 +47,17 @@ export function tirerRarete(rng = Math.random) {
 
 // Tire UN loot (type au hasard + rareté au hasard) pour un emplacement de choix.
 export function tirerLoot(rng = Math.random) {
-  const def = LOOTS_PROFONDEUR[Math.floor(rng() * LOOTS_PROFONDEUR.length)];
-  const rarete = tirerRarete(rng);
-  return {
-    id: def.id, nom: def.nom, effet: def.effet, icone: def.icone,
-    rarete, valeur: def.valeurs[rarete],
-  };
+  // On re-tire tant que le butin n'existe pas à la rareté tirée (valeur `null` = « / »
+  // dans l'Excel : ex. « Wave of Calm » n'apparaît qu'en épique).
+  for (let essai = 0; essai < 30; essai++) {
+    const def = LOOTS_PROFONDEUR[Math.floor(rng() * LOOTS_PROFONDEUR.length)];
+    const rarete = tirerRarete(rng);
+    const valeur = def.valeurs[rarete];
+    if (valeur == null) continue;
+    return { id: def.id, nom: def.nom, effet: def.effet, icone: def.icone, rarete, valeur };
+  }
+  const def = LOOTS_PROFONDEUR[0]; // filet
+  return { id: def.id, nom: def.nom, effet: def.effet, icone: def.icone, rarete: "normale", valeur: def.valeurs.normale };
 }
 
 // Génère N choix (ils peuvent se répéter — c'est voulu).
