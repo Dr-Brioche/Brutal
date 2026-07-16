@@ -22,7 +22,7 @@
 // VALEUR DE RÉFÉRENCE des objets — fixée à la MAIN dans le classeur Excel (onglet
 // « Valeurs »), régénérée dans data/valeurs.js par outils/importer_valeurs.py.
 // Cf. valeurEstimee() / prixVente() plus bas.
-import { VALEUR_OBJET } from "./valeurs.js";
+import { VALEUR_OBJET, VALEUR_RESSOURCE } from "./valeurs.js";
 import { multQualite, RECETTES } from "./recettes.js";
 
 // Raretés, du plus commun au plus précieux. `rang` = ordre (sert à comparer
@@ -790,7 +790,7 @@ export function couleurRarete(id) {
 //     gagne un peu plus, cf. systems/marche.js). Aux ENCHÈRES la règle ne
 //     s'applique pas : c'est la Luck qui décide (cf. systems/encheres.js).
 const VALEUR_RARETE = { commun: 400, uncommon: 2000, rare: 10000, epique: 80000, legendaire: 250000 };
-const MARGE_MARCHAND = 0.75; // le marchand paie 75 % de la valeur (−25 %)
+const MARGE_MARCHAND = 0.5; // le marchand paie 50 % de la valeur (−50 %, décision Brioche 16/07/2026)
 
 // Valeur de RÉFÉRENCE de base (SANS qualité). `valeurVente` (fixé main :
 // arnaques) court-circuite tout ; sinon la table Excel ; sinon la cible de la
@@ -799,6 +799,10 @@ function valeurBase(id) {
   const it = ITEMS[id];
   if (!it) return 0;
   if (it.valeurVente != null) return it.valeurVente;
+  // Les RESSOURCES ont leur valeur dans VALEUR_RESSOURCE (onglet Excel « Ressources »),
+  // pas dans VALEUR_OBJET — sinon elles retombaient sur la valeur par rareté (ex. le
+  // cuir vendu 1500 au lieu de sa vraie valeur). Repli : prixBase, puis rareté.
+  if (it.categorie === "ressource") return VALEUR_RESSOURCE[id] ?? it.prixBase ?? VALEUR_RARETE[it.rarete] ?? 1;
   return VALEUR_OBJET[id] ?? VALEUR_RARETE[it.rarete] ?? 1;
 }
 
