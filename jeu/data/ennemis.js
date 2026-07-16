@@ -451,9 +451,23 @@ function tirerTaille(distribution) {
 //   - range seulement si la taille ≥ 3 emplacements ;
 //   - tirage PONDÉRÉ par niveau (faible = fréquent) et par la rareté « grand ».
 // `opts.distribution` permet à une zone d'imposer sa propre courbe de tailles.
+// CLAN de spawn d'un monstre : un groupe est HOMOGÈNE par clan. Les blobs entre eux,
+// les molosses entre eux ; gobelins, ogres et orcs partagent le clan « goblinoïde »
+// (ils peuvent donc se mélanger). — décision Brioche 16/07/2026.
+function clanMonstre(d) {
+  if (d.famille === "blob") return "blob";
+  if (typeof d.id === "string" && d.id.startsWith("molosse")) return "hound";
+  return "goblinoide"; // gobelins, ogre, orcs
+}
+
 export function composerGroupe(monstreIds, opts = {}) {
-  const defs = (monstreIds ?? []).map(ennemiParId).filter(Boolean);
+  let defs = (monstreIds ?? []).map(ennemiParId).filter(Boolean);
   if (defs.length === 0) return [];
+  // On tire d'abord UN clan (via un monstre pondéré par niveau) et on ne garde que
+  // les monstres de ce clan → pas de mélange blobs/gobelins/molosses dans un groupe.
+  const niveauMinPool = Math.min(...defs.map((d) => d.niveau ?? 1));
+  const clanChoisi = clanMonstre(tirerMonstrePondere(defs, niveauMinPool, GRAND_RARETE));
+  defs = defs.filter((d) => clanMonstre(d) === clanChoisi);
   const melee = defs.filter((d) => d.affix !== "range");
   const niveauMin = Math.min(...defs.map((d) => d.niveau ?? 1)); // réf. de la fourchette
   const taille = tirerTaille(opts.distribution ?? DISTRIBUTION_GROUPE); // EN EMPLACEMENTS
