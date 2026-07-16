@@ -18,7 +18,7 @@ import { itemDef, couleurRarete } from "../data/items.js";
 import { QUALITES, forceQualite, carburantRequis, valeurCarburant } from "../data/recettes.js";
 import {
   trouverRecette, ingredientsPoses,
-  centreMarqueur, outcomeFrappe, QUALITE_PAR_MARQUEUR, MJ, periodeMiniJeu, ralentiAgilite,
+  centreMarqueur, outcomeFrappe, QUALITE_PAR_MARQUEUR, MJ, periodeMiniJeu, ralentiAgilite, rougeRarete,
 } from "../systems/craft.js";
 import { compterRessource, retirerRessource, ajouterObjet, placePourFabrication } from "../systems/inventaire.js";
 import { ouvrirLivre } from "./livre.js";
@@ -28,6 +28,7 @@ const TAILLE = 5;         // table 5×5
 
 let overlay, boutonFermer, elPalette, elTable, elSortie, elForger;
 let elMiniJeu, elCurseur, elMGrand, elMMoyen, elMPetit, elMJTitre, elMJAide, elMJInfo;
+let elMJRougeG, elMJRougeD;
 let elLivreBtn, elRef;
 let elFeuJauge, elFeuFill, elFeuCharbon, elFeuBois, elFeuVider;
 
@@ -57,6 +58,7 @@ let recherche = "";       // filtre de recherche de la palette (par nom)
 let elRecherche = null;
 // État du mini-jeu.
 let miniActif = false, mjRaf = 0, mjCentre = 0.5, mjDebut = 0, mjPos = 0, mjPeriode = 1300;
+let mjRouge = MJ.ROUGE;    // largeur des zones rouges de la frappe en cours (selon rareté)
 
 export function installerForge() {
   overlay = document.getElementById("forge");
@@ -81,6 +83,8 @@ export function installerForge() {
   elMJTitre = document.getElementById("forge-mj-titre");
   elMJAide = document.getElementById("forge-mj-aide");
   elMJInfo = document.getElementById("forge-mj-info");
+  elMJRougeG = document.getElementById("forge-mj-rouge-g");
+  elMJRougeD = document.getElementById("forge-mj-rouge-d");
   elLivreBtn = document.getElementById("forge-livre");
   elRef = document.getElementById("forge-ref");
   elFeuJauge = document.getElementById("forge-feu-jauge");
@@ -416,6 +420,11 @@ function lancerMiniJeu() {
   const rarete = itemDef(recetteCourante.resultat)?.rarete;
   const agilite = (heros?.agiliteTalent ?? 0) + (heros?.agiliteEquip ?? 0);
   mjPeriode = periodeMiniJeu(rarete, agilite);
+  // Zones rouges : plus larges pour les objets rares (plus risqué). On règle les
+  // deux bandes rouges de la jauge et on les prend en compte dans le placement/verdict.
+  mjRouge = rougeRarete(rarete);
+  if (elMJRougeG) elMJRougeG.style.width = mjRouge * 100 + "%";
+  if (elMJRougeD) elMJRougeD.style.width = mjRouge * 100 + "%";
   // Barre info : rappelle que l'agilité ralentit la forge (et de combien).
   if (elMJInfo) {
     const pct = Math.round(ralentiAgilite(agilite) * 100);
@@ -423,7 +432,7 @@ function lancerMiniJeu() {
       ? `⚡ Agility ${agilite} — forge bar ${pct}% slower (easier to land quality)`
       : "⚡ Agility 0 — raise Agility (gear or Nimble Smith talent) to slow the forge bar";
   }
-  mjCentre = centreMarqueur(Math.random());
+  mjCentre = centreMarqueur(Math.random(), mjRouge);
   placerBande(elMGrand, mjCentre, MJ.HG);
   placerBande(elMMoyen, mjCentre, MJ.HM);
   placerBande(elMPetit, mjCentre, MJ.HP);
@@ -447,7 +456,7 @@ function validerFrappe() {
   if (!miniActif) return;
   miniActif = false;
   cancelAnimationFrame(mjRaf);
-  resoudreCraft(outcomeFrappe(mjPos, mjCentre));
+  resoudreCraft(outcomeFrappe(mjPos, mjCentre, mjRouge));
 }
 
 function resoudreCraft(marqueur) {
