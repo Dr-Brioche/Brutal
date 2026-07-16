@@ -375,8 +375,11 @@ export function carteAOE(carte) { return carte?.aoe === true; }
 // Faut-il demander au joueur de CHOISIR une cible ? Uniquement si la carte est
 // offensive (vise un ennemi), non-AOE, ET qu'il y a plusieurs ennemis vivants.
 // Dans tous les autres cas, un simple clic suffit pour jouer.
-export function necessiteCiblage(carte, nbVivants) {
-  return carteVise(carte) && !carteAOE(carte) && nbVivants >= 2;
+// `cibleAuto` (préférence) : si vrai, on garde l'ancien confort — avec UN SEUL ennemi
+// on ne demande PAS de cible (jeu plus rapide). Par défaut (faux), on demande toujours
+// une cible dès qu'il y a au moins 1 ennemi (le joueur choisit/drague lui-même).
+export function necessiteCiblage(carte, nbVivants, cibleAuto = false) {
+  return carteVise(carte) && !carteAOE(carte) && nbVivants >= (cibleAuto ? 2 : 1);
 }
 
 // Vrai si cet effet touche un ennemi (offensive) — sert pour la logique AOE.

@@ -7,6 +7,7 @@ const DEFAUTS = {
   confirmVente: true,    // Confirm before selling rare+ items (cochée par défaut)
   gameplayRapide: false, // Combat au rythme RAPIDE (décochée = rythme posé, lisible)
   mineraisReplies: false, // Liste des minerais du HUD repliée (false = dépliée)
+  cibleAuto: false,      // Cibler auto le dernier ennemi (décochée = on choisit toujours la cible)
 };
 
 let prefs = { ...DEFAUTS };

@@ -38,6 +38,7 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
   const vueInterface      = document.getElementById("menu-vue-interface");
   const checkConfirmVente = document.getElementById("pref-confirm-vente");
   const checkGameplayRapide = document.getElementById("pref-gameplay-rapide");
+  const checkCibleAuto = document.getElementById("pref-cible-auto");
 
   checkConfirmVente.checked = getPreference("confirmVente");
   checkConfirmVente.addEventListener("change", () => {
@@ -47,6 +48,11 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
   checkGameplayRapide.checked = getPreference("gameplayRapide");
   checkGameplayRapide.addEventListener("change", () => {
     setPreference("gameplayRapide", checkGameplayRapide.checked);
+  });
+
+  checkCibleAuto.checked = getPreference("cibleAuto");
+  checkCibleAuto.addEventListener("change", () => {
+    setPreference("cibleAuto", checkCibleAuto.checked);
   });
 
   function basculerOnglet(nom) {
