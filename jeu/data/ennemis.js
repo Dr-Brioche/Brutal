@@ -153,7 +153,7 @@ export const ENNEMIS = [
     affix: "melee",      // position visuelle : avant-plan
     // Illustration fournie (fond vert détouré par preparer_skin.py). Rendu lisse.
     planche: "images/ennemis/ogre.png",
-    portrait: { sx: 12, sy: 6, sw: 103, sh: 103 }, // la tête casquée (file des tours)
+    portrait: { sx: 63, sy: 5, sw: 110, sh: 110 }, // la tête casquée, centrée (file des tours)
     sprite: {
       caseL: 245,
       caseH: 280,        // GRAND monstre (grand: true) : occupe 2 places, bien plus gros
