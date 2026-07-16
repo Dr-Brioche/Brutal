@@ -69,7 +69,7 @@ function poserEnnemis(n) {
 // Barre de vie sous chaque perso (unités SCÈNE, taille réelle, PV chiffrés dedans).
 const BAR_L = 56, BAR_H = 8;
 const VIE_SOUS = 11;           // écart pieds (sol) → haut de la barre (loge la rangée de BONUS au-dessus de la barre, sous les pieds)
-const ETATS_SOUS = 11;         // écart bas de la barre → rangée d'états (laisse place à l'init)
+const ETATS_SOUS = 10;         // écart bas de la barre → rangée d'états (laisse place à l'init)
 // File d'ordre des tours (en haut) : carrés-portraits des prochains acteurs.
 const FILE_N = 5, FILE_TAILLE = 40, FILE_ESPACE = 8, FILE_Y = 12;
 // Portrait du héros dans la file des tours : on découpe la TÊTE dans l'illustration
@@ -2161,16 +2161,16 @@ function dessinerTagProchain(ctx, ecran, t) {
 // ce qui nuit (convention « vert = bon / rouge = mauvais pour le porteur »).
 function dessinerEtats(ctx, etats, cx, y) {
   if (!etats || etats.length === 0) return;
-  ctx.font = police(9);
+  ctx.font = police(7);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const espace = 26;        // écart entre deux pastilles
-  const lw = 22, lh = 13;   // taille d'une pastille
+  const espace = 19;        // écart entre deux pastilles (réduit : ne déborde plus sur le monstre du dessous)
+  const lw = 17, lh = 10;   // taille d'une pastille (réduite)
   const x0 = cx - ((etats.length - 1) * espace) / 2;
   etats.forEach((etat, i) => {
     const bx = x0 + i * espace;
     const buff = etat.nature === "buff";
-    cheminArrondi(ctx, bx - lw / 2, y - lh / 2, lw, lh, 4);
+    cheminArrondi(ctx, bx - lw / 2, y - lh / 2, lw, lh, 3);
     ctx.fillStyle = buff ? "rgba(34, 84, 40, 0.78)" : "rgba(96, 28, 28, 0.78)";
     ctx.fill();
     ctx.lineWidth = 1;
