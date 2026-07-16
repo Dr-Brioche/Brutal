@@ -608,6 +608,14 @@
     }
     .forge-palette-tuile:hover { border-color: #c98a3a; }
     .forge-palette-tuile.sel { border-color: #ffcf57; background: rgba(90,50,20,0.7); }
+    /* Surbrillance « focus clavier » (zone active parcourue aux flèches) :
+       une même bordure dorée pulsée sur la tuile de palette OU un bouton d'action. */
+    .forge-palette-tuile.clavier,
+    .forge-btn--clavier {
+      outline: 0.25cqw solid #ffcf57;
+      outline-offset: 0.15cqw;
+      box-shadow: 0 0 1.2cqw rgba(255,207,87,0.55);
+    }
     .forge-pastille { width: 3cqw; height: 3cqw; border-radius: 0.5cqw; border: 0.15cqw solid #000; flex-shrink: 0; }
     .forge-palette-nom { flex: 1; font-size: 1.5cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .forge-palette-qte { font-size: 1.6cqw; font-weight: 800; font-family: ui-monospace, monospace; }
@@ -2686,7 +2694,7 @@
           <div class="forge-ref" id="forge-ref" hidden></div>
         </div>
       </div>
-      <div class="forge-aide" id="forge-aide">Souris : clique la palette puis les cases · Clavier : [flèches] curseur · [1-9] ressource · [Espace] poser · [C]/[V] charbon/bois · [F] Forger · [B] livre · [Échap] Quitter</div>
+      <div class="forge-aide" id="forge-aide">Souris : clique la palette puis les cases · Clavier : [Tab] zone (recherche · palette · table · boutons) · [flèches] naviguer · [Espace] valider · [1-9] ressource · [C]/[V] charbon/bois · [F] Forger · [B] livre · [Échap] Quitter</div>
 
       <!-- Mini-jeu de forge : jauge orange + curseur qui va-et-vient ; frappe sur
            le marqueur (3 tailles concentriques) pour la qualité. Aux extrémités,

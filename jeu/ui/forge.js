@@ -44,7 +44,13 @@ let heros = null;         // pour lire le rang du talent « Master Craftsman »
 let grille = [];          // 5×5 d'ids de ressource (ou null)
 let ressourceSel = null;  // id de la ressource « en main » (clic pour poser)
 let recetteCourante = null;
-// Navigation CLAVIER : curseur sur la table + palette ordonnée (touches 1-9).
+// Navigation CLAVIER : la forge est découpée en ZONES ; Tab passe de l'une à
+// l'autre, les flèches se déplacent DANS la zone, Espace/Entrée valide.
+//   recherche → palette → table → actions (les boutons du bas/droite)
+const ZONES = ["recherche", "palette", "table", "actions"];
+let zone = "table";       // zone qui a le focus clavier
+let palIdx = 0;           // ressource surlignée dans la palette
+let actIdx = 0;           // bouton d'action surligné
 let curLig = 0, curCol = 0, curseurVisible = false;
 let paletteIds = [];
 let recherche = "";       // filtre de recherche de la palette (par nom)
@@ -61,7 +67,8 @@ export function installerForge() {
   // les raccourcis clavier de la forge tant qu'on tape dans le champ).
   if (elRecherche) {
     elRecherche.addEventListener("input", () => { recherche = elRecherche.value.trim().toLowerCase(); rafraichir(); });
-    elRecherche.addEventListener("keydown", (e) => e.stopPropagation()); // taper ≠ raccourcis forge
+    // Cliquer dans le champ = on entre dans la zone « recherche » (Tab en sort).
+    elRecherche.addEventListener("focus", () => { zone = "recherche"; rafraichir(); });
   }
   elTable = document.getElementById("forge-table");
   elSortie = document.getElementById("forge-sortie");
@@ -107,6 +114,7 @@ export function ouvrirForge(inventaire, herosRef = null, surFermer = null, opts 
   elLivreBtn.hidden = !biblioRef;    // pas de livre → pas de bouton
   grille = Array.from({ length: TAILLE }, () => Array(TAILLE).fill(null));
   ressourceSel = null;
+  zone = "table"; palIdx = 0; actIdx = 0;          // navigation clavier au repos
   curLig = 0; curCol = 0; curseurVisible = false; // curseur clavier au repos
   carburant = { charbon: 0, bois: 0 }; // feu vide à l'ouverture
   recherche = ""; if (elRecherche) elRecherche.value = ""; // recherche vide à l'ouverture
@@ -211,11 +219,14 @@ function rafraichir() {
   // Filtre de recherche (par nom) : n'affiche que les composants qui matchent.
   paletteIds = Object.keys(compte)
     .filter((id) => !recherche || (itemDef(id)?.nom ?? "").toLowerCase().includes(recherche)); // touches 1-9 = Nᵉ affiché
+  if (palIdx >= paletteIds.length) palIdx = Math.max(0, paletteIds.length - 1); // la recherche a pu réduire la liste
   paletteIds.forEach((id, i) => {
     const d = itemDef(id);
     const restant = compte[id] - posesTotal(id);
     const tuile = document.createElement("div");
-    tuile.className = "forge-palette-tuile" + (id === ressourceSel ? " sel" : "");
+    tuile.className = "forge-palette-tuile"
+      + (id === ressourceSel ? " sel" : "")
+      + (zone === "palette" && i === palIdx ? " clavier" : "");
     const styleP = d.image
       ? `background-image:url('${d.image}');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#e6d9bd`
       : `background:${d.icone}`;
@@ -267,6 +278,12 @@ function rafraichir() {
   }
 
   rendreFeu();
+
+  // 4) FOCUS clavier des boutons d'action (surligne celui pointé quand on est
+  // dans la zone « actions »).
+  const acts = actionsDispo();
+  if (actIdx >= acts.length) actIdx = Math.max(0, acts.length - 1);
+  acts.forEach((a, i) => a.el?.classList.toggle("forge-btn--clavier", zone === "actions" && i === actIdx));
 }
 
 // Affiche l'état du feu : jauge chargé / requis + les deux tuiles de carburant
@@ -477,35 +494,98 @@ const DIRS_FORGE = {
   ArrowRight: [0, 1], KeyD: [0, 1],
 };
 
+// Les BOUTONS d'action de la zone « actions », dans l'ordre de navigation. Le
+// bouton Livre n'existe que si un livre a été fourni. Chaque entrée sait quoi
+// faire quand on valide (Espace/Entrée) dessus.
+function actionsDispo() {
+  const acts = [
+    { el: elFeuCharbon, run: () => ajouterCarburant("charbon") },
+    { el: elFeuBois, run: () => ajouterCarburant("bois") },
+    { el: elFeuVider, run: viderCarburant },
+    { el: elForger, run: forger },
+  ];
+  if (biblioRef) acts.push({ el: elLivreBtn, run: ouvrirLivrePick });
+  acts.push({ el: boutonFermer, run: fermerForge });
+  return acts;
+}
+
+// Tab : passe à la zone suivante (Maj+Tab : précédente). En entrant dans la
+// recherche on lui donne le focus texte ; en sortant on le retire.
+function changerZone(dir) {
+  let i = ZONES.indexOf(zone);
+  i = (i + dir + ZONES.length) % ZONES.length;
+  zone = ZONES[i];
+  if (zone === "recherche") elRecherche?.focus();
+  else elRecherche?.blur();
+  rafraichir();
+}
+
 // Forge JOUABLE AU CLAVIER autant qu'à la souris (règle du projet) :
-//   flèches/WASD : bouger le curseur sur la table · 1-9 : prendre la Nᵉ ressource
-//   Espace/Entrée : poser/retirer sur le curseur · F : Forger · C/V : charbon/bois
-//   (Maj = retirer) · B : livre · Échap : annuler/quitter. Pendant le mini-jeu,
-//   Espace/Entrée = frappe, Échap = annuler.
+//   [Tab] change de zone (recherche · palette · table · boutons) ·
+//   [flèches] se déplacent DANS la zone · [Espace]/[Entrée] valide ·
+//   1-9 : prendre la Nᵉ ressource · F : Forger · C/V : charbon/bois (Maj = retirer) ·
+//   B : livre · Échap : annuler/quitter. Pendant le mini-jeu, Espace/Entrée = frappe.
 function surTouche(e) {
+  const dansRecherche = document.activeElement === elRecherche;
+
+  // Échap est prioritaire partout : quitte le mini-jeu, ou la recherche, ou la forge.
   if (e.code === "Escape") {
     e.preventDefault(); e.stopPropagation();
-    if (miniActif) annulerMiniJeu(); else fermerForge();
+    if (miniActif) annulerMiniJeu();
+    else if (dansRecherche) { elRecherche.blur(); zone = "table"; rafraichir(); }
+    else fermerForge();
     return;
   }
   if (miniActif) {
     if (e.code === "Space" || e.code === "Enter") { e.preventDefault(); e.stopPropagation(); validerFrappe(); }
     return;
   }
-  // ---- Hors mini-jeu : navigation complète de la table de craft ----
+
+  // Tab : changer de zone (fonctionne aussi depuis le champ de recherche).
+  if (e.code === "Tab") {
+    e.preventDefault(); e.stopPropagation();
+    changerZone(e.shiftKey ? -1 : 1);
+    return;
+  }
+
+  // On tape dans la recherche : la frappe est du TEXTE, jamais un raccourci forge.
+  // (On ne fait rien ici : la touche remonte normalement jusqu'à l'input.)
+  if (dansRecherche) return;
+
+  // ---- Flèches : navigation DANS la zone active ----
   if (DIRS_FORGE[e.code]) {
     e.preventDefault(); e.stopPropagation();
     const [dl, dc] = DIRS_FORGE[e.code];
-    curLig = Math.max(0, Math.min(TAILLE - 1, curLig + dl));
-    curCol = Math.max(0, Math.min(TAILLE - 1, curCol + dc));
-    curseurVisible = true; rafraichir();
-  } else if (/^Digit[1-9]$/.test(e.code)) {
+    const pas = dc !== 0 ? dc : dl; // palette/actions = listes → un seul axe
+    if (zone === "table") {
+      curLig = Math.max(0, Math.min(TAILLE - 1, curLig + dl));
+      curCol = Math.max(0, Math.min(TAILLE - 1, curCol + dc));
+      curseurVisible = true;
+    } else if (zone === "palette") {
+      if (paletteIds.length) palIdx = Math.max(0, Math.min(paletteIds.length - 1, palIdx + pas));
+    } else if (zone === "actions") {
+      const n = actionsDispo().length;
+      actIdx = Math.max(0, Math.min(n - 1, actIdx + pas));
+    }
+    rafraichir();
+    return;
+  }
+
+  // ---- Espace/Entrée : valider selon la zone ----
+  if (e.code === "Space" || e.code === "Enter") {
+    e.preventDefault(); e.stopPropagation();
+    if (zone === "table") { curseurVisible = true; cliquerCase(curLig, curCol); }
+    else if (zone === "palette") { const id = paletteIds[palIdx]; if (id) choisirRessource(id); }
+    else if (zone === "actions") { actionsDispo()[actIdx]?.run(); }
+    else rafraichir();
+    return;
+  }
+
+  // ---- Raccourcis lettres/chiffres, actifs partout (hors recherche) ----
+  if (/^Digit[1-9]$/.test(e.code)) {
     e.preventDefault(); e.stopPropagation();
     const n = Number(e.code.slice(5)) - 1;
-    if (n < paletteIds.length) { ressourceSel = paletteIds[n]; curseurVisible = true; rafraichir(); }
-  } else if (e.code === "Space" || e.code === "Enter") {
-    e.preventDefault(); e.stopPropagation();
-    curseurVisible = true; cliquerCase(curLig, curCol); // pose / retire sous le curseur
+    if (n < paletteIds.length) { ressourceSel = paletteIds[n]; palIdx = n; curseurVisible = true; rafraichir(); }
   } else if (e.code === "KeyF") {
     e.preventDefault(); e.stopPropagation(); forger(); // lance le mini-jeu si prêt
   } else if (e.code === "KeyC") {
