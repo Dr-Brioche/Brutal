@@ -7,7 +7,7 @@
 export const LOOTS_PROFONDEUR = [
   { id: "pierre-force", nom: "Strength Stone", effet: "force", icone: "#d9542a", valeurs: { normale: 1, rare: 2, epique: 3 } },
   { id: "tresor-gold", nom: "Gold Hoard", effet: "gold", icone: "#e0b64e", valeurs: { normale: 100, rare: 200, epique: 500 } },
-  { id: "pierre-celerite", nom: "Celerity Stone", effet: "celerite", icone: "#5fb0e8", valeurs: { normale: 10, rare: 20, epique: 40 } },
+  { id: "pierre-celerite", nom: "Agility Stone", effet: "agilite", icone: "#5fb0e8", valeurs: { normale: 1, rare: 2, epique: 4 } },
   { id: "plaque-renforcement", nom: "Reinforcement Plate", effet: "armure", icone: "#9cd3ff", valeurs: { normale: 10, rare: 20, epique: 50 } },
   { id: "portail-profondeur", nom: "Depth Portal", effet: "porte", icone: "#5fd08a", valeurs: { normale: 1, rare: 1, epique: 1 } },
 ];

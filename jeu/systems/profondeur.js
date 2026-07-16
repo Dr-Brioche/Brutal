@@ -24,12 +24,12 @@ export const RARETES_PROFONDEUR = {
 // Les CLÉS (force/gold/celerite/armure) sont exactement les `effet` de l'Excel :
 // appliquer un loot = additionner sa valeur sur la clé de même nom.
 export function creerRunProfondeur() {
-  return { force: 0, gold: 0, celerite: 0, armure: 0, etages: 0 };
+  return { force: 0, gold: 0, celerite: 0, armure: 0, agilite: 0, etages: 0 };
 }
 
 // A-t-on au moins un buff actif (pour l'afficher au HUD) ?
 export function runActif(run) {
-  return Boolean(run) && (run.force || run.gold || run.celerite || run.armure);
+  return Boolean(run) && (run.force || run.gold || run.celerite || run.armure || run.agilite);
 }
 
 // ----- Tirages ----------------------------------------------------------------
@@ -80,11 +80,12 @@ export function etageSuivant(run) {
 //   celerite→ celeritePct (% de vitesse d'initiative)
 //   armure  → armureDepart (Pierre au début du combat)
 export function bonusCombatRun(run) {
-  if (!run) return { forcePerm: 0, celeritePct: 0, armureDepart: 0 };
+  if (!run) return { forcePerm: 0, celeritePct: 0, armureDepart: 0, agilite: 0 };
   return {
     forcePerm: run.force || 0,
     celeritePct: run.celerite || 0,
     armureDepart: run.armure || 0,
+    agilite: run.agilite || 0,
   };
 }
 
@@ -94,6 +95,7 @@ export function resumeRun(run) {
   const out = [];
   if (run.force) out.push({ icone: "💪", texte: `+${run.force}`, tip: `+${run.force} Force in combat` });
   if (run.celerite) out.push({ icone: "⚡", texte: `+${run.celerite}%`, tip: `+${run.celerite}% combat speed` });
+  if (run.agilite) out.push({ icone: "⚡", texte: `+${run.agilite}`, tip: `+${run.agilite} Agility in combat` });
   if (run.armure) out.push({ icone: "🛡", texte: `+${run.armure}`, tip: `+${run.armure} armor at combat start` });
   if (run.gold) out.push({ icone: "🪙", texte: `+${run.gold}`, tip: `+${run.gold} gold — paid only if you leave the mine alive` });
   return out;

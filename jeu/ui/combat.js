@@ -85,7 +85,7 @@ const PORTRAIT_HEROS = { sx: 17, sy: 4, sw: 30, sh: 30 };
 export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, maitrise, fond, surFin, surPause, bonusRun }) {
   // Buffs de RUN de profondeur (accumulés en descendant, cf. systems/profondeur.js) :
   // s'ajoutent à l'équipement pour ce combat. Nuls hors mine.
-  const run = bonusRun ?? { forcePerm: 0, celeritePct: 0, armureDepart: 0 };
+  const run = bonusRun ?? { forcePerm: 0, celeritePct: 0, armureDepart: 0, agilite: 0 };
   const fondCombat = document.getElementById("fond-combat");
   // Fond de la zone (tiré dans sa bibliothèque) ; sinon dégradé de secours (none).
   fondCombat.style.setProperty("--fond-url", fond ? `url("${fond}")` : "none");
@@ -137,7 +137,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     slots: slotsOccupes(inventaire), // cartes de suppléance pour les slots vides (mains + armure)
     stats: {
       ...bt,
-      agilite:  (bt.agilite  ?? 0) + agiliteItems + (toutesBagues ? 5 : 0),
+      agilite:  (bt.agilite  ?? 0) + agiliteItems + (toutesBagues ? 5 : 0) + (run.agilite || 0),
       armureDepart,
       celeritePct,
       forcePerm: forcePerm + forceQualiteTotale + (toutesBagues ? 4 : 0),
