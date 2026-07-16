@@ -16,9 +16,9 @@
 //   mainMax        : nombre maximum de cartes en main
 // <<HEROS-AUTO>>
 export const STATS_HEROS_BASE = {
-  pv: 40,
+  pv: 50,
   vitesseMarche: 160,
-  vitesseCombat: 10,
+  vitesseCombat: 6,
   chaleurDepart: 1,
   chaleurRecharge: 1,
   chaleurSeuil: 3,
