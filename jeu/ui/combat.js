@@ -757,7 +757,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   function tenterJouer(i) {
     const carte = combat.main[i];
     if (!carte || carte.cout > combat.chaleur) return; // injouable (coût en rouge)
-    if (necessiteCiblage(carte, indicesVivants().length)) {
+    if (necessiteCiblage(carte, indicesVivants().length, getPreference("cibleAuto"))) {
       phaseCiblage = true;
       carteEnAttente = i;
       recalerCible();
@@ -1000,7 +1000,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       i, el,
       // Flèche de ciblage UNIQUEMENT si la carte est offensive, non-AOE, et que
       // plusieurs ennemis sont en vie (sinon un simple clic suffit).
-      vise: necessiteCiblage(carte, indicesVivants().length),
+      vise: necessiteCiblage(carte, indicesVivants().length, getPreference("cibleAuto")),
       depart: elementVersScene(el),
       x: p.x, y: p.y,
       cibleSurvol: -1,
