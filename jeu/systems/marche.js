@@ -30,7 +30,13 @@ import { VALEUR_RESSOURCE } from "../data/valeurs.js";
 
 // ----- Réglages (tout l'équilibrage du marché est ICI) ----------------------
 
-export const RESSOURCES_MARCHE = [...MINERAIS, "bois"];
+// Ressources échangées à l'Hôtel des ventes : les minerais + bois/cuir et leurs
+// variantes rares (leur prix de base vient de VALEUR_RESSOURCE via prixBaseRessource).
+export const RESSOURCES_MARCHE = [
+  ...MINERAIS,
+  "bois", "bois-sombre", "bois-enchante",
+  "cuir", "cuir-epais", "cuir-etrange",
+];
 
 const PLANCHER = 0.4;   // mult minimal (−60 % du prix de base)
 const PLAFOND  = 2.5;   // mult maximal (+150 %) — hors événement
