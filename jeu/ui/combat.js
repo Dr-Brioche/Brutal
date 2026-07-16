@@ -95,10 +95,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const itemsEquipes = Object.values(inventaire.slots ?? {}).filter(Boolean).map(itemDef).filter(Boolean);
   // Arme à DEUX MAINS équipée ? → choisit l'illustration « poings tendus » du héros.
   const armeDeuxMains = itemDef(inventaire.slots?.arme1)?.mains === 2;
-  // Skin d'arme à poser dans les mains (si l'arme 2 mains équipée en a un défini).
-  const skinArme = armeDeuxMains
-    ? (SKINS_ARME_2M[inventaire.slots?.arme1] ?? null)
-    : (SKINS_ARME_1M[inventaire.slots?.arme1] ?? null);
+  // Skin d'arme à poser dans les mains. Une arme SANS skin dédié retombe sur le skin
+  // PAR DÉFAUT de sa posture (épée 1 main / masse 2 mains). Sans arme équipée → aucun skin.
+  const arme1Equipee = inventaire.slots?.arme1;
+  const skinArme = !arme1Equipee
+    ? null
+    : armeDeuxMains
+      ? (SKINS_ARME_2M[arme1Equipee] ?? SKIN_DEFAUT_2M)
+      : (SKINS_ARME_1M[arme1Equipee] ?? SKIN_DEFAUT_1M);
   // Armure de départ : somme des armureDepart de tous les items équipés (+ run).
   const armureDepart = itemsEquipes.reduce((s, d) => s + (d.armureDepart ?? 0), 0) + (run.armureDepart ?? 0);
   // Célérité passive (% d'initiative de combat) des items (+ run). Le « move speed »
@@ -1939,6 +1943,10 @@ const SKINS_ARME_2M = {
   "epee-large":     { img: imgClaymore, gcx: 237, gcy: 140, echelle: 0.1783, angle: 73, fx: 0.94, fy: 0.37, poingsFrac: 0.71, poingsTopFrac: 0.15 },
   "hache-de-guerre": { img: imgWarAxe,  gcx: 626, gcy: 379, echelle: 0.1575, angle: 74, fx: 1.011, fy: 0.20, poingsFrac: 0.80, poingsTopFrac: 0.15 },
 };
+// SKIN PAR DÉFAUT (2 mains) : toute arme 2 mains SANS skin dédié affiche cette masse.
+const imgMasse2M = new Image();
+imgMasse2M.src = "images/armes/masse-2mains.png";
+const SKIN_DEFAUT_2M = { img: imgMasse2M, gcx: 300, gcy: 266, echelle: 0.085, angle: 38, fx: 0.66, fy: 0.46, poingsFrac: 0.60, poingsTopFrac: 0.12 };
 // Skins d'ARME à UNE main : MÊME mécanique de calques, mais avec l'illustration du
 // nain « mains vides » (nain-combat.png) — l'arme est posée dans le poing avant.
 const imgEpeeLumiere = new Image();
@@ -1953,6 +1961,10 @@ const SKINS_ARME_1M = {
   // le pommeau réapparaît derrière/sous elle sans bord droit disgracieux.
   "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 150, gcy: 197, echelle: 0.11055, angle: 53, fx: 0.7815, fy: 0.5196, poingsOvale: { cx: 0.828, cy: 0.487, rx: 0.098, ry: 0.086 } },
 };
+// SKIN PAR DÉFAUT (1 main) : toute arme 1 main SANS skin dédié affiche cette épée.
+const imgEpee1M = new Image();
+imgEpee1M.src = "images/armes/epee-1main.png";
+const SKIN_DEFAUT_1M = { img: imgEpee1M, gcx: 420, gcy: 195, echelle: 0.075, angle: 48, fx: 0.73, fy: 0.51, poingsOvale: { cx: 0.82, cy: 0.49, rx: 0.105, ry: 0.09 } };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
 // COURTE et vive, lent = ample et lourde. (Sert de multiplicateur de durée.)
