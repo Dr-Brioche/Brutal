@@ -22,6 +22,16 @@ export const QUALITE_PAR_MARQUEUR = {
 // (petit/or, Exceptional) = TRÈS fin. Difficulté croissante vers le centre.
 export const MJ = { ROUGE: 0.10, HG: 0.145, HM: 0.045, HP: 0.008 };
 
+// Largeur des zones ROUGES (ratage extrême) selon la RARETÉ : plus l'objet est
+// rare, plus les zones rouges aux extrémités sont larges → plus risqué de rater à
+// l'extérieur du marqueur (décision Brioche). Uncommon = la largeur historique.
+export const ROUGE_PAR_RARETE = {
+  commun: 0.08, uncommon: 0.10, rare: 0.13, epique: 0.16, legendaire: 0.20,
+};
+export function rougeRarete(rarete) {
+  return ROUGE_PAR_RARETE[rarete] ?? MJ.ROUGE;
+}
+
 // VITESSE DU CURSEUR selon la RARETÉ de l'objet forgé (ms pour un aller-retour) :
 // plus l'objet est rare, plus le curseur file → plus dur d'attraper les petites
 // bandes (décision Brioche 09/07/2026). Uncommon = la vitesse « historique ».
@@ -55,19 +65,19 @@ export function periodeMiniJeu(rarete, agilite = 0) {
 // Où est le marqueur (son centre) ? Au hasard, mais assez au centre pour que même
 // sa plus GRANDE bande ne touche pas les zones rouges. `alea` ∈ [0,1[ (injectable
 // pour les tests). Renvoie le centre normalisé.
-export function centreMarqueur(alea) {
-  const min = MJ.ROUGE + MJ.HG, max = 1 - MJ.ROUGE - MJ.HG;
+export function centreMarqueur(alea, rouge = MJ.ROUGE) {
+  const min = rouge + MJ.HG, max = 1 - rouge - MJ.HG;
   return min + alea * (max - min);
 }
 
 // Frappe validée en `x` (position du curseur, 0..1) alors que le marqueur est
 // centré en `centre` → renvoie "petit"|"moyen"|"grand"|"orange"|"rouge".
-export function outcomeFrappe(x, centre) {
+export function outcomeFrappe(x, centre, rouge = MJ.ROUGE) {
   const d = Math.abs(x - centre);
   if (d <= MJ.HP) return "petit";
   if (d <= MJ.HM) return "moyen";
   if (d <= MJ.HG) return "grand";
-  if (x < MJ.ROUGE || x > 1 - MJ.ROUGE) return "rouge";
+  if (x < rouge || x > 1 - rouge) return "rouge";
   return "orange";
 }
 
