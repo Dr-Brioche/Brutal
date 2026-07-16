@@ -55,8 +55,11 @@ export function installerButin() {
     // Bonus passifs (Agilité, Vitesse, Pierre…) affichés SOUS le nom, pour voir ce
     // qu'apporte la pièce (ex. des bottes) avant même de la ramasser.
     const passifs = bonusPassifs(id);
+    const visuel = d.image
+      ? `<img class="butin-pastille butin-pastille--img" src="${d.image}" style="border-color:${couleurRarete(id)}">`
+      : `<span class="butin-pastille" style="background:${d.icone};border-color:${couleurRarete(id)}"></span>`;
     el.innerHTML =
-      `<span class="butin-pastille" style="background:${d.icone};border-color:${couleurRarete(id)}"></span>` +
+      visuel +
       `<span class="butin-corps"><span class="butin-nom">${d.nom}</span>` +
       (passifs.length ? `<span class="butin-passif">${passifs.join(" · ")}</span>` : ``) +
       `</span><span class="butin-hint">Take</span>`;

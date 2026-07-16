@@ -83,7 +83,7 @@ export function ouvrirDialogue(dialogue, surFin) {
         marque.textContent = fleche;
         const ic = document.createElement(d.image ? "img" : "span");
         ic.className = "dialogue-icone";
-        if (d.image) ic.src = d.image;
+        if (d.image) { ic.src = d.image; ic.style.backgroundColor = "#e6d9bd"; ic.style.objectFit = "contain"; ic.style.imageRendering = "auto"; }
         else { ic.style.background = d.icone; ic.style.borderColor = couleurRarete(c.itemId); }
         const txt = document.createElement("span");
         txt.textContent = c.texte;

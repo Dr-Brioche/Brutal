@@ -1767,6 +1767,13 @@
        (comme une petite fiche), pour un rendu homogène dans l'inventaire. */
     .inv-item--img { background-color: #e6d9bd; background-size: contain;
       background-repeat: no-repeat; background-position: center; }
+    /* Icônes de RESSOURCE (image détourée) : fond CRÈME visible PARTOUT — butin,
+       livre d'artisanat, parchemin, référence de forge. Ne cible que les <img>
+       (seules les ressources ont une image → les objets équipables restent en couleur). */
+    img.butin-pastille--img, img.livre-past, img.parch-past, img.forge-ref-past,
+    img.hv-pastille--img, img.ench-lot-pastille--img {
+      background-color: #e6d9bd; object-fit: contain; image-rendering: auto;
+    }
     .inv-item:hover { filter: brightness(1.15); }
     /* Badge de quantité (piles de ressources empilées) : ×N en bas à droite. */
     .inv-item-qte {
