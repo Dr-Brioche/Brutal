@@ -291,11 +291,14 @@ mais une fois ce seuil atteint il n'est ni limité en nombre ni désavantagé.
 
 ### Bestiaire actuel (1er jet)
 
-| Nom | PV | Vitesse | Affix | Notes |
-|---|---|---|---|---|
-| *Cave Goblin* | 24 | 10 | melee | Gobelin de base. |
-| *Goblin Skirmisher* | 16 | 18 | melee | Très rapide, teinte froide pour le repérer. |
-| *Goblin Shaman* | 14 | 7 | range | **Healer/caster rouge.** Actions pondérées : soigner allié (50 %), hâte de groupe (30 %), attaque (20 %). Affix `range` → groupes de 3+ uniquement, regroupé à droite (placement en quinconce strict). |
+Stats rééquilibrées le 16/07/2026 (import Excel) :
+
+| Nom | Niv | PV | Attaque | Vitesse | Affix | Notes |
+|---|---|---|---|---|---|---|
+| *Cave Goblin* | 1 | 24 | 5 | 6 | melee | Gobelin de base. |
+| *Goblin Skirmisher* | 1 | 16 | **2 ×2 coups** | 11 | melee | Frappe **deux fois** par tour et pose **1 Poison par coup** (2 poison/tour). Teinte froide pour le repérer. |
+| *Goblin Shaman* | 2 | 20 | 4 | 7 | range | **Healer/caster rouge.** Actions pondérées : soigner allié (50 %), hâte de groupe (30 %), attaque (20 %). Affix `range` → groupes de 3+ uniquement, regroupé à droite (placement en quinconce strict). |
+| *Masked Ogre* | 3 | 80 | 30 | 5 | melee (grand) | Brute lente qui occupe 2 places ; chaque coup fait très mal. |
 
 ### Mise en scène du combat (validé 10/06/2026)
 
