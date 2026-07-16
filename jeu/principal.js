@@ -1311,6 +1311,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   async function entrerEnMine(tuile) {
     const mine = genererMine({
       monstres: zoneCourante.monstres ?? ["gobelin", "gobelin-vif", "gobelin-chaman"],
+      monstresProfonds: zoneCourante.monstresProfonds ?? [], // orcs/blobs : dès l'étage 2
       musique: zoneCourante.musique,   // ambiance d'explo réutilisée (Phase 1)
       assetZone: zoneActuelle,         // fonds + musique de combat de la zone d'origine
       // Sortie : on revient SUR l'entrée `M` (le garde `surEntreeMine` posé à
@@ -1354,7 +1355,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     offrirChoixProfondeur(async (genOpts) => {
       const mine = genererMine({
         niveau: (zoneCourante.niveau ?? 1) + 1,
-        monstres: zoneCourante.monstres,
+        monstres: zoneCourante.monstresBase ?? zoneCourante.monstres, // base seule (pas le pool effectif)
+        monstresProfonds: zoneCourante.monstresProfonds ?? [],
         musique: zoneCourante.musique,
         assetZone: zoneActuelle,
         retour: zoneCourante.retour,        // la sortie ramène toujours à l'ENTRÉE DU MONDE

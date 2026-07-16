@@ -67,6 +67,14 @@ export const EASTERN_UNDER_TUNNELS = {
   // Le repaire des gobelins : les 3 variantes (chaman "range" → groupes de 3+)
   // + l'ogre masqué (brute de niveau 3, pic de difficulté).
   monstres: ["gobelin", "gobelin-vif", "gobelin-chaman", "ogre-masque"],
+  // Monstres de PROFONDEUR : orcs, blobs et molosses. Ils N'apparaissent QUE dans la
+  // MINE (descentes `>`), à partir d'un certain étage — jamais dans cette zone de
+  // surface (« eastern door »). Cf. poolMonstresMine() dans principal.js.
+  monstresProfonds: [
+    "orc-rodeur", "orc-guerrier", "orc-guerriere", "orc-brute", "orc-chamane",
+    "blob-vert", "blob-jaune", "blob-rouge", "blob-bleu",
+    "molosse", "molosse-feu", "molosse-sombre",
+  ],
   niveauMobs: [1, 3], // fourchette de niveau des monstres de la zone (affichée au HUD)
   plan: [
     "############################################",
