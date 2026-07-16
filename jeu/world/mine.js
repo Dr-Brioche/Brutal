@@ -93,6 +93,10 @@ const DIST_MIN_ENTREE = 7;
 
 // Génère une mine VALIDE (connexe). Plusieurs tentatives au cas où un tirage
 // échoue (trop peu de salles / non connexe) ; en dernier recours on force.
+// À partir de quel étage les monstres de PROFONDEUR (orcs/blobs/molosses) peuvent
+// apparaître dans la mine. L'étage 1 (entrée) reste sur le pool de surface.
+const SEUIL_PROFOND = 2;
+
 export function genererMine(profil = {}) {
   const cfg = { ...PROFIL_DEFAUT, ...profil };
   // Butin « Wave of Calm » : plus aucune rencontre de monstre sur cet étage.
@@ -263,6 +267,14 @@ function finaliser(g, salles, cfg) {
     }
   }
 
+  // Pool de monstres EFFECTIF de l'étage : la base + les monstres de PROFONDEUR
+  // (orcs/blobs/molosses) à partir de SEUIL_PROFOND (jamais à l'étage 1). Ainsi les
+  // orcs/blobs n'apparaissent qu'en descendant, pas dans la zone de surface.
+  const profonds = cfg.monstresProfonds ?? [];
+  const monstresEff = (cfg.niveau >= SEUIL_PROFOND && profonds.length)
+    ? [...cfg.monstres, ...profonds]
+    : cfg.monstres;
+
   return {
     nom: cfg.nom,
     theme: cfg.theme ?? null, // thème d'étage (cristal/glace/lave) → recolore le rendu
@@ -274,7 +286,9 @@ function finaliser(g, salles, cfg) {
     tauxRencontre: cfg.tauxRencontre,
     assetZone: cfg.assetZone,
     musique: cfg.musique ?? null,
-    monstres: cfg.monstres,
+    monstres: monstresEff,          // pool utilisé par composerGroupe (base + profonds)
+    monstresBase: cfg.monstres,     // base seule — propagée en descendant
+    monstresProfonds: profonds,     // pool profond — propagé en descendant
     plan: g.map((row) => row.join("")),
     depart: { colonne: dCol, ligne: dLig },
     portails: [{ colonne: px, ligne: py, vers: cfg.retour.vers, entree: cfg.retour.entree }],
