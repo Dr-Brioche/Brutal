@@ -1964,7 +1964,7 @@ const SKINS_ARME_1M = {
 // SKIN PAR DÉFAUT (1 main) : toute arme 1 main SANS skin dédié affiche cette épée.
 const imgEpee1M = new Image();
 imgEpee1M.src = "images/armes/epee-1main.png";
-const SKIN_DEFAUT_1M = { img: imgEpee1M, gcx: 420, gcy: 195, echelle: 0.075, angle: 49, fx: 0.847, fy: 0.474, poingsOvale: { cx: 0.82, cy: 0.49, rx: 0.105, ry: 0.09 } };
+const SKIN_DEFAUT_1M = { img: imgEpee1M, gcx: 420, gcy: 195, echelle: 0.075, angle: 49, fx: 0.832, fy: 0.484, poingsOvale: { cx: 0.82, cy: 0.49, rx: 0.105, ry: 0.09 } };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
 // COURTE et vive, lent = ample et lourde. (Sert de multiplicateur de durée.)
