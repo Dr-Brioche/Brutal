@@ -308,6 +308,21 @@ Stats rééquilibrées le 16/07/2026 (import Excel) :
 | *Goblin Shaman* | 2 | 20 | 4 | 7 | range | **Healer/caster rouge.** Actions pondérées : soigner allié (50 %), hâte de groupe (30 %), attaque (20 %). Affix `range` → groupes de 3+ uniquement, regroupé à droite (placement en quinconce strict). |
 | *Masked Ogre* | 3 | 80 | 30 | 5 | melee (grand) | Brute lente qui occupe 2 places ; chaque coup fait très mal. |
 
+**Monstres de PROFONDEUR (ajoutés le 16/07/2026, stats 1er jet à équilibrer)** — ils
+apparaissent **uniquement dans la mine** (descentes `>`), **dès l'étage 2**, jamais dans
+la zone de surface « eastern door ». Trois familles :
+
+- **Orcs** (`orc`) : *Orc Rogue* (rapide, frappe 2×), *Orc Warrior* (tank bouclier),
+  *Orc Warmaiden* (gros dégâts à l'épée), *Orc Berserker* (**grand**, hache), *Orc Shaman*
+  (`range` : soigne / hâte / attaque, comme le chaman gobelin mais plus costaud).
+- **Blobs** (`blob`) : lents et résistants. *Green/Ochre Slime* posent du **Poison à chaque
+  coup** ; *Crimson Slime* (très tanky) ; *Azure Slime* (piquants).
+- **Molosses** (`animal`, lâchent du cuir) : rapides et fragiles — *Dire / Ember / Shadow Hound*.
+
+La colonne **« zone de pop »** de l'onglet Excel *Monstres* note pour chaque monstre où il
+apparaît. Techniquement : `monstresProfonds` sur la zone (cf. `zones.js`) + seuil d'étage
+dans `mine.js` (`SEUIL_PROFOND`).
+
 ### Mise en scène du combat (validé 10/06/2026)
 
 - **Le nain est visible**, de profil à gauche : on **réutilise son sprite de carte**
