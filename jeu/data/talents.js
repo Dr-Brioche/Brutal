@@ -51,6 +51,14 @@ export const TALENTS = {
   esprit2: { id: "esprit2", nom: "Bellows Lungs", branche: "combat", x: 1, y: 5, cout: 1, requis: ["forge3"], effet: { chaleurRecharge: 1 } },
 
   // Corps (PV), vitesse, pioche, agilité (colonnes 2-3).
+  // Endurance stackable : talent NORMAL de base, 3 rangs, +20 PV chacun (chaque
+  // rang soigne aussi de 20 tout de suite — cf. debloquer()). Accessible tôt (racine).
+  vigueur: {
+    id: "vigueur", nom: "Hardy Frame", branche: "combat",
+    x: 3, y: 0, cout: 1, rangMax: 3, requis: ["racine"],
+    effet: { pvMax: 20 },
+    description: "Hardy frame: +20 max HP per rank (3 ranks, +60 total). Each rank heals you by 20 right away.",
+  },
   corps1:  { id: "corps1",  nom: "Thick Hide",   branche: "combat", x: 2, y: 1, cout: 1, requis: ["racine"], effet: { pvMax: 10 } },
   esprit1: { id: "esprit1", nom: "Quick Wit",    branche: "combat", x: 3, y: 1, cout: 1, requis: ["racine"], effet: { pioche: 1 } },
   corps2:  { id: "corps2",  nom: "Ironheart",    branche: "combat", x: 2, y: 2, cout: 1, requis: ["corps1"], effet: { pvMax: 15 } },
@@ -97,6 +105,14 @@ export const TALENTS = {
     x: 3, y: 5, cout: 2, requis: ["maitrise1"], legendaire: true,
     effet: { slots: 2 },
     description: "Two more Ancestral Mastery slots (5 total) to carry even more mastered cards.",
+  },
+  // Cœur de titan : LÉGENDAIRE stackable, 3 rangs, +50 PV chacun (+150 au total).
+  // Gros investissement de fin d'arbre (derrière la Maîtrise). Chaque rang soigne aussi.
+  coeurTitan: {
+    id: "coeurTitan", nom: "Titan's Heart", branche: "combat",
+    x: 2, y: 6, cout: 2, rangMax: 3, requis: ["maitrise1"], legendaire: true,
+    effet: { pvMax: 50 },
+    description: "Legendary vigor: +50 max HP per rank (3 ranks, +150 total). Each rank heals you immediately.",
   },
 
   // ---- BRANCHE COMMERCE (col 4) : citoyenneté, sac, exploration, enchères -----
