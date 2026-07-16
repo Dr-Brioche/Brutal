@@ -873,17 +873,17 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         for (let h = 0; h < e.hitLog.length; h++) {
           const hitVal = e.hitLog[h];
           const isLastHitForEnemy = h === e.hitLog.length - 1;
-          const isFirstHit = firstHit; firstHit = false;
+          firstHit = false;
           const d = delay;
           setTimeout(() => {
-            if (isFirstHit) animAttaque = 0.25;
+            animAttaque = 0.25; // RELANCE le bond du héros à CHAQUE coup (multi-attaque)
             jouerSonCoup();
             u.secousse = 0.3;
             ajouterFlottant(`-${hitVal}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
             if (isLastHitForEnemy) { if (e.pv <= 0) exploser(u); else jouerAnim(u, "touche"); }
             else jouerAnim(u, "touche");
           }, d);
-          delay += 120 * lenteur; // dégâts multiples plus espacés (lisibilité)
+          delay += 170 * lenteur; // coups espacés (un peu plus lents) pour bien les distinguer
         }
       }
       if (totalHits > 0) { quelquUnTouche = true; sonJoue = true; } // pour la logique pierre/hâte
@@ -1191,26 +1191,30 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (evt.soin > 0) ajouterFlottant(`+${evt.soin}`, heroEcran.cx, heroEcran.sommet - 16, "#86e08a");
     if (evt.mortStatut) { if (!u.mort.actif && !u.partis) exploser(u); return; }
     if (evt.attaque > 0 || evt.armureAbsorbe > 0) { // il frappe : PV perdus OU armure entamée
-      jouerAnim(u, "attaque");
-      // SYNCHRO : tout l'IMPACT (poussière, secousse + flash blanc du héros, chiffre
-      // de dégât, son, rétorsions) est retardé jusqu'au CONTACT — le pic du bond
-      // (p≈0.56 de l'anim d'attaque, cf. dessinerEnnemiStatique) — pour qu'il tombe
-      // pile quand le monstre touche vraiment le héros, et non pendant sa phase
-      // d'armement (où il RECULE encore). Le délai suit la vitesse du monstre.
+      // SYNCHRO : l'IMPACT (poussière, secousse, chiffre, son) est retardé jusqu'au
+      // CONTACT — le pic du bond (p≈0.56 de l'anim d'attaque). ATTAQUE MULTI-COUPS
+      // (ex. Skirmisher 2×) : on REJOUE le bond à chaque coup, espacés pour la lisibilité.
       const delaiImpact = DUREE_ATTAQUE_PROC * 0.56 * (u.vitAnim ?? 1) * 1000; // ms
-      setTimeout(() => {
-        poufImpact(heroEcran.cx, heroEcran.sol);
-        secousseHeros = 0.3;
-        // PV perdus → chiffre rouge ; coup entièrement encaissé par la Pierre → chiffre bleu.
-        if (evt.attaque > 0) ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
-        else ajouterFlottant(`-${evt.armureAbsorbe}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
-        if (evt.poisonHero > 0) ajouterFlottant(`☠${evt.poisonHero}`, heroEcran.cx, heroEcran.sommet - 26, "#7ec850");
-        if (pierreAvantTour > 0) jouerSonCoupArmure(); else jouerSonCoup();
-        // Set Onyx : l'attaquant prend du feu de rétorsion → chiffre sur LUI.
-        if (evt.brulureRetour > 0) ajouterFlottant(`🔥${evt.brulureRetour}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c");
-        // Set Croisé : l'attaquant est ébloui (confusion) → étoiles sur LUI.
-        if (evt.confusionRetour > 0) ajouterFlottant(`✨${evt.confusionRetour}`, u.ecran.cx, u.ecran.sommet - 32, "#ffe9a8");
-      }, delaiImpact);
+      const coups = (evt.coups && evt.coups.length > 1) ? evt.coups : [evt.attaque || evt.armureAbsorbe];
+      const ecart = 260 * lenteur; // espacement entre deux coups d'une même attaque
+      coups.forEach((deg, h) => {
+        const dernier = h === coups.length - 1;
+        setTimeout(() => {
+          jouerAnim(u, "attaque");                 // (re)lance le bond d'attaque à chaque coup
+          setTimeout(() => {
+            poufImpact(heroEcran.cx, heroEcran.sol);
+            secousseHeros = 0.3;
+            if (deg > 0) ajouterFlottant(`-${deg}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
+            else if (dernier && evt.attaque === 0) ajouterFlottant(`-${evt.armureAbsorbe}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
+            if (pierreAvantTour > 0) jouerSonCoupArmure(); else jouerSonCoup();
+            if (dernier) {
+              if (evt.poisonHero > 0) ajouterFlottant(`☠${evt.poisonHero}`, heroEcran.cx, heroEcran.sommet - 26, "#7ec850");
+              if (evt.brulureRetour > 0) ajouterFlottant(`🔥${evt.brulureRetour}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c");
+              if (evt.confusionRetour > 0) ajouterFlottant(`✨${evt.confusionRetour}`, u.ecran.cx, u.ecran.sommet - 32, "#ffe9a8");
+            }
+          }, delaiImpact);
+        }, h * ecart);
+      });
     }
     if (evt.attaqueAllie > 0) { // Confusion : il frappe un allié (ou lui-même) au lieu du héros
       jouerAnim(u, "attaque");
