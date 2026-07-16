@@ -168,8 +168,11 @@ function rendre() {
     // 30 min : on la met en avant et on estompe la tendance vs prix normal —
     // sinon l'œil suit le gros % vert et le classement paraît incohérent.
     const triPar30 = triMode !== "defaut";
+    const past = d.image
+      ? `<img class="hv-pastille hv-pastille--img" src="${d.image}">`
+      : `<span class="hv-pastille" style="background:${d.icone}"></span>`;
     ligne.innerHTML =
-      `<span class="hv-pastille" style="background:${d.icone}"></span>` +
+      past +
       `<span class="hv-nom"></span>` +
       `<span class="hv-tendance hv-tendance--${clTend}${triPar30 ? " hv-tendance--estompe" : ""}" title="current price vs. its normal price">${fleche} ${tend > 0 ? "+" : ""}${tend}%</span>` +
       `<span class="hv-var30 hv-tendance--${cl30}${triPar30 ? " hv-var30--tri" : ""}" title="price change over the last 30 min of play">30m: ${var30 > 0 ? "+" : ""}${var30}%</span>` +

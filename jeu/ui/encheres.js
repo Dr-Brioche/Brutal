@@ -233,7 +233,9 @@ function rendre() {
   const pct = etat.vendu || entracte ? 0 : Math.min(1, etat.chrono / MARTEAU);
   elScene.innerHTML =
     `<div class="ench-lot">
-      <span class="ench-lot-pastille" id="ench-pastille" style="background:${d.icone ?? "#888"}"></span>
+      ${d.image
+        ? `<img class="ench-lot-pastille ench-lot-pastille--img" id="ench-pastille" src="${d.image}">`
+        : `<span class="ench-lot-pastille" id="ench-pastille" style="background:${d.icone ?? "#888"}"></span>`}
       <div class="ench-lot-txt">
         <div class="ench-lot-nom" style="color:${couleur}">${nomLot}</div>
         <div class="ench-lot-sous">${lot.duJoueur ? "Your item — the room bids, you watch." : rarete}</div>
