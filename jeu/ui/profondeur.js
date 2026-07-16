@@ -11,6 +11,8 @@ const LABEL_EFFET = {
   gold: (v) => `+${v} Gold`,
   celerite: (v) => `+${v}% Speed`,
   armure: (v) => `+${v} Armor`,
+  agilite: (v) => `+${v} Agility`,
+  soin: (v) => `Heal ${v} HP`,
   porte: () => `Guaranteed passage`, // garantit une porte de descente sur cet étage
 };
 function texteEffet(loot) {
