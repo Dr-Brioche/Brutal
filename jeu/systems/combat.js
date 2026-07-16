@@ -341,7 +341,12 @@ function prevoirIntentions(combat) {
       // Soin : on VERROUILLE dès maintenant l'allié le plus blessé (% le plus bas).
       if (a.type === "soigner") e.intention.cible = allieLePlusBlesse(combat, e);
     } else {
-      e.intention = { type: "attaque", valeur: e.def.attaque };
+      // Attaque simple, éventuellement MULTI-COUPS (attaqueHits) et empoisonnante
+      // (poisonParCoup) — ex. le Goblin Skirmisher frappe 2× et pose 1 poison/coup.
+      e.intention = {
+        type: "attaque", valeur: e.def.attaque,
+        hits: e.def.attaqueHits ?? 1, poison: e.def.poisonParCoup ?? 0,
+      };
     }
   }
 }
@@ -1161,6 +1166,7 @@ export function agirEnnemi(combat, i) {
     gelExplosion: 0, // dégâts subis par la « glace brisée » (8 stacks de Gel atteints)
     riposteRenvoi: 0, // dégâts renvoyés à l'attaquant par la Riposte (Rebond)
     doubleTour: false, // true = l'ennemi rejoue tout de suite (Hâte ≥ 10, stacks consommés)
+    poisonHero: 0,     // poison posé sur le HÉROS par une attaque empoisonnante (Skirmisher)
   };
   if (!e || e.pv <= 0) return evt;
   // Ordre des malus dans le temps : poison, puis feu, saignement en dernier.
@@ -1207,9 +1213,14 @@ export function agirEnnemi(combat, i) {
       evt.confus = true;
     }
     if (cibleConf === "heros") {
+      const hits = e.intention.hits ?? 1;              // multi-coups (ex. Skirmisher : 2)
       const avantPv = combat.pvHeros;
       const avantPierre = combat.pierre;
-      subirDegats(combat, e.intention.valeur);
+      for (let h = 0; h < hits; h++) subirDegats(combat, e.intention.valeur);
+      if (e.intention.poison) {                         // poison posé à CHAQUE coup
+        combat.poisonHeros += e.intention.poison * hits;
+        evt.poisonHero = e.intention.poison * hits;
+      }
       evt.attaque = avantPv - combat.pvHeros;          // PV réellement perdus (après la Pierre)
       evt.armureAbsorbe = avantPierre - combat.pierre; // Pierre retirée par le coup (coup encaissé)
       // Passifs « quand frappé en mêlée » (set Onyx : l'attaquant prend du feu ;
@@ -1227,10 +1238,13 @@ export function agirEnnemi(combat, i) {
       }
     } else {
       // Confusion : frappe un allié (ou soi-même). Pas de Pierre côté ennemi, pas
-      // de passif de mêlée (le héros n'est pas touché). Friendly fire pur.
+      // de passif de mêlée (le héros n'est pas touché). Friendly fire pur. Les
+      // multi-coups et le poison s'appliquent aussi (total = valeur × hits).
+      const hits = e.intention.hits ?? 1;
       const victime = combat.ennemis[cibleConf];
       const avant = victime.pv;
-      victime.pv = Math.max(0, victime.pv - e.intention.valeur);
+      victime.pv = Math.max(0, victime.pv - e.intention.valeur * hits);
+      if (e.intention.poison) victime.poison += e.intention.poison * hits;
       evt.attaqueAllie = avant - victime.pv;
       evt.idxAttaqueAllie = cibleConf;
     }

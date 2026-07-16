@@ -27,10 +27,10 @@ import { tirerOr, tirerButinFamille } from "./butin.js";
 // passe par l'Excel puis relance l'importer.
 // <<MONSTRES-AUTO>>
 const STATS_MONSTRES = {
-  "gobelin": { nom: "Cave Goblin", niveau: 1, famille: "gobelin", pv: 24, attaque: 4, xp: 6, vitesse: 10, actions: [] },
-  "gobelin-vif": { nom: "Goblin Skirmisher", niveau: 1, famille: "gobelin", pv: 16, attaque: 3, xp: 7, vitesse: 18, actions: [] },
-  "gobelin-chaman": { nom: "Goblin Shaman", niveau: 1, famille: "gobelin", pv: 14, attaque: 2, xp: 12, vitesse: 7, actions: [{ type: "soigner", valeur: 10, poids: 50 }, { type: "haste-allie", valeur: 2, poids: 30 }, { type: "attaque", valeur: 2, poids: 20 }] },
-  "ogre-masque": { nom: "Masked Ogre", niveau: 3, famille: "animal", pv: 58, attaque: 9, xp: 24, vitesse: 6, actions: [], grand: true },
+  "gobelin": { nom: "Cave Goblin", niveau: 1, famille: "gobelin", pv: 24, attaque: 5, xp: 6, vitesse: 6, actions: [] },
+  "gobelin-vif": { nom: "Goblin Skirmisher", niveau: 1, famille: "gobelin", pv: 16, attaque: 2, xp: 8, vitesse: 11, actions: [] },
+  "gobelin-chaman": { nom: "Goblin Shaman", niveau: 2, famille: "gobelin", pv: 20, attaque: 4, xp: 20, vitesse: 7, actions: [{ type: "soigner", valeur: 10, poids: 50 }, { type: "haste-allie", valeur: 2, poids: 30 }, { type: "attaque", valeur: 2, poids: 20 }] },
+  "ogre-masque": { nom: "Masked Ogre", niveau: 3, famille: "animal", pv: 80, attaque: 30, xp: 60, vitesse: 5, actions: [], grand: true },
 };
 // <<FIN-MONSTRES-AUTO>>
 
@@ -80,6 +80,11 @@ export const ENNEMIS = [
     xp: 7,
     vitesse: 18,
     affix: "melee",   // position visuelle : avant-plan
+    // Escarmoucheur : frappe DEUX fois par tour (2 × attaque) et empoisonne à chaque
+    // coup (poisonParCoup) — 2 hits × 1 = 2 poison. Ces champs restent ici (pas dans le
+    // bloc auto de l'Excel) : ils survivent aux ré-imports de stats.
+    attaqueHits: 2,
+    poisonParCoup: 1,
     // Skin DÉDIÉ : illustration fournie (fond vert détouré par preparer_skin.py).
     // Rendue vivante par le CODE (image fixe + effets) — encapuchonné, deux dagues.
     planche: "images/ennemis/gobelin-vif.png",

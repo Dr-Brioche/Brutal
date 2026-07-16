@@ -1203,6 +1203,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         // PV perdus → chiffre rouge ; coup entièrement encaissé par la Pierre → chiffre bleu.
         if (evt.attaque > 0) ajouterFlottant(`-${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
         else ajouterFlottant(`-${evt.armureAbsorbe}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
+        if (evt.poisonHero > 0) ajouterFlottant(`☠${evt.poisonHero}`, heroEcran.cx, heroEcran.sommet - 26, "#7ec850");
         if (pierreAvantTour > 0) jouerSonCoupArmure(); else jouerSonCoup();
         // Set Onyx : l'attaquant prend du feu de rétorsion → chiffre sur LUI.
         if (evt.brulureRetour > 0) ajouterFlottant(`🔥${evt.brulureRetour}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c");
@@ -2154,7 +2155,9 @@ function dessinerIntention(ctx, intention, cx, y) {
   let icone = "⚔", couleur = "#ff8a5b";
   if (intention.type === "soigner") { icone = "💚"; couleur = "#7edf82"; }
   else if (intention.type === "haste-allie") { icone = "⚡"; couleur = "#dff4ff"; }
-  const txt = `${icone} ${intention.valeur}`;
+  // Attaque multi-coups (ex. Skirmisher) : affichée « N×V » + ☠ si elle empoisonne.
+  const poison = intention.poison > 0 ? " ☠" : "";
+  const txt = (intention.hits > 1 ? `${icone} ${intention.hits}×${intention.valeur}` : `${icone} ${intention.valeur}`) + poison;
   ctx.fillStyle = couleur;
   if (SORTS_GROUPE.has(intention.type)) {
     // Icône + valeur, puis une petite case « ALL » à droite (bloc centré sur cx).
