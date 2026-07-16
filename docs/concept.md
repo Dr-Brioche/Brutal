@@ -155,7 +155,11 @@ joue, End Turn) ou **une attaque** pour un ennemi.
   **Gel** (carte *Frostbite*, **−30 %** fixe) sur l'ennemi visé. La **Hâte** fonctionne
   en **stacks** : chaque tick actif = **+5 %** de vitesse (3 stacks = +15 %,
   10 stacks = +50 %). On perd 1 stack par tour ; rejouer la carte cumule les stacks.
-  Le **Gel** reste à −30 % fixe. Des monstres **véloces** (ex. *Goblin
+  **Double tour à 10 stacks (16/07/2026)** : dès qu'un combattant — **héros OU
+  ennemi** — atteint **10 stacks de Hâte**, il **rejoue immédiatement un tour**, mais
+  cela **consomme TOUS ses stacks de Hâte** d'un coup (burst ponctuel plutôt que
+  vitesse continue). Côté héros, seule la Hâte **temporaire** compte (pas la Hâte
+  permanente de *Long Run*, sinon on rejouerait sans fin). Le **Gel** reste à −30 % fixe. Des monstres **véloces** (ex. *Goblin
   Skirmisher*, vitesse 18, **teinté plus froid** pour le repérer d'un coup d'œil)
   peuvent jouer 2× contre un héros lent.
 - **Annulation feu ↔ gel** : appliquer du **feu sur un ennemi gelé** supprime

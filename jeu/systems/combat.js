@@ -78,6 +78,9 @@ const SEUIL_INIT = 100;        // jauge d'initiative à remplir pour agir
 // La VALEUR d'une carte = le NOMBRE DE TICKS ajoutés. Chaque tick de Hâte donne
 // +5% de vitesse ; chaque tour un tick s'écoule → plus de stacks = plus rapide.
 const HATE_PAR_TICK = 0.05; // « Hâte » : +5% de vitesse par tick actif (N ticks = +N×5%)
+// À HASTE_DOUBLE stacks de Hâte, le combattant (héros OU ennemi) REJOUE
+// immédiatement un tour — mais ça CONSOMME TOUS ses stacks de Hâte (burst).
+export const HASTE_DOUBLE = 10;
 const GEL_MULT  = 0.70; // « Gel » (lenteur)   : vitesse de l'ennemi ×0.70 pendant N tours
 // À GEL_EXPLOSION stacks de Gel, l'ennemi est immédiatement étourdi (1 tour) et
 // perd GEL_EXPLOSION stacks ; le surplus est conservé. Héros : identique mais déclenché
@@ -1149,6 +1152,7 @@ export function agirEnnemi(combat, i) {
     idxAttaqueAllie: -1, // index de la victime de l'attaque confuse (pour le floater UI)
     gelExplosion: 0, // dégâts subis par la « glace brisée » (8 stacks de Gel atteints)
     riposteRenvoi: 0, // dégâts renvoyés à l'attaquant par la Riposte (Rebond)
+    doubleTour: false, // true = l'ennemi rejoue tout de suite (Hâte ≥ 10, stacks consommés)
   };
   if (!e || e.pv <= 0) return evt;
   // Ordre des malus dans le temps : poison, puis feu, saignement en dernier.
@@ -1165,6 +1169,7 @@ export function agirEnnemi(combat, i) {
     e.dernierSang = 0;
   }
   const confusActif = e.confusion > 0; // figé AVANT de décrémenter (l'attaque de CE tour est-elle confuse ?)
+  const hasteAvant = e.haste;          // figé AVANT décrément : ≥10 → double tour (voir fin)
   // Glace brisée : à GEL_EXPLOSION stacks ou plus, la glace se rompt — l'ennemi
   // saute ce tour, perd GEL_EXPLOSION stacks et subit DEGATS_GEL_EXPLOSION dégâts
   // directs. Sinon le Gel s'écoule normalement de 1 (durée du ralentissement).
@@ -1257,6 +1262,15 @@ export function agirEnnemi(combat, i) {
     for (const a of alliés) a.haste += e.intention.valeur;
     evt.haste_allie = alliés.length ? e.intention.valeur : 0;
   }
+  // Hâte à 10 : l'ennemi qui vient d'AGIR rejoue tout de suite — on remet sa jauge
+  // d'initiative au seuil (elle sera reprise au prochain pas) et on consomme TOUS
+  // ses stacks de Hâte. (Un ennemi étourdi/gelé/mort est déjà ressorti plus haut :
+  // il n'a pas agi, donc pas de double tour.)
+  if (hasteAvant >= HASTE_DOUBLE && e.pv > 0) {
+    e.haste = 0;
+    e.init = SEUIL_INIT;
+    evt.doubleTour = true;
+  }
   verifierFin(combat);
   return evt;
 }
@@ -1330,6 +1344,15 @@ export function finirTourHeros(combat) {
   propagerFeu(combat); // le Feu posé par une carte ce tour se répand une fois aux voisins
   combat.defausse.push(...combat.main);
   combat.main = [];
+  // Hâte à 10 : le héros REJOUE immédiatement (comme un tour bonus), mais TOUS ses
+  // stacks de Hâte temporaire sont consommés d'un coup. (La Hâte permanente ne compte
+  // pas : sinon on rejouerait à chaque tour.) — décision Brioche.
+  combat.doubleTourHate = false;
+  if (combat.hate >= HASTE_DOUBLE) {
+    combat.hate = 0;
+    combat.toursBonus += 1;
+    combat.doubleTourHate = true;
+  }
   // Innaretable : tour(s) bonus → on remplit la jauge d'initiative du héros pour
   // qu'il rejoue IMMÉDIATEMENT (les ennemis ne gagnent rien entre-temps : leurs
   // jauges n'avancent pas tant que le héros est déjà au seuil).
