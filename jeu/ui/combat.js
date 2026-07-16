@@ -1964,7 +1964,10 @@ const SKINS_ARME_1M = {
 // SKIN PAR DÉFAUT (1 main) : toute arme 1 main SANS skin dédié affiche cette épée.
 const imgEpee1M = new Image();
 imgEpee1M.src = "images/armes/epee-1main.png";
-const SKIN_DEFAUT_1M = { img: imgEpee1M, gcx: 420, gcy: 195, echelle: 0.075, angle: 49, fx: 0.832, fy: 0.484, poingsOvale: { cx: 0.805, cy: 0.487, rx: 0.108, ry: 0.078 } };
+// L'ovale ne recouvre que le HAUT du poing : les doigts passent devant la garde,
+// mais le BAS du manche ressort sous le poing (devant le doigt du bas) — « on ne voit
+// que ce qui est devant », comme l'épée de lumière.
+const SKIN_DEFAUT_1M = { img: imgEpee1M, gcx: 420, gcy: 195, echelle: 0.075, angle: 49, fx: 0.832, fy: 0.484, poingsOvale: { cx: 0.805, cy: 0.464, rx: 0.105, ry: 0.060 } };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
 // COURTE et vive, lent = ample et lourde. (Sert de multiplicateur de durée.)
