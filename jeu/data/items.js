@@ -309,8 +309,8 @@ export const ITEMS = {
     cartes: ["mur-bouclier", "mur-bouclier", "mur-bouclier", "coup-de-bouclier", "coup-de-bouclier", "bouclier-empilant"],
     passifPropre: {
       declencheur: "frappeMelee",
-      texte: "When hit by a melee attack, gain 2 Stone.",
-      effets: [{ type: "pierre", valeur: 2, cible: "heros" }],
+      texte: "When hit by a melee attack, gain 3 Stone.",
+      effets: [{ type: "pierre", valeur: 3, cible: "heros" }],
     },
   },
 
@@ -331,7 +331,7 @@ export const ITEMS = {
     taille: { l: 2, h: 2 }, icone: "#3b4250",
     planche: "images/heros/nain-onyx.png",
     armureDepart: 36,
-    pierreParTour: 10, // passif : +10 Pierre au début de chaque tour
+    pierreParTour: 8, // passif : +8 Pierre au début de chaque tour
     cartes: ["onyx-armor", "onyx-armor", "onyx-armor", "embrasement-dragon", "souffle-onyx", "souffle-onyx", "tout-en-feu"],
   },
   // Maille de forge : armure tank. 3× Mail Armor (Pierre/ennemi) + 1× Quench
@@ -341,7 +341,7 @@ export const ITEMS = {
     taille: { l: 2, h: 2 }, icone: "#7a4a2a",
     planche: "images/heros/nain-forge.png",
     armureDepart: 22,
-    pierreParTour: 5, // passif : +5 Pierre au début de chaque tour
+    pierreParTour: 4, // passif : +4 Pierre au début de chaque tour
     cartes: ["mail-armor", "mail-armor", "mail-armor", "trempe", "armure-lourde", "armure-lourde"],
   },
 
@@ -394,7 +394,7 @@ export const ITEMS = {
   "bottes-onyx": {
     id: "bottes-onyx", nom: "Onyx Boots", categorie: "botte", rarete: "epique",
     taille: { l: 2, h: 1 }, icone: "#2b2433",
-    agilite: 18, vitesseDeplPct: 50,
+    agilite: 18, vitesseDeplPct: 40,
     cartes: ["course-ardente", "coup-de-pied-ardent", "boost-feu", "boost-feu", "boost", "boost"],
   },
   // Anneau de givre : injecte « Frostbite » (ralentit un ennemi).
@@ -463,7 +463,7 @@ export const ITEMS = {
     taille: { l: 2, h: 2 }, icone: "#e8d9a0",
     planche: "images/heros/nain.png",
     armureDepart: 30,
-    pierreParTour: 6, // passif : +6 Pierre au début de chaque tour
+    pierreParTour: 5, // passif : +5 Pierre au début de chaque tour
     cartes: ["armure-lourde", "armure-de-lumiere", "armure-de-lumiere", "armure-de-lumiere", "eclair-aveuglant", "lumiere-sacree"],
   },
   // Crusader Gauntlets (gants) : 2× Master's Hand + 1× Halo Burst + 2× Lay on Hands.
@@ -489,7 +489,7 @@ export const ITEMS = {
     taille: { l: 2, h: 2 }, icone: "#7a1320",
     planche: "images/heros/nain.png",
     armureDepart: 20,
-    pierreParTour: 4, // passif : +4 Pierre au début de chaque tour
+    pierreParTour: 3, // passif : +3 Pierre au début de chaque tour
     cartes: ["armure-lourde", "armure-lourde", "garde-sanguine", "garde-sanguine", "bain-de-sang", "boire-le-sang"],
   },
   // Blood Gauntlets (gants) : 2× Open Veins + 2× Contagion + 1× Blood Absorption.
@@ -858,8 +858,8 @@ export const SETS = {
     pieces: ["maille-de-forge", "gants-de-maille", "bottes-de-maille"], // torse + gants + bottes
     bonus: {
       declencheur: "debutCombat",
-      texte: "At the start of combat, gain 10 Stone per enemy faced.",
-      effets: [{ type: "pierre", valeur: 10, parEnnemi: true }],
+      texte: "At the start of combat, gain 8 Stone per enemy faced.",
+      effets: [{ type: "pierre", valeur: 8, parEnnemi: true }],
     },
   },
   // Chevalier Croisé : bonus de CONTRÔLE (lumière). Frapper le croisé en mêlée,
@@ -885,8 +885,8 @@ export const SETS = {
     pieces: ["plate-sang", "gants-sang", "bottes-sang"], // torse + gants + bottes
     bonus: {
       declencheur: "saignementCombo",
-      texte: "When a Bleed combo deals bonus damage, heal the hero for that amount.",
-      effets: [{ type: "soin", ratio: 1 }],
+      texte: "When a Bleed combo deals bonus damage, heal the hero for half of that amount.",
+      effets: [{ type: "soin", ratio: 0.5 }],
     },
   },
   // Set Stone Age : build « pierre ». Le bonus récompense d'empiler les cartes
