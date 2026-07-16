@@ -180,7 +180,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const ennemisUI = combat.ennemis.map((e, i) => {
     const spr = e.def.sprite;
     const avant   = (i % 2 === 0) || !!e.def.grand; // un GRAND monstre est toujours à l'AVANT
-    const echelle = avant ? ECHELLE_AVANT : ECHELLE_ARRIERE;
+    // `tailleRel` (défaut 1) permet d'ajuster la taille d'un TYPE de monstre sans
+    // toucher aux autres. Multiplié dans l'échelle → le sprite reste calé au sol et
+    // centré (l'ombre, la barre de vie et le niveau suivent automatiquement).
+    const echelle = (avant ? ECHELLE_AVANT : ECHELLE_ARRIERE) * (e.def.tailleRel ?? 1);
     const solEcran = avant ? SOL_Y : SOL_ARRIERE;
     // Calcul en coordonnées monde à partir de l'échelle propre à cet ennemi.
     const solMonde = PIVOT_SCENE.y + (solEcran - PIVOT_SCENE.y) / echelle;
