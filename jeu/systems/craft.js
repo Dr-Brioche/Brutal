@@ -33,14 +33,23 @@ export const MJ_PERIODE = {
   legendaire: 480,    // vraiment trop rapide
 };
 
-// Talent « Master Craftsman » : chaque rang RALENTIT le curseur de 15 % (période
-// ×(1 + 0,15·rang)), pareil pour TOUTES les raretés. 3 rangs → jusqu'à +45 %.
-export const ARTISANAT_RALENTI = 0.15;
+// L'AGILITÉ ralentit la barre du mini-jeu de forge : plus le nain est agile, plus
+// le curseur va lentement → plus facile d'attraper les bandes. +1 % de période par
+// point d'agilité, PLAFONNÉ à +50 % (atteint à 50 d'agilité). Le plafond garantit
+// qu'un LÉGENDAIRE reste dur à réussir même avec beaucoup d'agilité (base 480 ms →
+// 720 ms au max, toujours bien plus rapide qu'un commun). — décision Brioche.
+export const AGILITE_RALENTI = 0.01;       // +1 % de période par point d'agilité
+export const AGILITE_RALENTI_MAX = 0.50;   // plafond : +50 % de période
 
-// Période effective du mini-jeu pour une rareté + un rang de talent artisan.
-export function periodeMiniJeu(rarete, rangArtisanat = 0) {
+// Facteur de ralentissement (0..0,50) apporté par une agilité donnée.
+export function ralentiAgilite(agilite = 0) {
+  return Math.min(AGILITE_RALENTI_MAX, AGILITE_RALENTI * Math.max(0, agilite));
+}
+
+// Période effective du mini-jeu pour une rareté + l'agilité TOTALE du héros.
+export function periodeMiniJeu(rarete, agilite = 0) {
   const base = MJ_PERIODE[rarete] ?? MJ_PERIODE.uncommon;
-  return Math.round(base * (1 + ARTISANAT_RALENTI * Math.max(0, rangArtisanat)));
+  return Math.round(base * (1 + ralentiAgilite(agilite)));
 }
 
 // Où est le marqueur (son centre) ? Au hasard, mais assez au centre pour que même
