@@ -794,6 +794,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     combat.ennemis.forEach(e => { e.dernierDegats = 0; e.hitLog = []; });
     combat.dernierSoinCarte = 0;
     combat.dernierGainAleatoire = null;
+    combat.dernieresPiochesFiltre = null; // Lucky Draw : réinitialisé aussi (sinon une valeur périmée faisait clignoter les cartes piochées 0,5 s)
     combat.dernierEchangeMain = null; // Bare Hands : échanges main à animer
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
     carteJouee = true; // une carte a été jouée → on ne pourra plus fuir ce tour
