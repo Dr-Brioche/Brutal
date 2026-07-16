@@ -1170,6 +1170,7 @@ export function agirEnnemi(combat, i) {
     riposteRenvoi: 0, // dégâts renvoyés à l'attaquant par la Riposte (Rebond)
     doubleTour: false, // true = l'ennemi rejoue tout de suite (Hâte ≥ 10, stacks consommés)
     poisonHero: 0,     // poison posé sur le HÉROS par une attaque empoisonnante (Skirmisher)
+    coups: null,       // PV perdus coup par coup (attaque multi-coups) — pour l'anim UI
   };
   if (!e || e.pv <= 0) return evt;
   // Ordre des malus dans le temps : poison, puis feu, saignement en dernier.
@@ -1219,7 +1220,13 @@ export function agirEnnemi(combat, i) {
       const hits = e.intention.hits ?? 1;              // multi-coups (ex. Skirmisher : 2)
       const avantPv = combat.pvHeros;
       const avantPierre = combat.pierre;
-      for (let h = 0; h < hits; h++) subirDegats(combat, e.intention.valeur);
+      // On note les PV perdus À CHAQUE coup (pour les animer un par un côté UI).
+      evt.coups = [];
+      for (let h = 0; h < hits; h++) {
+        const pvAvantCoup = combat.pvHeros;
+        subirDegats(combat, e.intention.valeur);
+        evt.coups.push(pvAvantCoup - combat.pvHeros);
+      }
       if (e.intention.poison) {                         // poison posé à CHAQUE coup
         combat.poisonHeros += e.intention.poison * hits;
         evt.poisonHero = e.intention.poison * hits;
