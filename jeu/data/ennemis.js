@@ -116,7 +116,7 @@ export const ENNEMIS = [
     // Skin DÉDIÉ : illustration fournie (fond vert détouré par preparer_skin.py).
     // Vrai « lanceur de sorts » : bâton à crâne, robe sombre. Rendu lisse.
     planche: "images/ennemis/gobelin-chaman.png",
-    portrait: { sx: 52, sy: 28, sw: 58, sh: 58 }, // la tête (basse : le bâton occupe le haut)
+    portrait: { sx: 34, sy: 14, sw: 66, sh: 66 }, // la tête (centrée : visage + oreille + capuche)
     sprite: {
       caseL: 153,
       caseH: 224,   // calé sur la TÊTE (même visage) ; le grand bâton dépasse au-dessus
