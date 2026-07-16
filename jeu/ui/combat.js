@@ -1468,7 +1468,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const hxBase = HEROS.x + 64 * ECHELLE_HEROS / 2 - HW / 2; // sans secousse/avance
       const ombreCx = hxBase + (mHero ? mHero.cx / imgHero.naturalWidth : 0.5) * HW;
       const ombreDemi = (mHero ? mHero.demi / imgHero.naturalWidth : 0.35) * HW;
-      ombreOvale(ctx, ombreCx, solHeros - 1, Math.max(ombreDemi * 1.5, HW * 0.42));
+      ombreOvale(ctx, ombreCx, solHeros - 1 - 10 / ECHELLE_AVANT, Math.max(ombreDemi * 1.5, HW * 0.42)); // remontée de 10px écran (comme les monstres)
       ctx.translate(aX, aY); ctx.scale(1 - 0.015 * brH, 1 + 0.025 * brH); ctx.translate(-aX, -aY);
       ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
       // 1) Le NAIN (base). 2) L'ARME par-dessus : la lame passe devant le corps et la
@@ -1795,7 +1795,9 @@ function dessinerOmbreSol(ctx, u) {
   const spr = u.spr;
   const m = metriquesPieds(u); // pieds réels (sinon milieu de l'image en secours)
   const cx = u.localX + (m ? m.cx : spr.caseL / 2);
-  const cy = u.localY + spr.caseH - 1; // sur la ligne des pieds
+  // Remontée de 10px (en pixels ÉCRAN) : on divise par l'échelle du sprite pour
+  // que tous les monstres, quel que soit leur éloignement, remontent d'autant.
+  const cy = u.localY + spr.caseH - 1 - 10 / u.echelle;
   // Largeur : couvre LARGEMENT les deux pieds (jambes écartées incluses), plancher pour
   // les petits.
   const base = m ? Math.max(m.demi * 1.55, spr.caseL * 0.38) : spr.caseL * 0.48;
