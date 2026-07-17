@@ -1963,7 +1963,7 @@ const SKINS_ARME_1M = {
   // gcx=150 : on tient le manche PRÈS DU POMMEAU. La main est re-posée par un masque
   // OVALE (poingsOvale) qui épouse la courbe du poing → l'épée passe derrière la main,
   // le pommeau réapparaît derrière/sous elle sans bord droit disgracieux.
-  "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 150, gcy: 197, echelle: 0.11055, angle: 73, fx: 0.891, fy: 0.434, poingsOvale: { cx: 0.855, cy: 0.442, rx: 0.104, ry: 0.086 } },
+  "epee-sacree": { img: imgEpeeLumiere, halo: imgEpeeLumiereHalo, gcx: 150, gcy: 197, echelle: 0.11055, angle: 73, fx: 0.891, fy: 0.454, poingsOvale: { cx: 0.855, cy: 0.442, rx: 0.104, ry: 0.086 } },
 };
 // SKIN PAR DÉFAUT (1 main) : toute arme 1 main SANS skin dédié affiche cette épée.
 const imgEpee1M = new Image();
