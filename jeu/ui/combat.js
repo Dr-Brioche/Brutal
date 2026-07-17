@@ -1946,7 +1946,11 @@ const SKINS_ARME_2M = {
 // SKIN PAR DÉFAUT (2 mains) : toute arme 2 mains SANS skin dédié affiche cette masse.
 const imgMasse2M = new Image();
 imgMasse2M.src = "images/armes/masse-2mains.png";
-const SKIN_DEFAUT_2M = { img: imgMasse2M, gcx: 300, gcy: 266, echelle: 0.11, angle: 73, fx: 0.900, fy: 0.46, poingsFrac: 0.60, poingsTopFrac: 0.12 };
+// poingsTopFrac 0.33 : la ligne de re-pose passe juste sous le haut des doigts, pour
+// que le manche reste DEVANT le dessus de la main (sinon un bout de gant/reflet de
+// l'arrière de la main se posait par-dessus le manche). Plus haut réattraperait une
+// bague métallique du manche qui doit rester tenue dans le poing.
+const SKIN_DEFAUT_2M = { img: imgMasse2M, gcx: 300, gcy: 266, echelle: 0.11, angle: 73, fx: 0.900, fy: 0.46, poingsFrac: 0.60, poingsTopFrac: 0.33 };
 // Skins d'ARME à UNE main : MÊME mécanique de calques, mais avec l'illustration du
 // nain « mains vides » (nain-combat.png) — l'arme est posée dans le poing avant.
 const imgEpeeLumiere = new Image();
