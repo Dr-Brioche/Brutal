@@ -54,6 +54,8 @@ import {
   lotDepot, resoudreHorsEcran, depotAcceptable, etatEncheres, chargerEncheres,
 } from "./systems/encheres.js";
 import { installerEncheres, ouvrirEncheres, enchereActive } from "./ui/encheres.js";
+import { creerCoffre, etatCoffre, chargerCoffre } from "./systems/coffre.js";
+import { installerCoffre, coffreActif } from "./ui/coffre.js";
 import { installerHorloge, dessinerHorloge, montrerHorloge } from "./ui/horloge.js";
 import { installerParchemin, ouvrirParchemin } from "./ui/parchemin.js";
 import {
@@ -136,6 +138,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   heros.x = carte.departX;
   heros.y = carte.departY;
   const inventaire = creerInventaire();
+  // Le COFFRE de ville : grand rangement partagé et persistant (cf. systems/coffre.js).
+  const coffre = creerCoffre();
   // Le MARCHÉ (Hôtel des ventes) : prix vivants des ressources + annonces d'objets.
   // Son horloge n'avance qu'en JEU ACTIF (cf. le tick en tête de mettreAJour).
   const marche = creerMarche();
@@ -238,6 +242,16 @@ export async function demarrerJeu(donneesInitiales = null) {
     t: 0,
   };
 
+  // LE COFFRE DE VILLE : objet fixe posé sur le dallage (col 22, rangée 14 —
+  // zone dégagée). On marche dessus et on ouvre avec Action (Space) / clic. Son
+  // contenu est PERSISTANT (sauvegarde). Cf. systems/coffre.js + ui/coffre.js.
+  const coffreObjet = {
+    cx: 22 * TUILE + TUILE / 2,
+    solY: 14 * TUILE + 8,
+    proche: false,
+    t: 0,
+  };
+
   // LA SCIERIE (1er bâtiment à acheter) : le bloc de murs cols 15-16 / rangées
   // 9-10 lui sert de corps (le vrai visuel viendra plus tard — on dessine une
   // façade placeholder par-dessus). Devant, un PANNEAU planté au sol : c'est LUI
@@ -267,6 +281,8 @@ export async function demarrerJeu(donneesInitiales = null) {
       boitePnj(fanatique), boitePnj(marchand), boitePnj(forgeron), boitePnj(courtier),
       boitePnj(commissaire),
       { x: fontaine.cx - 20, y: fontaine.solY - 16, w: 40, h: 22 },
+      // Le coffre : caisse solide au sol, on ne la traverse pas.
+      { x: coffreObjet.cx - 18, y: coffreObjet.solY - 18, w: 36, h: 20 },
       // Le panneau de la scierie : petit poteau planté au sol, on ne le traverse pas.
       { x: panneauScierie.cx - 12, y: panneauScierie.solY - 8, w: 24, h: 10 },
       { x: panneauTannerie.cx - 12, y: panneauTannerie.solY - 8, w: 24, h: 10 },
@@ -301,6 +317,44 @@ export async function demarrerJeu(donneesInitiales = null) {
       const yj = by - 30 - Math.sin(p * Math.PI) * 15;
       ctx.fillRect(Math.round(cx + dxj) - 1, Math.round(yj), 2, 3);
     }
+  }
+
+  // LE COFFRE DE VILLE : une caisse de bois cerclée de fer, avec un cadenas doré.
+  // Un léger halo doré pulse quand le héros est à portée (invite « Open »).
+  function dessinerCoffre(ctx, c) {
+    const cx = c.cx, by = c.solY;
+    const L = 36, H = 22;           // largeur / hauteur du corps
+    const x = cx - L / 2, yBas = by, yHaut = by - H;
+    // Ombre au sol.
+    ctx.fillStyle = "rgba(0, 0, 0, 0.30)";
+    ctx.beginPath(); ctx.ellipse(cx, by + 1, 22, 7, 0, 0, Math.PI * 2); ctx.fill();
+    // Halo doré à portée (pulsé).
+    if (c.proche) {
+      const p = 0.35 + 0.2 * Math.sin(c.t * 4);
+      ctx.save();
+      ctx.strokeStyle = `rgba(255, 207, 87, ${p})`;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 3, yHaut - 9, L + 6, H + 12);
+      ctx.restore();
+    }
+    // Corps (bois) + couvercle bombé.
+    ctx.fillStyle = "#6b4522"; ctx.fillRect(x, yHaut, L, H);          // corps
+    ctx.fillStyle = "#5a3a1d"; ctx.fillRect(x, yBas - 6, L, 6);       // ombre du bas
+    ctx.fillStyle = "#7d5329";                                       // couvercle
+    ctx.beginPath();
+    ctx.moveTo(x, yHaut);
+    ctx.quadraticCurveTo(cx, yHaut - 12, x + L, yHaut);
+    ctx.lineTo(x + L, yHaut + 2); ctx.lineTo(x, yHaut + 2); ctx.closePath(); ctx.fill();
+    // Cerclages de fer (verticaux) + bande du couvercle.
+    ctx.fillStyle = "#3a352f";
+    ctx.fillRect(x + 6, yHaut - 6, 4, H + 6);
+    ctx.fillRect(x + L - 10, yHaut - 6, 4, H + 6);
+    ctx.fillRect(x, yHaut + 1, L, 3);
+    // Cadenas doré au centre.
+    ctx.fillStyle = "#d9a441";
+    ctx.fillRect(cx - 4, yHaut + 5, 8, 8);
+    ctx.strokeStyle = "#8a6a24"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, yHaut + 5, 3, Math.PI, 0); ctx.stroke();
   }
 
   // Façade PLACEHOLDER de la scierie, dessinée par-dessus son bloc de murs :
@@ -888,6 +942,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       talents: { ...heros.talents },
       direction: heros.direction,
       inventaire: etatInventaire(inventaire),
+      coffre: etatCoffre(coffre),
       maitrise: etatMaitrise(maitrise),
       marche: etatMarche(marche),
       batiments: etatBatiments(batiments),
@@ -904,6 +959,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   function appliquerEtat(donnees) {
     if (!donnees) return;
     if (donnees.inventaire) chargerInventaire(inventaire, donnees.inventaire);
+    chargerCoffre(coffre, donnees.coffre); // coffre de ville (absent des vieilles saves = vide)
     // Recharger la bonne zone AVANT de valider la position
     if (donnees.zone && ZONES[donnees.zone] && donnees.zone !== zoneActuelle) {
       carte = creerCarte(ZONES[donnees.zone]);
@@ -1135,6 +1191,23 @@ export async function demarrerJeu(donneesInitiales = null) {
   installerHV();       // l'hôtel des ventes plein écran (ouvert via le courtier)
   installerBatiment(); // l'écran bâtiment (ouvert via le panneau de la scierie)
   installerEncheres(); // la salle des ventes du soir (ouverte via Magnar)
+
+  // LE COFFRE DE VILLE : écran de rangement (sac ↔ coffre). Ouvert en marchant
+  // sur le coffre + Action. Le contenu est sauvegardé à la fermeture (slot auto).
+  const coffreUI = installerCoffre();
+  function ouvrirCoffreVille() {
+    if (combatEnCours || dialogueActif() || enTransition || enPause) return;
+    enPause = true; invite.hidden = true;
+    coffreUI.ouvrir({
+      inventaire, coffre,
+      surChangement: () => {},
+      surFermer: () => {
+        enPause = false;
+        // Persiste tout de suite (le coffre est précieux → pas de perte au refresh).
+        if (zoneActuelle === "city") ecrireSlot(SLOT_AUTO, obtenirEtat());
+      },
+    });
+  }
   installerHorloge();  // le cadran jour/nuit (HUD haut-droite)
   installerParchemin(); // l'écran de lecture des parchemins de craft
   installerLivre();     // le Livre d'artisanat (recettes apprises, touche L)
@@ -1184,6 +1257,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     else if (courtier.proche) { e.preventDefault(); parlerAuCourtier(); }
     else if (commissaire.proche) { e.preventDefault(); parlerAuCommissaire(); }
     else if (fontaine.proche) { e.preventDefault(); parlerALaFontaine(); }
+    else if (coffreObjet.proche) { e.preventDefault(); ouvrirCoffreVille(); }
     else if (panneauScierie.proche) { e.preventDefault(); lirePanneauBatiment("scierie"); }
     else if (panneauTannerie.proche) { e.preventDefault(); lirePanneauBatiment("tannerie"); }
   });
@@ -1731,6 +1805,10 @@ export async function demarrerJeu(donneesInitiales = null) {
         fontaine.proche =
           Math.abs((heros.x + 32) - fontaine.cx) < 46 &&
           Math.abs((heros.y + 54) - fontaine.solY) < 46;
+        coffreObjet.t += dt;
+        coffreObjet.proche =
+          Math.abs((heros.x + 32) - coffreObjet.cx) < 46 &&
+          Math.abs((heros.y + 54) - coffreObjet.solY) < 46;
         panneauScierie.t += dt;
         panneauScierie.proche =
           Math.abs((heros.x + 32) - panneauScierie.cx) < 46 &&
@@ -1745,8 +1823,8 @@ export async function demarrerJeu(donneesInitiales = null) {
       // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la
       // fontaine / du panneau de la scierie (où « Read » remplace « Talk »).
       const presPnj = fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || commissaire.proche || fontaine.proche;
-      invite.hidden = !(zoneActuelle === "city" && (presPnj || panneauScierie.proche || panneauTannerie.proche));
-      if (!invite.hidden) invite.textContent = presPnj ? "[Space] Talk" : "[Space] Read";
+      invite.hidden = !(zoneActuelle === "city" && (presPnj || coffreObjet.proche || panneauScierie.proche || panneauTannerie.proche));
+      if (!invite.hidden) invite.textContent = presPnj ? "[Space] Talk" : (coffreObjet.proche ? "[Space] Open" : "[Space] Read");
       mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
       // Bulle flottante du minerai : positionnée en CSS au-dessus de la veine
       if (veineProche) {
@@ -1783,6 +1861,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           { pieds: TANNERIE_BLOC.y + TANNERIE_BLOC.h, dessiner: () => dessinerTannerie(ctx) },
           { pieds: panneauTannerie.solY, dessiner: () => dessinerPanneauBatiment(ctx, panneauTannerie, "tannerie", "TANNERY") },
           { pieds: fontaine.solY, dessiner: () => dessinerFontaine(ctx, fontaine) },
+          { pieds: coffreObjet.solY, dessiner: () => dessinerCoffre(ctx, coffreObjet) },
           { pieds: piedsPnj(fanatique), dessiner: () => dessinerPnj(ctx, fanatique) },
           { pieds: piedsPnj(marchand), dessiner: () => dessinerPnj(ctx, marchand) },
           { pieds: piedsPnj(forgeron), dessiner: () => dessinerPnj(ctx, forgeron) },

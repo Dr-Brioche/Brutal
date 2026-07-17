@@ -1620,6 +1620,33 @@
       background: rgba(5, 5, 8, 0.72);
       z-index: 16;
     }
+    /* ---- Le COFFRE de ville : sac à gauche, coffre à droite ---- */
+    .coffre {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5, 5, 8, 0.72);
+      z-index: 16;
+    }
+    .coffre-panneau {
+      max-width: 94vw;
+      max-height: calc(var(--zh) - 2 * var(--ouv-y));
+      overflow: auto;
+      padding: 16px 18px 18px;
+      background: #14121a;
+      border: 1px solid #3b2030;
+      border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    }
+    .coffre-corps {
+      display: flex; align-items: flex-start; justify-content: center;
+      gap: 18px; margin-top: 14px;
+    }
+    .coffre-col { display: flex; flex-direction: column; align-items: center; }
+    .coffre-etiquette {
+      font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #b7a06a; margin-bottom: 8px;
+    }
+    .coffre-fleche { align-self: center; font-size: 1.4rem; color: #6a6480; padding: 0 4px; }
     .inv-panneau {
       width: min(420px, 94vw);
       max-height: calc(var(--zh) - 2 * var(--ouv-y));
@@ -2816,6 +2843,29 @@
       <div class="inv-onglets" id="inv-onglets"></div>
       <div class="inv-grille" id="inv-grille"></div>
       <p class="inv-aide">Click an item to pick it up · drop it where you want or on a slot · X: equip/discard · [B] to close</p>
+    </div>
+  </div>
+
+  <!-- Le COFFRE de ville (touche Action sur le coffre) : sac à gauche, coffre à droite -->
+  <div class="coffre" id="coffre" hidden>
+    <div class="coffre-panneau panneau-ui">
+      <div class="inv-entete">
+        <span class="inv-titre">Storage Chest</span>
+        <button id="coffre-fermer">✕</button>
+      </div>
+      <div class="coffre-corps">
+        <div class="coffre-col">
+          <div class="coffre-etiquette">🎒 Bag</div>
+          <div class="inv-onglets" id="coffre-onglets"></div>
+          <div class="inv-grille" id="coffre-sac"></div>
+        </div>
+        <div class="coffre-fleche">⇄</div>
+        <div class="coffre-col">
+          <div class="coffre-etiquette">📦 Chest</div>
+          <div class="inv-grille" id="coffre-grille"></div>
+        </div>
+      </div>
+      <p class="inv-aide">Click an item to move it to the other side · ←↑→↓ + Tab to navigate · Enter to move · [Esc] to close</p>
     </div>
   </div>
 

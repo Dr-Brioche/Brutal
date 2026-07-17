@@ -912,6 +912,24 @@ valeurs **~1.5×** les armes à une main, chacune avec son **combo** :
 - *À venir* : navigation clavier complète, vraies icônes pixel art,
   agrandissement du sac, prix d'**achat** (le marchand de test est encore gratuit).
 
+## Le coffre de ville (rangement partagé) — 1er jet (17/07/2026)
+
+Un **coffre** posé sur le dallage de la cité (près du centre) sert de **rangement
+persistant** : on y stocke objets, équipement et **ressources** pour libérer le sac
+entre deux descentes. On l'ouvre en marchant dessus + **Action** (`Space`) ou au clic
+(halo doré + invite « Open » à portée). Contenu **sauvegardé** dans la sauvegarde du
+joueur (`localStorage`) — écrit tout de suite à la fermeture pour ne rien perdre.
+
+- **Écran** : le **sac** du héros à gauche, le **coffre** à droite (grille 10×8 =
+  80 cases). Réutilise le moteur de grille de l'inventaire (mêmes empreintes,
+  empilement des ressources).
+- **Transfert** : **clic** sur un objet → il part dans l'autre contenant (auto-rangé) ;
+  au **clavier**, `←↑→↓` + `Tab` déplacent le curseur et `Entrée`/`Espace` envoie
+  l'objet sous le curseur. `Échap` ferme. (Règle du projet : souris **OU** clavier.)
+- **Sûreté** : si le contenant d'arrivée est plein, rien ne bouge (message + rollback).
+- *À venir* (si besoin) : glisser-déposer inter-grilles, agrandissement du coffre,
+  onglets/tri, vraie illustration du coffre.
+
 ## La Forge (pilier craft) — 1er jet (01/07/2026, crafting le 03/07/2026)
 
 L'**entrée du pilier** est en place, et le **crafting est jouable** (1er jet). Détail
