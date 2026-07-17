@@ -1971,7 +1971,7 @@ imgEpee1M.src = "images/armes/epee-1main.png";
 // L'ovale ne recouvre que le HAUT du poing : les doigts passent devant la garde,
 // mais le BAS du manche ressort sous le poing (devant le doigt du bas) — « on ne voit
 // que ce qui est devant », comme l'épée de lumière.
-const SKIN_DEFAUT_1M = { img: imgEpee1M, gcx: 420, gcy: 195, echelle: 0.075, angle: 68, fx: 0.868, fy: 0.464, poingsOvale: { cx: 0.840, cy: 0.452, rx: 0.105, ry: 0.066 } };
+const SKIN_DEFAUT_1M = { img: imgEpee1M, gcx: 420, gcy: 195, echelle: 0.075, angle: 72, fx: 0.868, fy: 0.464, poingsOvale: { cx: 0.840, cy: 0.452, rx: 0.105, ry: 0.066 } };
 
 // Facteur de rythme d'animation d'après la vitesse du monstre : rapide = anim plus
 // COURTE et vive, lent = ample et lourde. (Sert de multiplicateur de durée.)
