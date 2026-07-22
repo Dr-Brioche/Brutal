@@ -222,74 +222,43 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     }
   }
 
-  // Détection MANUELLE du double-clic : on ne peut pas se fier à l'événement
-  // natif `dblclick`. Le 1er clic SOULÈVE l'objet → rendre() reconstruit la
-  // grille → les deux clics tombent sur des éléments DOM différents (puis
-  // détachés), et le navigateur ne déclenche alors plus dblclick de façon fiable.
-  // On mémorise donc l'heure + la case du dernier clic et on compare nous-mêmes.
-  let dernierClic = { t: 0, x: -1, y: -1 };
-  const DELAI_DBLCLIC = 320; // ms max entre deux clics pour valider un double-clic
-
-  // Clic dans la grille : pose l'objet tenu, ou soulève celui qui est dessous.
-  // Deux clics rapprochés sur la MÊME case = double-clic → équiper directement.
-  elGrille.addEventListener("click", (ev) => {
-    if (confirmationActive()) return;
+  // DRAG À LA SOURIS (comme un fichier Windows) : on APPUIE sur un objet pour le
+  // saisir, on le déplace en gardant le bouton enfoncé (le ghost suit), et on
+  // RELÂCHE pour le déposer là où pointe la souris. La saisie se fait ici, au
+  // pointerdown ; le dépôt/routage se fait au pointerup global (plus bas).
+  elGrille.addEventListener("pointerdown", (ev) => {
+    if (ev.button !== 0 || confirmationActive() || tenu) return;
     const c = caseDepuisClient(ev.clientX, ev.clientY);
-    const maintenant = performance.now();
-    const doubleClic = maintenant - dernierClic.t < DELAI_DBLCLIC &&
-                       c.x === dernierClic.x && c.y === dernierClic.y;
+    const o = objetSousCase(inventaire, c.x, c.y, ongletActif);
+    if (!o) return;
+    ev.preventDefault(); // pas de sélection de texte pendant le drag
+    soulever(o, c.x - o.x, c.y - o.y);
+    ghostVersSouris(ev.clientX, ev.clientY);
+  });
 
-    if (doubleClic) {
-      dernierClic.t = 0; // évite qu'un 3e clic enchaîne un autre double-clic
-      // Le 1er clic a déjà soulevé l'objet : on l'équipe directement.
-      const o = tenu ? tenu.objet : objetSousCase(inventaire, c.x, c.y, ongletActif);
-      if (o) {
-        if (tenu) lacher();
-        essayerEquiper(inventaire, heros, o, surChangement, rendre);
-        rendre();
-      }
+  // RELÂCHEMENT (fin de drag souris) : on regarde ce qui est SOUS le pointeur
+  // (le ghost est `pointer-events:none`, donc `elementFromPoint` voit à travers)
+  // et on route le dépôt : slot d'équipement, grille (déplacer), fenêtre du
+  // marchand (vendre), ou le vide (jeter). Lâché ailleurs = l'objet REVIENT à sa
+  // place (annulation propre, façon glisser-déposer). La confirmation des objets
+  // rares (jeter/vendre) est gérée par surJeter/surVendre.
+  window.addEventListener("pointerup", (ev) => {
+    if (!tenu || ev.button !== 0) return;
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    const slotCell = el && el.closest ? el.closest(".inv-slot") : null;
+    if (slotCell && slotCell.dataset.slot) { equiperTenu(slotCell.dataset.slot); return; }
+    if (el && el.closest && el.closest("#inv-grille")) {
+      if (deplacerObjet(inventaire, tenu.objet, cibleX, cibleY, ongletActif)) { lacher(); rendre(); }
+      else { annulerTenu(); } // case occupée → l'objet retourne à sa place
       return;
     }
-    dernierClic = { t: maintenant, x: c.x, y: c.y };
-
-    if (tenu) {
-      const cible = calculerCible(c.x, c.y);
-      poserA(cible.x, cible.y);
-    } else {
-      const o = objetSousCase(inventaire, c.x, c.y, ongletActif);
-      if (o) { soulever(o, c.x - o.x, c.y - o.y); ghostVersSouris(ev.clientX, ev.clientY); }
+    if (surVendre && document.body.classList.contains("en-boutique") &&
+        el && el.closest && el.closest(".dialogue-boite")) {
+      const o = tenu.objet; lacher(); surVendre(o); return;
     }
+    if (el === overlay) { const o = tenu.objet; lacher(); if (surJeter) surJeter({ objet: o }); return; }
+    annulerTenu(); // lâché hors de toute cible valide → on annule (l'objet revient)
   });
-
-  // Lâcher un objet tenu DANS LE VIDE (le fond noir, hors de toute fenêtre) = le
-  // JETER. On teste `ev.target === overlay` (le clic a atterri sur le fond
-  // lui-même) et non `closest(".inv-panneau")` : car soulever() redessine la
-  // grille, ce qui DÉTACHE l'icône cliquée du DOM — `closest` renverrait alors
-  // null et jetterait l'objet aussitôt soulevé (le bug du déplacement souris).
-  // surJeter gère la confirmation pour les objets rares ; Échap (ou clic droit)
-  // reste le moyen SÛR d'annuler sans rien jeter. La VENTE, elle, se fait en
-  // lâchant sur la fenêtre du marchand (cf. le listener sur #dialogue ci-dessous).
-  overlay.addEventListener("click", (ev) => {
-    if (!tenu || ev.target !== overlay) return;
-    const o = tenu.objet;
-    lacher();
-    if (surJeter) surJeter({ objet: o });
-  });
-
-  // En boutique : lâcher un objet tenu SUR la fenêtre du marchand = le VENDRE.
-  // Phase capture, pour passer AVANT les options du dialogue (qu'on ne veut PAS
-  // déclencher quand on tient un objet). En boutique, seul `.dialogue-boite`
-  // capte la souris (le reste de #dialogue est transparent) : un clic ici signifie
-  // donc bien « lâché sur la fenêtre du marchand ».
-  const elDialogue = document.getElementById("dialogue");
-  elDialogue.addEventListener("click", (ev) => {
-    if (!tenu || !surVendre) return;
-    if (!document.body.classList.contains("en-boutique")) return;
-    ev.stopImmediatePropagation();
-    const o = tenu.objet;
-    lacher();
-    surVendre(o);
-  }, true);
 
   // Clic droit = menu Equip/Discard. Pendant qu'on tient un objet, il repose.
   window.addEventListener("contextmenu", (ev) => {
@@ -517,8 +486,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function slotEl(slot) {
     const cell = document.createElement("div");
     cell.className = "inv-slot";
-    // Poser un objet tenu sur un slot = l'équiper en ciblant CE slot précis.
-    cell.addEventListener("click", () => { if (tenu) equiperTenu(slot); });
+    cell.dataset.slot = slot; // repéré au relâchement du drag (équiper en lâchant dessus)
 
     if (slot === "arme2" && arme2Bloquee(inventaire)) {
       cell.classList.add("bloque");
