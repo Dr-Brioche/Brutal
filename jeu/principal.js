@@ -1480,14 +1480,24 @@ export async function demarrerJeu(donneesInitiales = null) {
     }
     surDescente = tuile.caractere === ">";
   }
+  // Caverne de chance (talent « Lucky Delver ») : proba par descente éligible +
+  // options de génération (quasi aucune rencontre, énormément de minerais).
+  const CHANCE_LUCK = 0.22;
+  const OPTS_LUCK = { luck: true, tauxRencontre: 0.05, bonusMineraisPct: 220 };
   function descendre() {
     if (!runProfondeur) runProfondeur = creerRunProfondeur(); // filet (ne devrait pas arriver)
     // NOUVEAU FLUX (16/07/2026) : on valide la descente → on CHOISIT le butin → PUIS
     // le jeu génère l'étage suivant EN FONCTION du choix (certains butins agissent à
     // la génération : pas de monstres / plus de minerais / porte garantie).
     offrirChoixProfondeur(async (genOpts) => {
+      const niveauSuivant = (zoneCourante.niveau ?? 1) + 1;
+      // CAVERNE DE CHANCE (talent « Lucky Delver ») : à partir de la profondeur 3,
+      // chaque descente peut (aléatoirement) tomber sur un étage LUCK — bourré de
+      // minerais et quasiment sans monstres. On fusionne ses options par-dessus le
+      // butin choisi (elles priment). CHANCE_LUCK = proba par descente éligible.
+      const luck = heros.etageChance && niveauSuivant >= 3 && Math.random() < CHANCE_LUCK;
       const mine = genererMine({
-        niveau: (zoneCourante.niveau ?? 1) + 1,
+        niveau: niveauSuivant,
         monstres: zoneCourante.monstresBase ?? zoneCourante.monstres, // base seule (pas le pool effectif)
         monstresProfonds: zoneCourante.monstresProfonds ?? [],
         musique: zoneCourante.musique,
@@ -1496,8 +1506,10 @@ export async function demarrerJeu(donneesInitiales = null) {
         materiaux: zoneCourante.materiaux,  // même table de drop (même grotte)
         bonusDescente: heros.descenteBonus ?? 0, // talent « Deep Experience »
         ...genOpts,                          // effets du butin sur la génération
+        ...(luck ? OPTS_LUCK : {}),          // caverne de chance : prime sur le reste
       });
       await allerVersZone(mine, mine.depart);
+      if (luck) afficherMessage("✨ A Lucky Cavern! Ore veins everywhere — and eerily quiet.");
     });
   }
 

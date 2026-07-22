@@ -52,6 +52,15 @@ export const TALENTS = {
     effet: { visionMine: 1 },
     description: "Miner's eye: +1 mine sight radius per rank (2 ranks) — reveal the fog of war farther around you while exploring the depths.",
   },
+  // Talent de FARM : débloque les « cavernes de chance ». À partir de la profondeur
+  // 3, chaque descente peut tomber (aléatoirement) sur un ÉTAGE LUCK — bourré de
+  // minerais et quasiment sans monstres. Un vrai coup de bol de mineur.
+  etageChance: {
+    id: "etageChance", nom: "Lucky Delver", branche: "forge",
+    x: 0, y: 3, cout: 2, requis: ["visionMine"],
+    effet: { etageChance: 1 },
+    description: "Lucky Caverns: from depth 3, each descent may open onto a Lucky Cavern — packed with ore and almost free of monsters. A true miner's windfall.",
+  },
 
   // ---- BRANCHE COMBAT (col 1-3) ---------------------------------------------
   // Chaleur de Forge = ÉNERGIE DE COMBAT (colonne 1, chaîne verticale).
@@ -239,6 +248,7 @@ const NOM_EFFET = {
   choixProfondeur: "Depth boon choices",
   descenteBonus: "Deeper-passage chance",
   visionMine: "Mine sight radius",
+  etageChance: "Lucky Caverns",
 };
 
 // Décrit l'effet d'un nœud, ex. "+10 Max HP".
