@@ -925,9 +925,10 @@ joueur (`localStorage`) — écrit tout de suite à la fermeture pour ne rien pe
 - **Écran** : le **sac** du héros à gauche, le **coffre** à droite (grille 10×8 =
   80 cases). Réutilise le moteur de grille de l'inventaire (mêmes empreintes,
   empilement des ressources).
-- **Transfert** : **clic** sur un objet → il part dans l'autre contenant (auto-rangé) ;
-  au **clavier**, `←↑→↓` + `Tab` déplacent le curseur et `Entrée`/`Espace` envoie
-  l'objet sous le curseur. `Échap` ferme. (Règle du projet : souris **OU** clavier.)
+- **Transfert** : **glisser-déposer** un objet d'une grille à l'autre (appuyer, déplacer,
+  relâcher — case précise si libre, sinon rangé auto) ; ou **clic** simple → il part dans
+  l'autre contenant (auto-rangé) ; au **clavier**, `←↑→↓` + `Tab` déplacent le curseur et
+  `Entrée`/`Espace` envoie l'objet sous le curseur. `Échap` ferme. (Souris **OU** clavier.)
 - **Sûreté** : si le contenant d'arrivée est plein, rien ne bouge (message + rollback).
 - *À venir* (si besoin) : glisser-déposer inter-grilles, agrandissement du coffre,
   onglets/tri, vraie illustration du coffre.
