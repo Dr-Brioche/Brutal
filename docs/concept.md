@@ -933,6 +933,15 @@ joueur (`localStorage`) — écrit tout de suite à la fermeture pour ne rien pe
 - Glisser-déposer inter-grilles OK. *À venir* (si besoin) : agrandissement du coffre,
   onglets/tri, vraie illustration du coffre.
 
+## Talent « Lucky Delver » — cavernes de chance (22/07/2026)
+
+Talent de la **branche forge** (col 0, sous *Miner's Sight*, 2 points). Une fois pris,
+**à partir de la profondeur 3**, chaque descente a **~22 % de chance** de tomber sur
+une **caverne de chance** : un étage **bourré de minerais** (~3× plus de veines) et
+**quasiment sans monstres** (taux de rencontre 0,3 → 0,05). Réutilise les leviers de
+génération existants (`bonusMineraisPct`, `tauxRencontre`) via `genererMine`. Un message
+annonce l'étage. C'est un vrai coup de bol de farm, sans casser la boucle des étages.
+
 ## La banque de Brütàl (pilier économie) — 1er jet (22/07/2026)
 
 Un **banquier** (Grimbrück) en ville ouvre un écran plein écran pour gérer son or.
