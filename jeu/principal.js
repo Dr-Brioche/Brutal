@@ -905,6 +905,9 @@ export async function demarrerJeu(donneesInitiales = null) {
         choix.push({
           texte: `${it.nom}  ·  free`,
           itemId: it.id,
+          // Achat à la souris = DOUBLE-CLIC (anti-mégarde) : 1er clic sélectionne,
+          // 2e clic achète. Sauf l'onglet de test « Resources » (remplissage rapide).
+          confirmClic: c.nom !== "Resources",
           action: () => {
             prochainMenu = () => menuCategorie(c, fullIdx, selRoot);
             // Un SAC s'ÉQUIPE d'office dans un slot de sac libre (il ne va pas DANS
