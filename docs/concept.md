@@ -905,10 +905,12 @@ valeurs **~1.5×** les armes à une main, chacune avec son **combo** :
   **resélectionne l'objet** où on était, et remonter d'un cran resélectionne la
   catégorie / l'entrée d'où l'on venait (l'index de la ligne est mémorisé et
   rejoué au `selInitial` du dialogue).
-- **Glisser-déposer dans le sac** : on soulève un objet d'un clic, on le repose sur
-  une case (réorganisation) ou un slot (équiper). Le lâcher **dans le vide** (hors
-  de toute fenêtre) le **jette** (confirmation pour les objets rares) ; **Échap**
-  annule sans rien jeter.
+- **Glisser-déposer dans le sac (façon Windows)** : on **appuie** sur un objet, on le
+  **déplace en gardant le bouton enfoncé** (l'objet suit la souris), et on **relâche**
+  pour le déposer — sur une case (réorganisation), un slot (équiper), la fenêtre du
+  marchand (vendre) ou **dans le vide** hors de toute fenêtre (jeter, confirmation pour
+  les objets rares). Lâché ailleurs = l'objet **revient à sa place**. **Échap** annule.
+  Au **clavier** : flèches/WASD pour le curseur, **Entrée** pour soulever/poser.
 - *À venir* : navigation clavier complète, vraies icônes pixel art,
   agrandissement du sac, prix d'**achat** (le marchand de test est encore gratuit).
 
