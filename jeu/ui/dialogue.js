@@ -50,6 +50,11 @@ export function ouvrirDialogue(dialogue, surFin) {
   let page = 0;
   let enChoix = pages.length === 0;
   let sel = Math.max(0, Math.min(dialogue.selInitial ?? 0, Math.max(0, choix.length - 1)));
+  // Options marquées `confirmClic` (ex. ACHAT chez le marchand) : un 1er clic
+  // SÉLECTIONNE seulement (aperçu) ; il faut un 2e clic sur la MÊME ligne pour
+  // valider — évite d'acheter par mégarde en un clic. `clicEnAttente` = l'index
+  // en attente de confirmation (-1 = aucun). La navigation clavier le remet à zéro.
+  let clicEnAttente = -1;
   // Si la position initiale tombe sur un séparateur, avancer jusqu'au premier item.
   while (sel < choix.length - 1 && choix[sel]?.separateur) sel++;
 
@@ -72,7 +77,8 @@ export function ouvrirDialogue(dialogue, surFin) {
         return;
       }
       const el = document.createElement("div");
-      el.className = "dialogue-option" + (i === sel ? " sel" : "");
+      const enAttente = c.confirmClic && clicEnAttente === i;
+      el.className = "dialogue-option" + (i === sel ? " sel" : "") + (enAttente ? " dialogue-option--attente" : "");
       const fleche = i === sel ? "▶ " : "   ";
       const d = c.itemId ? itemDef(c.itemId) : null;
       if (d) {
@@ -95,10 +101,23 @@ export function ouvrirDialogue(dialogue, surFin) {
       } else {
         el.textContent = fleche + c.texte;
       }
-      el.addEventListener("click", () => choisir(i));
+      el.addEventListener("click", () => {
+        if (c.confirmClic) {
+          // 1er clic : on sélectionne (aperçu). 2e clic sur la même ligne : on valide.
+          if (clicEnAttente === i) { choisir(i); return; }
+          sel = i; clicEnAttente = i; rendre();
+        } else {
+          choisir(i);
+        }
+      });
       elChoix.append(el);
     });
-    const aide = choix.length ? "[Z/S] choose · [Space] confirm" : "[Space] close";
+    const enAttenteGlobal = clicEnAttente >= 0 && choix[clicEnAttente] && !choix[clicEnAttente].separateur;
+    const aide = !choix.length
+      ? "[Space] close"
+      : enAttenteGlobal
+        ? "Click again to buy · [Z/S] choose"
+        : "[Z/S] choose · [Space] confirm";
     elAide.textContent = dialogue.surEchap ? `${aide} · [Esc] back` : aide;
     majApercu(); // bulle du choix sélectionné (navigation clavier)
   }
@@ -154,6 +173,7 @@ export function ouvrirDialogue(dialogue, surFin) {
 
   // Navigation qui saute les séparateurs (non cliquables).
   function deplacer(dir) {
+    clicEnAttente = -1; // changer de ligne au clavier annule un achat en attente
     const n = Math.max(1, choix.length);
     let next = sel;
     do { next = (next + dir + n) % n; } while (choix[next]?.separateur && next !== sel);
