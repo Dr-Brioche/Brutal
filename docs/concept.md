@@ -940,10 +940,11 @@ Accès libre (aucun titre requis). Deux produits :
 
 - **Coffre-fort** : dépôt d'or **sûr**, rendement composé **+0,2 %/jour de jeu**.
   Retrait à tout moment. Aucun risque.
-- **Investissements** : 3 **sociétés** thématiques, chacune avec son couple
-  **rendement/risque** (affiché en ◆) : *Fonderies de Ferrok* (prudent),
-  *Société minière de Brumgal* (équilibré), *Comptoir des gemmes d'Onyx*
-  (spéculatif). Chaque **jour de jeu**, le capital investi subit un tirage
+- **Investissements** : 4 **sociétés** thématiques, chacune avec son couple
+  **rendement/risque** (affiché en ◆) : *Fonderies de Ferrok* (prudent ◆◇◇),
+  *Société minière de Brumgal* (équilibré ◆◆◇), *Comptoir des gemmes d'Onyx*
+  (spéculatif ◆◆◆) et **DeepX** (*Forage abyssal*, EXTRÊME ◆◆◆◆ rouge) : rendement
+  énorme mais ≈ 30 % de tout perdre sur 30 jours — le gros pari. Chaque **jour de jeu**, le capital investi subit un tirage
   aléatoire (rendement moyen ± volatilité) + une petite proba de **krach** (perte
   partielle) ou de **faillite** (perte totale). Espérance positive qui monte avec
   le risque, mais variance et faillites réelles (≈ 1,7 % / 4,4 % / 11,9 % de
