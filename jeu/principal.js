@@ -740,16 +740,18 @@ export async function demarrerJeu(donneesInitiales = null) {
       { label: "Weapons — 2 hands", test: (it) => it.categorie === "arme" && it.mains === 2 },
       { label: "Off-hand",          test: (it) => it.categorie === "bouclier" },
     ]},
-    { nom: "Armor",   icone: "🛡", cats: ["armure"] },
+    // Armor : la cuirasse MAIS AUSSI les gants et les bottes (ce sont des pièces
+    // d'armure) — sous-groupés pour rester lisibles.
+    { nom: "Armor",   icone: "🛡", cats: ["armure", "gant", "botte"], groupes: [
+      { label: "Body armor", test: (it) => it.categorie === "armure" },
+      { label: "Gloves",     test: (it) => it.categorie === "gant" },
+      { label: "Boots",      test: (it) => it.categorie === "botte" },
+    ]},
     { nom: "Jewelry", icone: "💍", cats: ["bague", "collier"], groupes: [
       { label: "Amulets", test: (it) => it.categorie === "collier" },
       { label: "Rings",   test: (it) => it.categorie === "bague" },
     ]},
-    { nom: "Other",   icone: "🎒", cats: ["gant", "botte", "sac"], groupes: [
-      { label: "Gloves", test: (it) => it.categorie === "gant" },
-      { label: "Boots",  test: (it) => it.categorie === "botte" },
-      { label: "Bags",   test: (it) => it.categorie === "sac" },
-    ]},
+    { nom: "Bags",    icone: "🎒", cats: ["sac"] },
     // Onglet de TEST pour le craft : toutes les ressources (minerais + bois),
     // GRATUITES, pour remplir le sac et essayer la forge (1 clic = +1, empilable).
     { nom: "Resources", icone: "⛏", cats: ["ressource"], groupes: [
