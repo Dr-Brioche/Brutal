@@ -101,6 +101,26 @@ export const COMMISSAIRE = {
   passif: { anim: "passive", min: 7, max: 14 },
 };
 
+// Grimbrück le banquier : tient la BANQUE de Brütàl (coffre-fort à rendement sûr
+// + investissements risqués dans des sociétés naines). Stationnaire, réutilise la
+// planche du marchand avec une teinte VERT/OR (l'argent). Accès libre (pas de titre).
+export const BANQUIER = {
+  id: "banquier",
+  nom: "Grimbrück",
+  planche: "images/pnj/marchand.png",
+  teinte: "hue-rotate(90deg) saturate(1.1) brightness(1.02)", // verts d'usurier & or
+  sprite: {
+    caseL: 104,
+    caseH: 88,
+    regard: { bas: 0, gauche: 7, droite: 8, haut: 9 },
+    anims: {
+      repos:   { frames: [0], ips: 1, boucle: true },
+      passive: { frames: [0, 1, 2, 3, 4, 5, 6], ips: 7, boucle: false }, // il compte des pièces
+    },
+  },
+  passif: { anim: "passive", min: 6, max: 13 },
+};
+
 export const FORGERON = {
   id: "forgeron",
   nom: "Ferran",

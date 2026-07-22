@@ -26,7 +26,7 @@
 export const BRANCHES = {
   forge:    { nom: "Forge",    cols: [0, 0], couleur: "#e0842a", icone: "⚒" },
   combat:   { nom: "Combat",   cols: [1, 3], couleur: "#d0574a", icone: "⚔" },
-  commerce: { nom: "Commerce", cols: [4, 4], couleur: "#4a9d72", icone: "🪙" },
+  commerce: { nom: "Commerce", cols: [4, 5], couleur: "#4a9d72", icone: "🪙" },
 };
 
 export const TALENTS = {
@@ -173,6 +173,15 @@ export const TALENTS = {
     effet: { collecteurImpot: 1 },
     description: "Buildings' GOLD is banked automatically whenever their treasury fills — no more walking the rounds. Raw materials (wood…) still pile up (cap 3 stacks of 10) and must be fetched on foot.",
   },
+  // Légendaire commerce (offshoot col 5) : le Secret d'investisseur. À la BANQUE,
+  // les sociétés rapportent PLUS et risquent MOINS (rendement ×1,5, risques nettement
+  // réduits). Ne change rien au coffre-fort sûr — c'est le levier des investissements.
+  secretInvestisseur: {
+    id: "secretInvestisseur", nom: "Investor's Secret", branche: "commerce",
+    x: 5, y: 2, cout: 3, requis: ["citoyen"], legendaire: true,
+    effet: { secretInvestisseur: 1 },
+    description: "At the Bank, company investments earn MORE and risk LESS: +50% average return, and far fewer crashes and bankruptcies. Does not affect the safe vault.",
+  },
 
   // ⚠ TODO EXPORT FINAL : talents de TEST à RETIRER avant le build Steam.
   // Gratuit, ON/OFF (toggle), désactivé par défaut : annule TOUTE rencontre.
@@ -198,7 +207,7 @@ export const TALENTS = {
 
 // Taille de la grille (pour dimensionner l'écran) : 5 colonnes, 7 rangées
 // (la branche commerce descend d'un cran depuis l'ajout de « Citizenship »).
-export const TALENT_GRILLE = { cols: 5, lignes: 7 };
+export const TALENT_GRILLE = { cols: 6, lignes: 7 };
 
 export function talentDef(id) {
   return TALENTS[id] ?? null;
@@ -221,6 +230,7 @@ const NOM_EFFET = {
   noblesse: "Auction access",
   depotEnchere: "Auction consignment slot",
   collecteurImpot: "Auto-collect building gold",
+  secretInvestisseur: "Better, safer investments",
   maitrise: "Ancestral Mastery",
   slots: "Mastery slots",
   ambidextrie: "Ambidexterity",

@@ -1656,6 +1656,52 @@
       text-transform: uppercase; color: #b7a06a; margin-bottom: 8px;
     }
     .coffre-fleche { align-self: center; font-size: 1.4rem; color: #6a6480; padding: 0 4px; }
+    /* ---- La BANQUE (coffre-fort + investissements) ---- */
+    .banque {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5, 5, 8, 0.72);
+      z-index: 16;
+    }
+    .banque-panneau {
+      width: min(760px, 94vw);
+      max-height: calc(var(--zh) - 2 * var(--ouv-y));
+      overflow: auto;
+      padding: 16px 18px 18px;
+      background: #14121a;
+      border: 1px solid #2e3b2c;
+      border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    }
+    .banque-corps { display: flex; gap: 16px; margin-top: 14px; align-items: flex-start; }
+    .banque-colonne { display: flex; flex-direction: column; gap: 12px; }
+    .banque-colonne--coffre { flex: 0 0 40%; }
+    .banque-colonne--soc { flex: 1; }
+    .banque-carte {
+      background: #191722; border: 1px solid #2c2a36; border-radius: var(--rayon);
+      padding: 12px 14px;
+    }
+    .banque-carte--coffre { border-color: #3a5a3a; }
+    .banque-carte--soc.risque-1 { border-color: #3a5a3a; }
+    .banque-carte--soc.risque-2 { border-color: #7a6a2a; }
+    .banque-carte--soc.risque-3 { border-color: #7a3a2a; }
+    .banque-carte-titre { font-weight: 800; font-size: 0.98rem; color: #f3f4f6; }
+    .banque-carte-sous { font-size: 0.74rem; color: #8b8f98; margin: 2px 0 6px; }
+    .banque-risque { color: #d9a441; font-weight: 700; letter-spacing: 1px; }
+    .banque-carte--soc.risque-3 .banque-risque { color: #e0662a; }
+    .banque-carte-valeur { font-family: ui-monospace, monospace; font-weight: 700; color: #ffcf57; font-size: 1.05rem; margin-bottom: 8px; }
+    .banque-vide { color: #6b7280; font-weight: 400; font-style: italic; }
+    .banque-op { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .banque-op-label { flex: 0 0 66px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8b8f98; }
+    .banque-montants { display: flex; gap: 5px; flex-wrap: wrap; }
+    .banque-btn {
+      font-family: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+      color: #e8ead0; background: #26331f; border: 1px solid #3d5230; border-radius: var(--rayon);
+      padding: 4px 9px; transition: background 0.12s, border-color 0.12s;
+    }
+    .banque-btn:hover:not(:disabled) { background: #35471f; border-color: #6a8a3a; }
+    .banque-btn:focus-visible { outline: 2px solid #ffcf57; outline-offset: 1px; }
+    .banque-btn:disabled { opacity: 0.35; cursor: default; }
     .inv-panneau {
       width: min(420px, 94vw);
       max-height: calc(var(--zh) - 2 * var(--ouv-y));
@@ -2875,6 +2921,22 @@
         </div>
       </div>
       <p class="inv-aide">Click an item to move it to the other side · ←↑→↓ + Tab to navigate · Enter to move · [Esc] to close</p>
+    </div>
+  </div>
+
+  <!-- La BANQUE de Brütàl (parler à Grimbrück le banquier) : coffre-fort + investissements -->
+  <div class="banque" id="banque" hidden>
+    <div class="banque-panneau panneau-ui">
+      <div class="inv-entete">
+        <span class="inv-titre">Bank of Brütàl</span>
+        <span class="inv-or-boite"><span class="icone-piece"></span> <span id="banque-or">0</span></span>
+        <button id="banque-fermer">✕</button>
+      </div>
+      <div class="banque-corps">
+        <div class="banque-colonne banque-colonne--coffre" id="banque-coffre"></div>
+        <div class="banque-colonne banque-colonne--soc" id="banque-societes"></div>
+      </div>
+      <p class="inv-aide">Deposit gold safely, or invest in companies for higher — riskier — returns · [Esc] to close</p>
     </div>
   </div>
 

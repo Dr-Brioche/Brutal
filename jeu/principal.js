@@ -36,7 +36,7 @@ import { demarrerCombat } from "./ui/combat.js";
 import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
 import { fondCombat, prechargerFonds } from "./data/fonds.js";
 import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
-import { FANATIQUE, MARCHAND, FORGERON, COURTIER, COMMISSAIRE } from "./data/pnj.js";
+import { FANATIQUE, MARCHAND, FORGERON, COURTIER, COMMISSAIRE, BANQUIER } from "./data/pnj.js";
 import { installerForge, ouvrirForge, forgeActive } from "./ui/forge.js";
 import { installerHV, ouvrirHV, hvActive, phraseCourtier } from "./ui/hv.js";
 import { creerMarche, tickMarche, etatMarche, chargerMarche, valeurReelle } from "./systems/marche.js";
@@ -56,6 +56,8 @@ import {
 import { installerEncheres, ouvrirEncheres, enchereActive } from "./ui/encheres.js";
 import { creerCoffre, etatCoffre, chargerCoffre } from "./systems/coffre.js";
 import { installerCoffre, coffreActif } from "./ui/coffre.js";
+import { creerBanque, etatBanque, chargerBanque } from "./systems/banque.js";
+import { installerBanque, banqueActif } from "./ui/banque.js";
 import { installerHorloge, dessinerHorloge, montrerHorloge } from "./ui/horloge.js";
 import { installerParchemin, ouvrirParchemin } from "./ui/parchemin.js";
 import {
@@ -140,6 +142,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   const inventaire = creerInventaire();
   // Le COFFRE de ville : grand rangement partagé et persistant (cf. systems/coffre.js).
   const coffre = creerCoffre();
+  // La BANQUE : coffre-fort (rendement sûr) + investissements risqués (cf. systems/banque.js).
+  const banque = creerBanque();
   // Le MARCHÉ (Hôtel des ventes) : prix vivants des ressources + annonces d'objets.
   // Son horloge n'avance qu'en JEU ACTIF (cf. le tick en tête de mettreAJour).
   const marche = creerMarche();
@@ -233,6 +237,16 @@ export async function demarrerJeu(donneesInitiales = null) {
     xMin: 21 * TUILE - 36,
     xMax: 21 * TUILE - 36,
   });
+  // Grimbrück le banquier (BANQUE : coffre-fort + investissements), STATIONNAIRE
+  // (rangée 11, à droite du courtier). Accès libre (pas de titre requis).
+  const banquier = creerPnj({
+    modele: BANQUIER,
+    planche: planches.get(BANQUIER.planche),
+    x: 31 * TUILE - 36,
+    y: 11 * TUILE - 72,
+    xMin: 31 * TUILE - 36,
+    xMax: 31 * TUILE - 36,
+  });
   // FONTAINE (build de TEST) : près de la porte de sortie. On lui parle
   // pour gagner 1 niveau d'un coup → tester l'arbre de talents sans farmer.
   const fontaine = {
@@ -279,7 +293,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     };
     return [
       boitePnj(fanatique), boitePnj(marchand), boitePnj(forgeron), boitePnj(courtier),
-      boitePnj(commissaire),
+      boitePnj(commissaire), boitePnj(banquier),
       { x: fontaine.cx - 20, y: fontaine.solY - 16, w: 40, h: 22 },
       // Le coffre : caisse solide au sol, on ne la traverse pas.
       { x: coffreObjet.cx - 18, y: coffreObjet.solY - 18, w: 36, h: 20 },
@@ -693,6 +707,26 @@ export async function demarrerJeu(donneesInitiales = null) {
     }, finCommissaire);
   }
 
+  // Parler à Grimbrück le banquier : mot d'accueil, puis ouverture de la BANQUE
+  // (coffre-fort sûr + investissements risqués). Accès libre (aucun titre requis).
+  function parlerAuBanquier() {
+    if (dialogueActif() || combatEnCours || enPause) return;
+    regarderHeros(banquier, heros); // il se tourne vers le héros pendant qu'on lui parle
+    enPause = true;
+    invite.hidden = true;
+    ouvrirDialogue({
+      nom: "Grimbrück the Banker",
+      texte: [
+        "“Gold left idle is gold wasted, friend. Lodge it in my vault for safe, steady returns…”",
+        "“…or back Brütàl's finest ventures — richer rewards, but sharper risks. Crashes happen. Ruin, too.”",
+      ],
+      choix: [
+        { texte: "🏦  Manage my money", action: () => ouvrirBanque() },
+        { texte: "Leave", action: () => {} },
+      ],
+    }, () => { if (!banqueActif()) enPause = false; });
+  }
+
   function collecterDusEncheres() {
     const du = encheres.aRecuperer;
     const morceaux = [];
@@ -948,6 +982,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       direction: heros.direction,
       inventaire: etatInventaire(inventaire),
       coffre: etatCoffre(coffre),
+      banque: etatBanque(banque),
       maitrise: etatMaitrise(maitrise),
       marche: etatMarche(marche),
       batiments: etatBatiments(batiments),
@@ -965,6 +1000,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (!donnees) return;
     if (donnees.inventaire) chargerInventaire(inventaire, donnees.inventaire);
     chargerCoffre(coffre, donnees.coffre); // coffre de ville (absent des vieilles saves = vide)
+    chargerBanque(banque, donnees.banque); // banque (absent des vieilles saves = vide)
     // Recharger la bonne zone AVANT de valider la position
     if (donnees.zone && ZONES[donnees.zone] && donnees.zone !== zoneActuelle) {
       carte = creerCarte(ZONES[donnees.zone]);
@@ -1213,6 +1249,23 @@ export async function demarrerJeu(donneesInitiales = null) {
       },
     });
   }
+  // LA BANQUE : écran plein écran (coffre-fort + investissements), ouvert via
+  // Grimbrück le banquier. Les rendements sont rattrapés à l'ouverture (jours écoulés).
+  const banqueUI = installerBanque();
+  function ouvrirBanque() {
+    enPause = true; invite.hidden = true;
+    banqueUI.ouvrir({
+      inventaire, banque,
+      jour: numeroJour(temps),
+      secret: heros.secretInvestisseur,
+      surFermer: () => {
+        enPause = false;
+        // Persiste tout de suite (l'or confié est précieux → pas de perte au refresh).
+        if (zoneActuelle === "city") ecrireSlot(SLOT_AUTO, obtenirEtat());
+      },
+    });
+  }
+
   installerHorloge();  // le cadran jour/nuit (HUD haut-droite)
   installerParchemin(); // l'écran de lecture des parchemins de craft
   installerLivre();     // le Livre d'artisanat (recettes apprises, touche L)
@@ -1261,6 +1314,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     else if (forgeron.proche) { e.preventDefault(); parlerAuForgeron(); }
     else if (courtier.proche) { e.preventDefault(); parlerAuCourtier(); }
     else if (commissaire.proche) { e.preventDefault(); parlerAuCommissaire(); }
+    else if (banquier.proche) { e.preventDefault(); parlerAuBanquier(); }
     else if (fontaine.proche) { e.preventDefault(); parlerALaFontaine(); }
     else if (coffreObjet.proche) { e.preventDefault(); ouvrirCoffreVille(); }
     else if (panneauScierie.proche) { e.preventDefault(); lirePanneauBatiment("scierie"); }
@@ -1806,6 +1860,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         mettreAJourPnj(forgeron, dt, heros);
         mettreAJourPnj(courtier, dt, heros);
         mettreAJourPnj(commissaire, dt, heros);
+        mettreAJourPnj(banquier, dt, heros);
         fontaine.t += dt;
         fontaine.proche =
           Math.abs((heros.x + 32) - fontaine.cx) < 46 &&
@@ -1827,7 +1882,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       veineProche = (zoneCourante.estMine && !minage) ? veineLaPlusProche() : null;
       // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la
       // fontaine / du panneau de la scierie (où « Read » remplace « Talk »).
-      const presPnj = fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || commissaire.proche || fontaine.proche;
+      const presPnj = fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || commissaire.proche || banquier.proche || fontaine.proche;
       invite.hidden = !(zoneActuelle === "city" && (presPnj || coffreObjet.proche || panneauScierie.proche || panneauTannerie.proche));
       if (!invite.hidden) invite.textContent = presPnj ? "[Space] Talk" : (coffreObjet.proche ? "[Space] Open" : "[Space] Read");
       mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
@@ -1872,6 +1927,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           { pieds: piedsPnj(forgeron), dessiner: () => dessinerPnj(ctx, forgeron) },
           { pieds: piedsPnj(courtier), dessiner: () => dessinerPnj(ctx, courtier) },
           { pieds: piedsPnj(commissaire), dessiner: () => dessinerPnj(ctx, commissaire) },
+          { pieds: piedsPnj(banquier), dessiner: () => dessinerPnj(ctx, banquier) },
           { pieds: heros.y + 54, dessiner: () => dessinerHeros(ctx, heros) },
         ];
         acteurs.sort((a, b) => a.pieds - b.pieds);
