@@ -16,7 +16,7 @@ let actif = false;
 export function banqueActif() { return actif; }
 
 const or = (n) => Math.floor(n).toLocaleString("fr-FR");
-const etoilesRisque = (r) => "◆".repeat(r) + "◇".repeat(3 - r);
+const etoilesRisque = (r) => "◆".repeat(r) + "◇".repeat(Math.max(0, 3 - r));
 
 export function installerBanque() {
   const panneau    = document.getElementById("banque");

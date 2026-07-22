@@ -50,6 +50,16 @@ export const SOCIETES = [
     rendementMoyen: 0.026, volatilite: 0.035,
     probaKrach: 0.035, pertesKrach: 0.35, probaFaillite: 0.004,
   },
+  {
+    id: "deepx",
+    nom: "DeepX",
+    secteur: "Forage abyssal",
+    risque: 4, // EXTRÊME (au-delà des 3 autres) : rendement énorme, danger énorme.
+    // Espérance élevée (~+1,3 %/j) mais volatilité folle, gros krachs ET faillites
+    // fréquentes (≈ 30 % de tout perdre sur 30 jours). Le gros pari.
+    rendementMoyen: 0.060, volatilite: 0.090,
+    probaKrach: 0.070, pertesKrach: 0.50, probaFaillite: 0.012,
+  },
 ];
 
 // TALENT « Secret d'investisseur » : augmente les gains ET diminue les risques.
