@@ -60,6 +60,7 @@ export function appliquerTalents(heros) {
   heros.depotsEncheresMax = 1 + (b.depotEnchere || 0);
   // Collecteur d'impôt (légendaire) : l'or des bâtiments s'encaisse tout seul.
   heros.collecteurImpot = (b.collecteurImpot || 0) > 0;
+  heros.secretInvestisseur = (b.secretInvestisseur || 0) > 0; // banque : meilleurs invest., moins de risque
   // Choix de butin par étage de profondeur : 2 de base + 1 par rang de « Deep Prospector ».
   heros.choixLootProfondeur = 2 + (b.choixProfondeur || 0);
   // Bonus de chance de trouver un passage `>` (talent « Deep Experience », en %).

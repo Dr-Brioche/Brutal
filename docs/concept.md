@@ -930,8 +930,39 @@ joueur (`localStorage`) — écrit tout de suite à la fermeture pour ne rien pe
   l'autre contenant (auto-rangé) ; au **clavier**, `←↑→↓` + `Tab` déplacent le curseur et
   `Entrée`/`Espace` envoie l'objet sous le curseur. `Échap` ferme. (Souris **OU** clavier.)
 - **Sûreté** : si le contenant d'arrivée est plein, rien ne bouge (message + rollback).
-- *À venir* (si besoin) : glisser-déposer inter-grilles, agrandissement du coffre,
+- Glisser-déposer inter-grilles OK. *À venir* (si besoin) : agrandissement du coffre,
   onglets/tri, vraie illustration du coffre.
+
+## La banque de Brütàl (pilier économie) — 1er jet (22/07/2026)
+
+Un **banquier** (Grimbrück) en ville ouvre un écran plein écran pour gérer son or.
+Accès libre (aucun titre requis). Deux produits :
+
+- **Coffre-fort** : dépôt d'or **sûr**, rendement composé **+0,2 %/jour de jeu**.
+  Retrait à tout moment. Aucun risque.
+- **Investissements** : 3 **sociétés** thématiques, chacune avec son couple
+  **rendement/risque** (affiché en ◆) : *Fonderies de Ferrok* (prudent),
+  *Société minière de Brumgal* (équilibré), *Comptoir des gemmes d'Onyx*
+  (spéculatif). Chaque **jour de jeu**, le capital investi subit un tirage
+  aléatoire (rendement moyen ± volatilité) + une petite proba de **krach** (perte
+  partielle) ou de **faillite** (perte totale). Espérance positive qui monte avec
+  le risque, mais variance et faillites réelles (≈ 1,7 % / 4,4 % / 11,9 % de
+  faillite sur 30 jours). Retrait de la valeur courante à tout moment.
+
+Résolution **paresseuse** : à l'ouverture de la banque, on rattrape tous les jours
+de jeu écoulés depuis la dernière visite et on **résume** au joueur ce qui s'est
+passé (gains, krachs, faillites). Rien ne tourne image par image.
+
+- **Talent « Investor's Secret »** (branche commerce, offshoot col 5, **3 points**,
+  requiert *Citizenship*) : les sociétés rapportent **+50 % de rendement moyen** et
+  risquent **nettement moins** (krachs/faillites/volatilité réduits). Ne touche pas
+  au coffre-fort sûr.
+- Or, coffre-fort et investissements **persistés** dans la sauvegarde (écrits à la
+  fermeture de la banque).
+- Fichiers : `jeu/data/banque.js` (sociétés + réglages), `jeu/systems/banque.js`
+  (état, simulation, opérations), `jeu/ui/banque.js` (écran), PNJ `BANQUIER`.
+- *À venir* (si besoin) : historique/graphe des cours, dividendes, plus de sociétés,
+  vrai portage des risques sur le long terme.
 
 ## La Forge (pilier craft) — 1er jet (01/07/2026, crafting le 03/07/2026)
 
