@@ -1711,6 +1711,35 @@
     .banque-input:focus { outline: 2px solid #ffcf57; outline-offset: 1px; border-color: #6a8a3a; }
     .banque-input:disabled { opacity: 0.4; }
     .banque-btn--ok { background: #35471f; border-color: #6a8a3a; }
+    /* ⚠ TEST — Simulateur de combat (Maître d'arène) */
+    .testeur { position: absolute; inset: 0; z-index: 40; display: grid; place-items: center;
+      background: rgba(6, 5, 8, 0.62); }
+    .testeur-panneau { width: min(640px, 92%); max-height: 86%; display: flex; flex-direction: column;
+      gap: 10px; background: #17141c; border: 1px solid #4a3d5a; border-radius: var(--rayon);
+      padding: 14px 16px; color: #e8ead0; }
+    .testeur-compteur { margin-left: auto; margin-right: 10px; font-weight: 800; color: #c9b8ff;
+      font-family: ui-monospace, monospace; }
+    .testeur-compteur--plein { color: #ffcf57; }
+    .testeur-liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 6px; overflow-y: auto; max-height: 46vh; padding-right: 4px; }
+    .testeur-mob { display: flex; align-items: center; gap: 6px; font-family: inherit; font-size: 0.78rem;
+      cursor: pointer; color: #e8ead0; background: #221d2c; border: 1px solid #3d3350;
+      border-radius: var(--rayon); padding: 5px 8px; text-align: left; }
+    .testeur-mob:hover:not(:disabled) { background: #2e2740; border-color: #7a5aa0; }
+    .testeur-mob:focus-visible { outline: 2px solid #c9b8ff; outline-offset: 1px; }
+    .testeur-mob:disabled { opacity: 0.35; cursor: default; }
+    .testeur-mob-nom { flex: 1 1 auto; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .testeur-mob-niv { flex: 0 0 auto; color: #9a8fb5; font-size: 0.72rem; }
+    .testeur-mob-places { flex: 0 0 auto; color: #7a6a9a; font-size: 0.66rem; letter-spacing: 0.05em; }
+    .testeur-mob-n { flex: 0 0 auto; font-weight: 800; color: #ffcf57; }
+    .testeur-choix { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; align-content: flex-start;
+      background: #100e15; border: 1px solid #322a42; border-radius: var(--rayon); padding: 6px; }
+    .testeur-vide { color: #6a6280; font-style: italic; font-size: 0.8rem; align-self: center; }
+    .testeur-chip { font-family: inherit; font-size: 0.74rem; cursor: pointer; color: #e8ead0;
+      background: #3a2f4e; border: 1px solid #6a5590; border-radius: 999px; padding: 3px 9px; }
+    .testeur-chip:hover { background: #4a3a66; }
+    .testeur-chip-lv { color: #b9a8dd; }
+    .testeur-barre { display: flex; gap: 8px; justify-content: flex-end; }
     .banque-btn {
       font-family: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer;
       color: #e8ead0; background: #26331f; border: 1px solid #3d5230; border-radius: var(--rayon);
@@ -2954,6 +2983,24 @@
         <div class="banque-colonne banque-colonne--soc" id="banque-societes"></div>
       </div>
       <p class="inv-aide">Deposit gold safely, or invest in companies for higher — riskier — returns · [Esc] to close</p>
+    </div>
+  </div>
+
+  <!-- ⚠ TEST — Simulateur de combat du Maître d'arène (à retirer avant l'export final) -->
+  <div class="testeur" id="testeur" hidden>
+    <div class="testeur-panneau panneau-ui">
+      <div class="inv-entete">
+        <span class="inv-titre">⚔ Combat Simulator (test)</span>
+        <span class="testeur-compteur" id="testeur-compteur">0 / 5 places</span>
+        <button id="testeur-fermer">✕</button>
+      </div>
+      <div class="testeur-liste" id="testeur-liste"></div>
+      <div class="testeur-choix" id="testeur-choix"></div>
+      <div class="testeur-barre">
+        <button class="banque-btn" id="testeur-vider">Clear</button>
+        <button class="banque-btn banque-btn--ok" id="testeur-lancer">⚔ Fight!</button>
+      </div>
+      <p class="inv-aide">Pick monsters (big ones take 2 places) up to 5, then Fight. No stakes — a pure test · [Esc] to close</p>
     </div>
   </div>
 
