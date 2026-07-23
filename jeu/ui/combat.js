@@ -210,7 +210,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         affPv: e.pv,
         affInit: 0,
         mort: { actif: false, t: 0 },
-        partis: false,
+        // Un ennemi DÉJÀ mort au moment d'une reconstruction (dislocation d'un GRAND
+        // au milieu d'autres monstres, dont certains déjà tués) : sa mort a déjà été
+        // jouée avant — on le marque « parti » pour qu'il ne RÉAPPARAISSE pas à l'écran.
+        partis: e.pv <= 0,
         defId: e.def.id,        // stade courant (détecte une évolution : def.id change)
         evoCount: e.evolue || 0, // pouls d'évolution vu par l'UI
         flashEvo: 0,            // flash blanc en cours (décroît) lors d'une évolution/apparition
