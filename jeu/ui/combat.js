@@ -1127,10 +1127,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (d.cibleSurvol >= 0) jouer(d.i, d.cibleSurvol); // lâché SUR un ennemi → joue
       // lâché ailleurs → annulé (la carte reste en main)
     } else {
-      // Carte sans cible (défense) : jouée par un clic dessus OU en la tirant
-      // vers le haut (lâcher au niveau de la carte ou plus haut). Vers le bas = annulé.
+      // Carte sans cible (défense) : jouée si on RELÂCHE sur la carte elle-même (clic)
+      // ou en la tirant vers le HAUT (dans la zone de jeu, au-dessus de la carte).
+      // Relâcher À CÔTÉ (gauche/droite, au niveau de la main) ou EN DESSOUS = on a changé
+      // d'avis → annulé, la carte reste en main.
       const r = d.el.getBoundingClientRect();
-      if (ev.clientY <= r.bottom) jouer(d.i);
+      const surLaCarte = ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY <= r.bottom;
+      const auDessus = ev.clientY < r.top;
+      if (surLaCarte || auDessus) jouer(d.i);
     }
   }
 
