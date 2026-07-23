@@ -365,6 +365,56 @@ export const ENNEMIS = [
     butin: { objets: [] },
   },
 
+  // --- Les OURS (famille « animal », lâchent du cuir) — 23/07/2026. Même clan de
+  // spawn que les molosses (« meute ») : ils apparaissent avec eux. Bruisers lents
+  // et TRÈS résistants qui frappent fort. Stats de PREMIER JET (à équilibrer).
+  {
+    id: "bear",
+    nom: "Cave Bear",
+    niveau: 4,
+    famille: "animal",
+    pv: 90,
+    attaque: 14,
+    xp: 32,
+    vitesse: 8,
+    affix: "melee",
+    planche: "images/ennemis/bear.png",
+    portrait: { sx: 16, sy: 4, sw: 132, sh: 132 }, // premier jet (à recadrer)
+    sprite: { caseL: 314, caseH: 200, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    id: "bones-bear",
+    nom: "Bonehide Bear",
+    niveau: 5,
+    famille: "animal",
+    pv: 100,
+    attaque: 16,
+    xp: 44,
+    vitesse: 9,
+    affix: "melee",
+    planche: "images/ennemis/bones-bear.png",
+    portrait: { sx: 14, sy: 4, sw: 121, sh: 121 }, // premier jet (à recadrer)
+    sprite: { caseL: 288, caseH: 200, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    id: "armor-bear",
+    nom: "Armored War-Bear",
+    niveau: 6,
+    famille: "animal",
+    pv: 150,
+    attaque: 20,
+    xp: 60,
+    vitesse: 6,
+    affix: "melee",
+    grand: true, // ours de guerre bardé : occupe 2 places, gros pic de difficulté
+    planche: "images/ennemis/armor-bear.png",
+    portrait: { sx: 18, sy: 4, sw: 150, sh: 150 }, // premier jet (à recadrer)
+    sprite: { caseL: 356, caseH: 220, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+
   // --- Nouvelle famille : les CHAMPIGNONS (« mushroom ») — 23/07/2026.
   // Clan homogène (ils n'apparaissent qu'entre eux, cf. clanMonstre). Un petit
   // peuple guerrier : lanciers, chevaliers, ronin bicéphale, faucheur, sage
@@ -616,7 +666,9 @@ function clanMonstre(d) {
   if (d.famille === "blob") return "blob";
   if (d.famille === "mushroom") return "mushroom"; // les champignons entre eux
   if (d.famille === "lapin") return "lapin";       // les lapins entre eux (spawn dédié)
-  if (typeof d.id === "string" && d.id.startsWith("molosse")) return "hound";
+  // La MEUTE : molosses (« hyènes ») + ours partagent le même clan → ils apparaissent
+  // ensemble (une meute de bêtes sauvages, l'ours en gros membre).
+  if (typeof d.id === "string" && (d.id.startsWith("molosse") || d.id.includes("bear"))) return "hound";
   return "goblinoide"; // gobelins, ogre, orcs
 }
 
