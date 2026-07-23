@@ -74,6 +74,9 @@ export const EASTERN_UNDER_TUNNELS = {
     "orc-rodeur", "orc-guerrier", "orc-guerriere", "orc-brute", "orc-chamane",
     "blob-vert", "blob-jaune", "blob-rouge", "blob-bleu",
     "molosse", "molosse-feu", "molosse-sombre",
+    // Le peuple champignon (clan homogène : ils n'apparaissent qu'entre eux).
+    "warrior-mushroom1", "warrior-mushroom2", "white-katana-mushroom",
+    "black-mushroom-specialist", "mage-mushroom", "king-mushroom",
   ],
   niveauMobs: [1, 3], // fourchette de niveau des monstres de la zone (affichée au HUD)
   plan: [

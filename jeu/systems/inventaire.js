@@ -423,6 +423,9 @@ export function appliquerEquipement(heros, inv, planches) {
   heros.vitesseEquipPct = ids.reduce((s, id) => s + (itemDef(id)?.vitesseDeplPct || 0), 0);
   // Agilité (vitesse d'attaque en combat) donnée par les items (bottes surtout).
   heros.agiliteEquip = ids.reduce((s, id) => s + (itemDef(id)?.agilite || 0), 0);
+  // « Ring of Luck » (et futurs items) : chance de DOUBLER le butin d'un coup de
+  // minage. On cumule les passifs `minageDouble` des items équipés (plafonné à 1 = 100%).
+  heros.minageDoubleChance = Math.min(1, ids.reduce((s, id) => s + (itemDef(id)?.minageDouble || 0), 0));
 }
 
 // ---- Sauvegarde ----------------------------------------------------------

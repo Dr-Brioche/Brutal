@@ -323,6 +323,40 @@ La colonne **« zone de pop »** de l'onglet Excel *Monstres* note pour chaque m
 apparaît. Techniquement : `monstresProfonds` sur la zone (cf. `zones.js`) + seuil d'étage
 dans `mine.js` (`SEUIL_PROFOND`).
 
+**Famille CHAMPIGNONS (`mushroom`, ajout du 23/07/2026, stats 1er jet)** — un petit peuple
+guerrier, **clan homogène** (ils n'apparaissent qu'entre eux, comme les blobs). Dans la mine,
+en profondeur (via `monstresProfonds`) :
+
+- *Toadstool Lancer* (niv 3, lancier), *Fungal Knight* (niv 4, tank épée+bouclier),
+  *Myconid Ronin* (niv 4, **deux katanas → 2 coups**, rapide),
+  *Deathcap Reaper* (niv 5, grosse hallebarde, gros dégâts),
+  *Myconid Sage* (niv 4, `range` : soigne / hâte / attaque),
+  *Mushroom King* (niv 6, **grand** boss : caster, soigne et frappe fort).
+
+**Le LAPIN BLANC — rencontre SPÉCIALE rare, à 3 stades (23/07/2026).** En mine, **dès
+l'étage 4** (~4 % des rencontres éligibles), on peut tomber sur le Lapin blanc. Il
+apparaît **toujours seul ou entre lapins**, **jamais mêlé** à d'autres créatures (spawn
+dédié dans `principal.js`, hors `composerGroupe`). Règles :
+
+- Il commence **gentil** (stade 1) : **1 PV**, **aucune attaque**. Le tuer ne gagne PAS le
+  combat — il **évolue** dans un **flash blanc** (nouveau sprite, PV pleins) et devient
+  **agressif**. Le champ `evolution` sur la def pointe le stade suivant ; la transformation
+  est gérée par `evoluerEnnemis()` dans `systems/combat.js` (au lieu de mourir), et l'UI
+  détecte le changement de stade pour rejouer le flash + changer d'illustration.
+- **Stade 2** (*Feral Hare*) : vif (vitesse 20), **frappe 2×**. **Stade 3** (*Bloodfang
+  Horror*) : encore plus rapide (26), coriace (150 PV) — un vrai mur.
+- On peut **fuir** pour l'éviter (aucune récompense alors).
+- **Tuer le stade 3** donne un **gros pactole d'or** (butin de niveau 10) et une **chance
+  infime (2 %) de lâcher le *Ring of Luck***. Le butin/XP de fin de combat est calculé sur
+  les **définitions FINALES** des ennemis (transmises par `surFin`), donc sur ce qu'ils sont
+  DEVENUS, pas leur stade de départ. « Attaque rapide » = grande **vitesse** d'initiative
+  (ATB) + `attaqueHits`.
+
+**Ring of Luck** (`bague`, rareté *rare*) : butin rare du Lapin blanc (stade 3). **Passif :
+50 % de chance de DOUBLER le butin d'un coup de minage** dans les souterrains
+(`minageDouble` sur l'item → cumulé dans `heros.minageDoubleChance` par `appliquerEquipement`,
+lu par `avancerMinage`). Ses **cartes** de combat seront ajoutées plus tard.
+
 ### Mise en scène du combat (validé 10/06/2026)
 
 - **Le nain est visible**, de profil à gauche : on **réutilise son sprite de carte**
