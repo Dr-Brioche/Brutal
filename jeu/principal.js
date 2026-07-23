@@ -58,6 +58,7 @@ import { creerCoffre, etatCoffre, chargerCoffre } from "./systems/coffre.js";
 import { installerCoffre, coffreActif } from "./ui/coffre.js";
 import { creerBanque, etatBanque, chargerBanque } from "./systems/banque.js";
 import { installerBanque, banqueActif } from "./ui/banque.js";
+import { creerMort, etatMort, chargerMort, appliquerMort, tirerCachesEtage, ramasserCache } from "./systems/mort.js";
 import { installerHorloge, dessinerHorloge, montrerHorloge } from "./ui/horloge.js";
 import { installerParchemin, ouvrirParchemin } from "./ui/parchemin.js";
 import {
@@ -127,6 +128,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   let zoneCourante = CITY;     // l'OBJET zone courant : statique (ZONES) OU mine générée
   let veines = [];             // veines minables de la mine courante (vide hors mine)
   let veineProche = null;      // veine à portée de minage (surbrillée en doré)
+  let caches = [];             // caches de butin perdu ressurgies sur l'étage (vide hors mine)
+  let cacheProche = null;      // cache à portée de ramassage (Action)
   let minage = null;           // minage en cours { veine, t, duree } : fige le héros
   const RAYON_VUE = 5;         // brouillard de guerre (mine) : rayon de découverte, en cases
   let fogCanvas = null, fogCtx = null; // masque basse résolution du brouillard (1 px = 1 case), réutilisé
@@ -144,6 +147,9 @@ export async function demarrerJeu(donneesInitiales = null) {
   const coffre = creerCoffre();
   // La BANQUE : coffre-fort (rendement sûr) + investissements risqués (cf. systems/banque.js).
   const banque = creerBanque();
+  // La MORT : mémoire persistante des CACHES de butin perdu (cf. systems/mort.js).
+  // Chaque mort y dépose une cache ; elles peuvent resurgir dans les profondeurs.
+  const mort = creerMort();
   // Le MARCHÉ (Hôtel des ventes) : prix vivants des ressources + annonces d'objets.
   // Son horloge n'avance qu'en JEU ACTIF (cf. le tick en tête de mettreAJour).
   const marche = creerMarche();
@@ -983,6 +989,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       inventaire: etatInventaire(inventaire),
       coffre: etatCoffre(coffre),
       banque: etatBanque(banque),
+      mort: etatMort(mort),
       maitrise: etatMaitrise(maitrise),
       marche: etatMarche(marche),
       batiments: etatBatiments(batiments),
@@ -1001,6 +1008,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (donnees.inventaire) chargerInventaire(inventaire, donnees.inventaire);
     chargerCoffre(coffre, donnees.coffre); // coffre de ville (absent des vieilles saves = vide)
     chargerBanque(banque, donnees.banque); // banque (absent des vieilles saves = vide)
+    chargerMort(mort, donnees.mort);       // caches de butin perdu (absent = aucune)
     // Recharger la bonne zone AVANT de valider la position
     if (donnees.zone && ZONES[donnees.zone] && donnees.zone !== zoneActuelle) {
       carte = creerCarte(ZONES[donnees.zone]);
@@ -1306,6 +1314,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Espace : parler au PNJ tout proche
   window.addEventListener("keydown", (e) => {
     if (e.code !== "Space" || e.repeat || enPause || combatEnCours || dialogueActif()) return;
+    // Ramasser une cache de butin perdu à portée (en mine) — prioritaire sur le minage.
+    if (cacheProche && !minage) { e.preventDefault(); ramasserCacheProche(); return; }
     // Miner une veine à portée (en mine, avec une pioche équipée).
     if (veineProche && !minage && aPioche()) { e.preventDefault(); commencerMinage(veineProche); return; }
     if (zoneActuelle !== "city") return;
@@ -1410,6 +1420,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     revelerAutour(carte, entree.colonne, entree.ligne, RAYON_VUE + (heros.visionMine ?? 0)); // découvre le point d'arrivée (mine)
     rencontres = creerRencontres();  // période de grâce fraîche dans la zone
     veines = zone.veines ?? [];      // veines minables (mine) ; vide ailleurs
+    caches = zone.estMine ? spawnerCaches() : []; // caches de butin perdu (mine seulement)
+    cacheProche = null;
     minage = null; veineProche = null;
     surPorte = true;                 // on arrive : ne pas re-déclencher une porte…
     surEntreeMine = true;            // … ni une entrée de mine si on atterrit dessus
@@ -1598,6 +1610,100 @@ export async function demarrerJeu(donneesInitiales = null) {
     majHudInfo();
   }
 
+  // --- Caches de butin perdu (mémoire des morts) ---------------------------
+  // Où le héros se réveille après une mort : à côté du Fanatique (colonne 42,
+  // rangée 15 dans le plan de la ville → on le pose deux cases à sa gauche, sur le
+  // dallage). Le Fanatique le soigne (voir le handler de défaite).
+  function pointReveilFanatique() {
+    return { colonne: 40, ligne: 15 };
+  }
+  // Fait resurgir (aléatoirement) des caches de butin perdu sur l'étage de mine
+  // qu'on vient de générer : chaque cache mémorisée a 1% de refaire surface, sur
+  // une case de sol au hasard, loin du point d'arrivée. Renvoie les objets « cache »
+  // posés sur la carte (col, lig, cacheId).
+  function spawnerCaches() {
+    const ids = tirerCachesEtage(mort);
+    if (!ids.length || !carte) return [];
+    const dCol = zoneCourante?.depart?.colonne ?? 2, dLig = zoneCourante?.depart?.ligne ?? 2;
+    const cands = [];
+    for (let y = 0; y < carte.hauteur; y++) {
+      for (let x = 0; x < carte.largeur; x++) {
+        if (carte.lignes[y][x] !== ",") continue;         // sol d'exploration uniquement
+        if (Math.hypot(x - dCol, y - dLig) < 5) continue;  // pas collé au départ
+        cands.push([x, y]);
+      }
+    }
+    if (!cands.length) return [];
+    return ids.map((id) => {
+      const [cx, cy] = cands[Math.floor(Math.random() * cands.length)];
+      return { col: cx, lig: cy, cacheId: id, t: 0 };
+    });
+  }
+  // La cache à portée de ramassage (en mine) : la plus proche parmi les visibles.
+  function cacheLaPlusProche() {
+    const hx = heros.x + 32, hy = heros.y + 54;
+    let best = null, bestD = 42; // même portée que le minage
+    for (const c of caches) {
+      if (!estVu(carte, c.col, c.lig)) continue;
+      const vx = c.col * TUILE + TUILE / 2, vy = c.lig * TUILE + TUILE / 2;
+      const d = Math.hypot(hx - vx, hy - vy);
+      if (d < bestD) { bestD = d; best = c; }
+    }
+    return best;
+  }
+  // Ramasse la cache la plus proche : rend le butin, l'efface de la mémoire (si le
+  // sac a tout accueilli), l'enlève du sol. Sac plein → l'or/l'XP sont rendus mais
+  // le reste des objets attend (la cache reste, on peut revenir après avoir fait de la place).
+  function ramasserCacheProche() {
+    const c = cacheProche;
+    if (!c) return;
+    const resume = ramasserCache(mort, c.cacheId, heros, inventaire);
+    if (!resume) { caches = caches.filter((x) => x !== c); cacheProche = null; return; }
+    const bouts = [];
+    if (resume.or > 0) bouts.push(`${resume.or} 🪙`);
+    if (resume.xp > 0) bouts.push(`${resume.xp} XP`);
+    if (resume.objets.length) bouts.push(`${resume.objets.length} object(s)`);
+    if (resume.complet) {
+      caches = caches.filter((x) => x !== c); // butin entièrement rendu → cache disparue
+      cacheProche = null;
+      afficherMessage(bouts.length ? `📦 Lost cache recovered — ${bouts.join(", ")}!` : "📦 An empty cache.");
+    } else {
+      // Sac plein : le reste des objets attend dans la cache (elle reste au sol).
+      afficherMessage(`📦 Cache${bouts.length ? " — " + bouts.join(", ") : ""}, but your bag is full — come back for the rest!`);
+    }
+    majHudInfo();
+    inventaireUI.rendre();
+  }
+  // Dessin d'une cache : un petit sac de jute débordant de pièces, avec un halo doré
+  // (plus vif à portée). Posé au centre de sa case, ses « pieds » au bas de la case.
+  function dessinerCacheMine(ctx, c) {
+    const cx = c.col * TUILE + TUILE / 2;
+    const by = c.lig * TUILE + TUILE - 4;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.30)"; // ombre au sol
+    ctx.beginPath(); ctx.ellipse(cx, by + 2, 13, 5, 0, 0, Math.PI * 2); ctx.fill();
+    const proche = c === cacheProche;
+    const p = (proche ? 0.55 : 0.28) + 0.18 * Math.sin((c.t || 0) * 4);
+    ctx.save();
+    ctx.shadowColor = `rgba(255, 207, 87, ${p})`;
+    ctx.shadowBlur = proche ? 15 : 8;
+    ctx.fillStyle = "#7a5a32";               // sac de jute
+    ctx.beginPath();
+    ctx.moveTo(cx - 11, by);
+    ctx.quadraticCurveTo(cx - 15, by - 14, cx - 6, by - 17);
+    ctx.lineTo(cx + 6, by - 17);
+    ctx.quadraticCurveTo(cx + 15, by - 14, cx + 11, by);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = "#8a683c";               // col du sac
+    ctx.fillRect(cx - 6, by - 22, 12, 6);
+    ctx.strokeStyle = "#3a2c18"; ctx.lineWidth = 2; // lien
+    ctx.beginPath(); ctx.moveTo(cx - 6, by - 16); ctx.lineTo(cx + 6, by - 16); ctx.stroke();
+    ctx.fillStyle = "#f2c94c";               // pièces qui débordent
+    ctx.beginPath(); ctx.arc(cx - 3, by - 23, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 3, by - 24, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 1, by - 26, 2.0, 0, Math.PI * 2); ctx.fill();
+  }
+
   // --- Minage des veines (en mine) -----------------------------------------
   function aPioche() { return Boolean(inventaire.slots.outil); }
   function veineLaPlusProche() {
@@ -1712,11 +1818,23 @@ export async function demarrerJeu(donneesInitiales = null) {
       surFin: (resultat) => {
         combatEnCours = null;
         if (resultat === "defaite") {
-          // Pas encore mort : on se réveille en ville, à 1 PV (à soigner).
-          heros.pv = 1;
-          finRunProfondeur({ vivant: false }); // on n'est pas sorti vivant : buffs + or PERDUS
-          afficherMessage("💀 You collapse... and wake up back in Brütàl.");
-          allerVersZone("city", CITY.depart); // retour sûr (gère le fondu + la musique)
+          // LA MORT : on se réveille en ville, PRÈS DU FANATIQUE, qui nous soigne.
+          // La Mort prélève son tribut (½ XP en cours, ½ du sac au hasard, 30% de
+          // l'or) → une CACHE de butin perdu qui pourra resurgir dans les
+          // profondeurs (systems/mort.js). L'équipement porté est épargné.
+          const cache = appliquerMort(mort, heros, inventaire);
+          finRunProfondeur({ vivant: false }); // buffs + or de run PERDUS
+          heros.pv = heros.pvMax;              // le Fanatique nous soigne (pour l'instant)
+          const bouts = [];
+          if (cache) {
+            if (cache.or > 0) bouts.push(`${cache.or} 🪙`);
+            if (cache.xp > 0) bouts.push(`${cache.xp} XP`);
+            if (cache.objets.length) bouts.push(`${cache.objets.length} object(s)`);
+          }
+          afficherMessage(cache && bouts.length
+            ? `💀 You collapse. The Fanatic revives you — but the Deep swallowed ${bouts.join(", ")}.`
+            : "💀 You collapse. The Fanatic revives you. You had nothing left to lose.");
+          allerVersZone("city", pointReveilFanatique()); // réveil près du Fanatique
         } else if (resultat === "fuite") {
           // Fuite réussie : retour à l'exploration, AUCUNE récompense (ni or, ni XP,
           // ni butin). On restaure l'ambiance de la zone et on rafraîchit la période
@@ -1892,11 +2010,20 @@ export async function demarrerJeu(donneesInitiales = null) {
       }
       // Veine minable la plus proche (en mine) → surbrillée en doré (dessinerVeine).
       veineProche = (zoneCourante.estMine && !minage) ? veineLaPlusProche() : null;
+      // Caches de butin perdu (en mine) : anime leur halo + repère la plus proche.
+      if (zoneActuelle !== "city") for (const c of caches) c.t += dt;
+      cacheProche = (zoneCourante.estMine && !minage) ? cacheLaPlusProche() : null;
       // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la
-      // fontaine / du panneau de la scierie (où « Read » remplace « Talk »).
+      // fontaine / du panneau de la scierie (où « Read » remplace « Talk »). En mine,
+      // elle s'affiche aussi à portée d'une cache de butin perdu (« Take »).
       const presPnj = fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || commissaire.proche || banquier.proche || fontaine.proche;
-      invite.hidden = !(zoneActuelle === "city" && (presPnj || coffreObjet.proche || panneauScierie.proche || panneauTannerie.proche));
-      if (!invite.hidden) invite.textContent = presPnj ? "[Space] Talk" : (coffreObjet.proche ? "[Space] Open" : "[Space] Read");
+      const inviteVille = zoneActuelle === "city" && (presPnj || coffreObjet.proche || panneauScierie.proche || panneauTannerie.proche);
+      invite.hidden = !(inviteVille || cacheProche);
+      if (!invite.hidden) {
+        invite.textContent = cacheProche ? "[Space] Take"
+          : presPnj ? "[Space] Talk"
+          : coffreObjet.proche ? "[Space] Open" : "[Space] Read";
+      }
       mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
       // Bulle flottante du minerai : positionnée en CSS au-dessus de la veine
       if (veineProche) {
@@ -1944,12 +2071,15 @@ export async function demarrerJeu(donneesInitiales = null) {
         ];
         acteurs.sort((a, b) => a.pieds - b.pieds);
         for (const a of acteurs) a.dessiner();
-      } else if (veines.length) {
-        // En mine : veines + héros, triés par profondeur (pieds) pour le chevauchement.
-        // Une veine encore sous le brouillard n'est pas dessinée (on la découvre en explorant).
+      } else if (veines.length || caches.length) {
+        // En mine : veines + caches + héros, triés par profondeur (pieds) pour le
+        // chevauchement. Un élément encore sous le brouillard n'est pas dessiné
+        // (on le découvre en explorant).
         const acteurs = [
           ...veines.filter((v) => estVu(carte, v.col, v.lig))
             .map((v) => ({ pieds: v.lig * TUILE + TUILE, dessiner: () => dessinerVeine(ctx, v) })),
+          ...caches.filter((c) => estVu(carte, c.col, c.lig))
+            .map((c) => ({ pieds: c.lig * TUILE + TUILE, dessiner: () => dessinerCacheMine(ctx, c) })),
           { pieds: heros.y + 54, dessiner: () => dessinerHeros(ctx, heros) },
         ];
         acteurs.sort((a, b) => a.pieds - b.pieds);
