@@ -33,7 +33,7 @@ import { ouvrirDialogue, dialogueActif, rafraichirChoix, fermerDialogue } from "
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { gagnerXp } from "./systems/progression.js";
 import { demarrerCombat } from "./ui/combat.js";
-import { ENNEMIS, tirerButin, composerGroupe } from "./data/ennemis.js";
+import { ENNEMIS, tirerButin, composerGroupe, ennemiParId } from "./data/ennemis.js";
 import { fondCombat, prechargerFonds } from "./data/fonds.js";
 import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
 import { FANATIQUE, MARCHAND, FORGERON, COURTIER, COMMISSAIRE, BANQUIER } from "./data/pnj.js";
@@ -1737,8 +1737,14 @@ export async function demarrerJeu(donneesInitiales = null) {
     // Bonus selon la rareté : chance d'obtenir un minerai supplémentaire par coup.
     const BONUS_RARETE = { commun: 0.10, uncommon: 0.15, rare: 0.20, epic: 0.25, legendaire: 0.35 };
     const chancebonus = BONUS_RARETE[itemDef(v.type)?.rarete] ?? 0.10;
-    const bonus = Math.random() < chancebonus && ajouterObjet(inventaire, v.type, 1);
-    const qty = bonus ? 2 : 1;
+    let qty = 1;
+    if (Math.random() < chancebonus && ajouterObjet(inventaire, v.type, 1)) qty++;
+    // « Ring of Luck » : chance (heros.minageDoubleChance) de DOUBLER le butin de ce
+    // coup — on tente d'ajouter autant de minerai qu'on vient d'en obtenir.
+    if ((heros.minageDoubleChance || 0) > 0 && Math.random() < heros.minageDoubleChance
+        && ajouterObjet(inventaire, v.type, qty)) {
+      qty *= 2;
+    }
     v.coups--;
     if (v.coups <= 0) {                      // filon épuisé → il disparaît
       veines = veines.filter((x) => x !== v);
@@ -1799,13 +1805,29 @@ export async function demarrerJeu(donneesInitiales = null) {
     ctx.imageSmoothingEnabled = liss;                          // … on rend le réglage d'origine (sprites nets)
   }
 
+  // LE LAPIN BLANC (rencontre spéciale rare) : en mine, à partir de la profondeur
+  // LAPIN_PROF_MIN, chaque rencontre a LAPIN_CHANCE de se transformer en une
+  // rencontre de LAPINS SEULS (jamais mêlés à d'autres créatures). Ils apparaissent
+  // TOUS au stade 1 (gentil, 1 PV) ; le combat les fait évoluer (cf. systems/combat.js).
+  const LAPIN_CHANCE = 0.04;   // ~4% des rencontres éligibles
+  const LAPIN_PROF_MIN = 4;    // dès l'étage 4 (le lapin est de niveau 7)
+  // Taille du groupe de lapins : surtout 1, parfois 2, rarement 3.
+  function composerLapins() {
+    const r = Math.random();
+    const n = r < 0.70 ? 1 : r < 0.92 ? 2 : 3;
+    return Array.from({ length: n }, () => ennemiParId("lapin-stage1"));
+  }
+
   // Les rencontres : sur les tuiles de souterrain, un monstre invisible surgit.
   // Flash façon FF9, puis bascule sur l'écran de combat.
   async function declencherRencontre() {
     // Le groupe est composé à partir des monstres de la ZONE courante : taille
     // (30/30/20/15/5) et types tirés au sort, range placés à l'arrière. Si la
     // zone n'a aucun monstre déclaré, pas de combat.
-    const ennemis = composerGroupe(zoneCourante?.monstres);
+    // Tirage prioritaire du Lapin blanc (rencontre dédiée, jamais mélangée).
+    const lapin = zoneCourante?.estMine && (zoneCourante.niveau ?? 1) >= LAPIN_PROF_MIN
+      && Math.random() < LAPIN_CHANCE;
+    const ennemis = lapin ? composerLapins() : composerGroupe(zoneCourante?.monstres);
     if (ennemis.length === 0) return;
     enPause = true;                 // le monde se fige pendant le flash
     await flashCombat();
@@ -1815,7 +1837,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       fond: fondCombat(zoneActuelle, zoneCourante), // fond tiré selon le biome/la profondeur
       // Échap en combat : ouvre le menu pause (réglages son), SANS Save/Load.
       surPause: () => menu.ouvrir({ sansSauvegarde: true }),
-      surFin: (resultat) => {
+      surFin: (resultat, ennemisFinaux) => {
         combatEnCours = null;
         if (resultat === "defaite") {
           // LA MORT : on se réveille en ville, PRÈS DU FANATIQUE, qui nous soigne.
@@ -1854,7 +1876,9 @@ export async function demarrerJeu(donneesInitiales = null) {
           // reste figé (enPause) tant qu'il n'a pas récupéré.
           let or = 0, xp = 0;
           const items = [];
-          for (const e of ennemis) {
+          // Butin/XP calculés sur les définitions FINALES (après évolutions — ex. le
+          // Lapin blanc arrivé au stade 3 lâche le gros or + la chance de Ring of Luck).
+          for (const e of (ennemisFinaux ?? ennemis)) {
             const butin = tirerButin(e);
             or += butin.or;
             xp += e.xp || 0;

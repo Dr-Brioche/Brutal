@@ -196,6 +196,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     ecran.sommet = ecran.haut - 22;
     return {
       e, spr, avant, echelle,
+      cx: cxs[i], // colonne écran (fixe) : sert à recalculer la pose après une évolution
       planche: planches?.get(e.def.planche) ?? null,
       localX: PIVOT_SCENE.x + (cxs[i] - PIVOT_SCENE.x) / echelle - spr.caseL / 2,
       localY: solMonde - spr.caseH,
@@ -207,8 +208,39 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       affInit: 0,
       mort: { actif: false, t: 0 },
       partis: false,
+      defId: e.def.id,        // stade courant (détecte une évolution : def.id change)
+      evoCount: e.evolue || 0, // pouls d'évolution vu par l'UI
+      flashEvo: 0,            // flash blanc en cours (décroît) lors d'une évolution
     };
   });
+
+  // ÉVOLUTION (Lapin blanc) : quand le moteur transforme un ennemi (nouveau stade,
+  // cf. evoluerEnnemis), on RECALCULE toute sa pose visuelle (sprite plus grand,
+  // recentré, pieds au sol) en gardant sa colonne et sa rangée (avant/arrière) — il ne
+  // saute pas d'un côté à l'autre de la scène. On garde la même formule qu'à la création.
+  function reconstruireVisuelEnnemi(u) {
+    const e = u.e;
+    const spr = e.def.sprite;
+    const echelle = (u.avant ? ECHELLE_AVANT : ECHELLE_ARRIERE) * (e.def.tailleRel ?? 1);
+    const solEcran = u.avant ? SOL_Y : SOL_ARRIERE;
+    const solMonde = PIVOT_SCENE.y + (solEcran - PIVOT_SCENE.y) / echelle;
+    const ecran = { cx: u.cx, sol: solEcran, haut: solEcran - spr.caseH * echelle };
+    ecran.milieu = (ecran.haut + ecran.sol) / 2;
+    ecran.sommet = ecran.haut - 22;
+    u.spr = spr;
+    u.echelle = echelle;
+    u.planche = planches?.get(e.def.planche) ?? null;
+    u.localX = PIVOT_SCENE.x + (u.cx - PIVOT_SCENE.x) / echelle - spr.caseL / 2;
+    u.localY = solMonde - spr.caseH;
+    u.ecran = ecran;
+    u.vitAnim = facteurAnimVitesse(e.def.vitesse ?? 10) * lenteur;
+    u.mort.actif = false; u.partis = false;
+    u.anim = { nom: "idle", t: 0 };
+    u.affPv = e.pv;
+    u.flashEvo = 1;          // déclenche le flash blanc
+    u.defId = e.def.id;
+    u.evoCount = e.evolue || 0;
+  }
 
   // Éléments d'interface (présents dans index.html)
   const overlay = document.getElementById("combat");
@@ -1193,7 +1225,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       jouerSonCoup();
     }
     if (evt.soin > 0) ajouterFlottant(`+${evt.soin}`, heroEcran.cx, heroEcran.sommet - 16, "#86e08a");
-    if (evt.mortStatut) { if (!u.mort.actif && !u.partis) exploser(u); return; }
+    // Mort par statut : on n'explose QUE si l'ennemi est réellement mort. Un ennemi
+    // « à évolution » (Lapin blanc) a déjà été remis à PV pleins par le moteur → il
+    // ne doit pas exploser, il évoluera (flash géré à la détection d'évolution).
+    if (evt.mortStatut) { if (u.e.pv <= 0 && !u.mort.actif && !u.partis) exploser(u); return; }
     if (evt.attaque > 0 || evt.armureAbsorbe > 0) { // il frappe : PV perdus OU armure entamée
       // SYNCHRO : l'IMPACT (poussière, secousse, chiffre, son) est retardé jusqu'au
       // CONTACT — le pic du bond (p≈0.56 de l'anim d'attaque). ATTAQUE MULTI-COUPS
@@ -1298,7 +1333,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     conteneurMain.removeEventListener("pointerleave", surSortieMain);
     ctx.canvas.style.cursor = ""; // au cas où on ferme pendant un ciblage souris
     heros.pv = combat.pvHeros; // la vie persiste vers la carte
-    surFin(combat.resultat);
+    // On transmet les DÉFINITIONS FINALES des ennemis (après d'éventuelles évolutions —
+    // ex. le Lapin blanc arrivé au stade 3) : c'est le butin/XP de ce qu'ils sont DEVENUS
+    // qui doit être versé, pas celui du stade de départ.
+    surFin(combat.resultat, combat.ennemis.map((e) => e.def));
   }
 
   boutonFin.addEventListener("click", finDeTour);
@@ -1332,6 +1370,15 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     temps += dt;
 
     for (const u of ennemisUI) {
+      // ÉVOLUTION détectée (le moteur a changé le stade de cet ennemi) : on reconstruit
+      // sa pose (nouveau sprite) + on lance le flash blanc + un son. À faire AVANT le
+      // reste (les calculs ci-dessous lisent u.spr / u.e.pv du nouveau stade).
+      if ((u.e.evolue || 0) !== u.evoCount) {
+        reconstruireVisuelEnnemi(u);
+        ajouterFlottant("✨", u.ecran.cx, u.ecran.sommet - 20, "#ffffff");
+        jouerSonSortilege?.();
+      }
+      if (u.flashEvo > 0) u.flashEvo = Math.max(0, u.flashEvo - dt / 0.5); // flash ~0,5 s
       u.affPv += (u.e.pv - u.affPv) * Math.min(1, dt * 8);
       u.affInit += (ratioInitiativeEnnemi(u.e) - u.affInit) * Math.min(1, dt * 6);
       u.anim.t += dt;
@@ -2014,6 +2061,13 @@ function dessinerEnnemiStatique(ctx, u, temps, tr) {
     const k = Math.min(1, u.mort.t / 0.35);
     rot += 0.6 * k; dy += 10 * k;                    // bascule + s'affaisse
     flash = Math.max(flash, 1 - u.mort.t / 0.12);
+  }
+  // ÉVOLUTION (Lapin blanc) : flash blanc intense + léger « pop » d'échelle pendant
+  // que le sprite change de stade (u.flashEvo décroît de 1 → 0 sur ~0,5 s).
+  if (u.flashEvo > 0) {
+    flash = Math.max(flash, u.flashEvo);
+    const pop = 1 + 0.18 * u.flashEvo;
+    sx *= pop; sy *= pop;
   }
 
   ctx.save();

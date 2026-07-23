@@ -15,6 +15,7 @@
 
 import { CARTES } from "../data/cartes.js";
 import { STATS_HEROS_BASE } from "../data/heros_base.js";
+import { ennemiParId } from "../data/ennemis.js";
 
 // ----- Réglages (équilibrage, valeurs provisoires) -------------------------
 const TAILLE_MAIN = 3;        // cartes piochées par tour (de base ; monte avec les talents)
@@ -788,7 +789,36 @@ function subirDegats(combat, degats) {
   combat.pvHeros = Math.max(0, combat.pvHeros - (degats - absorbe));
 }
 
+// ÉVOLUTION (le Lapin blanc) : un ennemi dont la def porte un champ `evolution` ne
+// MEURT pas quand ses PV tombent à 0 — il se TRANSFORME au stade suivant (PV pleins,
+// nouvelles stats, devient agressif). On remet ses statuts à zéro et on marque un
+// « pouls » d'évolution (`evolue`) que l'UI détecte pour jouer le flash blanc + changer
+// de sprite. Renvoie true si au moins un ennemi a évolué (donc le combat continue).
+function evoluerEnnemis(combat) {
+  let aEvolue = false;
+  for (const e of combat.ennemis) {
+    if (e.pv > 0 || !e.def?.evolution) continue;
+    const suivant = ennemiParId(e.def.evolution);
+    if (!suivant || suivant.id === e.def.id) continue; // garde-fou (id inconnu)
+    e.def = suivant;
+    e.pvMax = suivant.pv;
+    e.pv = suivant.pv;
+    e.vitesse = suivant.vitesse ?? e.vitesse;
+    // Statuts remis à zéro : le nouveau stade repart « propre ».
+    e.poison = 0; e.feu = 0; e.sang = 0; e.stun = 0; e.confusion = 0; e.gel = 0; e.haste = 0;
+    e.feuDeCarte = false; e.intention = null;
+    e.dernierPoison = 0; e.dernierFeu = 0; e.dernierSang = 0;
+    e.dernierDegats = 0; e.hitLog = [];
+    e.evolue = (e.evolue || 0) + 1; // pouls pour l'UI (détecte le changement de stade)
+    aEvolue = true;
+  }
+  return aEvolue;
+}
+
 function verifierFin(combat) {
+  // Avant de déclarer la victoire : les ennemis « à évolution » (Lapin blanc) se
+  // transforment au lieu de mourir — le combat continue tant qu'ils ont un stade suivant.
+  evoluerEnnemis(combat);
   if (combat.ennemis.every((e) => e.pv <= 0)) {
     combat.fini = true;
     combat.resultat = "victoire";

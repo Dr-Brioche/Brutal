@@ -650,6 +650,12 @@ export const ITEMS = {
     taille: { l: 1, h: 1 }, icone: "#b0434a", cartes: ["soif-de-sang", "entaille"] },
   "anneau-forge": { id: "anneau-forge", nom: "Forge Ring", categorie: "bague", rarete: "uncommon", nouveau: true,
     taille: { l: 1, h: 1 }, icone: "#d96a1e", cartes: ["surcharge", "etincelle"] },
+  // Ring of Luck : butin RARE du Lapin blanc (stade 3). Passif : 50% de chance de
+  // DOUBLER le butin d'un coup de minage dans les souterrains (cf. minageDouble,
+  // agrégé dans appliquerEquipement → heros.minageDoubleChance). Les cartes seront
+  // ajoutées par Brioche plus tard (d'où `cartes: []`).
+  "ring-of-luck": { id: "ring-of-luck", nom: "Ring of Luck", categorie: "bague", rarete: "rare", nouveau: true,
+    taille: { l: 1, h: 1 }, icone: "#e8c54f", minageDouble: 0.5, cartes: [] },
 
   // ---- Colliers : COMMONS (5) + UNCOMMONS (3) --------------------------------
   "collier-cuivre": { id: "collier-cuivre", nom: "Copper Amulet", categorie: "collier", rarete: "commun", nouveau: true,
@@ -964,6 +970,7 @@ export function bonusPassifs(id) {
   if (d.pierreParTour) l.push(`+${d.pierreParTour} Stone each turn`);
   if (d.agilite) l.push(`+${d.agilite} Agility`);
   if (d.vitesseDeplPct) l.push(`+${d.vitesseDeplPct}% Move Speed`);
+  if (d.minageDouble) l.push(`${Math.round(d.minageDouble * 100)}% chance to double mined ore`);
   if (d.passifPropre) l.push(d.passifPropre.texte);
   return l;
 }

@@ -365,6 +365,164 @@ export const ENNEMIS = [
     butin: { objets: [] },
   },
 
+  // --- Nouvelle famille : les CHAMPIGNONS (« mushroom ») — 23/07/2026.
+  // Clan homogène (ils n'apparaissent qu'entre eux, cf. clanMonstre). Un petit
+  // peuple guerrier : lanciers, chevaliers, ronin bicéphale, faucheur, sage
+  // (soigneur à distance) et leur Roi (boss). Stats de PREMIER JET (à équilibrer).
+  {
+    id: "warrior-mushroom1",
+    nom: "Toadstool Lancer",
+    niveau: 3,
+    famille: "mushroom",
+    pv: 50,
+    attaque: 8,
+    xp: 22,
+    vitesse: 8,
+    affix: "melee",
+    planche: "images/ennemis/warrior-mushroom1.png",
+    portrait: { sx: 11, sy: 4, sw: 96, sh: 96 }, // premier jet (à recadrer)
+    sprite: { caseL: 229, caseH: 210, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    id: "warrior-mushroom2",
+    nom: "Fungal Knight",
+    niveau: 4,
+    famille: "mushroom",
+    pv: 85,
+    attaque: 11,
+    xp: 30,
+    vitesse: 7,
+    affix: "melee",
+    planche: "images/ennemis/warrior-mushroom2.png",
+    portrait: { sx: 14, sy: 4, sw: 117, sh: 117 }, // premier jet (à recadrer)
+    sprite: { caseL: 278, caseH: 210, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    id: "white-katana-mushroom",
+    nom: "Myconid Ronin",
+    niveau: 4,
+    famille: "mushroom",
+    pv: 45,
+    attaque: 7,
+    xp: 30,
+    vitesse: 18,
+    affix: "melee",
+    attaqueHits: 2, // deux katanas : frappe deux fois par tour
+    planche: "images/ennemis/white-katana-mushroom.png",
+    portrait: { sx: 9, sy: 4, sw: 74, sh: 74 }, // premier jet (à recadrer)
+    sprite: { caseL: 177, caseH: 215, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    id: "black-mushroom-specialist",
+    nom: "Deathcap Reaper",
+    niveau: 5,
+    famille: "mushroom",
+    pv: 90,
+    attaque: 18,
+    xp: 44,
+    vitesse: 9,
+    affix: "melee",
+    planche: "images/ennemis/black-mushroom-specialist.png",
+    portrait: { sx: 11, sy: 4, sw: 94, sh: 94 }, // premier jet (à recadrer)
+    sprite: { caseL: 225, caseH: 225, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    id: "mage-mushroom",
+    nom: "Myconid Sage",
+    niveau: 4,
+    famille: "mushroom",
+    pv: 40,
+    attaque: 5,
+    xp: 34,
+    vitesse: 7,
+    affix: "range", // caster : uniquement dans les groupes de 3+
+    planche: "images/ennemis/mage-mushroom.png",
+    portrait: { sx: 10, sy: 5, sw: 87, sh: 87 }, // premier jet (à recadrer)
+    sprite: { caseL: 208, caseH: 235, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    actions: [{ type: "soigner", valeur: 12, poids: 45 }, { type: "haste-allie", valeur: 2, poids: 30 }, { type: "attaque", valeur: 5, poids: 25 }],
+    butin: { objets: [] },
+  },
+  {
+    id: "king-mushroom",
+    nom: "Mushroom King",
+    niveau: 6,
+    famille: "mushroom",
+    pv: 140,
+    attaque: 16,
+    xp: 70,
+    vitesse: 6,
+    affix: "range", // le Roi lance des sorts depuis l'arrière
+    grand: true,     // boss : occupe 2 places, bien plus gros
+    planche: "images/ennemis/king-mushroom.png",
+    portrait: { sx: 12, sy: 5, sw: 102, sh: 102 }, // premier jet (à recadrer)
+    sprite: { caseL: 244, caseH: 265, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    actions: [{ type: "soigner", valeur: 18, poids: 40 }, { type: "haste-allie", valeur: 2, poids: 30 }, { type: "attaque", valeur: 16, poids: 30 }],
+    butin: { objets: [] },
+  },
+
+  // --- Le LAPIN BLANC : monstre SPÉCIAL et rare (niveau 7). Il apparaît TOUJOURS
+  // seul ou entre lapins (jamais mêlé à d'autres créatures — spawn dédié dans
+  // principal.js). Il commence GENTIL (stade 1, 1 PV, ne fait aucun mal). Le tuer
+  // ne gagne PAS le combat : il ÉVOLUE (flash blanc) au stade suivant, plus fort et
+  // AGRESSIF. Seule la mort du stade 3 (redoutable) donne la victoire — et un gros
+  // pactole d'or + une chance infime de « Ring of Luck ». — 23/07/2026.
+  // Le champ `evolution` = l'id du stade suivant (géré dans systems/combat.js).
+  {
+    id: "lapin-stage1",
+    nom: "White Rabbit",
+    niveau: 7,
+    famille: "lapin",
+    pv: 1,              // 1 PV : un seul coup le fait « évoluer »
+    attaque: 0,         // stade GENTIL : il ne frappe pas
+    xp: 0,              // aucune récompense tant qu'il n'est pas au stade final
+    vitesse: 13,
+    affix: "melee",
+    evolution: "lapin-stage2", // le tuer le transforme (au lieu de mourir)
+    planche: "images/ennemis/lapin-stage1.png",
+    portrait: { sx: 8, sy: 3, sw: 67, sh: 67 },
+    sprite: { caseL: 160, caseH: 150, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    id: "lapin-stage2",
+    nom: "Feral Hare",
+    niveau: 7,
+    famille: "lapin",
+    pv: 55,
+    attaque: 9,
+    xp: 0,
+    vitesse: 20,        // devenu vif : attaque rapide
+    affix: "melee",
+    attaqueHits: 2,     // deux coups de griffes par tour
+    evolution: "lapin-stage3",
+    planche: "images/ennemis/lapin-stage2.png",
+    portrait: { sx: 10, sy: 4, sw: 83, sh: 83 },
+    sprite: { caseL: 198, caseH: 185, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    id: "lapin-stage3",
+    nom: "Bloodfang Horror",
+    niveau: 10,          // niveau de LOOT relevé : gros pactole d'or (cf. butin.js)
+    famille: "lapin",
+    pv: 150,
+    attaque: 17,
+    xp: 130,             // grosse récompense pour l'avoir mené au bout
+    vitesse: 26,         // encore plus rapide au stade final
+    affix: "melee",
+    attaqueHits: 2,
+    // (pas d'`evolution` : ce stade meurt pour de vrai → victoire + butin)
+    planche: "images/ennemis/lapin-stage3.png",
+    portrait: { sx: 10, sy: 5, sw: 84, sh: 84 },
+    sprite: { caseL: 201, caseH: 270, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    // Chance INFIME de lâcher le « Ring of Luck » (item rare) + son gros or de niveau 10.
+    butin: { objets: [{ id: "ring-of-luck", chance: 0.02 }] },
+  },
+
 ];
 
 // Applique les stats de l'Excel (onglet « Monstres ») PAR-DESSUS les valeurs de
@@ -456,6 +614,8 @@ function tirerTaille(distribution) {
 // (ils peuvent donc se mélanger). — décision Brioche 16/07/2026.
 function clanMonstre(d) {
   if (d.famille === "blob") return "blob";
+  if (d.famille === "mushroom") return "mushroom"; // les champignons entre eux
+  if (d.famille === "lapin") return "lapin";       // les lapins entre eux (spawn dédié)
   if (typeof d.id === "string" && d.id.startsWith("molosse")) return "hound";
   return "goblinoide"; // gobelins, ogre, orcs
 }
