@@ -318,6 +318,10 @@ la zone de surface « eastern door ». Trois familles :
 - **Blobs** (`blob`) : lents et résistants. *Green/Ochre Slime* posent du **Poison à chaque
   coup** ; *Crimson Slime* (très tanky) ; *Azure Slime* (piquants).
 - **Molosses** (`animal`, lâchent du cuir) : rapides et fragiles — *Dire / Ember / Shadow Hound*.
+- **Ours** (`animal`, lâchent du cuir, ajout du 23/07/2026) : bruisers lents et **très
+  résistants** — *Cave Bear* (niv 4), *Bonehide Bear* (niv 5), *Armored War-Bear* (niv 6,
+  **grand**). Même **meute** de spawn que les molosses (« les hyènes ») : ils apparaissent
+  ensemble, l'ours en gros membre du groupe.
 
 La colonne **« zone de pop »** de l'onglet Excel *Monstres* note pour chaque monstre où il
 apparaît. Techniquement : `monstresProfonds` sur la zone (cf. `zones.js`) + seuil d'étage

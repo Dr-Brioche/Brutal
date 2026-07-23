@@ -74,6 +74,7 @@ export const EASTERN_UNDER_TUNNELS = {
     "orc-rodeur", "orc-guerrier", "orc-guerriere", "orc-brute", "orc-chamane",
     "blob-vert", "blob-jaune", "blob-rouge", "blob-bleu",
     "molosse", "molosse-feu", "molosse-sombre",
+    "bear", "bones-bear", "armor-bear", // les ours : même meute que les molosses
     // Le peuple champignon (clan homogène : ils n'apparaissent qu'entre eux).
     "warrior-mushroom1", "warrior-mushroom2", "white-katana-mushroom",
     "black-mushroom-specialist", "mage-mushroom", "king-mushroom",
