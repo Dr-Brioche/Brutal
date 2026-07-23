@@ -73,7 +73,7 @@ export const ENNEMIS = [
     // Rendue vivante par le CODE (image fixe + effets), en lisse.
     planche: "images/ennemis/gobelin.png",
     portrait: { sx: 20, sy: 2, sw: 62, sh: 62 }, // la tête centrée (file des tours)
-    tailleRel: 0.8, // rétréci d'1/5 : il paraissait un peu grand parmi les gobelins
+    tailleRel: 0.96, // agrandi d'1/5 (0.8 → 0.96) : il paraissait trop petit avec sa massue
     sprite: {
       caseL: 133,
       caseH: 140,   // petite créature
