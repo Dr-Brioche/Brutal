@@ -180,6 +180,12 @@
       background: rgba(10, 8, 6, 0.66); border: 1px solid #3a2f26;
       border-radius: 6px; padding: 3px 8px;
     }
+    /* Titre du TYPE d'étage de mine (biome / caverne) : plus mis en avant, doré. */
+    #hud-info .hud-zone {
+      width: max-content; min-width: 130px; font-weight: 800; letter-spacing: 0.02em;
+      color: #ffcf57; background: rgba(10, 8, 6, 0.72); border: 1px solid #6b5636;
+      border-radius: 6px; padding: 3px 9px; cursor: help;
+    }
     /* Liste des minerais repliable : en-tête cliquable + liste qui se cache. */
     #hud-info .hud-min-groupe { display: flex; flex-direction: column; gap: 4px; }
     #hud-info .hud-min-titre {
@@ -1695,7 +1701,16 @@
     .banque-vide { color: #6b7280; font-weight: 400; font-style: italic; }
     .banque-op { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
     .banque-op-label { flex: 0 0 66px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #8b8f98; }
-    .banque-montants { display: flex; gap: 5px; flex-wrap: wrap; }
+    .banque-montants { display: flex; gap: 5px; align-items: center; }
+    .banque-input {
+      font-family: ui-monospace, monospace; font-size: 0.82rem; font-weight: 700;
+      color: #ffcf57; background: #1b2416; border: 1px solid #3d5230;
+      border-radius: var(--rayon); padding: 4px 8px; width: 120px; min-width: 0;
+    }
+    .banque-input::placeholder { color: #6a7358; font-weight: 400; font-size: 0.72rem; }
+    .banque-input:focus { outline: 2px solid #ffcf57; outline-offset: 1px; border-color: #6a8a3a; }
+    .banque-input:disabled { opacity: 0.4; }
+    .banque-btn--ok { background: #35471f; border-color: #6a8a3a; }
     .banque-btn {
       font-family: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer;
       color: #e8ead0; background: #26331f; border: 1px solid #3d5230; border-radius: var(--rayon);

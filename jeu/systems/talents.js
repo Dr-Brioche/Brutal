@@ -51,6 +51,9 @@ export function appliquerTalents(heros) {
   // Rayon de vision bonus dans les mines (talent « Miner's Sight »).
   heros.visionMine = b.visionMine || 0;
   heros.etageChance = (b.etageChance || 0) > 0; // débloque les cavernes de chance (prof. ≥3)
+  // Taille de pile de ressources (minerais…) : BASE 5, +5 par rang du talent « Ore Hauler »
+  // (jusqu'à 30 avec 5 rangs). Reportée sur l'inventaire par principal.js (inv.pileMax).
+  heros.pileMax = 5 + 5 * (b.pileStack || 0);
   // Réduction des rencontres (0..0.8), alimentée par les talents type « Tunnel Sense ».
   heros.evasionRencontre = Math.min(0.8, (b.evasion || 0) / 100);
   heros.sansRencontre = (b.sansRencontre || 0) > 0; // talent de TEST : annule TOUTE rencontre

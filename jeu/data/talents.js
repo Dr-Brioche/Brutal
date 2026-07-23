@@ -61,6 +61,15 @@ export const TALENTS = {
     effet: { etageChance: 1 },
     description: "Lucky Caverns: from depth 3, each descent may open onto a Lucky Cavern — packed with ore and almost free of monsters. A true miner's windfall.",
   },
+  // Talent de FARM : agrandit les piles de ressources. De base une pile de minerai
+  // ne monte qu'à 5 ; chaque rang ajoute +5 (5 rangs → jusqu'à 30 par pile). Idéal
+  // pour rapporter beaucoup plus de minerai d'une seule descente.
+  stockMineur: {
+    id: "stockMineur", nom: "Ore Hauler", branche: "forge",
+    x: 0, y: 4, cout: 1, rangMax: 5, requis: ["etageChance"],
+    effet: { pileStack: 1 },
+    description: "Deep pockets: +5 ore per stack per rank (5 ranks). Base ore stack is 5 → up to 30 with all ranks.",
+  },
 
   // ---- BRANCHE COMBAT (col 1-3) ---------------------------------------------
   // Chaleur de Forge = ÉNERGIE DE COMBAT (colonne 1, chaîne verticale).

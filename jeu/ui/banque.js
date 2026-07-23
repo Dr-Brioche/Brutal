@@ -27,24 +27,51 @@ export function installerBanque() {
 
   let inv = null, banque = null, secret = false, surFermer = null;
 
-  // Un bouton d'action (montant fixe ou « tout »). `dispo` = montant réellement
-  // disponible pour l'opération ; le bouton est grisé si l'action ne peut rien faire.
-  function bouton(label, action, actif = true) {
-    const b = document.createElement("button");
-    b.className = "banque-btn";
-    b.textContent = label;
-    b.disabled = !actif;
-    b.addEventListener("click", () => { if (actif) { action(); rendre(); } });
-    return b;
-  }
-
+  // Une ligne d'opération : un CHAMP où saisir le montant soi-même (+ Entrée ou OK
+  // pour valider), et un bouton « tout » (All/Max) à côté pour tout mettre/retirer.
+  // `plafond` = montant maximum disponible pour cette opération (le champ est plafonné).
   function ligneMontants(faire, plafond, labelTout = "All") {
     const rangee = document.createElement("div");
     rangee.className = "banque-montants";
-    for (const m of [100, 1000, 10000]) {
-      rangee.append(bouton(or(m), () => faire(m), plafond >= m));
-    }
-    rangee.append(bouton(labelTout, () => faire("all"), plafond > 0));
+    const plaf = Math.floor(plafond);
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.inputMode = "numeric";
+    input.className = "banque-input";
+    input.min = "0";
+    input.max = String(plaf);
+    input.placeholder = plaf > 0 ? `0 – ${or(plaf)}` : "0";
+    input.disabled = plaf <= 0;
+
+    const soumettre = () => {
+      let v = Math.floor(Number(input.value));
+      if (!Number.isFinite(v) || v <= 0) return;
+      v = Math.min(v, plaf);
+      if (v <= 0) return;
+      faire(v);
+      input.value = "";
+      rendre();
+    };
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); soumettre(); return; }
+      if (e.key === "Escape") return;   // laisse l'Échap global fermer la banque
+      e.stopPropagation();              // le reste de la frappe reste dans le champ
+    });
+
+    const btnOk = document.createElement("button");
+    btnOk.className = "banque-btn banque-btn--ok";
+    btnOk.textContent = "OK";
+    btnOk.disabled = plaf <= 0;
+    btnOk.addEventListener("click", soumettre);
+
+    const btnTout = document.createElement("button");
+    btnTout.className = "banque-btn";
+    btnTout.textContent = labelTout;
+    btnTout.disabled = plaf <= 0;
+    btnTout.addEventListener("click", () => { faire("all"); rendre(); });
+
+    rangee.append(input, btnOk, btnTout);
     return rangee;
   }
 

@@ -278,6 +278,7 @@ function finaliser(g, salles, cfg) {
   return {
     nom: cfg.nom,
     theme: cfg.theme ?? null, // thème d'étage (cristal/glace/lave) → recolore le rendu
+    luck: cfg.luck ?? false,  // caverne de chance (talent « Lucky Delver ») → titre HUD dédié
     estMine: true,            // marqueur : on est dans une mine (sauvegarde interdite…)
     niveau: cfg.niveau,       // PROFONDEUR (étage) courante
     niveauMobs: niveauMobsEtage(cfg.niveau), // fourchette de niveau des monstres
