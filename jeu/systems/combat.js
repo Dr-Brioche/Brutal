@@ -157,6 +157,7 @@ function creerEnnemiCombat(def) {
   return {
     def, pv: def.pv, pvMax: def.pv,
     bonusDegats: 0,                // dégâts bonus reçus (buff du Porte-étendard de siège)
+    forceChampi: 0,                // Force collective des champignons (passif de famille)
     charge: def.explose ? (def.delaiExplosion ?? 2) : 0, // mèche du Gobelin Kaboom
     evolue: 0,                     // pouls d'évolution/split vu par l'UI
     poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps)
@@ -252,6 +253,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
       }
     }
   }
+  majForceChampignons(combat); // Force collective des champignons (cf. helper)
   prevoirIntentions(combat);
   combat.cible = premierVivant(combat);
   return combat; // la 1re main est piochée par le 1er commencerTourHeros (via l'initiative)
@@ -349,17 +351,21 @@ function prevoirIntentions(combat) {
       e.intention = { type: "explosion", valeur: e.def.explose, charge: e.charge };
       continue;
     }
+    // Force collective des champignons : +N à CHAQUE coup de tout champignon (passif de famille).
+    const forceChampi = e.forceChampi || 0;
     const a = e.def.actions?.length ? choisirAction(e.def.actions) : null;
     if (a) {
-      e.intention = { type: a.type, valeur: a.valeur };
+      // Une action « attaque » spéciale (ex. le Roi champignon) profite aussi de la Force collective.
+      e.intention = { type: a.type, valeur: a.valeur + (a.type === "attaque" ? forceChampi : 0) };
       // Soin : on VERROUILLE dès maintenant l'allié le plus blessé (% le plus bas).
       if (a.type === "soigner") e.intention.cible = allieLePlusBlesse(combat, e);
     } else {
       // Pas d'action spéciale (aucune, ou la part « restante » n'a rien procé) :
       // ATTAQUE DE BASE, éventuellement MULTI-COUPS (attaqueHits) et empoisonnante
-      // (poisonParCoup). Le bonus de dégâts (buff du Porte-étendard) s'ajoute à chaque coup.
+      // (poisonParCoup). Le bonus de dégâts (buff du Porte-étendard) et la Force collective
+      // des champignons s'ajoutent à chaque coup.
       e.intention = {
-        type: "attaque", valeur: e.def.attaque + (e.bonusDegats || 0),
+        type: "attaque", valeur: e.def.attaque + (e.bonusDegats || 0) + forceChampi,
         hits: e.def.attaqueHits ?? 1, poison: e.def.poisonParCoup ?? 0,
       };
     }
@@ -851,12 +857,28 @@ function resoudreSplits(combat) {
   return aSplit;
 }
 
+// PASSIF DE FAMILLE — CHAMPIGNONS. « Force collective » : chaque champignon VIVANT
+// apporte +1 à la Force partagée du groupe (le Roi des champignons en apporte +5), et
+// cette Force s'ajoute à CHAQUE coup de TOUS les champignons. Recalculé à chaque mort :
+// un champignon qui tombe retire son apport. On mémorise la valeur (`combat.forceChampi`)
+// pour l'affichage côté monstres et on la copie sur chaque champignon (pour l'anim).
+function majForceChampignons(combat) {
+  const champis = combat.ennemis.filter((e) => e.pv > 0 && e.def?.famille === "mushroom");
+  let force = 0;
+  for (const c of champis) force += c.def.roiChampi ? 5 : 1;
+  combat.forceChampi = force;
+  for (const e of combat.ennemis) {
+    e.forceChampi = e.def?.famille === "mushroom" ? force : 0;
+  }
+}
+
 function verifierFin(combat) {
   // Avant de déclarer la victoire : les ennemis « à évolution » (Lapin blanc) se
   // transforment au lieu de mourir ; ceux « à dislocation » (Tour de siège) libèrent
   // leur équipage. Le combat continue tant que l'un ou l'autre a lieu.
   evoluerEnnemis(combat);
   resoudreSplits(combat);
+  majForceChampignons(combat); // une mort/évolution/dislocation change le compte des champignons
   if (combat.ennemis.every((e) => e.pv <= 0)) {
     combat.fini = true;
     combat.resultat = "victoire";

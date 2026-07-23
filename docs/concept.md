@@ -337,6 +337,18 @@ en profondeur (via `monstresProfonds`) :
   *Myconid Sage* (niv 4, `range` : soigne / hâte / attaque),
   *Mushroom King* (niv 6, **grand** boss : caster, soigne et frappe fort).
 
+**PASSIF DE FAMILLE — « Force collective » (23/07/2026).** En force, les champignons sont
+plus dangereux. Chaque champignon **vivant** en combat ajoute **+1 de Force** (dégâts, à
+**chaque coup**) à **TOUS** les champignons : 5 champignons → **+5** partout. C'est **dynamique** —
+si un champignon **meurt**, la Force retombe de 1 (et ainsi de suite jusqu'au dernier). Le
+**Roi champignon** compte **+5** (au lieu de +1) : il muscle nettement sa cour. **Un seul Roi
+par combat** (garde-fou dans `composerGroupe`). Côté code : `majForceChampignons()` dans
+`systems/combat.js` recalcule `combat.forceChampi` à chaque mort (dans `verifierFin`), la Force
+s'ajoute aux intentions d'attaque des champignons (`prevoirIntentions`). Côté écran, le bonus
+s'affiche **en haut à droite** (miroir des bonus permanents du héros, à gauche) via
+`#combat-permanents-monstres` — survol = explication. Chiffres réglables dans l'onglet Excel
+*Général* (section « Passifs de famille »).
+
 **Le LAPIN BLANC — rencontre SPÉCIALE rare, à 3 stades (23/07/2026).** En mine, **dès
 l'étage 4** (~4 % des rencontres éligibles), on peut tomber sur le Lapin blanc. Il
 apparaît **toujours seul ou entre lapins**, **jamais mêlé** à d'autres créatures (spawn

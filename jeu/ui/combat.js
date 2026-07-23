@@ -219,6 +219,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   }
   let ennemisUI = construireUnitesUI();
   let vuSplitPulse = combat.splitPulse || 0; // dernière dislocation VUE par l'UI
+  let vuForceChampi = -1;                    // dernière Force collective des champignons AFFICHÉE
 
   // ÉVOLUTION (Lapin blanc) : quand le moteur transforme un ennemi (nouveau stade,
   // cf. evoluerEnnemis), on RECALCULE toute sa pose visuelle (sprite plus grand,
@@ -294,6 +295,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const panneauResultat = document.getElementById("combat-resultat");
   const texteResultat = document.getElementById("combat-resultat-texte");
   const elPermBuff = document.getElementById("combat-permanents");
+  const elPermMonstres = document.getElementById("combat-permanents-monstres"); // bonus permanents CÔTÉ MONSTRES (miroir, en haut à droite)
   const boutonContinuer = document.getElementById("combat-continuer");
   // La jauge de Chaleur (barre HTML horizontale)
   const jauge = document.getElementById("combat-jauge");
@@ -474,6 +476,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     elDefausseNb.textContent = combat.defausse.length;
     majSelection();
     rendrePermanents();
+    rendrePermanentsMonstres();
   }
 
   // Affiche les bonus PERMANENTS (tout le combat) en haut à gauche de l'écran.
@@ -511,6 +514,22 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       elPermBuff.append(el);
     }
     elPermBuff.hidden = elPermBuff.childElementCount === 0;
+  }
+
+  // Miroir CÔTÉ MONSTRES (en haut à droite) : les bonus permanents du camp ennemi.
+  // Pour l'instant : la FORCE COLLECTIVE des champignons (passif de famille). Recalculée
+  // par le moteur (`combat.forceChampi`) à chaque mort ; on ne redessine que si elle change.
+  function rendrePermanentsMonstres() {
+    vuForceChampi = combat.forceChampi || 0;
+    elPermMonstres.replaceChildren();
+    if (combat.forceChampi > 0) {
+      const el = document.createElement("div");
+      el.className = "combat-perm-buff combat-perm-buff--champi";
+      el.textContent = `🍄 +${combat.forceChampi}`;
+      el.dataset.tooltip = `Mushroom Force: while mushrooms stand together, each of their hits deals +${combat.forceChampi} bonus damage (+1 per mushroom, +5 for the Mushroom King). Kill them to shrink it.`;
+      elPermMonstres.append(el);
+    }
+    elPermMonstres.hidden = elPermMonstres.childElementCount === 0;
   }
 
   function disposerEventail() {
@@ -1439,6 +1458,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
     // DISLOCATION détectée (Tour de siège → équipage) : on reconstruit la scène.
     if ((combat.splitPulse || 0) !== vuSplitPulse) reconstruireApresSplit();
+
+    // FORCE COLLECTIVE des champignons : le moteur la recalcule à chaque mort. Si elle a
+    // changé (un champignon est tombé), on rafraîchit l'affichage du bonus côté monstres.
+    if ((combat.forceChampi || 0) !== vuForceChampi) rendrePermanentsMonstres();
 
     for (const u of ennemisUI) {
       // ÉVOLUTION détectée (le moteur a changé le stade de cet ennemi) : on reconstruit

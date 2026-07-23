@@ -1399,6 +1399,19 @@
     /* Pierre permanente par tour : icône d'armure DORÉE. */
     .combat-perm-buff--armure { color: #ffd24a; border-color: #b8860b; }
     .combat-perm-buff--set { color: #c9a0ff; border-color: #6a4a9a; } /* set complet (prestige) */
+    .combat-perm-buff--champi { color: #ff8f6b; border-color: #7a3a28; } /* Force collective des champignons */
+
+    /* Miroir CÔTÉ MONSTRES : même pastilles mais ancrées à DROITE, alignées à droite. */
+    .combat-permanents--monstres {
+      left: auto;
+      right: 1.5cqw;
+      align-items: flex-end;
+    }
+    /* Tooltip du côté monstres : il s'ouvre vers la GAUCHE (sinon il sort du cadre). */
+    .combat-permanents--monstres .combat-perm-buff[data-tooltip]:hover::after {
+      left: auto;
+      right: calc(100% + 1cqw);
+    }
 
     /* Bouton « Fin du tour » sélectionné : liseré jaune classique. */
     .combat-fin.sel {
@@ -2766,6 +2779,8 @@
       </div>
       <!-- Bonus permanents (tout le combat) : affichés en haut à gauche -->
       <div class="combat-permanents" id="combat-permanents" hidden></div>
+      <!-- Bonus permanents CÔTÉ MONSTRES : miroir en haut à droite (ex. Force des champignons) -->
+      <div class="combat-permanents combat-permanents--monstres" id="combat-permanents-monstres" hidden></div>
       <div class="combat-pile combat-pioche" id="combat-pioche-nb">0</div>
       <div class="combat-pile combat-defausse" id="combat-defausse-nb">0</div>
       <div class="combat-main" id="combat-main"></div>
