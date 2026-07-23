@@ -349,7 +349,10 @@ dédié dans `principal.js`, hors `composerGroupe`). Règles :
   détecte le changement de stade pour rejouer le flash + changer d'illustration.
 - **Stade 2** (*Feral Hare*) : vif (vitesse 20), **frappe 2×**. **Stade 3** (*Bloodfang
   Horror*) : encore plus rapide (26), coriace (150 PV) — un vrai mur.
-- On peut **fuir** pour l'éviter (aucune récompense alors).
+- On peut **fuir**, mais la difficulté dépend du **stade** : au stade 1 (gentil) la
+  fuite **réussit toujours** (100 %) ; au stade 2 c'est **plus dur** (35 %) ; au stade 3
+  on ne s'échappe **presque plus** (7 %). (Fuir ne donne aucune récompense.) Réglé dans
+  `tenterFuite()` via le champ `stade` de la def du lapin.
 - **Tuer le stade 3** donne un **gros pactole d'or** (butin de niveau 10) et une **chance
   infime (2 %) de lâcher le *Ring of Luck***. Le butin/XP de fin de combat est calculé sur
   les **définitions FINALES** des ennemis (transmises par `surFin`), donc sur ce qu'ils sont
