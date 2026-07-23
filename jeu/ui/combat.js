@@ -173,46 +173,52 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // arrière-plan (1 devant, 1 derrière, 1 devant…), quel que soit l'affixe.
   // Placement par EMPLACEMENTS : un GRAND monstre (def.grand) occupe 2 places et se
   // CENTRE dessus ; un normal, 1 place. On assigne chaque monstre à ses places.
-  const spans = combat.ennemis.map((e) => (e.def.grand ? 2 : 1));
-  const placeCx = poserEnnemis(spans.reduce((a, b) => a + b, 0));
-  let _place = 0;
-  const cxs = spans.map((span) => {
-    const c = (placeCx[_place] + placeCx[_place + span - 1]) / 2;
-    _place += span;
-    return c;
-  });
-  const ennemisUI = combat.ennemis.map((e, i) => {
-    const spr = e.def.sprite;
-    const avant   = (i % 2 === 0) || !!e.def.grand; // un GRAND monstre est toujours à l'AVANT
-    // `tailleRel` (défaut 1) permet d'ajuster la taille d'un TYPE de monstre sans
-    // toucher aux autres. Multiplié dans l'échelle → le sprite reste calé au sol et
-    // centré (l'ombre, la barre de vie et le niveau suivent automatiquement).
-    const echelle = (avant ? ECHELLE_AVANT : ECHELLE_ARRIERE) * (e.def.tailleRel ?? 1);
-    const solEcran = avant ? SOL_Y : SOL_ARRIERE;
-    // Calcul en coordonnées monde à partir de l'échelle propre à cet ennemi.
-    const solMonde = PIVOT_SCENE.y + (solEcran - PIVOT_SCENE.y) / echelle;
-    const ecran = { cx: cxs[i], sol: solEcran, haut: solEcran - spr.caseH * echelle };
-    ecran.milieu = (ecran.haut + ecran.sol) / 2;
-    ecran.sommet = ecran.haut - 22;
-    return {
-      e, spr, avant, echelle,
-      cx: cxs[i], // colonne écran (fixe) : sert à recalculer la pose après une évolution
-      planche: planches?.get(e.def.planche) ?? null,
-      localX: PIVOT_SCENE.x + (cxs[i] - PIVOT_SCENE.x) / echelle - spr.caseL / 2,
-      localY: solMonde - spr.caseH,
-      ecran,
-      vitAnim: facteurAnimVitesse(e.def.vitesse ?? 10) * lenteur, // rythme ∝ vitesse × lenteur
-      anim: { nom: "idle", t: 0 },
-      secousse: 0,
-      affPv: e.pv,
-      affInit: 0,
-      mort: { actif: false, t: 0 },
-      partis: false,
-      defId: e.def.id,        // stade courant (détecte une évolution : def.id change)
-      evoCount: e.evolue || 0, // pouls d'évolution vu par l'UI
-      flashEvo: 0,            // flash blanc en cours (décroît) lors d'une évolution
-    };
-  });
+  // Construit (ou RECONSTRUIT) la liste des unités d'affichage à partir de combat.ennemis.
+  // Rappelée après une DISLOCATION (Tour de siège → équipage) pour replacer la scène.
+  function construireUnitesUI() {
+    const spans = combat.ennemis.map((e) => (e.def.grand ? 2 : 1));
+    const placeCx = poserEnnemis(spans.reduce((a, b) => a + b, 0));
+    let _place = 0;
+    const cxs = spans.map((span) => {
+      const c = (placeCx[_place] + placeCx[_place + span - 1]) / 2;
+      _place += span;
+      return c;
+    });
+    return combat.ennemis.map((e, i) => {
+      const spr = e.def.sprite;
+      const avant   = (i % 2 === 0) || !!e.def.grand; // un GRAND monstre est toujours à l'AVANT
+      // `tailleRel` (défaut 1) permet d'ajuster la taille d'un TYPE de monstre sans
+      // toucher aux autres. Multiplié dans l'échelle → le sprite reste calé au sol et
+      // centré (l'ombre, la barre de vie et le niveau suivent automatiquement).
+      const echelle = (avant ? ECHELLE_AVANT : ECHELLE_ARRIERE) * (e.def.tailleRel ?? 1);
+      const solEcran = avant ? SOL_Y : SOL_ARRIERE;
+      // Calcul en coordonnées monde à partir de l'échelle propre à cet ennemi.
+      const solMonde = PIVOT_SCENE.y + (solEcran - PIVOT_SCENE.y) / echelle;
+      const ecran = { cx: cxs[i], sol: solEcran, haut: solEcran - spr.caseH * echelle };
+      ecran.milieu = (ecran.haut + ecran.sol) / 2;
+      ecran.sommet = ecran.haut - 22;
+      return {
+        e, spr, avant, echelle,
+        cx: cxs[i], // colonne écran (fixe) : sert à recalculer la pose après une évolution
+        planche: planches?.get(e.def.planche) ?? null,
+        localX: PIVOT_SCENE.x + (cxs[i] - PIVOT_SCENE.x) / echelle - spr.caseL / 2,
+        localY: solMonde - spr.caseH,
+        ecran,
+        vitAnim: facteurAnimVitesse(e.def.vitesse ?? 10) * lenteur, // rythme ∝ vitesse × lenteur
+        anim: { nom: "idle", t: 0 },
+        secousse: 0,
+        affPv: e.pv,
+        affInit: 0,
+        mort: { actif: false, t: 0 },
+        partis: false,
+        defId: e.def.id,        // stade courant (détecte une évolution : def.id change)
+        evoCount: e.evolue || 0, // pouls d'évolution vu par l'UI
+        flashEvo: 0,            // flash blanc en cours (décroît) lors d'une évolution/apparition
+      };
+    });
+  }
+  let ennemisUI = construireUnitesUI();
+  let vuSplitPulse = combat.splitPulse || 0; // dernière dislocation VUE par l'UI
 
   // ÉVOLUTION (Lapin blanc) : quand le moteur transforme un ennemi (nouveau stade,
   // cf. evoluerEnnemis), on RECALCULE toute sa pose visuelle (sprite plus grand,
@@ -240,6 +246,31 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     u.flashEvo = 1;          // déclenche le flash blanc
     u.defId = e.def.id;
     u.evoCount = e.evolue || 0;
+  }
+
+  // DISLOCATION (Tour de siège) : le moteur a remplacé la tour morte par son équipage
+  // (combat.ennemis a changé, combat.splitPulse a bougé). On fait EXPLOSER la tour à sa
+  // place, puis on RECONSTRUIT la scène avec les gobelins (qui « apparaissent »).
+  function reconstruireApresSplit() {
+    vuSplitPulse = combat.splitPulse || 0;
+    const tour = ennemisUI.find((u) => u.e.def?.splitEnMort && u.e.pv <= 0 && !u.partis);
+    if (tour) {
+      exploser(tour); // grande détonation + son + braises
+      const e = tour.echelle;
+      const wx = tour.localX + tour.spr.caseL / 2, wy = tour.localY + tour.spr.caseH * 0.5;
+      const ox = PIVOT_SCENE.x + (wx - PIVOT_SCENE.x) * e, oy = PIVOT_SCENE.y + (wy - PIVOT_SCENE.y) * e;
+      for (let k = 0; k < 30; k++) { // éclats de bois/braises en plus (la tour se disloque)
+        const a = Math.random() * Math.PI * 2, v = (60 + Math.random() * 200) * e;
+        particules.push({ type: "braise", x: ox, y: oy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60 * e,
+          taille: (2 + Math.random() * 3) * e, g: 90 * e, vie: 0.5 + Math.random() * 0.7, vieMax: 1.2 });
+      }
+      jouerSonCoup();
+    }
+    ennemisUI = construireUnitesUI();          // la scène montre l'équipage
+    for (const u of ennemisUI) u.flashEvo = 1; // ils apparaissent (petit flash)
+    combat.cible = Math.max(0, combat.ennemis.findIndex(ennemiVivant));
+    selection = -1; drag = null;
+    rafraichir();
   }
 
   // Éléments d'interface (présents dans index.html)
@@ -1240,6 +1271,23 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       jouerSonCoup();
     }
     if (evt.soin > 0) ajouterFlottant(`+${evt.soin}`, heroEcran.cx, heroEcran.sommet - 16, "#86e08a");
+    // GOBELIN KABOOM — la mèche brûle (télégraphe) : petite secousse + étincelle, rien d'autre.
+    if (evt.mecheCharge >= 0) {
+      u.secousse = 0.3;
+      ajouterFlottant("🧨", u.ecran.cx, u.ecran.sommet - 8, "#ffb03a");
+      jouerSonSortilege();
+      return;
+    }
+    // GOBELIN KABOOM — EXPLOSION : il se fait sauter (grosse détonation) et blesse le héros.
+    if (evt.explose) {
+      if (!u.mort.actif && !u.partis) exploser(u); // détonation + il meurt
+      secousseHeros = 0.4;
+      poufImpact(heroEcran.cx, heroEcran.sol);
+      if (evt.attaque > 0) ajouterFlottant(`💥 -${evt.attaque}`, heroEcran.cx, heroEcran.sommet, "#ff7a4a");
+      else if (evt.armureAbsorbe > 0) ajouterFlottant(`💥 -${evt.armureAbsorbe}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
+      jouerSonCoup();
+      return;
+    }
     // Mort par statut : on n'explose QUE si l'ennemi est réellement mort. Un ennemi
     // « à évolution » (Lapin blanc) a déjà été remis à PV pleins par le moteur → il
     // ne doit pas exploser, il évoluera (flash géré à la détection d'évolution).
@@ -1321,6 +1369,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         jouerSonSortilege();
       }
     }
+    // PORTE-ÉTENDARD : en plus de la Hâte, il renforce les DÉGÂTS des alliés (floater doré).
+    if (evt.buffDegats > 0) {
+      jouerAnim(u, "attaque");
+      ajouterFlottant(`⚔+${evt.buffDegats}`, u.ecran.cx, u.ecran.sommet - 18, "#ffcf57");
+    }
     // evt.stun → on n'affiche AUCUNE animation
     // Filet de sécurité : si l'ennemi est MORT au cours de sa propre action sans que
     // son explosion ait déjà été déclenchée (cas des dégâts de rétorsion d'un passif
@@ -1383,6 +1436,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     aff.initHeros += (ratioInitiativeHeros(combat) - aff.initHeros) * Math.min(1, dt * 6);
     majJauge();
     temps += dt;
+
+    // DISLOCATION détectée (Tour de siège → équipage) : on reconstruit la scène.
+    if ((combat.splitPulse || 0) !== vuSplitPulse) reconstruireApresSplit();
 
     for (const u of ennemisUI) {
       // ÉVOLUTION détectée (le moteur a changé le stade de cet ennemi) : on reconstruit
@@ -2243,15 +2299,26 @@ function dessinerBouclier(ctx, cx, cy, taille, valeur) {
 
 // Sorts qui touchent TOUT le groupe allié → leur intention porte un badge « ALL »
 // collé à l'icône (convention valable pour tout futur sort de groupe).
-const SORTS_GROUPE = new Set(["haste-allie"]);
+const SORTS_GROUPE = new Set(["haste-allie", "buff-allie"]);
 
 function dessinerIntention(ctx, intention, cx, y) {
   if (!intention) return;
   ctx.font = police(12);
   ctx.textBaseline = "alphabetic";
+  // EXPLOSION (Gobelin Kaboom) : télégraphe la grosse détonation + le compte à rebours
+  // de la mèche (nombre de tours restants), qui vire au « ! » juste avant le boum.
+  if (intention.type === "explosion") {
+    const meche = intention.charge > 0 ? ` 🧨${intention.charge}` : " ‼";
+    ctx.fillStyle = intention.charge > 0 ? "#ffb03a" : "#ff4d3a";
+    ctx.textAlign = "center";
+    ctx.fillText(`💣 ${intention.valeur}${meche}`, cx, y);
+    ctx.textAlign = "left";
+    return;
+  }
   let icone = "⚔", couleur = "#ff8a5b";
   if (intention.type === "soigner") { icone = "💚"; couleur = "#7edf82"; }
   else if (intention.type === "haste-allie") { icone = "⚡"; couleur = "#dff4ff"; }
+  else if (intention.type === "buff-allie") { icone = "🚩"; couleur = "#ffcf57"; }
   // Attaque multi-coups (ex. Skirmisher) : affichée « N×V » + ☠ si elle empoisonne.
   const poison = intention.poison > 0 ? " ☠" : "";
   const txt = (intention.hits > 1 ? `${icone} ${intention.hits}×${intention.valeur}` : `${icone} ${intention.valeur}`) + poison;

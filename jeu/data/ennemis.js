@@ -603,6 +603,87 @@ export const ENNEMIS = [
     butin: { objets: [{ id: "ring-of-luck", chance: 0.02 }] },
   },
 
+  // --- LA TOUR DE SIÈGE GOBELINE : boss UNIQUE (niveau 8) — 23/07/2026. Apparaît
+  // TOUJOURS seule (soloUniquement). Quand elle meurt, elle N'EST PAS vaincue : elle
+  // se DISLOQUE et fait sortir, de gauche à droite, son équipage (splitEnMort) —
+  // 1 Gobelin Kaboom, 3 Gobelins de siège, 1 Porte-étendard. Ces 4 gobelins liés à la
+  // tour ne peuvent apparaître QUE de sa mort (spawnOnly), jamais autrement.
+  {
+    id: "tour-de-siege-gobeline",
+    nom: "Goblin Siege Tower",
+    niveau: 8,
+    famille: "gobelin",
+    pv: 220,
+    attaque: 16,      // tir de canon
+    xp: 120,
+    vitesse: 5,       // lourde et lente
+    affix: "melee",
+    grand: true,      // occupe 2 places
+    soloUniquement: true, // n'apparaît JAMAIS en groupe (même dans l'arène de test)
+    splitEnMort: ["gobelin-kaboom", "gobelin-de-siege", "gobelin-de-siege", "gobelin-de-siege", "gobelin-de-siege-etandart"],
+    planche: "images/ennemis/tour-de-siege-gobeline.png",
+    portrait: { sx: 13, sy: 5, sw: 106, sh: 106 },
+    sprite: { caseL: 253, caseH: 250, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    // Le gobelin écrasé sous le canon : longue MÈCHE avant de tout faire sauter.
+    // Il ne frappe pas ; après un délai (delaiExplosion tours, télégraphié), il EXPLOSE
+    // pour `explose` dégâts au héros PUIS meurt. Ne pop QUE de la tour (spawnOnly).
+    id: "gobelin-kaboom",
+    nom: "Goblin Kaboom",
+    niveau: 6,
+    famille: "gobelin",
+    pv: 20,
+    attaque: 0,
+    xp: 20,
+    vitesse: 4,       // très lent : la mèche brûle longtemps
+    affix: "melee",
+    spawnOnly: true,
+    explose: 100,       // dégâts de l'explosion
+    delaiExplosion: 2,  // nb de SES tours de mèche avant de sauter (télégraphié)
+    planche: "images/ennemis/gobelin-kaboom.png",
+    portrait: { sx: 14, sy: 3, sw: 120, sh: 120 },
+    sprite: { caseL: 286, caseH: 150, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    id: "gobelin-de-siege",
+    nom: "Siege Goblin",
+    niveau: 3,
+    famille: "gobelin",
+    pv: 24,
+    attaque: 7,
+    xp: 8,
+    vitesse: 9,
+    affix: "melee",
+    spawnOnly: true,
+    planche: "images/ennemis/gobelin-de-siege.png",
+    portrait: { sx: 13, sy: 4, sw: 110, sh: 110 },
+    sprite: { caseL: 261, caseH: 200, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    // Porte-étendard : PLUS de vie, et à chaque tour il BUFFE ses alliés vivants —
+    // vitesse d'attaque (Hâte) ET dégâts (bonusDegats). Ne pop QUE de la tour.
+    id: "gobelin-de-siege-etandart",
+    nom: "Siege Standard-Bearer",
+    niveau: 6,
+    famille: "gobelin",
+    pv: 55,
+    attaque: 5,
+    xp: 24,
+    vitesse: 7,
+    affix: "melee",
+    spawnOnly: true,
+    buffDegats: 2, // +2 dégâts par buff donné aux alliés (cumulable)
+    actions: [{ type: "buff-allie", valeur: 2, poids: 100 }], // valeur = Hâte donnée aux alliés
+    planche: "images/ennemis/gobelin-de-siege-etandart.png",
+    portrait: { sx: 9, sy: 5, sw: 73, sh: 73 },
+    sprite: { caseL: 174, caseH: 235, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+
 ];
 
 // Applique les stats de l'Excel (onglet « Monstres ») PAR-DESSUS les valeurs de
@@ -722,15 +803,21 @@ export function filtrerNiveau(defs, niveauMobs) {
 
 export function composerGroupe(monstreIds, opts = {}) {
   let defs = (monstreIds ?? []).map(ennemiParId).filter(Boolean);
+  // Les monstres « spawnOnly » (équipage de la tour de siège) ne sortent JAMAIS d'un
+  // pool normal : ils n'apparaissent qu'à la mort de la tour (cf. splitEnMort).
+  defs = defs.filter((d) => !d.spawnOnly);
   if (defs.length === 0) return [];
   // Restreint au niveau AFFICHÉ (cf. filtrerNiveau) : on ne rencontre que des monstres
   // du bon niveau, ou — faute de contenu — du plus haut niveau disponible en dessous.
   defs = filtrerNiveau(defs, opts.niveauMobs);
   if (defs.length === 0) return [];
-  // On tire d'abord UN clan (via un monstre pondéré par niveau) et on ne garde que
-  // les monstres de ce clan → pas de mélange blobs/gobelins/molosses dans un groupe.
+  // On tire d'abord UN monstre « meneur » (pondéré par niveau). S'il est SOLO-UNIQUEMENT
+  // (tour de siège), la rencontre ne contient que LUI. Sinon il fixe le CLAN du groupe
+  // (homogène : pas de mélange blobs/gobelins/molosses).
   const niveauMinPool = Math.min(...defs.map((d) => d.niveau ?? 1));
-  const clanChoisi = clanMonstre(tirerMonstrePondere(defs, niveauMinPool, GRAND_RARETE));
+  const meneur = tirerMonstrePondere(defs, niveauMinPool, GRAND_RARETE);
+  if (meneur.soloUniquement) return [meneur];
+  const clanChoisi = clanMonstre(meneur);
   defs = defs.filter((d) => clanMonstre(d) === clanChoisi);
   const melee = defs.filter((d) => d.affix !== "range");
   const niveauMin = Math.min(...defs.map((d) => d.niveau ?? 1)); // réf. de la fourchette

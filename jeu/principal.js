@@ -1303,7 +1303,10 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Combat SIMULÉ (test) : mêmes rouages que declencherRencontre mais sans conséquence.
   // On utilise les fonds de combat de la CITÉ (on est en ville). À la fin : soin complet.
   async function lancerCombatTest(mobIds) {
-    const ennemis = (mobIds ?? []).map(ennemiParId).filter(Boolean);
+    let ennemis = (mobIds ?? []).map(ennemiParId).filter(Boolean);
+    // Sécurité : un monstre SOLO-UNIQUEMENT (Tour de siège) part TOUJOURS seul, même en test.
+    const solo = ennemis.find((e) => e.soloUniquement);
+    if (solo) ennemis = [solo];
     if (ennemis.length === 0) { enPause = false; return; }
     enPause = true; invite.hidden = true;
     const mc = musiqueCombat(zoneActuelle);
@@ -1893,6 +1896,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   // TOUS au stade 1 (gentil, 1 PV) ; le combat les fait évoluer (cf. systems/combat.js).
   const LAPIN_CHANCE = 0.04;   // ~4% des rencontres éligibles
   const LAPIN_PROF_MIN = 4;    // dès l'étage 4 (le lapin est de niveau 7)
+  const TOUR_CHANCE = 0.03;    // ~3% des rencontres éligibles (boss rare)
+  const TOUR_PROF_MIN = 5;     // dès l'étage 5 (la tour de siège est de niveau 8)
   // Taille du groupe de lapins : surtout 1, parfois 2, rarement 3.
   function composerLapins() {
     const r = Math.random();
@@ -1911,8 +1916,13 @@ export async function demarrerJeu(donneesInitiales = null) {
     const chanceLapin = LAPIN_CHANCE * (zoneCourante?.luck ? 3 : 1);
     const lapin = zoneCourante?.estMine && (zoneCourante.niveau ?? 1) >= LAPIN_PROF_MIN
       && Math.random() < chanceLapin;
+    // Tour de siège gobeline (boss rare, TOUJOURS seule) : dès l'étage 5.
+    const tour = !lapin && zoneCourante?.estMine && (zoneCourante.niveau ?? 1) >= TOUR_PROF_MIN
+      && Math.random() < TOUR_CHANCE;
     // Le pool de monstres est restreint au niveau AFFICHÉ (filtrerNiveau, via opts).
-    const ennemis = lapin
+    const ennemis = tour
+      ? [ennemiParId("tour-de-siege-gobeline")]
+      : lapin
       ? composerLapins()
       : composerGroupe(zoneCourante?.monstres, { niveauMobs: zoneCourante?.niveauMobs });
     if (ennemis.length === 0) return;

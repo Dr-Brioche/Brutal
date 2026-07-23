@@ -156,6 +156,9 @@ function forceTotal(combat) { return combat.force + (combat.forcePerm ?? 0); }
 function creerEnnemiCombat(def) {
   return {
     def, pv: def.pv, pvMax: def.pv,
+    bonusDegats: 0,                // dégâts bonus reçus (buff du Porte-étendard de siège)
+    charge: def.explose ? (def.delaiExplosion ?? 2) : 0, // mèche du Gobelin Kaboom
+    evolue: 0,                     // pouls d'évolution/split vu par l'UI
     poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps)
     feuDeCarte: false,             // true = feu posé par une carte ce tour : propagera à la FIN du tour du héros
     stun: 0,                       // étourdissement : nb de SES tours encore sautés
@@ -340,6 +343,12 @@ export function cibleSoinVerrou(combat, lanceur) {
 function prevoirIntentions(combat) {
   for (const e of combat.ennemis) {
     if (!ennemiVivant(e)) { e.intention = null; continue; }
+    // GOBELIN KABOOM : il ne fait rien d'autre que faire brûler sa mèche puis EXPLOSER.
+    // On télégraphie l'explosion (avec le compte à rebours `charge`).
+    if (e.def.explose) {
+      e.intention = { type: "explosion", valeur: e.def.explose, charge: e.charge };
+      continue;
+    }
     const a = e.def.actions?.length ? choisirAction(e.def.actions) : null;
     if (a) {
       e.intention = { type: a.type, valeur: a.valeur };
@@ -348,9 +357,9 @@ function prevoirIntentions(combat) {
     } else {
       // Pas d'action spéciale (aucune, ou la part « restante » n'a rien procé) :
       // ATTAQUE DE BASE, éventuellement MULTI-COUPS (attaqueHits) et empoisonnante
-      // (poisonParCoup) — ex. le Goblin Skirmisher frappe 2× et pose 1 poison/coup.
+      // (poisonParCoup). Le bonus de dégâts (buff du Porte-étendard) s'ajoute à chaque coup.
       e.intention = {
-        type: "attaque", valeur: e.def.attaque,
+        type: "attaque", valeur: e.def.attaque + (e.bonusDegats || 0),
         hits: e.def.attaqueHits ?? 1, poison: e.def.poisonParCoup ?? 0,
       };
     }
@@ -820,10 +829,34 @@ function evoluerEnnemis(combat) {
   return aEvolue;
 }
 
+// DISLOCATION (la Tour de siège gobeline) : un ennemi mort dont la def porte
+// `splitEnMort` (liste d'ids) ne compte pas comme vaincu — il est REMPLACÉ dans la file
+// par son équipage (créé de gauche à droite, dans l'ordre de la liste). On marque un
+// « pouls » (`combat.splitPulse`) que l'UI détecte pour reconstruire la scène (explosion
+// + apparition des gobelins). Renvoie true si au moins une tour s'est disloquée.
+function resoudreSplits(combat) {
+  let aSplit = false;
+  for (let i = 0; i < combat.ennemis.length; i++) {
+    const e = combat.ennemis[i];
+    if (e.pv > 0 || !e.def?.splitEnMort?.length) continue;
+    const nouveaux = e.def.splitEnMort
+      .map((id) => ennemiParId(id))
+      .filter((d) => d && d.id !== e.def.id)
+      .map((d) => creerEnnemiCombat(d));
+    if (!nouveaux.length) continue;
+    combat.ennemis.splice(i, 1, ...nouveaux); // remplace la tour par son équipage
+    combat.splitPulse = (combat.splitPulse || 0) + 1;
+    aSplit = true;
+  }
+  return aSplit;
+}
+
 function verifierFin(combat) {
   // Avant de déclarer la victoire : les ennemis « à évolution » (Lapin blanc) se
-  // transforment au lieu de mourir — le combat continue tant qu'ils ont un stade suivant.
+  // transforment au lieu de mourir ; ceux « à dislocation » (Tour de siège) libèrent
+  // leur équipage. Le combat continue tant que l'un ou l'autre a lieu.
   evoluerEnnemis(combat);
+  resoudreSplits(combat);
   if (combat.ennemis.every((e) => e.pv <= 0)) {
     combat.fini = true;
     combat.resultat = "victoire";
@@ -1206,6 +1239,9 @@ export function agirEnnemi(combat, i) {
     doubleTour: false, // true = l'ennemi rejoue tout de suite (Hâte ≥ 10, stacks consommés)
     poisonHero: 0,     // poison posé sur le HÉROS par une attaque empoisonnante (Skirmisher)
     coups: null,       // PV perdus coup par coup (attaque multi-coups) — pour l'anim UI
+    explose: false,    // true = le Gobelin Kaboom vient d'EXPLOSER (grosse détonation UI)
+    mecheCharge: -1,   // ≥0 = la mèche du Kaboom brûle (compte à rebours affiché), pas encore d'explosion
+    buffDegats: 0,     // dégâts bonus donnés aux alliés par le Porte-étendard (pour le floater)
   };
   if (!e || e.pv <= 0) return evt;
   // Ordre des malus dans le temps : poison, puis feu, saignement en dernier.
@@ -1240,6 +1276,23 @@ export function agirEnnemi(combat, i) {
   if (e.pv <= 0) { evt.mortStatut = true; verifierFin(combat); return evt; }
   if (gelBrise) return evt; // gelé solide : il saute son tour (pas d'action)
   if (e.stun > 0) { e.stun -= 1; evt.stun = true; return evt; } // étourdi : pas d'action
+  // GOBELIN KABOOM : la mèche brûle (charge), puis EXPLOSION (dégâts au héros) + il meurt.
+  if (e.intention?.type === "explosion") {
+    if (e.charge > 0) {
+      e.charge -= 1;              // télégraphe : la mèche raccourcit (pas encore d'explosion)
+      evt.mecheCharge = e.charge;
+      return evt;
+    }
+    const avantPv = combat.pvHeros, avantPierre = combat.pierre;
+    subirDegats(combat, e.intention.valeur); // BOOM : la Pierre peut en absorber une partie
+    evt.attaque = avantPv - combat.pvHeros;
+    evt.armureAbsorbe = avantPierre - combat.pierre;
+    evt.explose = true;
+    e.pv = 0;                     // il se fait sauter avec le canon
+    evt.mortStatut = true;
+    verifierFin(combat);
+    return evt;
+  }
   if (e.intention?.type === "attaque") {
     // Confusion (éblouissement) : la frappe part sur une cible AU HASARD parmi le
     // héros, les autres ennemis vivants, ou l'ennemi LUI-MÊME.
@@ -1346,6 +1399,14 @@ export function agirEnnemi(combat, i) {
       for (const a of alliés) a.haste += e.intention.valeur;
       evt.haste_allie = alliés.length ? e.intention.valeur : 0;
     }
+  } else if (e.intention?.type === "buff-allie") {
+    // PORTE-ÉTENDARD DE SIÈGE : à tous les alliés vivants, +Hâte (vitesse d'attaque) ET
+    // +bonusDegats (dégâts) — cumulable tour après tour. Ne se buffe pas lui-même.
+    const bonusDeg = e.def.buffDegats ?? 2;
+    const alliés = combat.ennemis.filter((a, j) => j !== i && ennemiVivant(a));
+    for (const a of alliés) { a.haste += e.intention.valeur; a.bonusDegats += bonusDeg; }
+    evt.haste_allie = alliés.length ? e.intention.valeur : 0;
+    evt.buffDegats = alliés.length ? bonusDeg : 0;
   }
   // Hâte à 10 : l'ennemi qui vient d'AGIR rejoue tout de suite — on remet sa jauge
   // d'initiative au seuil (elle sera reprise au prochain pas) et on consomme TOUS

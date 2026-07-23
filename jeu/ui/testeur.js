@@ -26,14 +26,22 @@ export function installerTesteur() {
   let choisis = [];          // liste d'ids de monstres sélectionnés (répétitions permises)
   let onLancer = null, onFermer = null;
 
-  // Monstres triés par NIVEAU puis par nom, pour une liste lisible.
-  const MOBS = [...ENNEMIS].sort((a, b) => (a.niveau - b.niveau) || a.nom.localeCompare(b.nom));
+  // Monstres triés par NIVEAU puis par nom, pour une liste lisible. On EXCLUT l'équipage
+  // « spawnOnly » (gobelins de la tour de siège) : ils n'apparaissent qu'à la mort de la tour.
+  const MOBS = [...ENNEMIS]
+    .filter((e) => !e.spawnOnly)
+    .sort((a, b) => (a.niveau - b.niveau) || a.nom.localeCompare(b.nom));
 
   function placesUtilisees() {
     return choisis.reduce((s, id) => s + placesDe(ENNEMIS.find((e) => e.id === id)), 0);
   }
 
   function peutAjouter(def) {
+    // Monstre SOLO-UNIQUEMENT (Tour de siège) : ne se combine avec AUCUN autre.
+    if (choisis.length) {
+      if (choisis.some((id) => ENNEMIS.find((e) => e.id === id)?.soloUniquement)) return false;
+      if (def.soloUniquement) return false;
+    }
     return placesUtilisees() + placesDe(def) <= PLACES_MAX;
   }
 
