@@ -36,7 +36,7 @@ import { demarrerCombat } from "./ui/combat.js";
 import { ENNEMIS, tirerButin, composerGroupe, ennemiParId, filtrerNiveau } from "./data/ennemis.js";
 import { fondCombat, prechargerFonds } from "./data/fonds.js";
 import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
-import { FANATIQUE, MARCHAND, FORGERON, COURTIER, COMMISSAIRE, BANQUIER } from "./data/pnj.js";
+import { FANATIQUE, MARCHAND, FORGERON, COURTIER, COMMISSAIRE, BANQUIER, MAITRE_ARENE } from "./data/pnj.js";
 import { installerForge, ouvrirForge, forgeActive } from "./ui/forge.js";
 import { installerHV, ouvrirHV, hvActive, phraseCourtier } from "./ui/hv.js";
 import { creerMarche, tickMarche, etatMarche, chargerMarche, valeurReelle } from "./systems/marche.js";
@@ -58,6 +58,7 @@ import { creerCoffre, etatCoffre, chargerCoffre } from "./systems/coffre.js";
 import { installerCoffre, coffreActif } from "./ui/coffre.js";
 import { creerBanque, etatBanque, chargerBanque } from "./systems/banque.js";
 import { installerBanque, banqueActif } from "./ui/banque.js";
+import { installerTesteur, testeurActif } from "./ui/testeur.js"; // ⚠ TEST (à retirer avant export)
 import { creerMort, etatMort, chargerMort, appliquerMort, tirerCachesEtage, ramasserCache } from "./systems/mort.js";
 import { installerHorloge, dessinerHorloge, montrerHorloge } from "./ui/horloge.js";
 import { installerParchemin, ouvrirParchemin } from "./ui/parchemin.js";
@@ -253,6 +254,16 @@ export async function demarrerJeu(donneesInitiales = null) {
     xMin: 31 * TUILE - 36,
     xMax: 31 * TUILE - 36,
   });
+  // ⚠ Maître d'arène (PNJ de TEST) : plus HAUT dans la salle (rangée 3, dégagée).
+  // Lui parler ouvre le SIMULATEUR DE COMBAT (choix de monstres → combat sans enjeu).
+  const maitreArene = creerPnj({
+    modele: MAITRE_ARENE,
+    planche: planches.get(MAITRE_ARENE.planche),
+    x: 21 * TUILE - 36,
+    y: 3 * TUILE - 72,
+    xMin: 21 * TUILE - 36,
+    xMax: 21 * TUILE - 36,
+  });
   // FONTAINE (build de TEST) : près de la porte de sortie. On lui parle
   // pour gagner 1 niveau d'un coup → tester l'arbre de talents sans farmer.
   const fontaine = {
@@ -299,7 +310,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     };
     return [
       boitePnj(fanatique), boitePnj(marchand), boitePnj(forgeron), boitePnj(courtier),
-      boitePnj(commissaire), boitePnj(banquier),
+      boitePnj(commissaire), boitePnj(banquier), boitePnj(maitreArene),
       { x: fontaine.cx - 20, y: fontaine.solY - 16, w: 40, h: 22 },
       // Le coffre : caisse solide au sol, on ne la traverse pas.
       { x: coffreObjet.cx - 18, y: coffreObjet.solY - 18, w: 36, h: 20 },
@@ -1277,6 +1288,46 @@ export async function demarrerJeu(donneesInitiales = null) {
     });
   }
 
+  // ⚠ SIMULATEUR DE COMBAT (Maître d'arène, PNJ de test). On choisit jusqu'à 5 places
+  // de monstres puis on lance un combat SANS enjeu (ni butin, ni XP, ni mort).
+  const testeurUI = installerTesteur();
+  function parlerAuMaitreArene() {
+    if (dialogueActif() || combatEnCours || enPause) return;
+    regarderHeros(maitreArene, heros); // il se tourne vers le héros pendant qu'on lui parle
+    enPause = true; invite.hidden = true;
+    testeurUI.ouvrir({
+      surLancer: (ids) => lancerCombatTest(ids),
+      surFermer: () => { if (!testeurActif() && !combatEnCours) enPause = false; },
+    });
+  }
+  // Combat SIMULÉ (test) : mêmes rouages que declencherRencontre mais sans conséquence.
+  // On utilise les fonds de combat de la CITÉ (on est en ville). À la fin : soin complet.
+  async function lancerCombatTest(mobIds) {
+    const ennemis = (mobIds ?? []).map(ennemiParId).filter(Boolean);
+    if (ennemis.length === 0) { enPause = false; return; }
+    enPause = true; invite.hidden = true;
+    const mc = musiqueCombat(zoneActuelle);
+    if (mc) jouerMusiqueFichier(mc);
+    await flashCombat();
+    combatEnCours = demarrerCombat({
+      ctx, heros, inventaire, planches, ennemis, maitrise,
+      bonusRun: bonusCombatRun(runProfondeur),
+      fond: fondCombat(zoneActuelle, zoneCourante), // ville → fonds « brutal-* »
+      surPause: () => menu.ouvrir({ sansSauvegarde: true }),
+      surFin: (resultat) => {
+        combatEnCours = null;
+        const ambiance = zoneCourante?.musique ?? null;
+        if (ambiance) jouerMusique(ambiance); else arreterMusique();
+        heros.pv = heros.pvMax; // test : soigné à fond, aucun enjeu
+        enPause = false;
+        afficherMessage(
+          resultat === "victoire" ? "⚔ Test fight won — healed up."
+          : resultat === "fuite"  ? "🏃 Fled the test fight."
+          : "💀 Test fight lost — no penalty, healed up.");
+      },
+    });
+  }
+
   installerHorloge();  // le cadran jour/nuit (HUD haut-droite)
   installerParchemin(); // l'écran de lecture des parchemins de craft
   installerLivre();     // le Livre d'artisanat (recettes apprises, touche L)
@@ -1328,6 +1379,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     else if (courtier.proche) { e.preventDefault(); parlerAuCourtier(); }
     else if (commissaire.proche) { e.preventDefault(); parlerAuCommissaire(); }
     else if (banquier.proche) { e.preventDefault(); parlerAuBanquier(); }
+    else if (maitreArene.proche) { e.preventDefault(); parlerAuMaitreArene(); }
     else if (fontaine.proche) { e.preventDefault(); parlerALaFontaine(); }
     else if (coffreObjet.proche) { e.preventDefault(); ouvrirCoffreVille(); }
     else if (panneauScierie.proche) { e.preventDefault(); lirePanneauBatiment("scierie"); }
@@ -2050,6 +2102,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         mettreAJourPnj(courtier, dt, heros);
         mettreAJourPnj(commissaire, dt, heros);
         mettreAJourPnj(banquier, dt, heros);
+        mettreAJourPnj(maitreArene, dt, heros);
         fontaine.t += dt;
         fontaine.proche =
           Math.abs((heros.x + 32) - fontaine.cx) < 46 &&
@@ -2075,7 +2128,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       // L'invite « parler » s'affiche quand on est à portée d'un PNJ / de la
       // fontaine / du panneau de la scierie (où « Read » remplace « Talk »). En mine,
       // elle s'affiche aussi à portée d'une cache de butin perdu (« Take »).
-      const presPnj = fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || commissaire.proche || banquier.proche || fontaine.proche;
+      const presPnj = fanatique.proche || marchand.proche || forgeron.proche || courtier.proche || commissaire.proche || banquier.proche || maitreArene.proche || fontaine.proche;
       const inviteVille = zoneActuelle === "city" && (presPnj || coffreObjet.proche || panneauScierie.proche || panneauTannerie.proche);
       invite.hidden = !(inviteVille || cacheProche);
       if (!invite.hidden) {
@@ -2126,6 +2179,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           { pieds: piedsPnj(courtier), dessiner: () => dessinerPnj(ctx, courtier) },
           { pieds: piedsPnj(commissaire), dessiner: () => dessinerPnj(ctx, commissaire) },
           { pieds: piedsPnj(banquier), dessiner: () => dessinerPnj(ctx, banquier) },
+          { pieds: piedsPnj(maitreArene), dessiner: () => dessinerPnj(ctx, maitreArene) },
           { pieds: heros.y + 54, dessiner: () => dessinerHeros(ctx, heros) },
         ];
         acteurs.sort((a, b) => a.pieds - b.pieds);

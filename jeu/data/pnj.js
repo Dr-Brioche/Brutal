@@ -121,6 +121,26 @@ export const BANQUIER = {
   passif: { anim: "passive", min: 6, max: 13 },
 };
 
+// ⚠ PNJ DE TEST (à retirer avant l'export final) : le « Maître d'arène ». Lui parler
+// ouvre un simulateur de combat où l'on choisit jusqu'à 5 places de monstres. Réutilise
+// la planche du marchand avec une teinte spectrale (violet) pour le distinguer.
+export const MAITRE_ARENE = {
+  id: "maitre-arene",
+  nom: "Arena Master",
+  planche: "images/pnj/marchand.png",
+  teinte: "hue-rotate(250deg) saturate(1.25) brightness(1.05)", // spectral (violet)
+  sprite: {
+    caseL: 104,
+    caseH: 88,
+    regard: { bas: 0, gauche: 7, droite: 8, haut: 9 },
+    anims: {
+      repos:   { frames: [0], ips: 1, boucle: true },
+      passive: { frames: [0, 1, 2, 3, 4, 5, 6], ips: 7, boucle: false },
+    },
+  },
+  passif: { anim: "passive", min: 6, max: 13 },
+};
+
 export const FORGERON = {
   id: "forgeron",
   nom: "Ferran",
