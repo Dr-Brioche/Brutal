@@ -942,6 +942,31 @@ une **caverne de chance** : un étage **bourré de minerais** (~3× plus de vein
 génération existants (`bonusMineraisPct`, `tauxRencontre`) via `genererMine`. Un message
 annonce l'étage. C'est un vrai coup de bol de farm, sans casser la boucle des étages.
 
+## La mort & les caches de butin perdu (23/07/2026)
+
+Tomber au combat ne tue **pas** vraiment : le héros se **réveille en ville, près du
+Fanatique**, qui le **soigne** (PV pleins — provisoire, en attendant un vrai rituel).
+Mais la Mort prélève son **tribut** :
+
+- **½ de la barre d'XP en cours** (jamais un niveau — on ne redescend pas de rang) ;
+- **½ des objets du SAC, au hasard** (l'**équipement porté** est épargné ; un objet
+  empilable part avec toute sa pile) ;
+- **30 % de l'or**.
+
+Ce butin **n'est pas détruit** : il tombe dans les profondeurs sous forme de **cache**.
+Chaque mort crée **une** cache qui **s'accumule** aux précédentes (mémoire persistante,
+sauvegardée). Ensuite, en explorant les mines, **chaque étage** a **1 % de chance PAR
+cache** de la faire **resurgir** — tirage **indépendant** : si on est mort 2×, on peut
+tomber sur les **deux** caches sur un même étage (séparément). Une cache apparaît comme
+un **petit sac de butin** posé au sol (halo doré) ; on la ramasse à l'**Action**
+(`[Space] Take`). Le butin est rendu (XP, or, objets) et la cache est **effacée de la
+mémoire pour toujours** (si le sac est plein, l'or/l'XP sont rendus mais les objets
+restants attendent — on peut revenir après avoir fait de la place).
+
+Côté code : `systems/mort.js` (état des caches + `appliquerMort` + tirage + ramassage),
+persisté dans la sauvegarde (`etatMort`/`chargerMort`). Câblage dans `principal.js`
+(handler de défaite, spawn à l'entrée d'un étage, ramassage, dessin de la cache).
+
 ## La banque de Brütàl (pilier économie) — 1er jet (22/07/2026)
 
 Un **banquier** (Grimbrück) en ville ouvre un écran plein écran pour gérer son or.
