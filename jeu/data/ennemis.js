@@ -346,7 +346,7 @@ export const ENNEMIS = [
     vitesse: 4,
     affix: "melee",
     planche: "images/ennemis/blob-bleu.png",
-    portrait: { sx: 71, sy: 9, sw: 118, sh: 118 }, // premier jet (à recadrer)
+    portrait: { sx: 65, sy: 56, sw: 110, sh: 110 }, // premier jet (à recadrer)
     sprite: { caseL: 260, caseH: 214, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -361,7 +361,7 @@ export const ENNEMIS = [
     vitesse: 16,
     affix: "melee",
     planche: "images/ennemis/molosse.png",
-    portrait: { sx: 87, sy: 6, sw: 86, sh: 86 }, // premier jet (à recadrer)
+    portrait: { sx: 0, sy: 23, sw: 92, sh: 92 }, // premier jet (à recadrer)
     sprite: { caseL: 260, caseH: 156, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -376,7 +376,7 @@ export const ENNEMIS = [
     vitesse: 15,
     affix: "melee",
     planche: "images/ennemis/molosse-feu.png",
-    portrait: { sx: 81, sy: 7, sw: 97, sh: 97 }, // premier jet (à recadrer)
+    portrait: { sx: 0, sy: 44, sw: 96, sh: 96 }, // premier jet (à recadrer)
     sprite: { caseL: 260, caseH: 177, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -391,7 +391,7 @@ export const ENNEMIS = [
     vitesse: 17,
     affix: "melee",
     planche: "images/ennemis/molosse-sombre.png",
-    portrait: { sx: 80, sy: 7, sw: 100, sh: 100 }, // premier jet (à recadrer)
+    portrait: { sx: 0, sy: 47, sw: 96, sh: 96 }, // premier jet (à recadrer)
     sprite: { caseL: 260, caseH: 182, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -461,7 +461,7 @@ export const ENNEMIS = [
     vitesse: 8,
     affix: "melee",
     planche: "images/ennemis/warrior-mushroom1.png",
-    portrait: { sx: 11, sy: 4, sw: 96, sh: 96 }, // premier jet (à recadrer)
+    portrait: { sx: 47, sy: 11, sw: 112, sh: 112 }, // premier jet (à recadrer)
     sprite: { caseL: 229, caseH: 210, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -476,7 +476,7 @@ export const ENNEMIS = [
     vitesse: 7,
     affix: "melee",
     planche: "images/ennemis/warrior-mushroom2.png",
-    portrait: { sx: 14, sy: 4, sw: 117, sh: 117 }, // premier jet (à recadrer)
+    portrait: { sx: 65, sy: 10, sw: 132, sh: 132 }, // premier jet (à recadrer)
     sprite: { caseL: 278, caseH: 210, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -492,7 +492,7 @@ export const ENNEMIS = [
     affix: "melee",
     attaqueHits: 2, // deux katanas : frappe deux fois par tour
     planche: "images/ennemis/white-katana-mushroom.png",
-    portrait: { sx: 9, sy: 4, sw: 74, sh: 74 }, // premier jet (à recadrer)
+    portrait: { sx: 39, sy: 4, sw: 95, sh: 95 }, // premier jet (à recadrer)
     sprite: { caseL: 177, caseH: 215, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -507,7 +507,7 @@ export const ENNEMIS = [
     vitesse: 9,
     affix: "melee",
     planche: "images/ennemis/black-mushroom-specialist.png",
-    portrait: { sx: 11, sy: 4, sw: 94, sh: 94 }, // premier jet (à recadrer)
+    portrait: { sx: 62, sy: 0, sw: 92, sh: 92 }, // premier jet (à recadrer)
     sprite: { caseL: 225, caseH: 225, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -522,7 +522,7 @@ export const ENNEMIS = [
     vitesse: 7,
     affix: "range", // caster : uniquement dans les groupes de 3+
     planche: "images/ennemis/mage-mushroom.png",
-    portrait: { sx: 10, sy: 5, sw: 87, sh: 87 }, // premier jet (à recadrer)
+    portrait: { sx: 38, sy: 12, sw: 98, sh: 98 }, // premier jet (à recadrer)
     sprite: { caseL: 208, caseH: 235, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     actions: [{ type: "soigner", valeur: 12, poids: 45 }, { type: "haste-allie", valeur: 2, poids: 30 }, { type: "attaque", valeur: 5, poids: 25 }],
     butin: { objets: [] },
@@ -541,7 +541,7 @@ export const ENNEMIS = [
     roiChampi: true, // ROI des champignons : apport +5 à la Force collective (cf. combat.js) ;
                      // un seul Roi par combat (cf. composerGroupe)
     planche: "images/ennemis/king-mushroom.png",
-    portrait: { sx: 12, sy: 5, sw: 102, sh: 102 }, // premier jet (à recadrer)
+    portrait: { sx: 61, sy: 8, sw: 122, sh: 122 }, // premier jet (à recadrer)
     sprite: { caseL: 244, caseH: 265, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     actions: [{ type: "soigner", valeur: 18, poids: 40 }, { type: "haste-allie", valeur: 2, poids: 30 }, { type: "attaque", valeur: 16, poids: 30 }],
     butin: { objets: [] },
@@ -568,7 +568,7 @@ export const ENNEMIS = [
     tailleRel: 0.667,          // affiché 1/3 plus petit (mignon petit lapin)
     evolution: "lapin-stage2", // le tuer le transforme (au lieu de mourir)
     planche: "images/ennemis/lapin-stage1.png",
-    portrait: { sx: 8, sy: 3, sw: 67, sh: 67 },
+    portrait: { sx: 6, sy: 22, sw: 88, sh: 88 },
     sprite: { caseL: 160, caseH: 150, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -587,7 +587,7 @@ export const ENNEMIS = [
     tailleRel: 0.667,   // affiché 1/3 plus petit
     evolution: "lapin-stage3",
     planche: "images/ennemis/lapin-stage2.png",
-    portrait: { sx: 10, sy: 4, sw: 83, sh: 83 },
+    portrait: { sx: 15, sy: 33, sw: 100, sh: 100 },
     sprite: { caseL: 198, caseH: 185, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -630,8 +630,9 @@ export const ENNEMIS = [
     grand: true,      // occupe 2 places
     soloUniquement: true, // n'apparaît JAMAIS en groupe (même dans l'arène de test)
     splitEnMort: ["gobelin-kaboom", "gobelin-de-siege", "gobelin-de-siege", "gobelin-de-siege", "gobelin-de-siege-etandart"],
+    tailleRel: 2, // ENGIN DE SIÈGE : ×2 — un boss imposant (2× plus grand que sa taille de base)
     planche: "images/ennemis/tour-de-siege-gobeline.png",
-    portrait: { sx: 13, sy: 5, sw: 106, sh: 106 },
+    portrait: { sx: 54, sy: 15, sw: 120, sh: 120 },
     sprite: { caseL: 253, caseH: 250, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -652,7 +653,7 @@ export const ENNEMIS = [
     explose: 100,       // dégâts de l'explosion
     delaiExplosion: 2,  // nb de SES tours de mèche avant de sauter (télégraphié)
     planche: "images/ennemis/gobelin-kaboom.png",
-    portrait: { sx: 14, sy: 3, sw: 120, sh: 120 },
+    portrait: { sx: 176, sy: 62, sw: 88, sh: 88 },
     sprite: { caseL: 286, caseH: 150, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -668,7 +669,7 @@ export const ENNEMIS = [
     affix: "melee",
     spawnOnly: true,
     planche: "images/ennemis/gobelin-de-siege.png",
-    portrait: { sx: 13, sy: 4, sw: 110, sh: 110 },
+    portrait: { sx: 10, sy: 0, sw: 95, sh: 95 },
     sprite: { caseL: 261, caseH: 200, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -688,7 +689,7 @@ export const ENNEMIS = [
     buffDegats: 2, // +2 dégâts par buff donné aux alliés (cumulable)
     actions: [{ type: "buff-allie", valeur: 2, poids: 100 }], // valeur = Hâte donnée aux alliés
     planche: "images/ennemis/gobelin-de-siege-etandart.png",
-    portrait: { sx: 9, sy: 5, sw: 73, sh: 73 },
+    portrait: { sx: 24, sy: 87, sw: 85, sh: 85 },
     sprite: { caseL: 174, caseH: 235, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -715,7 +716,7 @@ export const ENNEMIS = [
     // Dislocation → défenseur (bouclier) à GAUCHE, attaquant (masse) à DROITE.
     splitEnMort: ["gobelin-sans-blindage2", "gobelin-sans-blindage1"],
     planche: "images/ennemis/gobelin-blindé.png",
-    portrait: { sx: 11, sy: 5, sw: 89, sh: 89 },
+    portrait: { sx: 63, sy: 0, sw: 95, sh: 95 },
     sprite: { caseL: 213, caseH: 240, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -733,7 +734,7 @@ export const ENNEMIS = [
     affix: "melee",
     spawnOnly: true,
     planche: "images/ennemis/gobelin-sans-blindage1.png",
-    portrait: { sx: 9, sy: 4, sw: 74, sh: 74 },
+    portrait: { sx: 53, sy: 0, sw: 90, sh: 90 },
     sprite: { caseL: 175, caseH: 200, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
@@ -754,7 +755,7 @@ export const ENNEMIS = [
     spawnOnly: true,
     actions: [{ type: "bouclier-allie", valeur: 8, poids: 100 }], // +8 bouclier aux alliés / tour
     planche: "images/ennemis/gobelin-sans-blindage2.png",
-    portrait: { sx: 9, sy: 4, sw: 79, sh: 79 },
+    portrait: { sx: 75, sy: 10, sw: 88, sh: 88 },
     sprite: { caseL: 189, caseH: 180, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },

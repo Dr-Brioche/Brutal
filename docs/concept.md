@@ -380,7 +380,8 @@ lu par `avancerMinage`). Ses **cartes** de combat seront ajoutées plus tard.
 l'étage 5** (3 % des rencontres éligibles), on peut croiser la *Goblin Siege Tower* (niv 8,
 **grand**, 220 PV). Elle apparaît **TOUJOURS seule** — jamais en groupe, **même dans
 l'arène de test** (drapeau `soloUniquement` : `composerGroupe` la renvoie seule dès qu'elle
-mène le groupe ; l'arène l'empêche de se combiner). Le sel du monstre est **sa mort** :
+mène le groupe ; l'arène l'empêche de se combiner). Elle est aussi **×2 plus grande** que sa
+taille de base (`tailleRel: 2`) : un engin imposant à l'écran. Le sel du monstre est **sa mort** :
 
 - Au lieu de finir le combat, la tour se **DISLOQUE** et libère, **de gauche à droite**,
   son **équipage** (5 gobelins). Mécanisme générique `splitEnMort` (liste d'ids sur la def)
