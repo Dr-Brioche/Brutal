@@ -313,6 +313,14 @@ export function arme2Bloquee(inv) {
   return itemDef(inv.slots.arme1 ?? "")?.mains === 2;
 }
 
+// Vrai si l'item PEUT s'équiper (il a un slot : arme, armure, gant, botte, bague,
+// amulette, sac…). Sert au marchand pour proposer « acheter & équiper » (clic droit)
+// UNIQUEMENT sur ce qui s'équipe (pas les consommables, ressources ou trésors).
+export function estEquipable(id) {
+  const d = itemDef(id);
+  return Boolean(d && SLOT_PAR_CATEGORIE[d.categorie]);
+}
+
 // État d'occupation des slots qui portent une carte de SUPPLÉANCE dans le deck
 // (cf. systems/combat.js → cartesDeBase). Un slot occupé = pas de carte
 // « bouche-trou ». La main PRINCIPALE est prise dès qu'une arme est en arme1 ; la

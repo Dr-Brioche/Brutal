@@ -19,7 +19,7 @@ import { confirmationActive } from "./confirmation.js";
 // Touches captées par le dialogue (bloquées pour le reste du jeu pendant qu'il
 // est ouvert : pas de menu pause, pas de déplacement parasite).
 const TOUCHES = new Set([
-  "Space", "Enter", "KeyW", "KeyS", "KeyA", "KeyD",
+  "Space", "Enter", "KeyW", "KeyS", "KeyA", "KeyD", "KeyE",
   "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Escape",
 ]);
 
@@ -110,6 +110,13 @@ export function ouvrirDialogue(dialogue, surFin) {
           choisir(i);
         }
       });
+      // CLIC DROIT : action SECONDAIRE (ex. « acheter & équiper »). Directe (le clic
+      // droit est délibéré : pas de double-clic de confirmation). On ne montre le menu
+      // contextuel du navigateur dans aucun cas (preventDefault systématique en boutique).
+      el.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        if (c.actionSecondaire) choisir(i, c.actionSecondaire);
+      });
       elChoix.append(el);
     });
     const enAttenteGlobal = clicEnAttente >= 0 && choix[clicEnAttente] && !choix[clicEnAttente].separateur;
@@ -118,7 +125,9 @@ export function ouvrirDialogue(dialogue, surFin) {
       : enAttenteGlobal
         ? "Click again to buy · [Z/S] choose"
         : "[Z/S] choose · [Space] confirm";
-    elAide.textContent = dialogue.surEchap ? `${aide} · [Esc] back` : aide;
+    // Info-bulle du bas : ajoute « acheter & équiper » quand le choix sélectionné le propose.
+    const equipHint = choix[sel]?.actionSecondaire ? " · [Right-click / E] buy & equip" : "";
+    elAide.textContent = (dialogue.surEchap ? `${aide} · [Esc] back` : aide) + equipHint;
     majApercu(); // bulle du choix sélectionné (navigation clavier)
   }
 
@@ -154,9 +163,9 @@ export function ouvrirDialogue(dialogue, surFin) {
     if (enChoix) rendre();
   };
 
-  // Valide le choix `i` : on ferme, on exécute son action, puis surFin.
-  function choisir(i) {
-    const action = choix[i]?.action;
+  // Valide le choix `i` : on ferme, on exécute son action, puis surFin. `action`
+  // peut être forcée (ex. `actionSecondaire` = « acheter & équiper » au clic droit).
+  function choisir(i, action = choix[i]?.action) {
     fermerUI();
     if (action) action();
     if (surFin) surFin();
@@ -201,6 +210,9 @@ export function ouvrirDialogue(dialogue, surFin) {
     else if (e.code === "Space" || e.code === "Enter") avancer();
     else if (enChoix && (e.code === "KeyW" || e.code === "ArrowUp")) { deplacer(-1); rendre(); }
     else if (enChoix && (e.code === "KeyS" || e.code === "ArrowDown")) { deplacer(1); rendre(); }
+    // [E] : action SECONDAIRE du choix sélectionné (ex. « acheter & équiper »), équivalent
+    // clavier du clic droit. Sans effet si le choix n'en propose pas.
+    else if (enChoix && e.code === "KeyE" && choix[sel]?.actionSecondaire) choisir(sel, choix[sel].actionSecondaire);
     // Q/D… : simplement bloqués (aucune action)
   }
 
