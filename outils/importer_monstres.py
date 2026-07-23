@@ -44,7 +44,7 @@ ENN_JS = RACINE / "jeu" / "data" / "ennemis.js"
 DEBUT = "// <<MONSTRES-AUTO>>"
 FIN = "// <<FIN-MONSTRES-AUTO>>"
 
-ACTIONS_OK = {"attaque", "soigner", "haste-allie"}
+ACTIONS_OK = {"attaque", "soigner", "haste-allie", "buff-allie"}
 
 # Libellés LISIBLES (onglet « Monstres ») -> type d'action du moteur. Comparaison
 # insensible à la casse et aux accents (cf. sans_accents). On accepte aussi les types
@@ -53,6 +53,8 @@ LIBELLES = {
     "soin": "soigner", "soigner": "soigner",
     "hate allies": "haste-allie", "hate allie": "haste-allie",
     "hate": "haste-allie", "haste": "haste-allie", "haste-allie": "haste-allie",
+    "buff allies": "buff-allie", "buff allie": "buff-allie", "banniere": "buff-allie",
+    "etendard": "buff-allie", "porte-etendard": "buff-allie", "buff-allie": "buff-allie",
     "attaque": "attaque", "attack": "attaque",
 }
 

@@ -364,6 +364,32 @@ dédié dans `principal.js`, hors `composerGroupe`). Règles :
 (`minageDouble` sur l'item → cumulé dans `heros.minageDoubleChance` par `appliquerEquipement`,
 lu par `avancerMinage`). Ses **cartes** de combat seront ajoutées plus tard.
 
+**La TOUR DE SIÈGE GOBELINE — boss UNIQUE qui se disloque (23/07/2026).** En mine, **dès
+l'étage 5** (3 % des rencontres éligibles), on peut croiser la *Goblin Siege Tower* (niv 8,
+**grand**, 220 PV). Elle apparaît **TOUJOURS seule** — jamais en groupe, **même dans
+l'arène de test** (drapeau `soloUniquement` : `composerGroupe` la renvoie seule dès qu'elle
+mène le groupe ; l'arène l'empêche de se combiner). Le sel du monstre est **sa mort** :
+
+- Au lieu de finir le combat, la tour se **DISLOQUE** et libère, **de gauche à droite**,
+  son **équipage** (5 gobelins). Mécanisme générique `splitEnMort` (liste d'ids sur la def)
+  → `resoudreSplits()` dans `systems/combat.js` REMPLACE la tour morte par son équipage dans
+  la file et incrémente un **pouls** `combat.splitPulse` que l'UI détecte pour **reconstruire
+  la scène** (explosion + apparition des gobelins). Le combat continue tant qu'il reste un
+  vivant (comme l'évolution du Lapin).
+- **1 Goblin Kaboom** (niv 6) — celui écrasé sous le canon : il **n'attaque pas**, sa **mèche
+  brûle** pendant un délai télégraphié (`delaiExplosion` = 2 de ses tours, compte à rebours
+  affiché), puis il **EXPLOSE pour 100 de dégâts** au héros **et meurt** avec le canon
+  (`explose` = dégâts ; l'intention `explosion` est gérée dans `agirEnnemi`).
+- **3 Siege Goblins** (niv 3) — juste leur épée : rapides (vitesse 9) mais fragiles (24 PV).
+- **1 Siege Standard-Bearer** (niv 6, 55 PV, le plus à droite) — à chaque tour il **buffe ses
+  alliés vivants** : **+Hâte** (vitesse d'attaque) **ET +dégâts** (`bonusDegats`), **cumulable**
+  tour après tour (intention `buff-allie` ; `buffDegats` = +dégâts par buff, en code).
+- **Les 4 types de gobelins liés à la tour** (`gobelin-kaboom`, `gobelin-de-siege` ×3,
+  `gobelin-de-siege-etandart`) portent le drapeau **`spawnOnly`** : ils **ne peuvent apparaître
+  QU'à la mort de la tour**, jamais autrement en jeu (`composerGroupe` les exclut, l'arène de
+  test aussi). Leurs chiffres vivent dans l'onglet Excel *Monstres* (section « Tour de siège ») ;
+  l'art/tech (dislocation, mèche, buff dégâts) reste en code.
+
 ### Mise en scène du combat (validé 10/06/2026)
 
 - **Le nain est visible**, de profil à gauche : on **réutilise son sprite de carte**

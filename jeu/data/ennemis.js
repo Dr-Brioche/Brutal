@@ -55,6 +55,10 @@ const STATS_MONSTRES = {
   "lapin-stage1": { nom: "White Rabbit", niveau: 7, famille: "lapin", pv: 1, attaque: 0, xp: 0, vitesse: 13, actions: [] },
   "lapin-stage2": { nom: "Feral Hare", niveau: 7, famille: "lapin", pv: 55, attaque: 9, xp: 0, vitesse: 20, attaqueHits: 2, actions: [] },
   "lapin-stage3": { nom: "Bloodfang Horror", niveau: 10, famille: "lapin", pv: 150, attaque: 17, xp: 130, vitesse: 26, attaqueHits: 2, actions: [] },
+  "tour-de-siege-gobeline": { nom: "Goblin Siege Tower", niveau: 8, famille: "gobelin", pv: 220, attaque: 16, xp: 120, vitesse: 5, actions: [], grand: true },
+  "gobelin-kaboom": { nom: "Goblin Kaboom", niveau: 6, famille: "gobelin", pv: 20, attaque: 0, xp: 20, vitesse: 4, actions: [] },
+  "gobelin-de-siege": { nom: "Siege Goblin", niveau: 3, famille: "gobelin", pv: 24, attaque: 7, xp: 8, vitesse: 9, actions: [] },
+  "gobelin-de-siege-etandart": { nom: "Siege Standard-Bearer", niveau: 6, famille: "gobelin", pv: 55, attaque: 5, xp: 24, vitesse: 7, actions: [{ type: "buff-allie", valeur: 2, poids: 100 }] },
 };
 // <<FIN-MONSTRES-AUTO>>
 
