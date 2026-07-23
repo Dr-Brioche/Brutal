@@ -46,9 +46,40 @@ FIN = "// <<FIN-MONSTRES-AUTO>>"
 
 ACTIONS_OK = {"attaque", "soigner", "haste-allie"}
 
+# Libellés LISIBLES (onglet « Monstres ») -> type d'action du moteur. Comparaison
+# insensible à la casse et aux accents (cf. sans_accents). On accepte aussi les types
+# bruts (soigner/haste-allie/attaque) pour rester rétro-compatible.
+LIBELLES = {
+    "soin": "soigner", "soigner": "soigner",
+    "hate allies": "haste-allie", "hate allie": "haste-allie",
+    "hate": "haste-allie", "haste": "haste-allie", "haste-allie": "haste-allie",
+    "attaque": "attaque", "attack": "attaque",
+}
+
+
+def sans_accents(s):
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFD", s)
+                   if unicodedata.category(c) != "Mn")
+
 
 def echapper(s):
     return str(s).replace("\\", "\\\\").replace('"', '\\"')
+
+
+def lire_attaque(cellule, iid, ligne):
+    """Colonne « attaque ». TOLÈRE « NxM » (N dégâts × M coups, ex. « 2x2 ») → (N, M),
+    et « N » simple → (N, 1). Le nombre de coups (M) alimente `attaqueHits`."""
+    if isinstance(cellule, (int, float)):
+        return int(round(cellule)), 1
+    s = str(cellule) if cellule is not None else ""
+    m = re.search(r"(-?\d+)\s*[x×X]\s*(\d+)", s)
+    if m:
+        return int(m.group(1)), max(1, int(m.group(2)))
+    m2 = re.search(r"-?\d+", s)
+    if not m2:
+        raise SystemExit(f"« Monstres » ligne {ligne} ({iid}) : attaque illisible « {cellule} ».")
+    return int(m2.group()), 1
 
 
 def lire_int(cellule, iid, ligne, quoi):
@@ -63,38 +94,41 @@ def lire_int(cellule, iid, ligne, quoi):
 
 
 def lire_actions(cellule, iid, ligne):
-    """Parse « type:valeur:poids | type:valeur:poids » -> liste de dicts.
-
-    TOLÉRANT : si la cellule ne ressemble PAS à une liste d'actions structurées
-    (aucun morceau ne commence par un type connu suivi de « : »), on la considère
-    comme une simple NOTE humaine (ex. « rapide », « frappe 2× ») et on renvoie []
-    — le moteur gère ces cas via les champs inline (attaqueHits, poisonParCoup…).
-    En revanche, une cellule QUI RESSEMBLE à des actions mais mal formée lève une
-    erreur (pour attraper les vraies fautes de frappe)."""
+    """Parse les ACTIONS SPÉCIALES (une par ligne). Deux formats acceptés :
+       • LISIBLE (recommandé) : « Libellé valeur (chance%) »  ex. « Soin 10 (50%) »
+       • brut (ancien)        : « type:valeur:poids »          ex. « soigner:10:50 »
+    Le séparateur est le SAUT DE LIGNE (ou « | »). Une ligne non reconnue est ignorée
+    (note libre). Un libellé qui ressemble à une action mais inconnu lève une erreur."""
     txt = str(cellule).strip() if cellule else ""
     if not txt:
         return []
-    morceaux = [m.strip() for m in txt.split("|") if m.strip()]
-
-    def ressemble_action(m):
-        bouts = [b.strip() for b in m.split(":")]
-        return len(bouts) >= 1 and bouts[0] in ACTIONS_OK
-
-    if not any(ressemble_action(m) for m in morceaux):
-        return []  # note libre → aucune action structurée
-
     out = []
-    for morceau in morceaux:
-        bouts = [b.strip() for b in morceau.split(":")]
-        if len(bouts) != 3 or bouts[0] not in ACTIONS_OK:
-            raise SystemExit(f"« Monstres » ligne {ligne} ({iid}) : action « {morceau} » "
-                             f"mal formée (attendu type:valeur:poids ; types : "
-                             f"{', '.join(sorted(ACTIONS_OK))}).")
-        typ, val, poids = bouts
+    for ln in re.split(r"[\n|]+", txt):
+        ln = ln.strip()
+        if not ln:
+            continue
+        # Ancien format « type:valeur:poids ».
+        if ":" in ln and ln.split(":")[0].strip() in ACTIONS_OK:
+            bouts = [b.strip() for b in ln.split(":")]
+            if len(bouts) != 3:
+                raise SystemExit(f"« Monstres » ligne {ligne} ({iid}) : action « {ln} » mal formée.")
+            typ, val, poids = bouts
+        else:
+            # Format lisible « Libellé valeur (chance%) ».
+            m = re.match(r"^(.*?)\s+(-?\d+)\s*\(\s*(\d+)\s*%?\s*\)\s*$", ln)
+            if not m:
+                continue  # ligne non structurée → note libre, ignorée
+            libelle = sans_accents(m.group(1).strip()).lower()
+            libelle = re.sub(r"\s+", " ", libelle)
+            typ = LIBELLES.get(libelle)
+            if not typ:
+                raise SystemExit(f"« Monstres » ligne {ligne} ({iid}) : libellé d'action inconnu "
+                                 f"« {m.group(1).strip()} » (attendus : Soin, Hâte alliés, Attaque).")
+            val, poids = m.group(2), m.group(3)
         try:
             val, poids = int(round(float(val))), int(round(float(poids)))
         except ValueError:
-            raise SystemExit(f"« Monstres » ligne {ligne} ({iid}) : valeur/poids illisible dans « {morceau} ».")
+            raise SystemExit(f"« Monstres » ligne {ligne} ({iid}) : valeur/chance illisible dans « {ln} ».")
         out.append((typ, val, poids))
     return out
 
@@ -121,7 +155,7 @@ def lire_monstres(wb):
         niveau = lire_int(champ(2), iid, i, "niveau") if champ(2) is not None else 1
         famille = str(champ(3)).strip() if champ(3) else ""
         pv = lire_int(champ(4), iid, i, "pv")
-        attaque = lire_int(champ(5), iid, i, "attaque")   # « 2x2 » → 2 (dégâts/coup ; les coups multiples sont inline)
+        attaque, hits = lire_attaque(champ(5), iid, i)   # « 2x2 » → attaque 2, hits 2
         xp = lire_int(champ(6), iid, i, "xp")
         vitesse = lire_int(champ(7), iid, i, "vitesse")
         actions = lire_actions(champ(8), iid, i)
@@ -129,7 +163,8 @@ def lire_monstres(wb):
         gv = str(champ(9)).strip().lower() if champ(9) is not None else ""
         grand = gv in ("1", "oui", "true", "vrai", "x")
         monstres.append(dict(id=iid, nom=nom, niveau=niveau, famille=famille, pv=pv,
-                             attaque=attaque, xp=xp, vitesse=vitesse, actions=actions, grand=grand))
+                             attaque=attaque, hits=hits, xp=xp, vitesse=vitesse,
+                             actions=actions, grand=grand))
     if not monstres:
         raise SystemExit("Aucun monstre trouvé dans l'onglet « Monstres ».")
     return monstres
@@ -148,6 +183,8 @@ def bloc_js(monstres):
             f'pv: {m["pv"]}', f'attaque: {m["attaque"]}',
             f'xp: {m["xp"]}', f'vitesse: {m["vitesse"]}',
         ]
+        if m.get("hits", 1) > 1:
+            champs.append(f'attaqueHits: {m["hits"]}')
         if m["actions"]:
             acts = ", ".join(
                 f'{{ type: "{t}", valeur: {v}, poids: {p} }}' for t, v, p in m["actions"])
