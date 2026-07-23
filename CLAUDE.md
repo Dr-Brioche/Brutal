@@ -43,6 +43,27 @@
   - `[équilibrage]` — réglage des valeurs (difficulté, vitesse, points…)
 - Messages de commit **en français**, clairs pour un non-programmeur.
 
+## L'Excel = base d'équilibrage (À NE JAMAIS OUBLIER)
+
+Le classeur **`docs/BRUTAL-items-et-cartes.xlsx`** est la **base de référence de
+l'équilibrage** du jeu. C'est **l'interface entre le code (que Claude gère) et les
+décisions de Brioche** : Brioche y règle les chiffres, Claude les applique dans le code.
+
+- **À tenir À JOUR en permanence.** Dès qu'on ajoute/modifie un **monstre, un objet,
+  une carte, une ressource, une recette, un loot de profondeur, ou un réglage général**,
+  on met à jour l'onglet correspondant **dans le même mouvement** — jamais « plus tard ».
+- **Onglets** : `Cartes`, `Items`, `Sets`, `Effets`, `Valeurs`, `Ressources`, `Recettes`,
+  `Profondeurs`(+`-chances`), `Monstres`, `Héros`, et **`Général`** (tous les réglages
+  secondaires d'équilibrage, avec une phrase d'explication + le fichier où ça vit).
+- **Sens de circulation** : Brioche édite l'Excel → Claude **réimporte** (`outils/importer_*.py`)
+  ou **reporte à la main** (onglet `Général`, qui n'a pas d'importer). Les importers
+  régénèrent des blocs balisés du code (`<<...-AUTO>>`) : l'Excel prime sur ces chiffres.
+  L'**art et la technique** (sprites, planches, `attaqueHits`, évolutions…) restent dans
+  le code, pas dans l'Excel.
+- **Réflexe** : à chaque tâche touchant un chiffre d'équilibrage, se demander
+  « **est-ce dans l'Excel ?** » avant de clore. (Rappel écrit ici pour survivre à un
+  effacement de conversation.)
+
 ## Rangement des fichiers
 
 Le rangement doit rester lisible pour Brioche, qui doit pouvoir retrouver
