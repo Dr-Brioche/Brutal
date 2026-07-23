@@ -1112,9 +1112,21 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (carteJouee) return; // déjà joué une carte ce tour → fuite interdite (raccourci clavier)
     if (confirmationActive()) return;
     // Plus il y a de monstres VIVANTS, plus la fuite est dure (chance de réussite).
-    const nMobs = combat.ennemis.filter(ennemiVivant).length;
-    const CHANCE_FUITE = { 1: 1 / 2, 2: 1 / 3, 3: 1 / 4, 4: 1 / 4, 5: 1 / 5 };
-    const reussite = CHANCE_FUITE[nMobs] ?? 1 / 5;
+    const vivants = combat.ennemis.filter(ennemiVivant);
+    const nMobs = vivants.length;
+    // LAPIN BLANC : la fuite dépend du STADE. Gentil (1) → on file toujours ; enragé
+    // (2) → plus dur ; monstrueux (3) → on ne s'échappe presque plus. On prend le stade
+    // le plus AVANCÉ présent (le pire cas). Ne s'applique QUE si TOUS les vivants sont des lapins.
+    const lapins = vivants.filter((e) => e.def.famille === "lapin");
+    let reussite;
+    if (lapins.length && lapins.length === nMobs) {
+      const stadeMax = Math.max(...lapins.map((e) => e.def.stade ?? 1));
+      const CHANCE_LAPIN = { 1: 1.0, 2: 0.35, 3: 0.07 };
+      reussite = CHANCE_LAPIN[stadeMax] ?? 0.35;
+    } else {
+      const CHANCE_FUITE = { 1: 1 / 2, 2: 1 / 3, 3: 1 / 4, 4: 1 / 4, 5: 1 / 5 };
+      reussite = CHANCE_FUITE[nMobs] ?? 1 / 5;
+    }
     demanderConfirmation(
       {
         titre: "Flee the battle?",

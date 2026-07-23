@@ -531,6 +531,7 @@ export const ENNEMIS = [
     xp: 0,              // aucune récompense tant qu'il n'est pas au stade final
     vitesse: 13,
     affix: "melee",
+    stade: 1,                  // stade d'évolution (pilote la difficulté de FUITE)
     evolution: "lapin-stage2", // le tuer le transforme (au lieu de mourir)
     planche: "images/ennemis/lapin-stage1.png",
     portrait: { sx: 8, sy: 3, sw: 67, sh: 67 },
@@ -548,6 +549,7 @@ export const ENNEMIS = [
     vitesse: 20,        // devenu vif : attaque rapide
     affix: "melee",
     attaqueHits: 2,     // deux coups de griffes par tour
+    stade: 2,
     evolution: "lapin-stage3",
     planche: "images/ennemis/lapin-stage2.png",
     portrait: { sx: 10, sy: 4, sw: 83, sh: 83 },
@@ -565,6 +567,7 @@ export const ENNEMIS = [
     vitesse: 26,         // encore plus rapide au stade final
     affix: "melee",
     attaqueHits: 2,
+    stade: 3,            // dernier stade : fuite quasi impossible
     // (pas d'`evolution` : ce stade meurt pour de vrai → victoire + butin)
     planche: "images/ennemis/lapin-stage3.png",
     portrait: { sx: 10, sy: 5, sw: 84, sh: 84 },
