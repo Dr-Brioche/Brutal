@@ -15,6 +15,7 @@
 import { montrerInfobulle, suivreInfobulle, cacherInfobulle, montrerInfobulleEl } from "./infobulle.js";
 import { itemDef, couleurRarete } from "../data/items.js";
 import { confirmationActive } from "./confirmation.js";
+import { t } from "../systems/langue.js";
 
 // Touches captées par le dialogue (bloquées pour le reste du jeu pendant qu'il
 // est ouvert : pas de menu pause, pas de déplacement parasite).
@@ -64,7 +65,7 @@ export function ouvrirDialogue(dialogue, surFin) {
     elTexte.textContent = pages.length ? pages[Math.min(page, pages.length - 1)] : "";
     elChoix.replaceChildren();
     if (!enChoix) {
-      elAide.textContent = "Click or [Space] to continue";
+      elAide.textContent = t("dialogue.continuer");
       cacherInfobulle();
       return;
     }
@@ -121,13 +122,13 @@ export function ouvrirDialogue(dialogue, surFin) {
     });
     const enAttenteGlobal = clicEnAttente >= 0 && choix[clicEnAttente] && !choix[clicEnAttente].separateur;
     const aide = !choix.length
-      ? "[Space] close"
+      ? t("dialogue.fermer")
       : enAttenteGlobal
-        ? "Click again to buy · [Z/S] choose"
-        : "[Z/S] choose · [Space] confirm";
+        ? t("dialogue.acheterEncore")
+        : t("dialogue.choisir");
     // Info-bulle du bas : ajoute « acheter & équiper » quand le choix sélectionné le propose.
-    const equipHint = choix[sel]?.actionSecondaire ? " · [Right-click / E] buy & equip" : "";
-    elAide.textContent = (dialogue.surEchap ? `${aide} · [Esc] back` : aide) + equipHint;
+    const equipHint = choix[sel]?.actionSecondaire ? " · " + t("dialogue.acheterEquiper") : "";
+    elAide.textContent = (dialogue.surEchap ? `${aide} · ${t("dialogue.retour")}` : aide) + equipHint;
     majApercu(); // bulle du choix sélectionné (navigation clavier)
   }
 

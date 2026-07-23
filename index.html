@@ -476,6 +476,35 @@
       margin-top: 1.2rem;
     }
 
+    /* ---- Choix de la langue sur l'écran de titre ---- */
+    .titre-langue {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 1.4rem;
+    }
+    .titre-langue-lbl { font-size: 0.9rem; letter-spacing: 0.06em; opacity: 0.75; text-transform: uppercase; }
+    .titre-langue-choix { display: flex; gap: 10px; }
+    .titre-langue-btn {
+      font: inherit;
+      padding: 8px 20px;
+      border-radius: var(--rayon);
+      border: 2px solid #6b5636;
+      background: rgba(20, 16, 12, 0.7);
+      color: #e8dcc2;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .titre-langue-btn:hover { border-color: #ffcf57; }
+    .titre-langue-btn:focus-visible { outline: 2px solid #ffcf57; outline-offset: 2px; }
+    /* Langue ACTIVE : liseré doré plein. */
+    .titre-langue-btn.actif, .deck-onglet.langue-actif {
+      border-color: #ffcf57;
+      background: rgba(255, 207, 87, 0.16);
+      color: #ffe9a8;
+    }
+
     /* ---- Le fondu au noir (transitions entre zones) ---- */
     .fondu {
       position: fixed;
@@ -2786,13 +2815,13 @@
       <div class="combat-main" id="combat-main"></div>
       <!-- Overlay d'animation de pioche : carte(s) centrées 0,5 s chacune -->
       <div id="combat-pioche-anim" hidden></div>
-      <button class="combat-fin" id="combat-fin">End Turn</button>
-      <button class="combat-fuite" id="combat-fuite" title="Flee the battle (no rewards)">Flee</button>
+      <button class="combat-fin" id="combat-fin" data-i18n="combat.finTour">End Turn</button>
+      <button class="combat-fuite" id="combat-fuite" title="Flee the battle (no rewards)" data-i18n="combat.fuite" data-i18n-title="combat.fuiteTitre">Flee</button>
     </div>
 
     <div class="combat-resultat" id="combat-resultat" hidden>
       <span class="combat-resultat-texte" id="combat-resultat-texte"></span>
-      <button id="combat-continuer">Continue</button>
+      <button id="combat-continuer" data-i18n="combat.continuer">Continue</button>
     </div>
   </div>
 
@@ -3178,20 +3207,20 @@
 
   <!-- La barre de menu (bas-droite) : raccourcis vers les écrans (façon RPG) -->
   <div class="barre-menu" id="barre-menu" hidden>
-    <button class="barre-btn" id="barre-inv" title="Inventory (B)">
-      <span class="barre-ico">🎒</span><span class="barre-lbl">Bag</span>
+    <button class="barre-btn" id="barre-inv" title="Inventory (B)" data-i18n-title="barre.sacTitre">
+      <span class="barre-ico">🎒</span><span class="barre-lbl" data-i18n="barre.sac">Bag</span>
     </button>
-    <button class="barre-btn" id="barre-talents" title="Talents (T)">
-      <span class="barre-ico">🌟</span><span class="barre-lbl">Talents</span>
+    <button class="barre-btn" id="barre-talents" title="Talents (T)" data-i18n-title="barre.talentsTitre">
+      <span class="barre-ico">🌟</span><span class="barre-lbl" data-i18n="barre.talents">Talents</span>
     </button>
-    <button class="barre-btn" id="barre-deck" title="Deck (N)">
-      <span class="barre-ico">🃏</span><span class="barre-lbl">Deck</span>
+    <button class="barre-btn" id="barre-deck" title="Deck (N)" data-i18n-title="barre.deckTitre">
+      <span class="barre-ico">🃏</span><span class="barre-lbl" data-i18n="barre.deck">Deck</span>
     </button>
-    <button class="barre-btn" id="barre-livre" title="Craftsman's Book (L)">
-      <span class="barre-ico">📖</span><span class="barre-lbl">Book</span>
+    <button class="barre-btn" id="barre-livre" title="Craftsman's Book (L)" data-i18n-title="barre.livreTitre">
+      <span class="barre-ico">📖</span><span class="barre-lbl" data-i18n="barre.livre">Book</span>
     </button>
-    <button class="barre-btn" id="barre-menu-pause" title="Menu (Esc)">
-      <span class="barre-ico">☰</span><span class="barre-lbl">Menu</span>
+    <button class="barre-btn" id="barre-menu-pause" title="Menu (Esc)" data-i18n-title="barre.menuTitre">
+      <span class="barre-ico">☰</span><span class="barre-lbl" data-i18n="barre.menu">Menu</span>
     </button>
   </div>
 
@@ -3216,26 +3245,26 @@
   <!-- Le menu pause (touche Échap) : sauvegarder / charger / volume / préférences -->
   <div class="menu" id="menu" hidden>
     <div class="menu-panneau panneau-ui">
-      <h2 class="menu-titre">Paused</h2>
-      <button class="menu-continuer" id="menu-reprendre">Resume</button>
+      <h2 class="menu-titre" data-i18n="menu.pause">Paused</h2>
+      <button class="menu-continuer" id="menu-reprendre" data-i18n="menu.reprendre">Resume</button>
       <div class="deck-onglets" style="margin: 12px 0 10px;">
-        <button class="deck-onglet deck-onglet--actif" id="menu-onglet-sons">Sound</button>
-        <button class="deck-onglet" id="menu-onglet-interface">Interface</button>
+        <button class="deck-onglet deck-onglet--actif" id="menu-onglet-sons" data-i18n="menu.ongletSons">Sound</button>
+        <button class="deck-onglet" id="menu-onglet-interface" data-i18n="menu.ongletInterface">Interface</button>
       </div>
       <div id="menu-vue-sons">
         <div class="menu-volumes">
           <label class="menu-vol-ligne">
-            <span>Music</span>
+            <span data-i18n="menu.musique">Music</span>
             <input type="range" id="vol-musique" min="0" max="100" step="1" value="10">
             <span class="menu-vol-val" id="vol-musique-val">10%</span>
           </label>
           <label class="menu-vol-ligne">
-            <span>Combat</span>
+            <span data-i18n="menu.combat">Combat</span>
             <input type="range" id="vol-musique-combat" min="0" max="100" step="1" value="30">
             <span class="menu-vol-val" id="vol-musique-combat-val">30%</span>
           </label>
           <label class="menu-vol-ligne">
-            <span>Effects</span>
+            <span data-i18n="menu.effets">Effects</span>
             <input type="range" id="vol-bruitages" min="0" max="100" step="1" value="70">
             <span class="menu-vol-val" id="vol-bruitages-val">70%</span>
           </label>
@@ -3246,28 +3275,45 @@
         <div class="menu-prefs">
           <label class="menu-pref-ligne">
             <input type="checkbox" id="pref-confirm-vente" checked>
-            Confirm before selling rare+ items
+            <span data-i18n="menu.prefVente">Confirm before selling rare+ items</span>
           </label>
           <label class="menu-pref-ligne">
             <input type="checkbox" id="pref-gameplay-rapide">
-            Fast gameplay (quicker combat — for players who know the game)
+            <span data-i18n="menu.prefRapide">Fast gameplay (quicker combat — for players who know the game)</span>
           </label>
           <label class="menu-pref-ligne">
             <input type="checkbox" id="pref-cible-auto">
-            Auto-target the last enemy (skip manual targeting when one enemy remains)
+            <span data-i18n="menu.prefCibleAuto">Auto-target the last enemy (skip manual targeting when one enemy remains)</span>
           </label>
         </div>
+        <div class="menu-langue" style="margin-top: 10px;">
+          <span data-i18n="langue.titre">Language / Langue</span>
+          <div class="deck-onglets" style="margin-top: 6px;">
+            <button class="deck-onglet" id="menu-langue-fr" data-i18n="langue.fr">Français</button>
+            <button class="deck-onglet" id="menu-langue-en" data-i18n="langue.en">English</button>
+          </div>
+        </div>
       </div>
-      <p class="menu-aide">Tab / ↑↓ to navigate  ·  ←→ to adjust volume  ·  Esc to close</p>
+      <p class="menu-aide" data-i18n="menu.aide">Tab / ↑↓ to navigate  ·  ←→ to adjust volume  ·  Esc to close</p>
     </div>
   </div>
 
   <!-- L'écran de titre -->
   <main class="ecran-titre" id="ecran-titre">
 
+    <!-- Choix de la LANGUE (avant de lancer le jeu). Le choix est mémorisé ; on
+         peut aussi le changer plus tard dans le menu pause (onglet Interface). -->
+    <div class="titre-langue" id="titre-langue">
+      <span class="titre-langue-lbl" data-i18n="langue.titre">Language / Langue</span>
+      <div class="titre-langue-choix">
+        <button class="titre-langue-btn" id="titre-langue-fr" data-i18n="langue.fr">Français</button>
+        <button class="titre-langue-btn" id="titre-langue-en" data-i18n="langue.en">English</button>
+      </div>
+    </div>
+
     <!-- « Play » masqué tant que le préchargement n'est pas fini (évite le clic
          dans le vide pendant que les modules / images se chargent). -->
-    <button class="bouton" id="bouton-jouer" hidden>Play</button>
+    <button class="bouton" id="bouton-jouer" hidden data-i18n="titre.jouer">Play</button>
 
     <!-- Barre de chargement : visible dès le 1er affichage (chargement des modules
          JS, mode indéterminé), puis remplie en réel pendant le préchargement des
@@ -3276,12 +3322,12 @@
       <div class="chargement-piste indetermine">
         <div class="chargement-fill" id="chargement-fill"></div>
       </div>
-      <span class="chargement-txt" id="chargement-txt">Loading scripts…</span>
+      <span class="chargement-txt" id="chargement-txt" data-i18n="titre.chargeScripts">Loading scripts…</span>
     </div>
 
     <!-- Le choix au démarrage : nouvelle partie ou reprise d'un emplacement -->
     <div class="demarrage" id="demarrage" hidden>
-      <button class="menu-continuer" id="demarrage-nouvelle">New Game</button>
+      <button class="menu-continuer" id="demarrage-nouvelle" data-i18n="demarrage.nouvelle">New Game</button>
       <div class="menu-slots" id="demarrage-slots"></div>
     </div>
 
@@ -3293,6 +3339,13 @@
     import { installerTactile } from "./jeu/ui/tactile.js";
     import { planchesDuJeu, prechargerImages } from "./jeu/core/prechargement.js";
     import { jouerMusique, relancerMusiqueBloquee } from "./jeu/core/sons.js";
+    import { t, getLangue, appliquerTextesDOM, installerSelecteurLangue } from "./jeu/systems/langue.js";
+
+    // LANGUE : on applique tout de suite la langue mémorisée (ou EN par défaut) à
+    // tous les textes du DOM, et on câble le sélecteur (titre + menu pause).
+    document.documentElement.setAttribute("lang", getLangue());
+    appliquerTextesDOM();
+    installerSelecteurLangue();
 
     const ecranTitre = document.getElementById("ecran-titre");
     const canvas = document.getElementById("jeu");
@@ -3310,7 +3363,7 @@
     document.addEventListener("click", () => relancerMusiqueBloquee());
 
     // On quitte le mode indéterminé (balayage) et on précharge les images.
-    chargementTxt.textContent = "Loading assets…";
+    chargementTxt.textContent = t("titre.chargeAssets");
     chargementFill.parentElement.classList.remove("indetermine");
 
     // Révèle le bouton Play. Protégé contre les doubles appels (timeout + then).
@@ -3330,7 +3383,7 @@
     prechargerImages(planchesDuJeu(), (faits, total) => {
       const pct = total ? Math.round((faits / total) * 100) : 100;
       chargementFill.style.width = pct + "%";
-      chargementTxt.textContent = `Loading… ${pct}%`;
+      chargementTxt.textContent = t("titre.chargePct", { pct });
     }).then(() => {
       clearTimeout(delaiSecurite);
       reveler();

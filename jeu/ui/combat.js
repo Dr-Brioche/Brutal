@@ -28,6 +28,7 @@ import { dessinerCaseEchelle } from "../core/sprites.js";
 import { police, POLICE_NOM } from "../core/texte.js"; // polices centrales (cf. core/texte.js)
 import { cheminArrondi, RAYON } from "../core/style.js"; // coins arrondis centraux (cf. core/style.js)
 import { garnirCarte } from "./carte.js";
+import { t } from "../systems/langue.js";
 import { alerteVie } from "./effets.js";
 import { getPreference } from "../systems/preferences.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
@@ -1194,10 +1195,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     }
     demanderConfirmation(
       {
-        titre: "Flee the battle?",
-        message: `You'll leave with NO rewards. Escape chance: ${Math.round(reussite * 100)}% (more enemies = lower) — otherwise you just lose your turn.`,
-        texteOui: "Flee",
-        texteNon: "Stay",
+        titre: t("combat.fuiteConfTitre"),
+        message: t("combat.fuiteConfMsg", { pct: Math.round(reussite * 100) }),
+        texteOui: t("combat.fuiteOui"),
+        texteNon: t("combat.fuiteNon"),
         danger: true,
       },
       () => {
@@ -1210,7 +1211,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
           verifierFin(); // amorce le délai → la boucle ferme le combat (comme une victoire)
         } else {
           // Échec : on signale et on passe le tour comme un End Turn.
-          ajouterFlottant("✗ Escape failed!", heroEcran.cx, heroEcran.sommet - 24, "#ff6a58");
+          ajouterFlottant(t("combat.fuiteRatee"), heroEcran.cx, heroEcran.sommet - 24, "#ff6a58");
           jouerSonNegatif();
           finDeTour();
         }
@@ -1421,7 +1422,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   }
 
   function terminer() {
-    texteResultat.textContent = combat.resultat === "victoire" ? "Victory!" : "Defeat";
+    texteResultat.textContent = combat.resultat === "victoire" ? t("combat.victoire") : t("combat.defaite");
     panneauResultat.hidden = false;
   }
 
