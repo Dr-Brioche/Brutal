@@ -535,6 +535,8 @@ export const ENNEMIS = [
     vitesse: 6,
     affix: "range", // le Roi lance des sorts depuis l'arrière
     grand: true,     // boss : occupe 2 places, bien plus gros
+    roiChampi: true, // ROI des champignons : apport +5 à la Force collective (cf. combat.js) ;
+                     // un seul Roi par combat (cf. composerGroupe)
     planche: "images/ennemis/king-mushroom.png",
     portrait: { sx: 12, sy: 5, sw: 102, sh: 102 }, // premier jet (à recadrer)
     sprite: { caseL: 244, caseH: 265, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
@@ -836,6 +838,8 @@ export function composerGroupe(monstreIds, opts = {}) {
   while (libres > 0) {
     // Un grand n'est éligible que s'il reste ≥ 2 places.
     let pool = poolBase.filter((d) => !d.grand || libres >= 2);
+    // Un seul ROI des champignons par combat : dès qu'il est là, on l'exclut du tirage.
+    if (groupe.some((g) => g.roiChampi)) pool = pool.filter((d) => !d.roiChampi);
     if (!pool.length) pool = poolBase.filter((d) => !d.grand); // dernière place : que du normal
     if (!pool.length) break; // (cas extrême zone 100 % grand + 1 place : on laisse la place vide)
     const pick = tirerMonstrePondere(pool, niveauMin, grandFacteur);
