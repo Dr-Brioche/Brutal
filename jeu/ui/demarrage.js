@@ -7,6 +7,7 @@
 import { tousLesSlots, slotAuto, creerLigneSlot } from "./slots.js";
 import { effacerSlot, SLOT_AUTO } from "../systems/sauvegarde.js";
 import { demanderConfirmation } from "./confirmation.js";
+import { t } from "../systems/langue.js";
 
 export function installerDemarrage({ lancer }) {
   const boutonJouer = document.getElementById("bouton-jouer");
@@ -32,17 +33,17 @@ export function installerDemarrage({ lancer }) {
     for (const { numero, donnees } of slots) {
       conteneurSlots.append(
         creerLigneSlot(numero, donnees, [
-          { texte: "Load", desactive: !donnees, surClic: () => lancerUneFois(donnees) },
+          { texte: t("demarrage.charger"), desactive: !donnees, surClic: () => lancerUneFois(donnees) },
           {
-            texte: "Delete",
+            texte: t("demarrage.supprimer"),
             desactive: !donnees,
             surClic: () => {
               demanderConfirmation(
                 {
-                  titre: `Delete save — Slot ${numero}?`,
-                  message: "This save will be gone for good.",
-                  texteOui: "Delete",
-                  texteNon: "Keep",
+                  titre: t("demarrage.suppTitre", { n: numero }),
+                  message: t("demarrage.suppMsg"),
+                  texteOui: t("demarrage.supprimer"),
+                  texteNon: t("demarrage.garder"),
                   danger: true,
                 },
                 () => { effacerSlot(numero); remplirSlots(); },
@@ -55,8 +56,8 @@ export function installerDemarrage({ lancer }) {
     // Sauvegarde AUTO (séparée) : Load uniquement, écrite par le jeu en ville.
     conteneurSlots.append(
       creerLigneSlot(SLOT_AUTO, auto.donnees, [
-        { texte: "Load", desactive: !auto.donnees, surClic: () => lancerUneFois(auto.donnees) },
-      ], "Auto-save (auto only)", "menu-slot--auto")
+        { texte: t("demarrage.charger"), desactive: !auto.donnees, surClic: () => lancerUneFois(auto.donnees) },
+      ], t("demarrage.autoLabel"), "menu-slot--auto")
     );
   }
 

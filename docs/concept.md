@@ -1463,6 +1463,27 @@ que c'est addictif, **puis** on empile le suivant.
 2. **Craft / Forge** — second. *(1er jet jouable : table 5×5 + mini-jeu → `docs/craft.md`)*
 3. **Économie / bourse** — en dernier. *(1er jet jouable : Hôtel des ventes → `docs/marche.md`)*
 
+## Langues — FR / EN (i18n, 1er jet 23/07/2026)
+
+Le jeu est **bilingue français / anglais**, choisi sur un **menu de langue à l'écran
+de titre** (avant de lancer), et re-modifiable dans le **menu pause** (onglet Interface).
+Le choix est **mémorisé** en localStorage : au retour, le jeu s'ouvre dans la bonne langue.
+
+- **Moteur** : `jeu/systems/langue.js` (`t(cle)`, `getLangue`/`definirLangue`,
+  `appliquerTextesDOM`). **Dictionnaire** : `jeu/data/textes.js` — chaque clé porte ses
+  deux versions `{ fr, en }`. Marqueurs `{nom}` remplaçables (`t(cle, { nom })`).
+- **Côté HTML** : attribut `data-i18n="cle"` sur l'élément (variantes `-title`, `-html`,
+  `-ph`) ; `appliquerTextesDOM()` remplit au chargement **et** à chaque changement de langue.
+- **Côté JS** : `t("cle")` aux points d'affichage.
+- **Repli** : une clé absente retombe sur l'anglais → traduction **progressive** possible
+  (rien ne casse tant qu'on traduit par lots). Défaut = anglais.
+- **Fait (1er lot, cœur)** : menu de langue, écran de titre, menu pause, barre de menu (HUD),
+  boutons/écran de résultat de combat + fuite, écran de démarrage, aides du marchand.
+- **À traduire ensuite (lots suivants)** : noms & descriptions des **objets, cartes, talents,
+  monstres**, **dialogues de PNJ**, HUD d'info (mine/zone), forge, inventaire, hôtel des ventes,
+  banque, enchères, coffre, livre de l'artisan, écrans de butin/level-up. (Le contenu de
+  données — `data/*.js` — représente le gros du volume.)
+
 ## Contraintes techniques
 
 - **100 % côté client, zéro serveur** (solo, local). → le même code tourne en ligne
