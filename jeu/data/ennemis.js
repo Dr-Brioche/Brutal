@@ -59,6 +59,9 @@ const STATS_MONSTRES = {
   "gobelin-kaboom": { nom: "Goblin Kaboom", niveau: 6, famille: "gobelin", pv: 20, attaque: 0, xp: 20, vitesse: 4, actions: [] },
   "gobelin-de-siege": { nom: "Siege Goblin", niveau: 3, famille: "gobelin", pv: 24, attaque: 7, xp: 8, vitesse: 9, actions: [] },
   "gobelin-de-siege-etandart": { nom: "Siege Standard-Bearer", niveau: 6, famille: "gobelin", pv: 55, attaque: 5, xp: 24, vitesse: 7, actions: [{ type: "buff-allie", valeur: 2, poids: 100 }] },
+  "gobelin-blinde": { nom: "Armored Goblin", niveau: 6, famille: "gobelin", pv: 10, attaque: 10, xp: 40, vitesse: 6, actions: [], grand: true },
+  "gobelin-sans-blindage1": { nom: "Mace Goblin", niveau: 5, famille: "gobelin", pv: 34, attaque: 14, xp: 18, vitesse: 10, actions: [] },
+  "gobelin-sans-blindage2": { nom: "Shield Goblin", niveau: 5, famille: "gobelin", pv: 40, attaque: 4, xp: 18, vitesse: 8, actions: [{ type: "bouclier-allie", valeur: 8, poids: 100 }] },
 };
 // <<FIN-MONSTRES-AUTO>>
 
@@ -687,6 +690,72 @@ export const ENNEMIS = [
     planche: "images/ennemis/gobelin-de-siege-etandart.png",
     portrait: { sx: 9, sy: 5, sw: 73, sh: 73 },
     sprite: { caseL: 174, caseH: 235, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+
+  // --- LE GOBELIN BLINDÉ : version « miniature » de la Tour de siège. C'est un GRAND
+  // monstre (2 places) fait de DEUX gobelins empilés dans une armure. Il commence le
+  // combat avec un GROS BOUCLIER (comme la Pierre du héros : `bouclierDepart` absorbe
+  // les dégâts avant les PV) mais très peu de PV dessous. Quand il meurt, l'armure se
+  // brise et libère ses deux occupants sur ses 2 places : le porteur de BOUCLIER à
+  // GAUCHE (défenseur) et le porteur de MASSE à DROITE (attaquant). Ces deux gobelins
+  // ne pop QUE de sa mort (spawnOnly) et ont une petite synergie tank + dégâts.
+  {
+    id: "gobelin-blinde",
+    nom: "Armored Goblin",
+    niveau: 6,
+    famille: "gobelin",
+    pv: 10,                 // très peu de PV : tout est dans le bouclier
+    bouclierDepart: 50,     // BOUCLIER de départ (absorbe les dégâts avant les PV)
+    attaque: 10,
+    xp: 40,
+    vitesse: 6,
+    affix: "melee",
+    grand: true,            // occupe 2 places
+    // Dislocation → défenseur (bouclier) à GAUCHE, attaquant (masse) à DROITE.
+    splitEnMort: ["gobelin-sans-blindage2", "gobelin-sans-blindage1"],
+    planche: "images/ennemis/gobelin-blindé.png",
+    portrait: { sx: 11, sy: 5, sw: 89, sh: 89 },
+    sprite: { caseL: 213, caseH: 240, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    // ATTAQUANT (masse) : sorti de l'armure, il frappe FORT mais n'a plus de défense.
+    // Ne pop QUE de la mort du Gobelin blindé (spawnOnly).
+    id: "gobelin-sans-blindage1",
+    nom: "Mace Goblin",
+    niveau: 5,
+    famille: "gobelin",
+    pv: 34,
+    attaque: 14,            // gros dégâts (c'est le DPS du duo)
+    xp: 18,
+    vitesse: 10,
+    affix: "melee",
+    spawnOnly: true,
+    planche: "images/ennemis/gobelin-sans-blindage1.png",
+    portrait: { sx: 9, sy: 4, sw: 74, sh: 74 },
+    sprite: { caseL: 175, caseH: 200, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    // DÉFENSEUR (bouclier) : petit attaquant, mais il a son PROPRE bouclier de départ ET
+    // à chaque tour il DONNE du bouclier à ses alliés (protège l'attaquant → synergie
+    // tank + dégâts). Ne pop QUE de la mort du Gobelin blindé (spawnOnly).
+    id: "gobelin-sans-blindage2",
+    nom: "Shield Goblin",
+    niveau: 5,
+    famille: "gobelin",
+    pv: 40,
+    bouclierDepart: 15,    // il garde une petite garde perso
+    attaque: 4,            // faible : c'est le tank/soutien
+    xp: 18,
+    vitesse: 8,
+    affix: "melee",
+    spawnOnly: true,
+    actions: [{ type: "bouclier-allie", valeur: 8, poids: 100 }], // +8 bouclier aux alliés / tour
+    planche: "images/ennemis/gobelin-sans-blindage2.png",
+    portrait: { sx: 9, sy: 4, sw: 79, sh: 79 },
+    sprite: { caseL: 189, caseH: 180, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
 
