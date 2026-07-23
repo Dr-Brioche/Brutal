@@ -836,13 +836,27 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     carteJouee = true; // une carte a été jouée → on ne pourra plus fuir ce tour
     if (maitrise) incrementerMaitrise(maitrise, heros, carte.id);
 
-    // Cartes PIOCHÉES par la carte jouée (effet « piocher ») : on les retire de la
-    // main IMMÉDIATEMENT (synchrone) et on verrouille l'agrandissement. Sinon,
-    // pendant le délai carte→effet, une de ces cartes s'affichait en grand dans la
-    // main (~0,5 s) avant sa vraie révélation au centre. On les révélera plus bas.
-    // (Les autres formes de pioche — dés, Lucky Draw, échange — gèrent leur cas.)
+    // Cartes PIOCHÉES par la carte jouée (QUELLE QUE SOIT la forme) : on les retire de
+    // la main IMMÉDIATEMENT (synchrone), AVANT le rafraichir ci-dessous, et on verrouille
+    // l'agrandissement. Sinon, pendant le délai carte→effet, ces cartes CLIGNOTENT dans
+    // la main (~0,3 s) avant leur vraie révélation au centre. On les révèle plus bas.
     let piocheDifferee = null;
-    if (!combat.dernierGainAleatoire && !combat.dernieresPiochesFiltre && !combat.dernierEchangeMain) {
+    if (combat.dernieresPiochesFiltre) {
+      // Lucky Draw : retire tout de suite les cartes RETENUES (garde) de la main.
+      for (const { carte: c, garde } of combat.dernieresPiochesFiltre) {
+        if (!garde) continue;
+        const k = combat.main.indexOf(c);
+        if (k >= 0) combat.main.splice(k, 1);
+      }
+      enAnimPioche = true;
+    } else if (combat.dernierEchangeMain) {
+      // Échange (défausse + pioche) : retire tout de suite les cartes PIOCHÉES.
+      for (const c of combat.dernierEchangeMain.piochees) {
+        const k = combat.main.indexOf(c);
+        if (k >= 0) combat.main.splice(k, 1);
+      }
+      enAnimPioche = true;
+    } else if (!combat.dernierGainAleatoire) {
       const drawn = combat.main.length - nbAvant + 1;
       if (drawn > 0) {
         piocheDifferee = combat.main.splice(combat.main.length - drawn, drawn);
@@ -962,28 +976,17 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (combat.dernierGainAleatoire) {
         animerDes(combat.dernierGainAleatoire);
       } else if (combat.dernieresPiochesFiltre) {
-        // Lucky Draw : on retire temporairement les cartes retenues pour les révéler une à une.
+        // Lucky Draw : les cartes retenues ont DÉJÀ été retirées de la main (plus haut,
+        // dès le jeu de la carte) → aucun clignotement. On les révèle une à une au centre.
         const resultats = combat.dernieresPiochesFiltre;
         combat.dernieresPiochesFiltre = null;
-        for (const { carte, garde } of resultats) {
-          if (garde) {
-            const i = combat.main.indexOf(carte);
-            if (i >= 0) combat.main.splice(i, 1);
-          }
-        }
-        rafraichir(); // main sans les cartes Lucky Draw (elles arrivent une à une)
         animerPiocheFiltre(resultats, null, (c) => { combat.main.push(c); rafraichir(); });
       } else if (combat.dernierEchangeMain) {
-        // Défausse + pioche d'une même carte (Bare Hands, Forge from Ashes…). On
-        // retire les cartes piochées de la main, on montre d'abord la/les carte(s)
-        // JETÉE(s) partir, PUIS la/les nouvelle(s) arriver — défausse AVANT pioche.
+        // Défausse + pioche d'une même carte (Bare Hands, Forge from Ashes…). Les cartes
+        // piochées ont DÉJÀ été retirées de la main (plus haut). On montre d'abord la/les
+        // carte(s) JETÉE(s) partir, PUIS la/les nouvelle(s) arriver — défausse AVANT pioche.
         const { defaussees, piochees } = combat.dernierEchangeMain;
         combat.dernierEchangeMain = null;
-        for (const c of piochees) {
-          const k = combat.main.indexOf(c);
-          if (k >= 0) combat.main.splice(k, 1);
-        }
-        rafraichir(); // la main n'affiche pas encore les cartes piochées
         animerDefausse(defaussees, () =>
           animerPioche(piochees, null, (c) => combat.main.push(c))
         );
@@ -1707,12 +1710,16 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       }
     }
 
-    // Vie + états + intention + tag NEXT de chaque ennemi vivant.
+    // Vie + états + intention + tag NEXT de chaque ennemi vivant. Dessiné APRÈS tous
+    // les sprites (donc TOUJOURS au-dessus d'eux) et en ORDRE DE PROFONDEUR (arrière
+    // d'abord) : quand deux barres/pastilles de monstres voisins se chevauchent — cas
+    // fréquent avec de GROS monstres serrés — c'est celle du monstre AVANT qui passe
+    // devant, jamais l'inverse.
     // Les ennemis « arrière » (impairs) reçoivent un léger zoom-out de leur UI
     // (même ratio 0.78 que leur sprite) pour renforcer l'effet de perspective.
     // Le pivot du scale est au centre de leurs pieds (ecran.cx, ecran.sol).
     const prochainIdx = combat.fini ? -1 : prochainEnnemiIndex();
-    ennemisUI.forEach((u) => {
+    [...ennemisUI].sort((a, b) => a.ecran.sol - b.ecran.sol).forEach((u) => {
       if (u.e.pv <= 0 || u.mort.actif) return;
       ctx.save();
       if (!u.avant) {
