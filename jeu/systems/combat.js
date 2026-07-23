@@ -296,15 +296,19 @@ function piocherMain(combat) {
   }
 }
 
-// Tire une action selon les poids de `def.actions` (roulette pondérée).
+// Tire une action spéciale selon ses `poids`, traités comme des CHANCES ABSOLUES
+// (en %). Elles n'ont PAS besoin de sommer à 100 : la part restante (100 − somme)
+// = aucune spéciale ne « proc » → le monstre fait son ATTAQUE DE BASE (on renvoie null).
+// Si la somme dépasse 100 (mauvais réglage), on la ramène au total (pas de base attack).
 function choisirAction(actions) {
   const total = actions.reduce((s, a) => s + a.poids, 0);
-  let r = Math.random() * total;
+  const denom = Math.max(100, total);
+  let r = Math.random() * denom;
   for (const a of actions) {
+    if (r < a.poids) return a;
     r -= a.poids;
-    if (r <= 0) return a;
   }
-  return actions[actions.length - 1];
+  return null; // la part « restante » : attaque de base
 }
 
 // --- Soin du chaman : cible VERROUILLÉE à la préparation ----------------------
@@ -336,13 +340,14 @@ export function cibleSoinVerrou(combat, lanceur) {
 function prevoirIntentions(combat) {
   for (const e of combat.ennemis) {
     if (!ennemiVivant(e)) { e.intention = null; continue; }
-    if (e.def.actions?.length) {
-      const a = choisirAction(e.def.actions);
+    const a = e.def.actions?.length ? choisirAction(e.def.actions) : null;
+    if (a) {
       e.intention = { type: a.type, valeur: a.valeur };
       // Soin : on VERROUILLE dès maintenant l'allié le plus blessé (% le plus bas).
       if (a.type === "soigner") e.intention.cible = allieLePlusBlesse(combat, e);
     } else {
-      // Attaque simple, éventuellement MULTI-COUPS (attaqueHits) et empoisonnante
+      // Pas d'action spéciale (aucune, ou la part « restante » n'a rien procé) :
+      // ATTAQUE DE BASE, éventuellement MULTI-COUPS (attaqueHits) et empoisonnante
       // (poisonParCoup) — ex. le Goblin Skirmisher frappe 2× et pose 1 poison/coup.
       e.intention = {
         type: "attaque", valeur: e.def.attaque,
