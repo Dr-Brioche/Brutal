@@ -158,6 +158,8 @@ function creerEnnemiCombat(def) {
     def, pv: def.pv, pvMax: def.pv,
     bonusDegats: 0,                // dégâts bonus reçus (buff du Porte-étendard de siège)
     forceChampi: 0,                // Force collective des champignons (passif de famille)
+    bouclier: def.bouclierDepart ?? 0, // BOUCLIER (comme la Pierre du héros) : absorbe les dégâts avant les PV
+    dernierBouclierAbsorbe: 0,     // bouclier retiré par le dernier coup (pour l'UI)
     charge: def.explose ? (def.delaiExplosion ?? 2) : 0, // mèche du Gobelin Kaboom
     evolue: 0,                     // pouls d'évolution/split vu par l'UI
     poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps)
@@ -480,7 +482,15 @@ function declencherPaliersPierre(combat, paliers) {
 function blesser(e, n) {
   if (n <= 0) return;
   e.dernierDegats += n;
-  e.hitLog.push(n); // pour l'animation de chaîne (ordre préservé)
+  // BOUCLIER ennemi (Gobelin blindé & Cie) : absorbe les dégâts avant les PV, comme la
+  // Pierre du héros. Le reste (s'il y en a) entame les PV.
+  if (e.bouclier > 0) {
+    const absorbe = Math.min(e.bouclier, n);
+    e.bouclier -= absorbe;
+    e.dernierBouclierAbsorbe += absorbe;
+    n -= absorbe;
+  }
+  e.hitLog.push(n); // pour l'animation de chaîne (ordre préservé) — 0 = coup encaissé par le bouclier
   e.pv = Math.max(0, e.pv - n);
 }
 
@@ -1264,6 +1274,7 @@ export function agirEnnemi(combat, i) {
     explose: false,    // true = le Gobelin Kaboom vient d'EXPLOSER (grosse détonation UI)
     mecheCharge: -1,   // ≥0 = la mèche du Kaboom brûle (compte à rebours affiché), pas encore d'explosion
     buffDegats: 0,     // dégâts bonus donnés aux alliés par le Porte-étendard (pour le floater)
+    bouclier_allie: 0, // bouclier donné aux alliés par le Gobelin défenseur (pour le floater)
   };
   if (!e || e.pv <= 0) return evt;
   // Ordre des malus dans le temps : poison, puis feu, saignement en dernier.
@@ -1429,6 +1440,12 @@ export function agirEnnemi(combat, i) {
     for (const a of alliés) { a.haste += e.intention.valeur; a.bonusDegats += bonusDeg; }
     evt.haste_allie = alliés.length ? e.intention.valeur : 0;
     evt.buffDegats = alliés.length ? bonusDeg : 0;
+  } else if (e.intention?.type === "bouclier-allie") {
+    // GOBELIN DÉFENSEUR (bouclier) : donne du BOUCLIER à tous ses alliés vivants (protège
+    // l'attaquant → synergie tank + dégâts). Ne se protège pas lui-même (il a sa garde de départ).
+    const alliés = combat.ennemis.filter((a, j) => j !== i && ennemiVivant(a));
+    for (const a of alliés) a.bouclier += e.intention.valeur;
+    evt.bouclier_allie = alliés.length ? e.intention.valeur : 0;
   }
   // Hâte à 10 : l'ennemi qui vient d'AGIR rejoue tout de suite — on remet sa jauge
   // d'initiative au seuil (elle sera reprise au prochain pas) et on consomme TOUS

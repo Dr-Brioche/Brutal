@@ -402,6 +402,26 @@ mène le groupe ; l'arène l'empêche de se combiner). Le sel du monstre est **s
   test aussi). Leurs chiffres vivent dans l'onglet Excel *Monstres* (section « Tour de siège ») ;
   l'art/tech (dislocation, mèche, buff dégâts) reste en code.
 
+**LE GOBELIN BLINDÉ — mini-tour de siège à BOUCLIER (23/07/2026).** Version « miniature » de
+la Tour de siège : deux gobelins empilés dans une armure. C'est un **grand** monstre (2 places,
+niv 6) qui apparaît dans les **groupes gobelins** normaux (pas solo). Particularités :
+
+- **Il commence avec un BOUCLIER** (comme la Pierre du héros) : **50 points** qui **absorbent
+  les dégâts avant les PV** — et sous l'armure il n'a que **10 PV**. Nouveau mécanisme ennemi
+  générique `bouclier` (champ `bouclierDepart` sur la def) : `blesser()` retire d'abord le
+  bouclier, le reste entame les PV. À l'écran, le bouclier s'affiche comme **le bouclier bleu du
+  héros** (`barreVieAuSol` reçoit `e.bouclier`), et se vide sous les coups.
+- **À sa mort, l'armure se brise** (même mécanisme de dislocation `splitEnMort` que la Tour) et
+  libère ses **deux occupants** sur ses 2 places : le **DÉFENSEUR (bouclier) à GAUCHE**, l'**ATTAQUANT
+  (masse) à DROITE**. Tous deux `spawnOnly` (ne pop QUE de sa mort).
+- **Synergie tank + dégâts.** L'**attaquant** (*Mace Goblin*) frappe fort (14) mais n'a aucune
+  défense. Le **défenseur** (*Shield Goblin*) frappe peu (4) mais a sa **propre garde** (15 de
+  bouclier) et, **chaque tour, DONNE du bouclier à ses alliés** (`bouclier-allie` : +8 à l'attaquant).
+  → il faut **tuer le défenseur d'abord** pour cesser de renflouer le bouclier de l'attaquant.
+- Chiffres dans l'Excel : *Monstres* (section « Gobelin blindé ») pour les stats, *Général*
+  (section « Gobelin blindé ») pour les valeurs de bouclier. L'art/tech (bouclier, dislocation,
+  don de bouclier) reste en code.
+
 ### Mise en scène du combat (validé 10/06/2026)
 
 - **Le nain est visible**, de profil à gauche : on **réutilise son sprite de carte**

@@ -877,7 +877,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const hateAvant = combat.hate;
     const pvHerosAvant = combat.pvHeros;
     // Réinitialiser les compteurs d'overkill/over-heal/chaîne avant la résolution.
-    combat.ennemis.forEach(e => { e.dernierDegats = 0; e.hitLog = []; });
+    combat.ennemis.forEach(e => { e.dernierDegats = 0; e.hitLog = []; e.dernierBouclierAbsorbe = 0; });
     combat.dernierSoinCarte = 0;
     combat.dernierGainAleatoire = null;
     combat.dernieresPiochesFiltre = null; // Lucky Draw : réinitialisé aussi (sinon une valeur périmée faisait clignoter les cartes piochées 0,5 s)
@@ -979,7 +979,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
             animAttaque = 0.25; // RELANCE le bond du héros à CHAQUE coup (multi-attaque)
             jouerSonCoup();
             u.secousse = 0.3;
-            ajouterFlottant(`-${hitVal}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
+            // hitVal = dégâts réellement portés aux PV (0 = coup absorbé par le BOUCLIER).
+            if (hitVal > 0) ajouterFlottant(`-${hitVal}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
+            else ajouterFlottant("🛡", u.ecran.cx, u.ecran.sommet, "#9cd3ff");
             if (isLastHitForEnemy) { if (e.pv <= 0) exploser(u); else jouerAnim(u, "touche"); }
             else jouerAnim(u, "touche");
           }, d);
@@ -992,14 +994,17 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         const u = ennemisUI[idx];
         const e = combat.ennemis[idx];
         if (!u || !e) continue;
-        // Affiche les VRAIS dégâts infligés (overkill inclus), pas juste la perte de PV.
-        const dmgAffiche = Math.max(pvAvants[idx] - e.pv, e.dernierDegats || 0);
-        if (dmgAffiche > 0) {
+        // Part ABSORBÉE par le BOUCLIER (Gobelin blindé & Cie) ce coup-ci, et part
+        // réellement portée aux PV (overkill inclus).
+        const abs = e.dernierBouclierAbsorbe || 0;
+        const dmgAffiche = Math.max(pvAvants[idx] - e.pv, (e.dernierDegats || 0) - abs);
+        if (dmgAffiche > 0 || abs > 0) {
           if (!quelquUnTouche) { animAttaque = 0.25; quelquUnTouche = true; jouerSonCoup(); sonJoue = true; }
           u.secousse = 0.3;
           if (e.pv <= 0) exploser(u);
           else jouerAnim(u, "touche");
-          ajouterFlottant(`-${dmgAffiche}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
+          if (abs > 0) ajouterFlottant(`🛡-${abs}`, u.ecran.cx, u.ecran.sommet - 16, "#9cd3ff"); // bouclier entamé
+          if (dmgAffiche > 0) ajouterFlottant(`-${dmgAffiche}`, u.ecran.cx, u.ecran.sommet, "#ffe27a");
         }
       }
     }
@@ -1392,6 +1397,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     if (evt.buffDegats > 0) {
       jouerAnim(u, "attaque");
       ajouterFlottant(`⚔+${evt.buffDegats}`, u.ecran.cx, u.ecran.sommet - 18, "#ffcf57");
+    }
+    // GOBELIN DÉFENSEUR : il donne du BOUCLIER à ses alliés (floater bleu bouclier).
+    if (evt.bouclier_allie > 0) {
+      jouerAnim(u, "attaque");
+      ajouterFlottant(`🛡+${evt.bouclier_allie}`, u.ecran.cx, u.ecran.sommet, "#9cd3ff");
+      jouerSonSortilege();
     }
     // evt.stun → on n'affiche AUCUNE animation
     // Filet de sécurité : si l'ennemi est MORT au cours de sa propre action sans que
@@ -1812,7 +1823,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (estCibleSouris)
         ctx.globalAlpha = alphaAvantBarre * (0.28 + 0.72 * (0.5 + 0.5 * Math.sin(temps * 11)));
       barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
-        `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), 0, u.affInit);
+        `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), u.e.bouclier || 0, u.affInit);
       ctx.globalAlpha = alphaAvantBarre;
       // Pill de niveau (rectangle arrondi doré) à droite de la barre de vie.
       const lvlEnn = u.e.def?.niveau;
@@ -2322,7 +2333,7 @@ function dessinerBouclier(ctx, cx, cy, taille, valeur) {
 
 // Sorts qui touchent TOUT le groupe allié → leur intention porte un badge « ALL »
 // collé à l'icône (convention valable pour tout futur sort de groupe).
-const SORTS_GROUPE = new Set(["haste-allie", "buff-allie"]);
+const SORTS_GROUPE = new Set(["haste-allie", "buff-allie", "bouclier-allie"]);
 
 function dessinerIntention(ctx, intention, cx, y) {
   if (!intention) return;
@@ -2342,6 +2353,7 @@ function dessinerIntention(ctx, intention, cx, y) {
   if (intention.type === "soigner") { icone = "💚"; couleur = "#7edf82"; }
   else if (intention.type === "haste-allie") { icone = "⚡"; couleur = "#dff4ff"; }
   else if (intention.type === "buff-allie") { icone = "🚩"; couleur = "#ffcf57"; }
+  else if (intention.type === "bouclier-allie") { icone = "🛡"; couleur = "#9cd3ff"; }
   // Attaque multi-coups (ex. Skirmisher) : affichée « N×V » + ☠ si elle empoisonne.
   const poison = intention.poison > 0 ? " ☠" : "";
   const txt = (intention.hits > 1 ? `${icone} ${intention.hits}×${intention.valeur}` : `${icone} ${intention.valeur}`) + poison;
