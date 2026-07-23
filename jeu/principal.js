@@ -14,7 +14,7 @@ import { ITEMS, itemDef, prixVente, RARETES, rareteAuMoins, distributionMinerais
 import {
   creerInventaire, appliquerEquipement, armeEquipee, armureEquipee,
   ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
-  equiperNeuf,
+  equiperNeuf, equiper, estEquipable,
 } from "./systems/inventaire.js";
 import {
   creerMaitrise, etatMaitrise, chargerMaitrise,
@@ -953,6 +953,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (avecSep) choix.push({ texte: g.label, separateur: true });
       for (const it of tousItems.filter((x) => g.test(x))) {
         const fullIdx = choix.length; // position dans le tableau avec séparateurs
+        const revenir = () => { prochainMenu = () => menuCategorie(c, fullIdx, selRoot); };
         choix.push({
           texte: `${it.nom}  ·  free`,
           itemId: it.id,
@@ -960,7 +961,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           // 2e clic achète. Sauf l'onglet de test « Resources » (remplissage rapide).
           confirmClic: c.nom !== "Resources",
           action: () => {
-            prochainMenu = () => menuCategorie(c, fullIdx, selRoot);
+            revenir();
             // Un SAC s'ÉQUIPE d'office dans un slot de sac libre (il ne va pas DANS
             // le sac : il EST le sac). Ça évite le blocage « sac plein » quand on
             // achète un 2e sac pour justement AGRANDIR l'inventaire.
@@ -970,11 +971,39 @@ export async function demarrerJeu(donneesInitiales = null) {
             else afficherMessage("Your bag is full — equip or drop something first.");
             inventaireUI.rendre();
           },
+          // CLIC DROIT (ou touche [E]) sur un objet ÉQUIPABLE : acheter ET équiper
+          // directement. Pour les consommables/ressources/trésors : pas d'option (null).
+          actionSecondaire: estEquipable(it.id)
+            ? () => { revenir(); acheterEtEquiper(it); }
+            : null,
         });
       }
     }
     choix.push({ texte: "←  Back", action: () => { prochainMenu = () => menuBoutique(selRoot); } });
     ouvrirMenuMarchand(`Test Merchant — ${c.nom}`, choix, selInitial, () => menuBoutique(selRoot));
+  }
+
+  // ACHETER & ÉQUIPER (clic droit / [E] chez le marchand). On équipe l'exemplaire
+  // NEUF : si son slot est LIBRE, on l'y pose directement (marche même sac plein) ;
+  // sinon on l'achète au sac puis on l'équipe (l'ancien repart au sac — échange).
+  function acheterEtEquiper(it) {
+    const slotLibre = equiperNeuf(inventaire, it.id, heros);
+    if (slotLibre) {
+      afficherMessage(`⚔️ ${it.nom} equipped.`);
+      inventaireUI.rendre();
+      return;
+    }
+    if (!ajouterObjet(inventaire, it.id)) {
+      afficherMessage("Your bag is full — make room to equip by swapping.");
+      return;
+    }
+    const objet = inventaire.objets[inventaire.objets.length - 1]; // l'exemplaire qu'on vient d'ajouter
+    const res = equiper(inventaire, objet, heros);
+    if (res === true) afficherMessage(`⚔️ ${it.nom} equipped.`);
+    else if (res === "deux-mains") afficherMessage(`🛒 ${it.nom} in your bag — needs the two-handed talent to wield.`);
+    else if (res === "plein") afficherMessage(`🛒 ${it.nom} added to your bag (no room to swap out the old one).`);
+    else afficherMessage(`🛒 ${it.nom} added to your bag.`);
+    inventaireUI.rendre();
   }
 
   function fermerBoutique() {
