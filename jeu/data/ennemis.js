@@ -702,8 +702,30 @@ function clanMonstre(d) {
   return "goblinoide"; // gobelins, ogre, orcs
 }
 
+// Restreint un pool de DÉFINITIONS à la fourchette de niveau AFFICHÉE [lo, hi] :
+//   • on ne fait JAMAIS apparaître un monstre AU-DESSUS de `hi` ;
+//   • si des monstres existent DANS la fourchette, on ne garde QUE ceux-là (les
+//     monstres trop faibles, ex. un gobelin niv 1 à l'étage 5, sont écartés) ;
+//   • sinon (pas encore de contenu à ce niveau) on prend le PLUS HAUT niveau
+//     disponible EN DESSOUS (repli). Renvoie le pool filtré (jamais vide si l'entrée
+//     ne l'est pas). Sert au spawn ET au calcul de la fourchette RÉELLE du HUD.
+export function filtrerNiveau(defs, niveauMobs) {
+  if (!Array.isArray(niveauMobs) || !defs.length) return defs;
+  const [lo, hi] = niveauMobs;
+  const sousHi = defs.filter((d) => (d.niveau ?? 1) <= hi);
+  if (!sousHi.length) return defs;                    // que du trop fort → on garde tout (sécurité)
+  const dans = sousHi.filter((d) => (d.niveau ?? 1) >= lo);
+  if (dans.length) return dans;                       // il y a du contenu au bon niveau
+  const maxNiv = Math.max(...sousHi.map((d) => d.niveau ?? 1)); // repli : le plus haut en dessous
+  return sousHi.filter((d) => (d.niveau ?? 1) === maxNiv);
+}
+
 export function composerGroupe(monstreIds, opts = {}) {
   let defs = (monstreIds ?? []).map(ennemiParId).filter(Boolean);
+  if (defs.length === 0) return [];
+  // Restreint au niveau AFFICHÉ (cf. filtrerNiveau) : on ne rencontre que des monstres
+  // du bon niveau, ou — faute de contenu — du plus haut niveau disponible en dessous.
+  defs = filtrerNiveau(defs, opts.niveauMobs);
   if (defs.length === 0) return [];
   // On tire d'abord UN clan (via un monstre pondéré par niveau) et on ne garde que
   // les monstres de ce clan → pas de mélange blobs/gobelins/molosses dans un groupe.
@@ -728,6 +750,12 @@ export function composerGroupe(monstreIds, opts = {}) {
     const pick = tirerMonstrePondere(pool, niveauMin, grandFacteur);
     groupe.push(pick);
     libres -= placesMonstre(pick);
+  }
+  // Filet : si le pool n'est composé QUE de GRANDS et que la taille tirée était trop
+  // petite (1 place), la boucle sort à vide → on ferait une rencontre fantôme. On force
+  // alors UN monstre (un boss en solo) pour toujours avoir un vrai combat.
+  if (groupe.length === 0 && poolBase.length) {
+    groupe.push(tirerMonstrePondere(poolBase, niveauMin, grandFacteur));
   }
   // Tri stable melee d'abord, range à la fin (positionnement visuel du combat).
   groupe.sort((a, b) => (a.affix === "range" ? 1 : 0) - (b.affix === "range" ? 1 : 0));

@@ -33,7 +33,7 @@ import { ouvrirDialogue, dialogueActif, rafraichirChoix, fermerDialogue } from "
 import { creerRencontres, avancerRencontres } from "./systems/rencontres.js";
 import { gagnerXp } from "./systems/progression.js";
 import { demarrerCombat } from "./ui/combat.js";
-import { ENNEMIS, tirerButin, composerGroupe, ennemiParId } from "./data/ennemis.js";
+import { ENNEMIS, tirerButin, composerGroupe, ennemiParId, filtrerNiveau } from "./data/ennemis.js";
 import { fondCombat, prechargerFonds } from "./data/fonds.js";
 import { musiqueCombat, prechargerMusiquesCombat } from "./data/musiques.js";
 import { FANATIQUE, MARCHAND, FORGERON, COURTIER, COMMISSAIRE, BANQUIER } from "./data/pnj.js";
@@ -1368,8 +1368,16 @@ export async function demarrerJeu(donneesInitiales = null) {
       const info = infoZoneMine(z);
       html += `<div class="hud-zone" data-tooltip="${info.tip}">${info.titre}</div>`;
     }
+    // Fourchette de niveau RÉELLE : celle des monstres qui apparaissent VRAIMENT
+    // (pool restreint par filtrerNiveau), pas la fourchette théorique. Honnête : si
+    // l'étage ne peut sortir que du niveau 6 faute de contenu, on affiche « Lv 6 ».
+    const poolNiv = filtrerNiveau((z.monstres ?? []).map(ennemiParId).filter(Boolean), z.niveauMobs);
+    const nivs = poolNiv.map((d) => d.niveau ?? 1);
+    const lo = nivs.length ? Math.min(...nivs) : z.niveauMobs[0];
+    const hi = nivs.length ? Math.max(...nivs) : z.niveauMobs[1];
+    const lvTxt = lo === hi ? `Lv ${lo}` : `Lv ${lo}–${hi}`;
     html += `<div class="hud-ligne" data-tooltip="Monster level on this floor">`
-      + `<span class="hud-logo">⚔</span> Lv ${z.niveauMobs[0]}–${z.niveauMobs[1]}</div>`;
+      + `<span class="hud-logo">⚔</span> ${lvTxt}</div>`;
     if (z.estMine) {
       const dist = distributionMinerais(z.niveau ?? 1, z.materiaux, z.theme);
       // Liste des minerais REPLIABLE : un en-tête cliquable (⛏ Ores ▾/▸) cache ou
@@ -1846,10 +1854,15 @@ export async function demarrerJeu(donneesInitiales = null) {
     // Le groupe est composé à partir des monstres de la ZONE courante : taille
     // (30/30/20/15/5) et types tirés au sort, range placés à l'arrière. Si la
     // zone n'a aucun monstre déclaré, pas de combat.
-    // Tirage prioritaire du Lapin blanc (rencontre dédiée, jamais mélangée).
+    // Tirage prioritaire du Lapin blanc (rencontre dédiée, jamais mélangée). Dans une
+    // CAVERNE DE CHANCE, sa probabilité est TRIPLÉE (on y croise le lapin bien plus souvent).
+    const chanceLapin = LAPIN_CHANCE * (zoneCourante?.luck ? 3 : 1);
     const lapin = zoneCourante?.estMine && (zoneCourante.niveau ?? 1) >= LAPIN_PROF_MIN
-      && Math.random() < LAPIN_CHANCE;
-    const ennemis = lapin ? composerLapins() : composerGroupe(zoneCourante?.monstres);
+      && Math.random() < chanceLapin;
+    // Le pool de monstres est restreint au niveau AFFICHÉ (filtrerNiveau, via opts).
+    const ennemis = lapin
+      ? composerLapins()
+      : composerGroupe(zoneCourante?.monstres, { niveauMobs: zoneCourante?.niveauMobs });
     if (ennemis.length === 0) return;
     enPause = true;                 // le monde se fige pendant le flash
     await flashCombat();
