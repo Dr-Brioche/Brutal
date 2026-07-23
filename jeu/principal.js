@@ -1032,6 +1032,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (Number.isFinite(donnees.pointsTalent) && donnees.pointsTalent >= 0) heros.pointsTalent = Math.floor(donnees.pointsTalent);
     if (donnees.talents && typeof donnees.talents === "object") heros.talents = { ...donnees.talents };
     appliquerTalents(heros);
+    inventaire.pileMax = heros.pileMax; // reporte la taille de pile (talent « Ore Hauler »)
     if (Number.isFinite(donnees.pv)) {
       heros.pv = Math.max(1, Math.min(heros.pvMax, donnees.pv)); // jamais 0 ni au-delà du max
     }
@@ -1199,7 +1200,9 @@ export async function demarrerJeu(donneesInitiales = null) {
   // L'arbre de talents (touche T) : on y dépense les points gagnés en niveau.
   const talentsUI = installerTalents({
     heros,
-    surChangement: () => {}, // debloquer() met le héros à jour ; l'écran se rafraîchit seul
+    // debloquer() met le héros à jour ; on reporte juste la taille de pile (talent
+    // « Ore Hauler ») sur l'inventaire pour que les nouveaux minerais s'empilent plus haut.
+    surChangement: () => { inventaire.pileMax = heros.pileMax; },
     surFermer: () => basculerTalents(),
     surAction: (id) => { if (id === "godmode") activerGodmode(); },
   });
@@ -1342,11 +1345,30 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // HUD info (haut-gauche) : niveau des monstres de la zone + (en mine) les minerais
   // trouvables à l'étage avec leur % de pop. Caché là où il n'y a pas de monstres.
+  // Titre + explication du TYPE d'étage de mine (biome/caverne), pour le HUD. La
+  // caverne de chance prime sur le biome. Le survol du titre montre le bonus (data-tooltip).
+  function infoZoneMine(z) {
+    if (z.luck) return { titre: "🍀 Lucky Cavern", tip: "Ore veins everywhere and almost no monsters — a miner's jackpot." };
+    const T = {
+      cristal: { titre: "💎 Crystal Mine", tip: "Extra ore veins, and +15% chance of Diamond." },
+      lave:    { titre: "🌋 Molten Mine",  tip: "+15% chance of Ruby." },
+      glace:   { titre: "❄ Frozen Mine",   tip: "+15% chance of Lapis Lazuli." },
+      inondee: { titre: "🌊 Flooded Mine", tip: "+15% chance of Titanium." },
+    };
+    return T[z.theme] ?? { titre: "⛏ Deep Mine", tip: "A regular mine floor — no biome bonus." };
+  }
+
   function majHudInfo() {
     const z = zoneCourante;
     if (!Array.isArray(z.niveauMobs)) { hudInfo.hidden = true; return; }
     hudInfo.hidden = false;
-    let html = `<div class="hud-ligne" data-tooltip="Monster level on this floor">`
+    let html = "";
+    // En mine : un TITRE de type de zone (biome/caverne), avec le bonus au survol.
+    if (z.estMine) {
+      const info = infoZoneMine(z);
+      html += `<div class="hud-zone" data-tooltip="${info.tip}">${info.titre}</div>`;
+    }
+    html += `<div class="hud-ligne" data-tooltip="Monster level on this floor">`
       + `<span class="hud-logo">⚔</span> Lv ${z.niveauMobs[0]}–${z.niveauMobs[1]}</div>`;
     if (z.estMine) {
       const dist = distributionMinerais(z.niveau ?? 1, z.materiaux, z.theme);

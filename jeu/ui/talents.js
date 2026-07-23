@@ -22,6 +22,7 @@ function iconeNoeud(n) {
     chaleurSeuil: "🔥", chaleurMax: "🔥", chaleurDepart: "🔥", chaleurRecharge: "🔥",
     artisanat: "⚒", sacSecondaire: "🎒", noblesse: "👑", sansRencontre: "🚫",
     choixProfondeur: "⛏", citoyen: "🪪", descenteBonus: "🕳", visionMine: "🔦", etageChance: "✨",
+    pileStack: "📦",
   }[k] || "★";
 }
 

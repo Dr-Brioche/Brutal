@@ -22,7 +22,10 @@ export function creerInventaire() {
   for (const s of SLOTS) slots[s] = null;
   // `qualites` : qualité de FORGE par slot équipé (parallèle à `slots`). Elle voyage
   // avec l'exemplaire (slot ↔ sac). Vide/absent = qualité normale (cf. data/recettes.js).
-  return { cols: COLS, rangs: RANGS_BASE, objets: [], slots, qualites: {}, or: 0 };
+  // `pileMax` : taille max d'une pile de ressources (minerais…). De BASE 5, agrandie
+  // par le talent forge « Ore Hauler » (+5 par rang, jusqu'à 30). Synchronisée depuis
+  // heros.pileMax à chaque changement de talents (cf. principal.js).
+  return { cols: COLS, rangs: RANGS_BASE, objets: [], slots, qualites: {}, or: 0, pileMax: 5 };
 }
 
 // ONGLETS DE SAC : chaque sac équipé est une GRILLE séparée (un « onglet »), au
@@ -98,7 +101,9 @@ export function ajouterObjet(inv, id, n = 1, champs = null) {
   const d = itemDef(id);
   if (!d) return false;
   if (d.empilable) {
-    const max = d.pileMax ?? 10;
+    // Taille de pile pilotée par le HÉROS (talent « Ore Hauler ») : base 5, +5/rang
+    // jusqu'à 30. (Le `pileMax` des items, hérité, n'est plus utilisé comme plafond.)
+    const max = inv.pileMax ?? 5;
     let reste = n;
     for (const o of inv.objets) {                 // compléter les piles existantes
       if (o.id !== id) continue;
