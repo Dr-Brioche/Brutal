@@ -206,4 +206,10 @@ export const TEXTES = {
   "tal.niv":          { fr: "Niv", en: "Lvl" },
   "tal.pts":          { fr: "pts", en: "pts" },
   "tal.aide":         { fr: "Clique ou déplace avec les flèches / WASD · Espace pour débloquer · [T] fermer", en: "Click or move with arrows / WASD · Space to unlock · [T] to close" },
+  "tal.maxed":        { fr: "au max · {rang}/{rmax}", en: "maxed · {rang}/{rmax}" },
+  "tal.rankNext":     { fr: "rang {rang}/{rmax} · suivant {cout} pt", en: "rank {rang}/{rmax} · next {cout} pt" },
+  "tal.coutRangs":    { fr: "{cout} pt · {rmax} rangs", en: "{cout} pt · {rmax} ranks" },
+  "tal.owned":        { fr: "acquis", en: "owned" },
+  "tal.cout":         { fr: "{cout} pt", en: "{cout} pt" },
+  "tal.legendaire":   { fr: "✦ Légendaire", en: "✦ Legendary" },
 };

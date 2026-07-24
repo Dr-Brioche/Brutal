@@ -23,6 +23,8 @@
 //                         (PV), vitesse/agilité, pioche, armes légendaires (col 2-3).
 //   • COMMERCE (col 4)  : sac, exploration efficace, accès aux enchères.
 // La `racine` est le TRONC commun (haut, centre) : point d'entrée des 3 branches.
+import { tr } from "../systems/langue.js";
+
 export const BRANCHES = {
   forge:    { nom: "Forge",    cols: [0, 0], couleur: "#e0842a", icone: "⚒" },
   combat:   { nom: "Combat",   cols: [1, 3], couleur: "#d0574a", icone: "⚔" },
@@ -263,6 +265,6 @@ const NOM_EFFET = {
 // Décrit l'effet d'un nœud, ex. "+10 Max HP".
 export function descEffet(effet) {
   return Object.entries(effet ?? {})
-    .map(([k, v]) => `${v >= 0 ? "+" : ""}${v} ${NOM_EFFET[k] ?? k}`)
+    .map(([k, v]) => `${v >= 0 ? "+" : ""}${v} ${tr("effet." + k, NOM_EFFET[k] ?? k)}`)
     .join(", ");
 }
