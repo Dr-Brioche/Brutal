@@ -5,6 +5,7 @@
 // (SVG) de prérequis à nœud. Couleur : débloqué / disponible / bloqué.
 
 import { TALENTS, TALENT_GRILLE, BRANCHES, descEffet } from "../data/talents.js";
+import { t } from "../systems/langue.js";
 import { etatNoeud, debloquer, activerOuBasculer } from "../systems/talents.js";
 import { xpPourNiveau } from "../systems/progression.js";
 
@@ -125,14 +126,14 @@ export function installerTalents({ heros, surChangement, surFermer, surAction })
     // Talent à rangs (ex. Master Craftsman ×3) : on montre la progression.
     let cout;
     if (rmax > 1) {
-      cout = rang >= rmax ? `maxed · ${rang}/${rmax}`
-        : rang > 0 ? `rank ${rang}/${rmax} · next ${n.cout} pt`
-        : `${n.cout} pt · ${rmax} ranks`;
+      cout = rang >= rmax ? t("tal.maxed", { rang, rmax })
+        : rang > 0 ? t("tal.rankNext", { rang, rmax, cout: n.cout })
+        : t("tal.coutRangs", { cout: n.cout, rmax });
     } else {
-      cout = etat === "debloque" ? "owned" : `${n.cout} pt`;
+      cout = etat === "debloque" ? t("tal.owned") : t("tal.cout", { cout: n.cout });
     }
     const texteEffet = n.description || descEffet(n.effet);
-    const badge = n.legendaire ? ' <span class="tal-legendaire">✦ Legendary</span>' : "";
+    const badge = n.legendaire ? ` <span class="tal-legendaire">${t("tal.legendaire")}</span>` : "";
     elDesc.innerHTML = `<b>${n.nom}</b>${badge} — ${texteEffet} <span class="tal-desc-cout">(${cout})</span>`;
   }
 
