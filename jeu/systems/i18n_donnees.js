@@ -27,6 +27,11 @@ function traduireEntree(obj, prefixe, id) {
     if (obj._descEn === undefined) obj._descEn = obj.description;
     obj.description = tr(`${prefixe}.${id}.desc`, obj._descEn);
   }
+  // Texte d'effet d'une carte (`texte`) : même principe.
+  if ("texte" in obj) {
+    if (obj._texteEn === undefined) obj._texteEn = obj.texte;
+    obj.texte = tr(`${prefixe}.${id}.texte`, obj._texteEn);
+  }
 }
 
 export function appliquerLangueDonnees() {

@@ -68,7 +68,8 @@ function ajusterTextePourTenir(parchemin, texte) {
 // avec les dégâts portés au monstre ("Deal N damage"). Le texte des cartes vient de
 // nos données (de confiance) ; on construit des nœuds DOM (pas d'innerHTML).
 function poserTexteEffet(el, texte) {
-  const motif = /\b(?:take\s+\d+\s+damage|lose\s+\d+\s+hp)\b/gi;
+  // Dégâts que le HÉROS s'inflige, en anglais ET en français (surlignés en rouge).
+  const motif = /\b(?:take\s+\d+\s+damage|lose\s+\d+\s+hp|subis\s+\d+\s+dégâts|perds\s+\d+\s+pv)\b/gi;
   el.textContent = "";
   let dernier = 0, m;
   while ((m = motif.exec(texte)) !== null) {
