@@ -12,6 +12,7 @@
 // eux, restent immédiats.
 
 import { ITEMS, couleurRarete, bonusPassifs } from "../data/items.js";
+import { t } from "../systems/langue.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
 import { animerGainXp } from "./gainXp.js";
 
@@ -111,10 +112,10 @@ export function installerButin() {
   function tenterFermer() {
     if (restants > 0) {
       demanderConfirmation({
-        titre: "Leave loot behind?",
-        message: `${restants} item${restants > 1 ? "s" : ""} will be lost for good.`,
-        texteOui: "Leave it",
-        texteNon: "Keep looting",
+        titre: t("butin.laisserTitre"),
+        message: t("butin.laisserMsg", { n: restants, s: restants > 1 ? "s" : "" }),
+        texteOui: t("butin.laisserOui"),
+        texteNon: t("butin.laisserNon"),
         danger: true,
       }, fermer);
     } else {
@@ -178,7 +179,7 @@ export function installerButin() {
       prendre = opts.prendre;
       surFin = opts.surFin;
       liste.replaceChildren();
-      if (or > 0) liste.append(ligneInfo(`<span class="icone-piece"></span> <b>+${or}</b> Gold`)); // l'XP est dans la barre
+      if (or > 0) liste.append(ligneInfo(t("butin.or", { or }))); // l'XP est dans la barre
       restants = 0;
       for (const id of items) {
         if (!ITEMS[id]) continue;
@@ -186,7 +187,7 @@ export function installerButin() {
         restants += 1;
       }
       // Sans objet à trier, un seul bouton « Close » (or + XP seulement).
-      btnTout.textContent = restants ? "Take all" : "Close";
+      btnTout.textContent = restants ? t("butin.prendreTout") : t("butin.fermer");
       btnLaisser.hidden = restants === 0;
 
       // Barre d'XP : on montre le gain total, puis on lance la montée animée.

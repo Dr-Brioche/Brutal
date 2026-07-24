@@ -212,4 +212,29 @@ export const TEXTES = {
   "tal.owned":        { fr: "acquis", en: "owned" },
   "tal.cout":         { fr: "{cout} pt", en: "{cout} pt" },
   "tal.legendaire":   { fr: "✦ Légendaire", en: "✦ Legendary" },
+
+  // ---- Butin (fin de combat) ----
+  "butin.prendreTout": { fr: "Tout prendre", en: "Take all" },
+  "butin.laisser":    { fr: "Laisser le reste", en: "Discard rest" },
+  "butin.fermer":     { fr: "Fermer", en: "Close" },
+  "butin.aide":       { fr: "Clic ou ↑↓+Entrée : prendre  ·  Espace : tout prendre  ·  Échap : partir", en: "Click or ↑↓+Enter: take item  ·  Space: take all  ·  Esc: leave" },
+  "butin.laisserTitre": { fr: "Laisser du butin ?", en: "Leave loot behind?" },
+  "butin.laisserMsg": { fr: "{n} objet{s} perdu{s} pour de bon.", en: "{n} item{s} will be lost for good." },
+  "butin.laisserOui": { fr: "Laisser", en: "Leave it" },
+  "butin.laisserNon": { fr: "Continuer à ramasser", en: "Keep looting" },
+  "butin.or":         { fr: '<span class="icone-piece"></span> <b>+{or}</b> Or', en: '<span class="icone-piece"></span> <b>+{or}</b> Gold' },
+
+  // ---- Choix de faveur de profondeur ----
+  "cprof.titre":      { fr: "⛏ Une faveur des profondeurs", en: "⛏ A boon from the depths" },
+  "cprof.sous":       { fr: "Choisis-en une — elle dure toute ta descente, puis s'estompe quand tu remontes.", en: "Pick one — it lasts your whole delve, then fades when you leave." },
+  "cprof.aide":       { fr: "← → choisir  ·  Entrée valider  ·  1-4 choix rapide", en: "← → choose  ·  Enter pick  ·  1-4 quick pick" },
+  "prof.force":       { fr: "+{v} Force", en: "+{v} Force" },
+  "prof.gold":        { fr: "+{v} Or", en: "+{v} Gold" },
+  "prof.celerite":    { fr: "+{v}% Vitesse", en: "+{v}% Speed" },
+  "prof.armure":      { fr: "+{v} Armure", en: "+{v} Armor" },
+  "prof.agilite":     { fr: "+{v} Agilité", en: "+{v} Agility" },
+  "prof.soin":        { fr: "Soigne {v} PV", en: "Heal {v} HP" },
+  "prof.porte":       { fr: "Passage garanti", en: "Guaranteed passage" },
+  "prof.popMonstre":  { fr: "Aucun monstre", en: "No monsters" },
+  "prof.chanceMinerais": { fr: "+{v}% minerai", en: "+{v}% ore" },
 };
