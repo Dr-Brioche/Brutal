@@ -14,6 +14,7 @@
 // X pour le menu Equip/Discard, Échap pour reposer l'objet tenu.
 
 import { itemDef, couleurRarete, prixVente, SLOT_PAR_CATEGORIE } from "../data/items.js";
+import { t } from "../systems/langue.js";
 
 // Un objet est-il équipable ? (sa catégorie va sur un slot). Les trésors et les
 // ressources n'en ont pas → pas de « Equip » proposé pour eux.
@@ -38,14 +39,15 @@ const ECHELLE_HERO = 2;     // 64×64 → 128 dans la fiche
 const COL_GAUCHE = ["armure", "collier", "gant", "botte", "outil", "sac", "sac2"];
 const COL_DROITE = ["bague1", "bague2", "bague3", "bague4", "bague5"];
 const SLOTS_ARME = ["arme1", "arme2"];
+// Chaque slot → sa CLÉ de traduction (cf. systems/langue.js).
 const LABELS = {
-  arme1: "Main", arme2: "Off", armure: "Body", gant: "Hands", botte: "Feet",
-  collier: "Neck", sac: "Bag", sac2: "Bag 2", outil: "Tool", bague1: "Ring", bague2: "Ring", bague3: "Ring",
-  bague4: "Ring", bague5: "Ring",
+  arme1: "inv.slot.arme1", arme2: "inv.slot.arme2", armure: "inv.slot.armure", gant: "inv.slot.gant", botte: "inv.slot.botte",
+  collier: "inv.slot.collier", sac: "inv.slot.sac", sac2: "inv.slot.sac2", outil: "inv.slot.outil",
+  bague1: "inv.slot.bague", bague2: "inv.slot.bague", bague3: "inv.slot.bague", bague4: "inv.slot.bague", bague5: "inv.slot.bague",
 };
 // Label dynamique pour arme2 selon le talent Ambidextrie
 function labelArme2(heros) {
-  return (heros?.talents?.ambidextrie ?? 0) > 0 ? "Off-hand" : "Off";
+  return (heros?.talents?.ambidextrie ?? 0) > 0 ? t("inv.slot.offhand") : t("inv.slot.arme2");
 }
 
 // Stats de base de la Chaleur de Forge (cf. systems/combat.js)
@@ -55,15 +57,15 @@ function essayerEquiper(inventaire, heros, objet, surChangement, rendre, slotFor
   const res = equiper(inventaire, objet, heros, slotForce);
   if (res === true) { surChangement(); rendre(); return; }
   if (res === "plein") {
-    montrerToast("🎒 Bag is full — make some room before swapping gear.");
+    montrerToast(t("inv.sacPleinEchange"));
     return;
   }
   if (res === "deux-mains") {
-    afficherMessage("⚠ Two-handed weapons need the Giant's Grip talent before you can wield them.");
+    afficherMessage(t("inv.deuxMainsTalent"));
     return;
   }
   if (arme2Bloquee(inventaire) && itemDef(objet.id).categorie === "bouclier") {
-    afficherMessage("⚠ Your two-handed weapon occupies both hands — unequip it first.");
+    afficherMessage(t("inv.deuxMainsOccupe"));
   }
 }
 
@@ -295,16 +297,16 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function menuSac(o) {
     // « Equip » seulement pour un objet équipable (pas pour un trésor / une ressource).
     const actions = estEquipable(o.id)
-      ? [{ label: "Equip", fn: () => essayerEquiper(inventaire, heros, o, surChangement, rendre) }]
+      ? [{ label: t("inv.equiper"), fn: () => essayerEquiper(inventaire, heros, o, surChangement, rendre) }]
       : [];
     // « Read » pour un parchemin : ouvre la recette + le lore.
     if (surLire && itemDef(o.id)?.categorie === "parchemin") {
-      actions.push({ label: "📜 Read", fn: () => surLire(o) });
+      actions.push({ label: t("inv.lire"), fn: () => surLire(o) });
     }
     if (surVendre && document.body.classList.contains("en-boutique")) {
-      actions.push({ label: `Sell — ${prixVente(o.id, o.qualite ?? null) * (o.quantite ?? 1)} 🪙`, fn: () => surVendre(o) });
+      actions.push({ label: t("inv.vendre", { prix: prixVente(o.id, o.qualite ?? null) * (o.quantite ?? 1) }), fn: () => surVendre(o) });
     }
-    actions.push({ label: "Discard", danger: true, fn: () => surJeter && surJeter({ objet: o }) });
+    actions.push({ label: t("inv.jeter"), danger: true, fn: () => surJeter && surJeter({ objet: o }) });
     return actions;
   }
   // Ouvre le menu à la position ÉCRAN d'une case (pour la touche X au clavier).
@@ -442,17 +444,17 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       // En tenant un objet : en boutique on le VEND en le lâchant sur le marchand ;
       // partout, le lâcher dans le VIDE le jette (Échap reste le moyen sûr d'annuler).
       elAide.textContent = enBoutique
-        ? "Drop on the merchant to sell · on a slot to equip · in the void to discard · Esc: cancel"
-        : "Drop on a cell to move · on a slot to equip · in the void to discard · Esc: cancel";
+        ? t("inv.aideVendreSlot")
+        : t("inv.aideCaseSlot");
     } else if (!enBoutique) {
-      const bagHint = nbSacs(inventaire) > 1 ? " · [E] switch bag" : "";
-      elAide.textContent = cursorVisible
-        ? "Arrows: move · Enter: pick up/drop · X: equip/discard" + bagHint + " · [B] to close"
-        : "Click an item to pick it up · drop it where you want or on a slot" + bagHint + " · [B] to close";
+      const bagHint = nbSacs(inventaire) > 1 ? t("inv.aideSwitchBag") : "";
+      elAide.textContent = (cursorVisible
+        ? t("inv.aideClavier")
+        : t("inv.aideSouris")) + bagHint + t("inv.aideClose");
     } else {
       elAide.textContent = kbFocus
-        ? "Arrows: move · Enter: pick up/drop · X: equip/discard · [Tab]: back to merchant"
-        : "Drag an item onto the merchant to sell it · [Tab]: keyboard mode";
+        ? t("inv.aideClavierMarchand")
+        : t("inv.aideSourisMarchand");
     }
   }
 
@@ -519,7 +521,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       cell.append(ic);
     } else {
       cell.classList.add("vide");
-      const label = slot === "arme2" ? labelArme2(heros) : (LABELS[slot] ?? "");
+      const label = slot === "arme2" ? labelArme2(heros) : (LABELS[slot] ? t(LABELS[slot]) : "");
       cell.textContent = label;
       // Survol d'un slot VIDE → note montrant les cartes de suppléance qu'il ajoute
       // au deck (rien si le slot n'en a pas). Pas quand on tient un objet (geste en cours).
@@ -563,10 +565,10 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     bonus.textContent = "♾ Infinity Gauntlet";
     const doublons = n === 5 && !toutesUniques;
     bonus.dataset.tooltip = complet
-      ? "Infinity Gauntlet — ACTIVE\nAll 5 ring slots filled with different rings.\n+1 card / turn · +4 Force · +5 Agility"
+      ? t("inv.gauntletActif")
       : doublons
-        ? "Infinity Gauntlet — INACTIVE\nAll 5 rings must be DIFFERENT (no duplicates).\n+1 card / turn · +4 Force · +5 Agility"
-        : `Infinity Gauntlet — ${n}/5 rings\nFill all 5 slots with different rings to gain:\n+1 card / turn · +4 Force · +5 Agility`;
+        ? t("inv.gauntletInactif")
+        : t("inv.gauntletPartiel", { n });
     enfants.push(bonus);
     elDroite.className = "inv-colonne inv-colonne--bagues";
     elDroite.replaceChildren(...enfants);
@@ -583,18 +585,18 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   }
 
   function rendreStats() {
-    const t = bonusTalents(heros); // les CHIFFRES viennent de l'arbre (le stuff = cartes)
-    const seuil = FORGE_SEUIL + (t.chaleurSeuil || 0);
-    const max = FORGE_MAX + (t.chaleurMax || 0);
-    const agility = 10 + (t.agilite || 0) + (heros.agiliteEquip || 0); // ATB base (10) + talents + bottes
+    const bt = bonusTalents(heros); // les CHIFFRES viennent de l'arbre (le stuff = cartes)
+    const seuil = FORGE_SEUIL + (bt.chaleurSeuil || 0);
+    const max = FORGE_MAX + (bt.chaleurMax || 0);
+    const agility = 10 + (bt.agilite || 0) + (heros.agiliteEquip || 0); // ATB base (10) + talents + bottes
     const moveSpeed = Math.round(100 * (1 + (heros.vitesseEquipPct || 0) / 100));
     const lignes = [
-      ["Level",       `${heros.niveau}  (${heros.pointsTalent} pts)`],
-      ["Max HP",      heros.pvMax],
-      ["Agility",     agility],
-      ["Move Speed",  moveSpeed],
-      ["Forge Heat",  `${seuil} / ${max}`],
-      ["Cards/turn",  BASE_PIOCHE + (t.pioche || 0)],
+      [t("inv.statNiveau"),  `${heros.niveau}  (${heros.pointsTalent} pts)`],
+      [t("inv.statPvMax"),   heros.pvMax],
+      [t("inv.statAgilite"), agility],
+      [t("inv.statVitesse"), moveSpeed],
+      [t("inv.statChaleur"), `${seuil} / ${max}`],
+      [t("inv.statCartes"),  BASE_PIOCHE + (bt.pioche || 0)],
     ];
     elStats.replaceChildren(...lignes.map(([nom, val]) => {
       const l = document.createElement("div");
