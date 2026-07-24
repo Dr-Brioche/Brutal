@@ -3340,11 +3340,14 @@
     import { planchesDuJeu, prechargerImages } from "./jeu/core/prechargement.js";
     import { jouerMusique, relancerMusiqueBloquee } from "./jeu/core/sons.js";
     import { t, getLangue, appliquerTextesDOM, installerSelecteurLangue } from "./jeu/systems/langue.js";
+    import { installerLangueDonnees } from "./jeu/systems/i18n_donnees.js";
 
     // LANGUE : on applique tout de suite la langue mémorisée (ou EN par défaut) à
-    // tous les textes du DOM, et on câble le sélecteur (titre + menu pause).
+    // tous les textes du DOM + aux DONNÉES (noms/descriptions), et on câble le
+    // sélecteur (titre + menu pause).
     document.documentElement.setAttribute("lang", getLangue());
     appliquerTextesDOM();
+    installerLangueDonnees();
     installerSelecteurLangue();
 
     const ecranTitre = document.getElementById("ecran-titre");

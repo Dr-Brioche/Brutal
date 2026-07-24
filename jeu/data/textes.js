@@ -8,9 +8,15 @@
 // ⚠ Traduction PROGRESSIVE : on remplit par lots (cœur du jeu d'abord). Une clé
 // manquante retombe sur l'anglais. Pour ajouter un écran : ajouter ses clés ici,
 // puis poser des `data-i18n` (HTML) ou des `t()` (JS) aux points d'affichage.
+//
+// Les traductions des DONNÉES (noms/descriptions d'objets, cartes, talents,
+// monstres…) vivent dans textes_donnees.js et sont fusionnées ci-dessous.
 // ═══════════════════════════════════════════════════════════════════════════
 
+import { TEXTES_DONNEES } from "./textes_donnees.js";
+
 export const TEXTES = {
+  ...TEXTES_DONNEES,
   // ---- Menu de choix de la langue (au démarrage) ----
   "langue.titre":   { fr: "Langue / Language", en: "Language / Langue" },
   "langue.fr":      { fr: "Français", en: "Français" },

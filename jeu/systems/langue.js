@@ -80,6 +80,16 @@ export function installerSelecteurLangue() {
   majActif();
 }
 
+// Comme `t`, mais avec un REPLI EXPLICITE (souvent le texte anglais déjà présent
+// dans les données). Sert à traduire les noms/descriptions des data (objets, cartes,
+// talents, monstres) sans devoir dupliquer tout l'anglais dans le dictionnaire :
+// on n'ajoute que le français, et l'anglais d'origine reste le repli.
+export function tr(cle, defaut) {
+  const e = TEXTES[cle];
+  if (!e) return defaut;
+  return e[getLangue()] ?? e.en ?? defaut;
+}
+
 // Remplit tous les éléments porteurs d'un attribut data-i18n* avec leur traduction.
 // Appelé au démarrage et à chaque changement de langue.
 export function appliquerTextesDOM(racine = document) {
