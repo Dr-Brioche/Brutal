@@ -16,6 +16,7 @@ import {
   ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
   equiperNeuf, equiper, estEquipable,
 } from "./systems/inventaire.js";
+import { t } from "./systems/langue.js";
 import {
   creerMaitrise, etatMaitrise, chargerMaitrise,
 } from "./systems/maitrise.js";
@@ -785,35 +786,37 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Marchand de TEST : propose TOUS les items du jeu, gratuits, rangés par
   // sous-catégories (armes / armures / bijoux / autres). On choisit ensuite quoi
   // équiper via l'inventaire (ouvert à côté). Échap ou « Leave » ferme la boutique.
+  // `nom` reste la CLÉ INTERNE (anglais, testée dans le code) ; `cle`/`labelCle`
+  // portent la traduction affichée (cf. systems/langue.js).
   const CATEGORIES_BOUTIQUE = [
-    { nom: "Weapons", icone: "⚔",  cats: ["arme", "bouclier"], groupes: [
-      { label: "Weapons — 1 hand",  test: (it) => it.categorie === "arme" && it.mains !== 2 },
-      { label: "Weapons — 2 hands", test: (it) => it.categorie === "arme" && it.mains === 2 },
-      { label: "Off-hand",          test: (it) => it.categorie === "bouclier" },
+    { nom: "Weapons", cle: "cat.armes", icone: "⚔",  cats: ["arme", "bouclier"], groupes: [
+      { label: "Weapons — 1 hand",  labelCle: "cat.grp.armes1m", test: (it) => it.categorie === "arme" && it.mains !== 2 },
+      { label: "Weapons — 2 hands", labelCle: "cat.grp.armes2m", test: (it) => it.categorie === "arme" && it.mains === 2 },
+      { label: "Off-hand",          labelCle: "cat.grp.mainGauche", test: (it) => it.categorie === "bouclier" },
     ]},
     // Armor : la cuirasse MAIS AUSSI les gants et les bottes (ce sont des pièces
     // d'armure) — sous-groupés pour rester lisibles.
-    { nom: "Armor",   icone: "🛡", cats: ["armure", "gant", "botte"], groupes: [
-      { label: "Body armor", test: (it) => it.categorie === "armure" },
-      { label: "Gloves",     test: (it) => it.categorie === "gant" },
-      { label: "Boots",      test: (it) => it.categorie === "botte" },
+    { nom: "Armor",   cle: "cat.armures", icone: "🛡", cats: ["armure", "gant", "botte"], groupes: [
+      { label: "Body armor", labelCle: "cat.grp.armureCorps", test: (it) => it.categorie === "armure" },
+      { label: "Gloves",     labelCle: "cat.grp.gants", test: (it) => it.categorie === "gant" },
+      { label: "Boots",      labelCle: "cat.grp.bottes", test: (it) => it.categorie === "botte" },
     ]},
-    { nom: "Jewelry", icone: "💍", cats: ["bague", "collier"], groupes: [
-      { label: "Amulets", test: (it) => it.categorie === "collier" },
-      { label: "Rings",   test: (it) => it.categorie === "bague" },
+    { nom: "Jewelry", cle: "cat.bijoux", icone: "💍", cats: ["bague", "collier"], groupes: [
+      { label: "Amulets", labelCle: "cat.grp.amulettes", test: (it) => it.categorie === "collier" },
+      { label: "Rings",   labelCle: "cat.grp.bagues", test: (it) => it.categorie === "bague" },
     ]},
-    { nom: "Bags",    icone: "🎒", cats: ["sac"] },
+    { nom: "Bags",    cle: "cat.sacs", icone: "🎒", cats: ["sac"] },
     // Onglet de TEST pour le craft : toutes les ressources (minerais + bois),
     // GRATUITES, pour remplir le sac et essayer la forge (1 clic = +1, empilable).
-    { nom: "Resources", icone: "⛏", cats: ["ressource"], groupes: [
-      { label: "Ores & stone", test: (it) => it.famille === "metal" || it.famille === "pierre" },
-      { label: "Gems",         test: (it) => it.famille === "gemme" },
-      { label: "Wood & misc",  test: (it) => it.famille !== "metal" && it.famille !== "pierre" && it.famille !== "gemme" },
+    { nom: "Resources", cle: "cat.ressources", icone: "⛏", cats: ["ressource"], groupes: [
+      { label: "Ores & stone", labelCle: "cat.grp.mineraisPierre", test: (it) => it.famille === "metal" || it.famille === "pierre" },
+      { label: "Gems",         labelCle: "cat.grp.gemmes", test: (it) => it.famille === "gemme" },
+      { label: "Wood & misc",  labelCle: "cat.grp.boisDivers", test: (it) => it.famille !== "metal" && it.famille !== "pierre" && it.famille !== "gemme" },
     ]},
     // Trésors : objets non-utilisables, juste à revendre (marchand / HV / test).
-    { nom: "Valuables", icone: "💎", cats: ["tresor"] },
+    { nom: "Valuables", cle: "cat.tresors", icone: "💎", cats: ["tresor"] },
     // Parchemins de craft : à ouvrir (« Read ») pour découvrir une recette.
-    { nom: "Scrolls", icone: "📜", cats: ["parchemin"] },
+    { nom: "Scrolls", cle: "cat.parchemins", icone: "📜", cats: ["parchemin"] },
   ];
 
   function parlerAuMarchand() {
@@ -851,13 +854,13 @@ export async function demarrerJeu(donneesInitiales = null) {
   // présélectionnée, pour revenir sur la MÊME entrée au retour d'un sous-menu.
   function menuBoutique(selInitial = 0) {
     const choix = CATEGORIES_BOUTIQUE.map((c, i) => ({
-      texte: `${c.icone}  ${c.nom}`,
+      texte: `${c.icone}  ${t(c.cle)}`,
       action: () => { prochainMenu = () => menuCategorie(c, 0, i); }, // i = position racine à retrouver
     }));
     const idxVente = choix.length; // position de « Sell items » (pour y revenir)
-    choix.push({ texte: "💰  Sell items", action: () => { prochainMenu = () => menuVendre(0, idxVente); } });
-    choix.push({ texte: "Leave", action: () => { prochainMenu = null; } });
-    ouvrirMenuMarchand("Test Merchant", choix, selInitial);
+    choix.push({ texte: t("marchand.vendre"), action: () => { prochainMenu = () => menuVendre(0, idxVente); } });
+    choix.push({ texte: t("commun.quitter"), action: () => { prochainMenu = null; } });
+    ouvrirMenuMarchand(t("marchand.titre"), choix, selInitial);
   }
 
   // Les choix du menu de vente : un par objet du SAC + retour. Recalculé à chaque
@@ -867,7 +870,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // → après une vente/confirmation, le curseur reste sur le même emplacement.
   function choixVente(selRoot = 0) {
     const choix = inventaire.objets.map((o, i) => ({
-      texte: `Sell ${ITEMS[o.id].nom}${(o.quantite ?? 1) > 1 ? ` ×${o.quantite}` : ""}  ·  +${prixVente(o.id, o.qualite ?? null) * (o.quantite ?? 1)} 🪙`,
+      texte: t("marchand.vendreLigne", { nom: ITEMS[o.id].nom, q: (o.quantite ?? 1) > 1 ? ` ×${o.quantite}` : "", prix: prixVente(o.id, o.qualite ?? null) * (o.quantite ?? 1) }),
       itemId: o.id, // survol → bulle (on voit ce qu'on vend)
       action: () => {
         const d = ITEMS[o.id];
@@ -876,7 +879,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         } else {
           prochainMenu = () => menuVendre(i, selRoot);
           const prix = vendreObjet(inventaire, o);
-          afficherMessage(`💰 Sold ${d.nom} for ${prix} 🪙.`);
+          afficherMessage(t("marchand.msgVendu", { nom: d.nom, prix }));
           inventaireUI.rendre();
         }
       },
@@ -885,9 +888,9 @@ export async function demarrerJeu(donneesInitiales = null) {
     // du dialogue) — en plus, il passe par un sous-menu de confirmation.
     if (inventaire.objets.length > 1) {
       const idxToutVendre = choix.length;
-      choix.push({ texte: "💰  Sell all…", action: () => { prochainMenu = () => menuVendreTout(idxToutVendre, selRoot); } });
+      choix.push({ texte: t("marchand.vendreTout"), action: () => { prochainMenu = () => menuVendreTout(idxToutVendre, selRoot); } });
     }
-    choix.push({ texte: "←  Back", action: () => { prochainMenu = () => menuBoutique(selRoot); } });
+    choix.push({ texte: t("commun.retour"), action: () => { prochainMenu = () => menuBoutique(selRoot); } });
     return choix;
   }
 
@@ -895,8 +898,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   // jour à chaud si on (dés)équipe dans l'inventaire ouvert à côté. `selInitial` =
   // ligne présélectionnée (l'objet où on était) ; `selRoot` = retour au menu racine.
   function menuVendre(selInitial = 0, selRoot = 0) {
-    if (!inventaire.objets.length) afficherMessage("Your bag is empty — nothing to sell.");
-    ouvrirMenuMarchand("Test Merchant — Sell", choixVente(selRoot), selInitial, () => menuBoutique(selRoot));
+    if (!inventaire.objets.length) afficherMessage(t("marchand.sacVide"));
+    ouvrirMenuMarchand(t("marchand.titreVente"), choixVente(selRoot), selInitial, () => menuBoutique(selRoot));
     surChangementMenu = () => rafraichirChoix(choixVente(selRoot));
   }
 
@@ -907,14 +910,14 @@ export async function demarrerJeu(donneesInitiales = null) {
     const objets = [...inventaire.objets];
     const total = objets.reduce((s, o) => s + prixVente(o.id, o.qualite ?? null) * (o.quantite ?? 1), 0);
     const retourVente = () => menuVendre(selVente, selRoot);
-    ouvrirMenuMarchand("Sell EVERYTHING in your bag?", [
-      { texte: "←  No, keep my items", action: () => { prochainMenu = retourVente; } },
-      { texte: `⚠  Yes, sell all ${objets.length} · +${total} 🪙`, action: () => {
+    ouvrirMenuMarchand(t("marchand.toutVendreTitre"), [
+      { texte: t("marchand.toutVendreNon"), action: () => { prochainMenu = retourVente; } },
+      { texte: t("marchand.toutVendreOui", { n: objets.length, prix: total }), action: () => {
           prochainMenu = retourVente; // on revient au menu de vente après coup
           const aVendre = [...inventaire.objets];
           let somme = 0;
           for (const o of aVendre) somme += vendreObjet(inventaire, o);
-          afficherMessage(`💰 Sold ${aVendre.length} items for ${somme} 🪙.`);
+          afficherMessage(t("marchand.msgVenduN", { n: aVendre.length, prix: somme }));
           inventaireUI.rendre();
         } },
     ], 0, retourVente);
@@ -926,12 +929,12 @@ export async function demarrerJeu(donneesInitiales = null) {
     const d = ITEMS[o.id];
     const prix = prixVente(o.id, o.qualite ?? null) * (o.quantite ?? 1);
     const retourVente = () => menuVendre(selVente, selRoot);
-    ouvrirMenuMarchand(`Sell ${d.nom}${(o.quantite ?? 1) > 1 ? ` ×${o.quantite}` : ""}?`, [
-      { texte: "←  No, keep it", action: () => { prochainMenu = retourVente; } },
-      { texte: `⚠  Yes, sell · +${prix} 🪙`, action: () => {
+    ouvrirMenuMarchand(t("marchand.vendreConfTitre", { nom: d.nom, q: (o.quantite ?? 1) > 1 ? ` ×${o.quantite}` : "" }), [
+      { texte: t("marchand.vendreConfNon"), action: () => { prochainMenu = retourVente; } },
+      { texte: t("marchand.vendreConfOui", { prix }), action: () => {
           prochainMenu = retourVente;
           vendreObjet(inventaire, o);
-          afficherMessage(`💰 Sold ${d.nom} for ${prix} 🪙.`);
+          afficherMessage(t("marchand.msgVendu", { nom: d.nom, prix }));
           inventaireUI.rendre();
         } },
     ], 0, retourVente);
@@ -950,12 +953,12 @@ export async function demarrerJeu(donneesInitiales = null) {
     const avecSep = groupesPeuples.length > 1;
     const choix = [];
     for (const g of groupesPeuples) {
-      if (avecSep) choix.push({ texte: g.label, separateur: true });
+      if (avecSep) choix.push({ texte: g.labelCle ? t(g.labelCle) : g.label, separateur: true });
       for (const it of tousItems.filter((x) => g.test(x))) {
         const fullIdx = choix.length; // position dans le tableau avec séparateurs
         const revenir = () => { prochainMenu = () => menuCategorie(c, fullIdx, selRoot); };
         choix.push({
-          texte: `${it.nom}  ·  free`,
+          texte: t("marchand.gratuit", { nom: it.nom }),
           itemId: it.id,
           // Achat à la souris = DOUBLE-CLIC (anti-mégarde) : 1er clic sélectionne,
           // 2e clic achète. Sauf l'onglet de test « Resources » (remplissage rapide).
@@ -966,9 +969,9 @@ export async function demarrerJeu(donneesInitiales = null) {
             // le sac : il EST le sac). Ça évite le blocage « sac plein » quand on
             // achète un 2e sac pour justement AGRANDIR l'inventaire.
             const slotSac = it.categorie === "sac" ? equiperNeuf(inventaire, it.id, heros) : null;
-            if (slotSac) afficherMessage(`🎒 ${it.nom} equipped.`);
-            else if (ajouterObjet(inventaire, it.id)) afficherMessage(`🛒 ${it.nom} added to your bag.`);
-            else afficherMessage("Your bag is full — equip or drop something first.");
+            if (slotSac) afficherMessage(t("marchand.msgSacEquipe", { nom: it.nom }));
+            else if (ajouterObjet(inventaire, it.id)) afficherMessage(t("marchand.msgSacAjoute", { nom: it.nom }));
+            else afficherMessage(t("marchand.msgSacPlein"));
             inventaireUI.rendre();
           },
           // CLIC DROIT (ou touche [E]) sur un objet ÉQUIPABLE : acheter ET équiper
@@ -979,8 +982,8 @@ export async function demarrerJeu(donneesInitiales = null) {
         });
       }
     }
-    choix.push({ texte: "←  Back", action: () => { prochainMenu = () => menuBoutique(selRoot); } });
-    ouvrirMenuMarchand(`Test Merchant — ${c.nom}`, choix, selInitial, () => menuBoutique(selRoot));
+    choix.push({ texte: t("commun.retour"), action: () => { prochainMenu = () => menuBoutique(selRoot); } });
+    ouvrirMenuMarchand(t("marchand.titreCat", { cat: t(c.cle) }), choix, selInitial, () => menuBoutique(selRoot));
   }
 
   // ACHETER & ÉQUIPER (clic droit / [E] chez le marchand). On équipe l'exemplaire
@@ -989,20 +992,20 @@ export async function demarrerJeu(donneesInitiales = null) {
   function acheterEtEquiper(it) {
     const slotLibre = equiperNeuf(inventaire, it.id, heros);
     if (slotLibre) {
-      afficherMessage(`⚔️ ${it.nom} equipped.`);
+      afficherMessage(t("marchand.msgEquipe", { nom: it.nom }));
       inventaireUI.rendre();
       return;
     }
     if (!ajouterObjet(inventaire, it.id)) {
-      afficherMessage("Your bag is full — make room to equip by swapping.");
+      afficherMessage(t("marchand.msgSacPleinEquip"));
       return;
     }
     const objet = inventaire.objets[inventaire.objets.length - 1]; // l'exemplaire qu'on vient d'ajouter
     const res = equiper(inventaire, objet, heros);
-    if (res === true) afficherMessage(`⚔️ ${it.nom} equipped.`);
-    else if (res === "deux-mains") afficherMessage(`🛒 ${it.nom} in your bag — needs the two-handed talent to wield.`);
-    else if (res === "plein") afficherMessage(`🛒 ${it.nom} added to your bag (no room to swap out the old one).`);
-    else afficherMessage(`🛒 ${it.nom} added to your bag.`);
+    if (res === true) afficherMessage(t("marchand.msgEquipe", { nom: it.nom }));
+    else if (res === "deux-mains") afficherMessage(t("marchand.msgDeuxMains", { nom: it.nom }));
+    else if (res === "plein") afficherMessage(t("marchand.msgPasEchange", { nom: it.nom }));
+    else afficherMessage(t("marchand.msgSacAjoute", { nom: it.nom }));
     inventaireUI.rendre();
   }
 
