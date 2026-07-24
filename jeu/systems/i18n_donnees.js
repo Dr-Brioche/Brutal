@@ -36,6 +36,17 @@ export function appliquerLangueDonnees() {
   for (const id in TALENTS) traduireEntree(TALENTS[id], "talent", id);
   for (const id in RARETES) traduireEntree(RARETES[id], "rarete", id);
   for (const id in BRANCHES) traduireEntree(BRANCHES[id], "branche", id);
+
+  // RECETTES (parchemins) : leur nom est « préfixe + objet produit ». On le reconstruit
+  // APRÈS avoir traduit les objets, à partir de l'objet enseigné (champ `revele`), au
+  // lieu d'une entrée par recette. (Le repli laisse le nom anglais d'origine.)
+  const prefixe = tr("item.recettePrefixe", "Recipe: ");
+  for (const id in ITEMS) {
+    const it = ITEMS[id];
+    if (it.categorie === "parchemin" && it.revele && ITEMS[it.revele]) {
+      it.nom = prefixe + ITEMS[it.revele].nom;
+    }
+  }
 }
 
 // S'applique tout de suite et se réabonne aux changements de langue.
