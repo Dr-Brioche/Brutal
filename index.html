@@ -3096,11 +3096,11 @@
   <!-- La fenêtre de butin (au centre, à la fin d'un combat gagné) -->
   <div class="butin" id="butin" hidden>
     <div class="butin-panneau panneau-ui">
-      <div class="butin-titre">Victory!</div>
+      <div class="butin-titre" data-i18n="combat.victoire">Victory!</div>
       <div class="butin-liste" id="butin-liste"></div>
       <div class="butin-xp" id="butin-xp">
         <div class="butin-xp-tete">
-          <span>Lvl <b id="butin-xp-niveau">1</b></span>
+          <span><span data-i18n="tal.niv">Lvl</span> <b id="butin-xp-niveau">1</b></span>
           <span class="butin-xp-gain" id="butin-xp-gain"></span>
         </div>
         <div class="butin-xp-barre" id="butin-xp-barre">
@@ -3110,10 +3110,10 @@
         </div>
       </div>
       <div class="butin-boutons" id="butin-boutons">
-        <button class="butin-btn butin-btn--tout" id="butin-tout">Take all</button>
-        <button class="butin-btn butin-btn--laisser" id="butin-laisser">Discard rest</button>
+        <button class="butin-btn butin-btn--tout" id="butin-tout" data-i18n="butin.prendreTout">Take all</button>
+        <button class="butin-btn butin-btn--laisser" id="butin-laisser" data-i18n="butin.laisser">Discard rest</button>
       </div>
-      <p class="butin-aide" id="butin-aide">Click or ↑↓+Enter: take item &nbsp;·&nbsp; Space: take all &nbsp;·&nbsp; Esc: leave</p>
+      <p class="butin-aide" id="butin-aide" data-i18n="butin.aide">Click or ↑↓+Enter: take item &nbsp;·&nbsp; Space: take all &nbsp;·&nbsp; Esc: leave</p>
     </div>
   </div>
 
@@ -3121,10 +3121,10 @@
        Rempli par ui/profondeur.js. Modale OBLIGATOIRE (on doit choisir). -->
   <div class="cprof" id="choix-profondeur" hidden>
     <div class="cprof-panneau panneau-ui">
-      <div class="cprof-titre">⛏ A boon from the depths</div>
-      <p class="cprof-sous">Pick one — it lasts your whole delve, then fades when you leave.</p>
+      <div class="cprof-titre" data-i18n="cprof.titre">⛏ A boon from the depths</div>
+      <p class="cprof-sous" data-i18n="cprof.sous">Pick one — it lasts your whole delve, then fades when you leave.</p>
       <div class="cprof-cartes" id="cprof-cartes"></div>
-      <p class="cprof-aide" id="cprof-aide">← → choose &nbsp;·&nbsp; Enter pick &nbsp;·&nbsp; 1-4 quick pick</p>
+      <p class="cprof-aide" id="cprof-aide" data-i18n="cprof.aide">← → choose &nbsp;·&nbsp; Enter pick &nbsp;·&nbsp; 1-4 quick pick</p>
     </div>
   </div>
 

@@ -4,18 +4,19 @@
 // + Entrée), comme tout le reste du jeu.
 
 import { RARETES_PROFONDEUR } from "../systems/profondeur.js";
+import { t } from "../systems/langue.js";
 
 // Libellé de l'effet d'un loot (ex. « +2 Force »).
 const LABEL_EFFET = {
-  force: (v) => `+${v} Force`,
-  gold: (v) => `+${v} Gold`,
-  celerite: (v) => `+${v}% Speed`,
-  armure: (v) => `+${v} Armor`,
-  agilite: (v) => `+${v} Agility`,
-  soin: (v) => `Heal ${v} HP`,
-  porte: () => `Guaranteed passage`, // garantit une porte de descente sur cet étage
-  "pop-monstre": () => `No monsters`,        // aucun monstre sur l'étage à venir
-  "chance-minerais": (v) => `+${v}% ore`,    // plus de minerais sur l'étage à venir
+  force: (v) => t("prof.force", { v }),
+  gold: (v) => t("prof.gold", { v }),
+  celerite: (v) => t("prof.celerite", { v }),
+  armure: (v) => t("prof.armure", { v }),
+  agilite: (v) => t("prof.agilite", { v }),
+  soin: (v) => t("prof.soin", { v }),
+  porte: () => t("prof.porte"), // garantit une porte de descente sur cet étage
+  "pop-monstre": () => t("prof.popMonstre"),        // aucun monstre sur l'étage à venir
+  "chance-minerais": (v) => t("prof.chanceMinerais", { v }),    // plus de minerais sur l'étage à venir
 };
 function texteEffet(loot) {
   return (LABEL_EFFET[loot.effet] ?? ((v) => `+${v}`))(loot.valeur);
