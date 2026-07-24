@@ -53,6 +53,12 @@ export const TEXTES_DONNEES = {
   "mob.gobelin-sans-blindage1":    { fr: "Gobelin à masse" },
   "mob.gobelin-sans-blindage2":    { fr: "Gobelin à bouclier" },
 
+  // ---- Qualités de forge ----
+  "qualite.normale":      { fr: "Normale" },
+  "qualite.artisan":      { fr: "Artisan" },
+  "qualite.maitre":       { fr: "Maître" },
+  "qualite.exceptionnel": { fr: "Exceptionnel" },
+
   // ---- Raretés ----
   "rarete.commun":     { fr: "Commun" },
   "rarete.uncommon":   { fr: "Peu commun" },
