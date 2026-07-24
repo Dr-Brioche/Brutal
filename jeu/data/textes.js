@@ -186,4 +186,24 @@ export const TEXTES = {
   "forge.agiliteZero": { fr: "⚡ Agilité 0 — augmente l'Agilité (équipement ou talent Forgeron agile) pour ralentir la barre", en: "⚡ Agility 0 — raise Agility (gear or Nimble Smith talent) to slow the forge bar" },
   "forge.charbonBtn": { fr: "🪨 Charbon <b>{charge}</b><small>{dispo} restant</small>", en: "🪨 Coal <b>{charge}</b><small>{dispo} left</small>" },
   "forge.boisBtn":    { fr: "🪵 Bois <b>{charge}</b><small>{dispo} restant</small>", en: "🪵 Wood <b>{charge}</b><small>{dispo} left</small>" },
+
+  // ---- Deck ----
+  "deck.cartes":      { fr: "cartes", en: "cards" },
+  "deck.maitrise":    { fr: "Maîtrise ancestrale", en: "Ancestral Mastery" },
+  "deck.maitriseVerrou": { fr: "Maîtrise ancestrale 🔒", en: "Ancestral Mastery 🔒" },
+  "deck.aide":        { fr: "Ton deck reflète ton équipement · non affiché en combat — retiens-le ! · [N] fermer", en: "Your deck mirrors your gear · not shown in combat — remember it! · [N] to close" },
+  "deck.retirer":     { fr: "Retirer du deck", en: "Remove from deck" },
+  "deck.ajouter":     { fr: "Ajouter au deck (max {n})", en: "Add to deck (max {n})" },
+  "deck.slotVide":    { fr: "Emplacement vide", en: "Empty slot" },
+  "deck.debloquerHeritage": { fr: "Débloque le talent « Héritage ancestral » pour 2 emplacements de plus.", en: "Unlock the « Ancestral Legacy » talent for 2 more slots." },
+  "deck.aideMaitrise": { fr: "⌨ <b>Flèches</b> déplacer · <b>Espace</b> ajouter/retirer · <b>Tab</b> changer d'onglet", en: "⌨ <b>Arrows</b> move · <b>Space</b> add/remove · <b>Tab</b> switch tab" },
+  "deck.verrouTalent": { fr: '<p class="maitrise-vide">🔒 Débloque le talent légendaire <b>Maîtrise ancestrale</b> pour accéder à cette fonction.</p>', en: '<p class="maitrise-vide">🔒 Unlock the <b>Ancestral Mastery</b> legendary talent to access this feature.</p>' },
+  "deck.jouerPourMaitriser": { fr: '<p class="maitrise-vide">Joue des cartes en combat pour les maîtriser (200 usages chacune).</p>', en: '<p class="maitrise-vide">Play cards in combat to master them (200 uses each).</p>' },
+  "deck.maitrisee":   { fr: '<span class="maitrise-ok">✓ Maîtrisée</span>', en: '<span class="maitrise-ok">✓ Mastered</span>' },
+  "deck.changerEnVille": { fr: "⚔ Retourne à Brütàl pour changer ta sélection.", en: "⚔ Return to Brütàl to change your selection." },
+
+  // ---- Talents (écran) + Butin ----
+  "tal.niv":          { fr: "Niv", en: "Lvl" },
+  "tal.pts":          { fr: "pts", en: "pts" },
+  "tal.aide":         { fr: "Clique ou déplace avec les flèches / WASD · Espace pour débloquer · [T] fermer", en: "Click or move with arrows / WASD · Space to unlock · [T] to close" },
 };
