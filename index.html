@@ -2830,8 +2830,8 @@
   <div class="forge" id="forge" hidden>
     <div class="forge-zone">
       <div class="forge-entete">
-        <h1 class="forge-titre">La Forge de Ferran</h1>
-        <button class="forge-fermer" id="forge-fermer" title="Quitter (Échap)">✕</button>
+        <h1 class="forge-titre" data-i18n="forge.titre">La Forge de Ferran</h1>
+        <button class="forge-fermer" id="forge-fermer" title="Quitter (Échap)" data-i18n-title="forge.quitterTitre">✕</button>
       </div>
       <div class="forge-contenu">
         <!-- Colonne GAUCHE : la recette-modèle choisie (en haut, bien visible, à
@@ -2841,7 +2841,7 @@
           <div class="forge-ref" id="forge-ref" hidden></div>
           <!-- Recherche rapide par nom dans la palette (filtre les composants). -->
           <input type="text" class="forge-recherche" id="forge-recherche"
-                 placeholder="Search components…" autocomplete="off" spellcheck="false">
+                 placeholder="Search components…" data-i18n-ph="forge.recherchePh" autocomplete="off" spellcheck="false">
           <!-- Palette : les ressources du sac, cliquables (clic = on prend, clic sur
                une case = on pose). Remplie par ui/forge.js. -->
           <div class="forge-palette" id="forge-palette"></div>
@@ -2854,30 +2854,30 @@
           <!-- Le FEU : on nourrit la forge avec du charbon/bois (case auxiliaire).
                Plus l'objet est rare, plus il en faut (1 charbon = 2 bois).
                Clic = +1 (depuis le sac), clic droit = −1. -->
-          <div class="forge-feu" id="forge-feu" title="Nourris le feu avec du charbon ou du bois. Plus l'objet est rare, plus il en faut (1 charbon = 2 bois). Clic : +1 · Clic droit : −1">
-            <div class="forge-feu-tete">🔥 Feu <span class="forge-feu-jauge" id="forge-feu-jauge">0 / 0</span></div>
+          <div class="forge-feu" id="forge-feu" title="Nourris le feu avec du charbon ou du bois. Plus l'objet est rare, plus il en faut (1 charbon = 2 bois). Clic : +1 · Clic droit : −1" data-i18n-title="forge.feuTitre">
+            <div class="forge-feu-tete">🔥 <span data-i18n="forge.feu">Feu</span> <span class="forge-feu-jauge" id="forge-feu-jauge">0 / 0</span></div>
             <div class="forge-feu-barre"><div class="forge-feu-fill" id="forge-feu-fill"></div></div>
             <div class="forge-feu-tuiles">
               <button class="forge-feu-btn" id="forge-feu-charbon"></button>
               <button class="forge-feu-btn" id="forge-feu-bois"></button>
             </div>
-            <button class="forge-feu-vider" id="forge-feu-vider">Vider</button>
+            <button class="forge-feu-vider" id="forge-feu-vider" data-i18n="forge.vider">Vider</button>
           </div>
-          <button class="forge-forger" id="forge-forger" disabled>⚒ Forger</button>
+          <button class="forge-forger" id="forge-forger" disabled data-i18n="forge.forger">⚒ Forger</button>
           <!-- Ouvre le Livre d'artisanat en mode « choisir » : la recette
                sélectionnée s'affiche en petit ci-dessous, comme modèle à recopier. -->
-          <button class="forge-livre-btn" id="forge-livre" title="Ouvrir le Livre d'artisanat (L)">📖 Livre d'artisanat</button>
+          <button class="forge-livre-btn" id="forge-livre" title="Ouvrir le Livre d'artisanat (L)" data-i18n="forge.livre" data-i18n-title="forge.livreTitre">📖 Livre d'artisanat</button>
           <!-- Référence : la recette choisie dans le livre, en petit. -->
           <div class="forge-ref" id="forge-ref" hidden></div>
         </div>
       </div>
-      <div class="forge-aide" id="forge-aide">Souris : clique la palette puis les cases · Clavier : [Tab] zone (recherche · palette · table · boutons) · [flèches] naviguer · [Espace] valider · [1-9] ressource · [C]/[V] charbon/bois · [F] Forger · [B] livre · [Échap] Quitter</div>
+      <div class="forge-aide" id="forge-aide" data-i18n="forge.aide">Souris : clique la palette puis les cases · Clavier : [Tab] zone (recherche · palette · table · boutons) · [flèches] naviguer · [Espace] valider · [1-9] ressource · [C]/[V] charbon/bois · [F] Forger · [B] livre · [Échap] Quitter</div>
 
       <!-- Mini-jeu de forge : jauge orange + curseur qui va-et-vient ; frappe sur
            le marqueur (3 tailles concentriques) pour la qualité. Aux extrémités,
            les zones ROUGES = ratage extrême (composants perdus). Rempli par forge.js. -->
       <div class="forge-minijeu" id="forge-minijeu" hidden>
-        <div class="forge-mj-titre" id="forge-mj-titre">Frappe le métal&nbsp;!</div>
+        <div class="forge-mj-titre" id="forge-mj-titre" data-i18n="forge.mjTitre">Frappe le métal&nbsp;!</div>
         <div class="forge-jauge" id="forge-jauge">
           <div class="forge-mj-rouge forge-mj-rouge--g" id="forge-mj-rouge-g"></div>
           <div class="forge-mj-rouge forge-mj-rouge--d" id="forge-mj-rouge-d"></div>
@@ -2887,7 +2887,7 @@
           <div class="forge-mj-curseur" id="forge-mj-curseur"></div>
         </div>
         <div class="forge-mj-info" id="forge-mj-info"></div>
-        <div class="forge-mj-aide" id="forge-mj-aide">[Espace] ou clic : frappe&nbsp;! &nbsp;·&nbsp; [Échap] annule</div>
+        <div class="forge-mj-aide" id="forge-mj-aide" data-i18n="forge.mjAide">[Espace] ou clic : frappe&nbsp;! &nbsp;·&nbsp; [Échap] annule</div>
       </div>
     </div>
   </div>

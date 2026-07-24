@@ -16,6 +16,7 @@
 
 import { itemDef, couleurRarete } from "../data/items.js";
 import { QUALITES, forceQualite, carburantRequis, valeurCarburant } from "../data/recettes.js";
+import { t } from "../systems/langue.js";
 import {
   trouverRecette, ingredientsPoses,
   centreMarqueur, outcomeFrappe, QUALITE_PAR_MARQUEUR, MJ, periodeMiniJeu, ralentiAgilite, rougeRarete,
@@ -309,8 +310,8 @@ function rendreFeu() {
     return { charge: carburant[id] ?? 0, dispo };
   };
   const c = info("charbon"), b = info("bois");
-  elFeuCharbon.innerHTML = `🪨 Coal <b>${c.charge}</b><small>${c.dispo} left</small>`;
-  elFeuBois.innerHTML = `🪵 Wood <b>${b.charge}</b><small>${b.dispo} left</small>`;
+  elFeuCharbon.innerHTML = t("forge.charbonBtn", { charge: c.charge, dispo: c.dispo });
+  elFeuBois.innerHTML = t("forge.boisBtn", { charge: b.charge, dispo: b.dispo });
   elFeuCharbon.classList.toggle("forge-feu-btn--vide", c.charge === 0 && c.dispo === 0);
   elFeuBois.classList.toggle("forge-feu-btn--vide", b.charge === 0 && b.dispo === 0);
 }
@@ -429,14 +430,14 @@ function lancerMiniJeu() {
   if (elMJInfo) {
     const pct = Math.round(ralentiAgilite(agilite) * 100);
     elMJInfo.textContent = agilite > 0
-      ? `⚡ Agility ${agilite} — forge bar ${pct}% slower (easier to land quality)`
-      : "⚡ Agility 0 — raise Agility (gear or Nimble Smith talent) to slow the forge bar";
+      ? t("forge.agiliteInfo", { agilite, pct })
+      : t("forge.agiliteZero");
   }
   mjCentre = centreMarqueur(Math.random(), mjRouge);
   placerBande(elMGrand, mjCentre, MJ.HG);
   placerBande(elMMoyen, mjCentre, MJ.HM);
   placerBande(elMPetit, mjCentre, MJ.HP);
-  elMJTitre.textContent = "Frappe le métal !";
+  elMJTitre.textContent = t("forge.mjTitre");
   elMJAide.hidden = false;
   miniActif = true;
   mjDebut = performance.now();
@@ -473,7 +474,7 @@ function resoudreCraft(marqueur) {
     if (ajouterObjet(inv, recetteCourante.resultat, 1, { qualite })) {
       const q = QUALITES[qualite];
       const force = forceQualite(d.rarete, qualite);
-      elMJTitre.textContent = `${d.nom} — ${q.nom}${force > 0 ? ` (+${force} Force)` : ""} !`;
+      elMJTitre.textContent = t("forge.resultat", { nom: d.nom, qualite: q.nom, bonus: force > 0 ? t("forge.bonusForce", { force }) : "" });
       // Forger un objet « par hasard » APPREND sa recette (livre d'artisanat).
       if (surDecouverteActif) surDecouverteActif(recetteCourante.resultat);
     } else {
@@ -481,10 +482,10 @@ function resoudreCraft(marqueur) {
       // (leurs cases viennent d'être libérées, la place ne manquera pas) plutôt
       // que de faire disparaître l'objet dans le vide.
       for (const id of Object.keys(besoin)) ajouterObjet(inv, id, besoin[id]);
-      elMJTitre.textContent = "Sac plein ! Fais de la place — rien n'est perdu.";
+      elMJTitre.textContent = t("forge.mjSacPlein");
     }
   } else {
-    elMJTitre.textContent = "Raté ! Métal gâché — composants perdus.";
+    elMJTitre.textContent = t("forge.mjRate");
   }
   elMJAide.hidden = true;
   grille = Array.from({ length: TAILLE }, () => Array(TAILLE).fill(null));
