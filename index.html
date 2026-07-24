@@ -3055,15 +3055,15 @@
     <div class="deck-panneau panneau-ui">
       <div class="inv-entete">
         <div class="deck-onglets">
-          <button class="deck-onglet deck-onglet--actif" id="deck-onglet-deck">Deck · <span id="deck-total">0</span> cards</button>
-          <button class="deck-onglet" id="deck-onglet-maitrise">Ancestral Mastery</button>
+          <button class="deck-onglet deck-onglet--actif" id="deck-onglet-deck">Deck · <span id="deck-total">0</span> <span data-i18n="deck.cartes">cards</span></button>
+          <button class="deck-onglet" id="deck-onglet-maitrise" data-i18n="deck.maitrise">Ancestral Mastery</button>
         </div>
         <button id="deck-fermer">✕</button>
       </div>
       <!-- Vue Deck -->
       <div id="deck-vue-deck">
         <div class="deck-liste" id="deck-liste"></div>
-        <p class="inv-aide">Your deck mirrors your gear · not shown in combat — remember it! · [N] to close</p>
+        <p class="inv-aide" data-i18n="deck.aide">Your deck mirrors your gear · not shown in combat — remember it! · [N] to close</p>
       </div>
       <!-- Vue Maîtrise des Ancêtres -->
       <div id="deck-vue-maitrise" hidden>
@@ -3077,8 +3077,8 @@
   <div class="talents" id="talents" hidden>
     <div class="tal-panneau panneau-ui">
       <div class="tal-entete">
-        <span class="tal-titre">Talents</span>
-        <span class="tal-meta">Lvl <b id="tal-niveau">1</b> &nbsp;·&nbsp; 🔹 <b id="tal-points">0</b> pts</span>
+        <span class="tal-titre" data-i18n="barre.talents">Talents</span>
+        <span class="tal-meta"><span data-i18n="tal.niv">Lvl</span> <b id="tal-niveau">1</b> &nbsp;·&nbsp; 🔹 <b id="tal-points">0</b> <span data-i18n="tal.pts">pts</span></span>
         <button id="tal-fermer">✕</button>
       </div>
       <div class="tal-xp">
@@ -3089,7 +3089,7 @@
         <svg class="tal-liens" id="tal-liens" preserveAspectRatio="none"></svg>
       </div>
       <div class="tal-desc" id="tal-desc"></div>
-      <p class="tal-aide">Click or move with arrows / WASD · Space to unlock · [T] to close</p>
+      <p class="tal-aide" data-i18n="tal.aide">Click or move with arrows / WASD · Space to unlock · [T] to close</p>
     </div>
   </div>
 

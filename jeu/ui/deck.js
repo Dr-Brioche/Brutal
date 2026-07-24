@@ -9,6 +9,7 @@ import { composerDeck } from "../systems/combat.js";
 import { cartesEquipees, slotsOccupes } from "../systems/inventaire.js";
 import { CARTES } from "../data/cartes.js";
 import { garnirCarte } from "./carte.js";
+import { t } from "../systems/langue.js";
 import {
   SEUIL_MAITRISE, MAX_SLOTS, compteurMaitrise, carteMaitrisee,
   carteMaitrisable, toggleCarteChoisie,
@@ -165,11 +166,11 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
   function rendreMaitrise() {
     cartesNav = []; // reconstruit plus bas si des cartes sont affichées
     const debloque = (heros?.talents?.maitrise1 || 0) > 0;
-    ongletMaitrise.textContent = debloque ? "Ancestral Mastery" : "Ancestral Mastery 🔒";
+    ongletMaitrise.textContent = debloque ? t("deck.maitrise") : t("deck.maitriseVerrou");
 
     if (!debloque) {
       elSlots.replaceChildren();
-      elBiblio.innerHTML = '<p class="maitrise-vide">🔒 Unlock the <b>Ancestral Mastery</b> legendary talent to access this feature.</p>';
+      elBiblio.innerHTML = t("deck.verrouTalent");
       return;
     }
 
@@ -183,7 +184,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
       if (i >= nbSlots) {
         el.className = "maitrise-slot maitrise-slot--verrou";
         el.innerHTML = '<span class="maitrise-slot-cadenas">🔒</span>';
-        el.title = "Unlock the « Ancestral Legacy » talent for 2 more slots.";
+        el.title = t("deck.debloquerHeritage");
         return el;
       }
       const carteId = maitrise.choisies[i];
@@ -202,7 +203,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
           const retirer = document.createElement("button");
           retirer.className = "maitrise-retirer";
           retirer.textContent = "✕";
-          retirer.title = "Remove from deck";
+          retirer.title = t("deck.retirer");
           retirer.addEventListener("click", (e) => {
             e.stopPropagation();
             toggleCarteChoisie(maitrise, carteId, nbSlots);
@@ -211,7 +212,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
           el.append(retirer);
         }
       } else {
-        el.textContent = `Empty slot`;
+        el.textContent = t("deck.slotVide");
       }
       return el;
     });
@@ -220,7 +221,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
     // Bibliothèque (cartes d'équipement seulement : ni base, ni « unique »)
     const idsConnus = Object.keys(maitrise.compteurs).filter(carteMaitrisable);
     if (!idsConnus.length) {
-      elBiblio.innerHTML = '<p class="maitrise-vide">Play cards in combat to master them (200 uses each).</p>';
+      elBiblio.innerHTML = t("deck.jouerPourMaitriser");
       return;
     }
 
@@ -260,7 +261,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
       const prog = document.createElement("div");
       prog.className = "maitrise-carte-prog";
       if (maitrisee) {
-        prog.innerHTML = `<span class="maitrise-ok">✓ Mastered</span>`;
+        prog.innerHTML = t("deck.maitrisee");
       } else {
         const pct = Math.min(100, (compte / SEUIL_MAITRISE) * 100);
         prog.innerHTML = `<span class="maitrise-barre"><span style="width:${pct}%"></span></span> ${compte}/${SEUIL_MAITRISE}`;
@@ -271,7 +272,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
       if (maitrisee) {
         cEl.style.cursor = "pointer";
         if (enVille) {
-          cEl.title = choisie ? "Remove from deck" : `Add to deck (max ${nbSlots})`;
+          cEl.title = choisie ? t("deck.retirer") : t("deck.ajouter", { n: nbSlots });
           cEl.addEventListener("click", () => {
             if (!toggleCarteChoisie(maitrise, id, nbSlots) && !choisie) {
               cEl.style.outline = "2px solid #cc4444";
@@ -282,7 +283,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
           });
         } else {
           cEl.addEventListener("click", () => {
-            montrerAvert("⚔ Return to Brütàl to change your selection.");
+            montrerAvert(t("deck.changerEnVille"));
           });
         }
       }
@@ -323,7 +324,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
     if (enVille && cartesNav.length) {
       const aide = document.createElement("p");
       aide.className = "maitrise-aide";
-      aide.innerHTML = "⌨ <b>Arrows</b> move · <b>Space</b> add/remove · <b>Tab</b> switch tab";
+      aide.innerHTML = t("deck.aideMaitrise");
       contenu.push(aide);
     }
     elBiblio.replaceChildren(...contenu);
@@ -396,7 +397,7 @@ export function installerDeck({ inventaire, heros, maitrise, estEnVille, surFerm
     const cur = cartesNav.find((c) => c.id === selBiblio);
     if (!cur) return;
     if (!cur.actionnable) {
-      if (cur.maitrisee) montrerAvert("⚔ Return to Brütàl to change your selection.");
+      if (cur.maitrisee) montrerAvert(t("deck.changerEnVille"));
       return;
     }
     const dejaChoisie = maitrise.choisies.includes(cur.id);
