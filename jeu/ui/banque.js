@@ -11,7 +11,7 @@ import {
   resoudreJours, deposer, retirer, investir, desinvestir, valeurBanque,
 } from "../systems/banque.js";
 import { afficherMessage } from "./effets.js";
-import { t } from "../systems/langue.js";
+import { t, tr } from "../systems/langue.js";
 
 let actif = false;
 export function banqueActif() { return actif; }
@@ -100,7 +100,7 @@ export function installerBanque() {
     const val = Math.floor(banque.invest[soc.id] || 0);
     c.innerHTML =
       `<div class="banque-carte-titre">${soc.nom}</div>` +
-      `<div class="banque-carte-sous">${soc.secteur} · <span class="banque-risque">${t("banque.risque",{etoiles: etoilesRisque(soc.risque)})}</span></div>` +
+      `<div class="banque-carte-sous">${tr("banque.sec." + soc.id, soc.secteur)} · <span class="banque-risque">${t("banque.risque",{etoiles: etoilesRisque(soc.risque)})}</span></div>` +
       `<div class="banque-carte-valeur">${val > 0 ? t("banque.investi",{val: or(val)}) : t("banque.nonInvesti")}</div>`;
     const ino = document.createElement("div"); ino.className = "banque-op";
     ino.innerHTML = `<span class="banque-op-label">${t("banque.investir")}</span>`;
