@@ -1469,20 +1469,33 @@ Le jeu est **bilingue français / anglais**, choisi sur un **menu de langue à l
 de titre** (avant de lancer), et re-modifiable dans le **menu pause** (onglet Interface).
 Le choix est **mémorisé** en localStorage : au retour, le jeu s'ouvre dans la bonne langue.
 
-- **Moteur** : `jeu/systems/langue.js` (`t(cle)`, `getLangue`/`definirLangue`,
-  `appliquerTextesDOM`). **Dictionnaire** : `jeu/data/textes.js` — chaque clé porte ses
-  deux versions `{ fr, en }`. Marqueurs `{nom}` remplaçables (`t(cle, { nom })`).
+- **Moteur** : `jeu/systems/langue.js` (`t(cle)`, `tr(cle, defaut)`, `getLangue`/`definirLangue`,
+  `appliquerTextesDOM`, `installerSelecteurLangue`). **Dictionnaires** : `jeu/data/textes.js`
+  (textes d'interface) + `jeu/data/textes_donnees.js` (données : noms/descriptions d'objets,
+  cartes, talents, monstres…), fusionnés. Chaque clé porte ses deux versions `{ fr, en }`.
+  Marqueurs `{nom}` remplaçables (`t(cle, { nom })`).
 - **Côté HTML** : attribut `data-i18n="cle"` sur l'élément (variantes `-title`, `-html`,
   `-ph`) ; `appliquerTextesDOM()` remplit au chargement **et** à chaque changement de langue.
-- **Côté JS** : `t("cle")` aux points d'affichage.
+- **Côté JS (interface)** : `t("cle")` aux points d'affichage.
+- **Côté DONNÉES (astuce clé)** : `jeu/systems/i18n_donnees.js` **réécrit sur place** les champs
+  `.nom` / `.description` / `.texte` (+ `comboArme.texte`, `passifPropre.texte`, `lore`) des
+  objets de données depuis le dictionnaire, au démarrage **et** à chaque changement de langue.
+  → aucune des centaines de lectures de `.nom` n'a eu à changer. L'anglais d'origine est mémorisé
+  (`_nomEn`…) et sert de repli. Les noms de parchemins (« Recette : X ») et leur lore sont
+  **reconstruits** depuis l'objet produit (pas d'entrée par recette). N'écrire QUE le français
+  dans `textes_donnees.js` : l'anglais des data sert de repli via `tr()`.
 - **Repli** : une clé absente retombe sur l'anglais → traduction **progressive** possible
   (rien ne casse tant qu'on traduit par lots). Défaut = anglais.
-- **Fait (1er lot, cœur)** : menu de langue, écran de titre, menu pause, barre de menu (HUD),
-  boutons/écran de résultat de combat + fuite, écran de démarrage, aides du marchand.
-- **À traduire ensuite (lots suivants)** : noms & descriptions des **objets, cartes, talents,
-  monstres**, **dialogues de PNJ**, HUD d'info (mine/zone), forge, inventaire, hôtel des ventes,
-  banque, enchères, coffre, livre de l'artisan, écrans de butin/level-up. (Le contenu de
-  données — `data/*.js` — représente le gros du volume.)
+- **État : COMPLET (25/07/2026).** Tout le jeu est bilingue : menu de langue, titre, menu pause
+  (sauvegardes, réglages), HUD, combat (boutons, bulles de permanents, jauge de forge), écran de
+  démarrage, marchand, inventaire/personnage, infobulles d'objets, forge, deck, talents, butin,
+  level-up, dialogues de PNJ (Fanatique, Ferran, Baldrik, fontaine, Magnar, Grimbrück), HUD de
+  mine (biomes, minerais, faveurs des profondeurs), caches, minage, messages économie/jour-nuit,
+  hôtel des ventes, banque (secteurs), enchères, coffre, bâtiments, parchemins (lore), noms de
+  zones, simulateur de combat. **Données** : objets, cartes, talents, monstres, raretés, branches,
+  qualités, bâtiments, combos/passifs d'objets.
+- **Pour ajouter du texte** : poser une clé `{ fr, en }` dans `textes.js` (interface) ou juste
+  `{ fr }` dans `textes_donnees.js` (données), puis un `data-i18n`/`t()` au point d'affichage.
 
 ## Contraintes techniques
 
