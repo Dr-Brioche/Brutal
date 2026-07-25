@@ -743,7 +743,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     }
     du.objets = restent;
     let msg = `💰 ${morceaux.join(", ")}`;
-    if (restent.length) msg += ` — bag full: ${restent.length} item${restent.length > 1 ? "s" : ""} still with Magnar`;
+    if (restent.length) msg += t("pnj.magnar.reste", { n: restent.length, item: t(restent.length > 1 ? "pnj.magnar.itemN" : "pnj.magnar.item1") });
     afficherMessage(msg + ".");
     inventaireUI.rendre();
   }
@@ -1116,10 +1116,10 @@ export async function demarrerJeu(donneesInitiales = null) {
       };
       if (rareteAuMoins(id, "rare")) {
         demanderConfirmation({
-          titre: "Drop this item?",
-          message: `${d.nom} (${RARETES[d.rarete]?.nom ?? d.rarete}) will be lost for good.`,
-          texteOui: "Drop it",
-          texteNon: "Keep it",
+          titre: t("inv.jeterTitre"),
+          message: t("inv.jeterMsg", { nom: d.nom, rarete: RARETES[d.rarete]?.nom ?? d.rarete }),
+          texteOui: t("inv.jeterOui"),
+          texteNon: t("inv.garder"),
           danger: true,
         }, jeter);
       } else {
@@ -1131,16 +1131,21 @@ export async function demarrerJeu(donneesInitiales = null) {
       const d = ITEMS[objet.id];
       const vendre = () => {
         const prix = vendreObjet(inventaire, objet);
-        afficherMessage(`💰 Sold ${d.nom} for ${prix} 🪙.`);
+        afficherMessage(t("inv.venduMsg", { nom: d.nom, prix }));
         inventaireUI.rendre();
         if (surChangementMenu) surChangementMenu();
       };
       if (getPreference("confirmVente") && rareteAuMoins(objet.id, "rare")) {
         demanderConfirmation({
-          titre: "Sell this item?",
-          message: `${d.nom}${(objet.quantite ?? 1) > 1 ? ` ×${objet.quantite}` : ""} (${RARETES[d.rarete]?.nom ?? d.rarete}) · +${prixVente(objet.id, objet.qualite ?? null) * (objet.quantite ?? 1)} 🪙`,
-          texteOui: "Sell it",
-          texteNon: "Keep it",
+          titre: t("inv.vendreTitre"),
+          message: t("inv.vendreMsg", {
+            nom: d.nom,
+            q: (objet.quantite ?? 1) > 1 ? ` ×${objet.quantite}` : "",
+            rarete: RARETES[d.rarete]?.nom ?? d.rarete,
+            prix: prixVente(objet.id, objet.qualite ?? null) * (objet.quantite ?? 1),
+          }),
+          texteOui: t("inv.vendreOui"),
+          texteNon: t("inv.garder"),
         }, vendre);
       } else {
         vendre();
@@ -1419,14 +1424,14 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Titre + explication du TYPE d'étage de mine (biome/caverne), pour le HUD. La
   // caverne de chance prime sur le biome. Le survol du titre montre le bonus (data-tooltip).
   function infoZoneMine(z) {
-    if (z.luck) return { titre: "🍀 Lucky Cavern", tip: "Ore veins everywhere and almost no monsters — a miner's jackpot." };
+    if (z.luck) return { titre: t("mine.luckTitre"), tip: t("mine.luckTip") };
     const T = {
-      cristal: { titre: "💎 Crystal Mine", tip: "Extra ore veins, and +15% chance of Diamond." },
-      lave:    { titre: "🌋 Molten Mine",  tip: "+15% chance of Ruby." },
-      glace:   { titre: "❄ Frozen Mine",   tip: "+15% chance of Lapis Lazuli." },
-      inondee: { titre: "🌊 Flooded Mine", tip: "+15% chance of Titanium." },
+      cristal: { titre: t("mine.cristalTitre"), tip: t("mine.cristalTip") },
+      lave:    { titre: t("mine.laveTitre"),    tip: t("mine.laveTip") },
+      glace:   { titre: t("mine.glaceTitre"),   tip: t("mine.glaceTip") },
+      inondee: { titre: t("mine.inondeeTitre"), tip: t("mine.inondeeTip") },
     };
-    return T[z.theme] ?? { titre: "⛏ Deep Mine", tip: "A regular mine floor — no biome bonus." };
+    return T[z.theme] ?? { titre: t("mine.deepTitre"), tip: t("mine.deepTip") };
   }
 
   function majHudInfo() {
@@ -1446,8 +1451,8 @@ export async function demarrerJeu(donneesInitiales = null) {
     const nivs = poolNiv.map((d) => d.niveau ?? 1);
     const lo = nivs.length ? Math.min(...nivs) : z.niveauMobs[0];
     const hi = nivs.length ? Math.max(...nivs) : z.niveauMobs[1];
-    const lvTxt = lo === hi ? `Lv ${lo}` : `Lv ${lo}–${hi}`;
-    html += `<div class="hud-ligne" data-tooltip="Monster level on this floor">`
+    const lvTxt = lo === hi ? t("mine.lv1", { n: lo }) : t("mine.lvRange", { lo, hi });
+    html += `<div class="hud-ligne" data-tooltip="${t("mine.mobLevelTip")}">`
       + `<span class="hud-logo">⚔</span> ${lvTxt}</div>`;
     if (z.estMine) {
       const dist = distributionMinerais(z.niveau ?? 1, z.materiaux, z.theme);
@@ -1460,7 +1465,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       }).join("");
       html += `<div class="hud-min-groupe${replie ? " hud-min--replie" : ""}">`
         + `<button type="button" class="hud-min-titre" id="hud-min-toggle" aria-expanded="${!replie}">`
-        + `<span class="hud-min-fleche">▾</span> Ores <span class="hud-min-compte">${dist.length}</span></button>`
+        + `<span class="hud-min-fleche">▾</span> ${t("mine.ores")} <span class="hud-min-compte">${dist.length}</span></button>`
         + `<div class="hud-min-liste">${lignes}</div></div>`;
       // Bandeau des buffs de RUN actifs (accumulés en descendant).
       if (runActif(runProfondeur)) {
@@ -1490,7 +1495,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (portail && zoneCourante.estMine) {
         // Sortie d'une mine : confirmation (l'étage courant n'est pas conservé).
         confirmerEnExploration(
-          { titre: "Leave the mine?", message: "You'll head back up to the surface — this level won't be kept. Any depth boons fade (gold is banked).", texteOui: "Leave", texteNon: "Stay" },
+          { titre: t("mine.leaveTitre"), message: t("mine.leaveMsg"), texteOui: t("mine.leaveOui"), texteNon: t("mine.leaveNon") },
           () => { finRunProfondeur({ vivant: true }); allerVersZone(portail.vers, portail.entree); },
         );
       } else if (portail) {
@@ -1584,9 +1589,9 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (tuile.caractere === ">" && !surDescente && !enTransition && zoneCourante.estMine) {
       confirmerEnExploration(
         {
-          titre: "Go deeper?",
-          message: "A passage sinks into the depths. ⚠ You won't be able to climb back to this level. Explore it?",
-          texteOui: "Descend", texteNon: "Stay", danger: true,
+          titre: t("mine.deeperTitre"),
+          message: t("mine.deeperMsg"),
+          texteOui: t("mine.deeperOui"), texteNon: t("mine.leaveNon"), danger: true,
         },
         descendre,
       );
@@ -1622,7 +1627,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         ...(luck ? OPTS_LUCK : {}),          // caverne de chance : prime sur le reste
       });
       await allerVersZone(mine, mine.depart);
-      if (luck) afficherMessage("✨ A Lucky Cavern! Ore veins everywhere — and eerily quiet.");
+      if (luck) afficherMessage(t("mine.luckMsg"));
     });
   }
 
@@ -1641,23 +1646,23 @@ export async function demarrerJeu(donneesInitiales = null) {
         if (loot.effet === "porte") {
           // « Depth Portal » : garantit une porte de descente sur l'étage à venir.
           genOpts.porteGarantie = true;
-          afficherMessage("🕳 Depth Portal — the floor below is guaranteed to have a way down.");
+          afficherMessage(t("boon.portail"));
         } else if (loot.effet === "soin") {
           // « Ruby Dust » : soigne le héros IMMÉDIATEMENT (effet ponctuel).
           const soigne = Math.min(loot.valeur, heros.pvMax - heros.pv);
           heros.pv = Math.min(heros.pvMax, heros.pv + loot.valeur);
-          afficherMessage(`❤ Ruby Dust — healed ${soigne} HP.`);
+          afficherMessage(t("boon.rubis", { n: soigne }));
         } else if (loot.effet === "pop-monstre") {
           // « Wave of Calm » : aucun monstre sur l'étage à venir.
           genOpts.sansMonstres = true;
-          afficherMessage("🕊 Wave of Calm — no monsters will stir on the floor below.");
+          afficherMessage(t("boon.calme"));
         } else if (loot.effet === "chance-minerais") {
           // « Lucky Stone » : +valeur% de minerais sur l'étage à venir.
           genOpts.bonusMineraisPct = loot.valeur;
-          afficherMessage(`🍀 Lucky Stone — +${loot.valeur}% ore on the floor below.`);
+          afficherMessage(t("boon.pierreChance", { n: loot.valeur }));
         } else {
           appliquerLoot(runProfondeur, loot);
-          afficherMessage(`⛏ Depth boon: ${loot.nom} — ${etiquetteLoot(loot)}.`);
+          afficherMessage(t("boon.faveur", { nom: loot.nom, effet: etiquetteLoot(loot) }));
         }
         etageSuivant(runProfondeur);
         majHudInfo();                     // le bandeau des buffs actifs se met à jour
@@ -1690,13 +1695,13 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // Petite étiquette lisible de l'effet d'un loot (pour le message).
   function etiquetteLoot(loot) {
-    const t = {
-      force: `+${loot.valeur} Force`, gold: `+${loot.valeur} gold on exit`,
-      celerite: `+${loot.valeur}% combat speed`, armure: `+${loot.valeur} start armor`,
-      agilite: `+${loot.valeur} Agility`, soin: `Heal ${loot.valeur} HP`,
-      porte: `guaranteed passage down`,
+    const cles = {
+      force: "boon.lblForce", gold: "boon.lblGold",
+      celerite: "boon.lblCelerite", armure: "boon.lblArmure",
+      agilite: "boon.lblAgilite", soin: "boon.lblSoin",
+      porte: "boon.lblPorte",
     };
-    return t[loot.effet] ?? `+${loot.valeur}`;
+    return cles[loot.effet] ? t(cles[loot.effet], { v: loot.valeur }) : t("boon.lblDefaut", { v: loot.valeur });
   }
 
   // Fin d'un run de profondeur : verse l'or accumulé SI on sort vivant, puis
@@ -1705,7 +1710,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (!runProfondeur) return;
     if (vivant && runProfondeur.gold > 0) {
       ajouterOr(inventaire, runProfondeur.gold);
-      afficherMessage(`🪙 You resurface with ${runProfondeur.gold} gold from the depths!`);
+      afficherMessage(t("mine.resurface", { n: runProfondeur.gold }));
     }
     runProfondeur = null;
     majHudInfo();
@@ -1763,14 +1768,14 @@ export async function demarrerJeu(donneesInitiales = null) {
     const bouts = [];
     if (resume.or > 0) bouts.push(`${resume.or} 🪙`);
     if (resume.xp > 0) bouts.push(`${resume.xp} XP`);
-    if (resume.objets.length) bouts.push(`${resume.objets.length} object(s)`);
+    if (resume.objets.length) bouts.push(`${resume.objets.length} ${t(resume.objets.length > 1 ? "mine.objN" : "mine.obj1")}`);
     if (resume.complet) {
       caches = caches.filter((x) => x !== c); // butin entièrement rendu → cache disparue
       cacheProche = null;
-      afficherMessage(bouts.length ? `📦 Lost cache recovered — ${bouts.join(", ")}!` : "📦 An empty cache.");
+      afficherMessage(bouts.length ? t("mine.cacheRecup", { bouts: bouts.join(", ") }) : t("mine.cacheVide"));
     } else {
       // Sac plein : le reste des objets attend dans la cache (elle reste au sol).
-      afficherMessage(`📦 Cache${bouts.length ? " — " + bouts.join(", ") : ""}, but your bag is full — come back for the rest!`);
+      afficherMessage(t("mine.cachePartiel", { detail: bouts.length ? " — " + bouts.join(", ") : "" }));
     }
     majHudInfo();
     inventaireUI.rendre();
@@ -1831,7 +1836,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     const nom = itemDef(v.type)?.nom ?? v.type;
     // Le minerai va dans le SAC (objet empilable). Sac plein → le coup ne compte pas.
     if (!ajouterObjet(inventaire, v.type, 1)) {
-      afficherMessage("Inventory full!");
+      afficherMessage(t("inv.sacPlein"));
       minage = null;
       return;
     }
@@ -1849,9 +1854,9 @@ export async function demarrerJeu(donneesInitiales = null) {
     v.coups--;
     if (v.coups <= 0) {                      // filon épuisé → il disparaît
       veines = veines.filter((x) => x !== v);
-      afficherMessage(qty > 1 ? `⛏ +${qty} ${nom} — vein depleted` : `⛏ +1 ${nom} — vein depleted`);
+      afficherMessage(qty > 1 ? t("mine.veineEpN", { n: qty, nom }) : t("mine.veineEp1", { nom }));
     } else {
-      afficherMessage(qty > 1 ? `⛏ +${qty} ${nom}!` : `⛏ +1 ${nom}`);
+      afficherMessage(qty > 1 ? t("mine.veineN", { n: qty, nom }) : t("mine.veine1", { nom }));
     }
     minage = null;
   }
@@ -1964,11 +1969,11 @@ export async function demarrerJeu(donneesInitiales = null) {
           if (cache) {
             if (cache.or > 0) bouts.push(`${cache.or} 🪙`);
             if (cache.xp > 0) bouts.push(`${cache.xp} XP`);
-            if (cache.objets.length) bouts.push(`${cache.objets.length} object(s)`);
+            if (cache.objets.length) bouts.push(`${cache.objets.length} ${t(cache.objets.length > 1 ? "mine.objN" : "mine.obj1")}`);
           }
           afficherMessage(cache && bouts.length
-            ? `💀 You collapse. The Fanatic revives you — but the Deep swallowed ${bouts.join(", ")}.`
-            : "💀 You collapse. The Fanatic revives you. You had nothing left to lose.");
+            ? t("mine.mortCache", { bouts: bouts.join(", ") })
+            : t("mine.mortVide"));
           allerVersZone("city", pointReveilFanatique()); // réveil près du Fanatique
         } else if (resultat === "fuite") {
           // Fuite réussie : retour à l'exploration, AUCUNE récompense (ni or, ni XP,
@@ -1977,7 +1982,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           const ambiance = zoneCourante?.musique ?? null;
           if (ambiance) jouerMusique(ambiance); else arreterMusique();
           rencontres = creerRencontres();
-          afficherMessage("🏃 You fled the battle.");
+          afficherMessage(t("msg.fui"));
           enPause = false; // IMPORTANT : le monde était figé (ligne ~655) → on le relance
         } else {
           // Fin de la baston : on quitte la musique de combat pour revenir à
@@ -2013,7 +2018,7 @@ export async function demarrerJeu(donneesInitiales = null) {
             },
             surFin: () => {
               ajouterOr(inventaire, or); // l'XP, elle, a déjà été appliquée (montée animée)
-              if (niveaux > 0) afficherMessage(`⬆ Lvl ${heros.niveau} (+${niveaux} talent pt)`);
+              if (niveaux > 0) afficherMessage(t("msg.niveauGagne", { niveau: heros.niveau, n: niveaux }));
               document.body.classList.remove("en-butin");
               inventaireUI.fermer();
               enPause = false;
@@ -2047,25 +2052,23 @@ export async function demarrerJeu(donneesInitiales = null) {
       // et une annonce vendue ne PAIE PAS toute seule (on va la récolter à l'HV).
       if (!menuPauseOuvert) {
         for (const v of tickMarche(marche, dt)) {
-          afficherMessage(`📈 ${itemDef(v.id)?.nom ?? v.id} sold at the Exchange — go collect your ${v.prix} 🪙!`);
+          afficherMessage(t("msg.venteHV", { nom: itemDef(v.id)?.nom ?? v.id, prix: v.prix }));
         }
         // Les BÂTIMENTS produisent sur la MÊME horloge de jeu actif que le marché.
         // Le talent « Tax Collector » encaisse l'or automatiquement (coffre plein).
         for (const e of tickBatiments(batiments, dt, { collecteurImpot: heros.collecteurImpot, inv: inventaire })) {
           const nom = BATIMENTS[e.id]?.nom ?? e.id;
-          if (e.type === "impot") afficherMessage(`🪙 ${nom}: +${e.montant} 🪙 auto-collected by your Tax Collector.`);
-          else if (e.type === "versement" && !heros.collecteurImpot) afficherMessage(`🪚 ${nom}: +${e.montant} 🪙 in its treasury — collect at its sign.`);
-          else if (e.type === "plein") afficherMessage(`⚠ ${nom}: treasury FULL — production STOPPED until you collect!`);
+          if (e.type === "impot") afficherMessage(t("msg.impot", { nom, montant: e.montant }));
+          else if (e.type === "versement" && !heros.collecteurImpot) afficherMessage(t("msg.versement", { nom, montant: e.montant }));
+          else if (e.type === "plein") afficherMessage(t("msg.tresorPlein", { nom }));
         }
         // Le CYCLE JOUR/NUIT avance aussi en jeu actif. À la tombée du soir, la
         // cloche des enchères sonne (elle ne parle qu'aux nobles).
         for (const e of tickTemps(temps, dt)) {
           if (e.type === "soir") {
-            afficherMessage(heros.noblesse
-              ? "🌙 Dusk falls on Brütàl — the auction bell rings!"
-              : "🌙 Dusk falls on Brütàl.");
+            afficherMessage(heros.noblesse ? t("msg.soirCloche") : t("msg.soir"));
           } else if (e.type === "aube") {
-            afficherMessage(`🌅 Day ${numeroJour(temps)} dawns on Brütàl.`);
+            afficherMessage(t("msg.aube", { n: numeroJour(temps) }));
           }
         }
         // Dépôt du joueur non assisté : quand la fenêtre d'entrée de SA vente est
@@ -2080,7 +2083,7 @@ export async function demarrerJeu(donneesInitiales = null) {
             if (rate) {
               const resultat = resoudreHorsEcran(lotDepot(d));
               encheres.aRecuperer.or += resultat.prix;
-              afficherMessage(`🔨 Your ${itemDef(d.id)?.nom ?? d.id} sold at auction for ${resultat.prix} 🪙 — collect from Magnar.`);
+              afficherMessage(t("msg.venteAuto", { nom: itemDef(d.id)?.nom ?? d.id, prix: resultat.prix }));
             } else {
               restants.push(d);
             }
