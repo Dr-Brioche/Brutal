@@ -11,6 +11,7 @@ import {
   resoudreJours, deposer, retirer, investir, desinvestir, valeurBanque,
 } from "../systems/banque.js";
 import { afficherMessage } from "./effets.js";
+import { t } from "../systems/langue.js";
 
 let actif = false;
 export function banqueActif() { return actif; }
@@ -80,15 +81,15 @@ export function installerBanque() {
     c.className = "banque-carte banque-carte--coffre";
     const solde = Math.floor(banque.soldeCoffre);
     c.innerHTML =
-      `<div class="banque-carte-titre">🏦 Vault</div>` +
-      `<div class="banque-carte-sous">Safe · +0.2% / game-day</div>` +
+      `<div class="banque-carte-titre">${t("banque.vault")}</div>` +
+      `<div class="banque-carte-sous">${t("banque.vaultSous")}</div>` +
       `<div class="banque-carte-valeur">${or(solde)} 🪙</div>`;
     const dep = document.createElement("div"); dep.className = "banque-op";
-    dep.innerHTML = `<span class="banque-op-label">Deposit</span>`;
-    dep.append(ligneMontants((m) => deposer(banque, inv, m === "all" ? inv.or : m), inv.or, "All"));
+    dep.innerHTML = `<span class="banque-op-label">${t("banque.deposer")}</span>`;
+    dep.append(ligneMontants((m) => deposer(banque, inv, m === "all" ? inv.or : m), inv.or, t("banque.tout")));
     const ret = document.createElement("div"); ret.className = "banque-op";
-    ret.innerHTML = `<span class="banque-op-label">Withdraw</span>`;
-    ret.append(ligneMontants((m) => retirer(banque, inv, m), solde, "All"));
+    ret.innerHTML = `<span class="banque-op-label">${t("banque.retirer")}</span>`;
+    ret.append(ligneMontants((m) => retirer(banque, inv, m), solde, t("banque.tout")));
     c.append(dep, ret);
     return c;
   }
@@ -99,14 +100,14 @@ export function installerBanque() {
     const val = Math.floor(banque.invest[soc.id] || 0);
     c.innerHTML =
       `<div class="banque-carte-titre">${soc.nom}</div>` +
-      `<div class="banque-carte-sous">${soc.secteur} · <span class="banque-risque">Risk ${etoilesRisque(soc.risque)}</span></div>` +
-      `<div class="banque-carte-valeur">${val > 0 ? or(val) + " 🪙 invested" : "<span class=\"banque-vide\">Not invested</span>"}</div>`;
+      `<div class="banque-carte-sous">${soc.secteur} · <span class="banque-risque">${t("banque.risque",{etoiles: etoilesRisque(soc.risque)})}</span></div>` +
+      `<div class="banque-carte-valeur">${val > 0 ? t("banque.investi",{val: or(val)}) : t("banque.nonInvesti")}</div>`;
     const ino = document.createElement("div"); ino.className = "banque-op";
-    ino.innerHTML = `<span class="banque-op-label">Invest</span>`;
-    ino.append(ligneMontants((m) => investir(banque, inv, soc.id, m === "all" ? inv.or : m), inv.or, "Max"));
+    ino.innerHTML = `<span class="banque-op-label">${t("banque.investir")}</span>`;
+    ino.append(ligneMontants((m) => investir(banque, inv, soc.id, m === "all" ? inv.or : m), inv.or, t("banque.max")));
     const out = document.createElement("div"); out.className = "banque-op";
-    out.innerHTML = `<span class="banque-op-label">Cash out</span>`;
-    out.append(ligneMontants((m) => desinvestir(banque, inv, soc.id, m), val, "All"));
+    out.innerHTML = `<span class="banque-op-label">${t("banque.encaisser")}</span>`;
+    out.append(ligneMontants((m) => desinvestir(banque, inv, soc.id, m), val, t("banque.tout")));
     c.append(ino, out);
     return c;
   }
@@ -121,18 +122,18 @@ export function installerBanque() {
   function annoncerResume(resume) {
     if (!resume || resume.jours <= 0) return;
     const bouts = [];
-    if (Math.round(resume.coffreGain) > 0) bouts.push(`vault +${or(resume.coffreGain)} 🪙`);
+    if (Math.round(resume.coffreGain) > 0) bouts.push(t("banque.resVault",{gain: or(resume.coffreGain)}));
     for (const soc of SOCIETES) {
       const s = resume.societes[soc.id];
       if (!s || s.avant <= 0) continue;
-      if (s.faillite) bouts.push(`${soc.nom} went BANKRUPT — funds lost`);
+      if (s.faillite) bouts.push(t("banque.resFaillite",{nom: soc.nom}));
       else {
         const delta = Math.round(s.apres - s.avant);
-        const kr = s.krachs ? ` (${s.krachs} crash${s.krachs > 1 ? "es" : ""})` : "";
+        const kr = s.krachs ? t(s.krachs > 1 ? "banque.resKrachN" : "banque.resKrach1", { n: s.krachs }) : "";
         bouts.push(`${soc.nom} ${delta >= 0 ? "+" : ""}${or(delta)} 🪙${kr}`);
       }
     }
-    const jrs = `${resume.jours} game-day${resume.jours > 1 ? "s" : ""} passed`;
+    const jrs = t("banque.resJours",{jours: resume.jours, s: resume.jours > 1 ? "s" : ""});
     afficherMessage(`🏦 ${jrs}${bouts.length ? " · " + bouts.join(" · ") : ""}.`);
   }
 
