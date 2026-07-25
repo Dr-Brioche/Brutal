@@ -84,6 +84,7 @@ export const TEXTES = {
   "combat.defaite":   { fr: "Défaite", en: "Defeat" },
   "combat.fuiteRatee": { fr: "✗ Fuite ratée !", en: "✗ Escape failed!" },
   "combat.brulureTour": { fr: "🔥 -{n}/tour", en: "🔥 -{n}/turn" },
+  "combat.forgeHeat": { fr: "Chaleur de forge", en: "Forge Heat" },
   "combat.lvlEnn":    { fr: "niv {n}", en: "lvl {n}" },
   "combat.permForce": { fr: "Force permanente : chaque coup inflige +{n} dégâts bonus pendant tout le combat.", en: "Permanent Force: every hit deals +{n} bonus damage for the whole combat." },
   "combat.permArmure": { fr: "Armure permanente : gagne {n} Pierre au début de chaque tour pendant tout le combat.", en: "Permanent armor: gain {n} Stone at the start of every turn for the whole combat." },
@@ -323,6 +324,7 @@ export const TEXTES = {
   "hv.valeur":        { fr: "valeur", en: "value" },
   "hv.aideChoix":     { fr: "[↑↓] Choisir · [Entrée] Sélectionner · [Échap] Retour", en: "[↑↓] Choose · [Enter] Select · [Esc] Back" },
   "hv.aidePrix":      { fr: "[←→] Prix ±1% (Maj : ×10) · [Entrée] Mettre en vente · [Échap] Retour", en: "[←→] Price ±1% (Shift: ×10) · [Enter] List it · [Esc] Back" },
+  "hv.collectBtn":    { fr: "💰 Encaisser", en: "💰 Collect" },
 
   // ---- Banque ----
   "banque.titre":     { fr: "Banque de Brütàl", en: "Bank of Brütàl" },
@@ -427,6 +429,7 @@ export const TEXTES = {
   "bat.prodStop":     { fr: "⛔ PRODUCTION ARRÊTÉE — trésorerie pleine, encaisse maintenant !", en: "⛔ PRODUCTION STOPPED — treasury full, collect now!" },
   "bat.prodEnCours":  { fr: "● Production…", en: "● Producing…" },
   "bat.aVendre":      { fr: "🪧 À VENDRE", en: "🪧 FOR SALE" },
+  "bat.fermerTitre":  { fr: "Fermer (Échap)", en: "Close (Esc)" },
 
   // ---- Dialogues des PNJ de la ville ----
   // Le Fanatique
@@ -533,6 +536,7 @@ export const TEXTES = {
   "mine.lvRange":     { fr: "Nv {lo}–{hi}", en: "Lv {lo}–{hi}" },
   "mine.mobLevelTip": { fr: "Niveau des monstres à cet étage", en: "Monster level on this floor" },
   "mine.ores":        { fr: "Minerais", en: "Ores" },
+  "mine.etage":       { fr: "⛏ Étage {n}", en: "⛏ Floor {n}" },
 
   // ---- Portes / descente / caverne de chance ----
   "mine.leaveTitre":  { fr: "Quitter la mine ?", en: "Leave the mine?" },

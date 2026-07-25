@@ -349,7 +349,7 @@ function rendreAnnonces() {
       pv.title = t("hv.plusValueTip");
       const btn = document.createElement("button");
       btn.className = "hv-btn hv-btn--or";
-      btn.textContent = "💰 Collect";
+      btn.textContent = t("hv.collectBtn");
       btn.addEventListener("click", () => collecter(v));
       actions.append(pv, btn);
       l.append(actions);
