@@ -41,7 +41,7 @@ let ventePrix = 0;
 let elVenteListe, elVentePrix, elVenteNom, elVenteMontant, elVenteNote,
     elVenteConfirmer, elVenteAide, elVenteTitre;
 
-const AIDE_DEFAUT = "[↑↓] Browse · [A] Buy · [V] Sell · [C] Collect · [Esc] Leave";
+const AIDE_DEFAUT = () => t("hv.aideDefaut");
 
 export function installerHV() {
   overlay = document.getElementById("hv");
@@ -113,7 +113,7 @@ function listeAffichee() {
 function noter(txt, duree = 2000) {
   elAide.textContent = txt;
   clearTimeout(aideTimer);
-  aideTimer = setTimeout(() => { elAide.textContent = AIDE_DEFAUT; }, duree);
+  aideTimer = setTimeout(() => { elAide.textContent = AIDE_DEFAUT(); }, duree);
 }
 
 // ----- Achat / vente d'une ressource -----------------------------------------
@@ -175,14 +175,14 @@ function rendre() {
     ligne.innerHTML =
       past +
       `<span class="hv-nom"></span>` +
-      `<span class="hv-tendance hv-tendance--${clTend}${triPar30 ? " hv-tendance--estompe" : ""}" title="current price vs. its normal price">${fleche} ${tend > 0 ? "+" : ""}${tend}%</span>` +
-      `<span class="hv-var30 hv-tendance--${cl30}${triPar30 ? " hv-var30--tri" : ""}" title="price change over the last 30 min of play">30m: ${var30 > 0 ? "+" : ""}${var30}%</span>` +
+      `<span class="hv-tendance hv-tendance--${clTend}${triPar30 ? " hv-tendance--estompe" : ""}" title="${t("hv.titreTendance")}">${fleche} ${tend > 0 ? "+" : ""}${tend}%</span>` +
+      `<span class="hv-var30 hv-tendance--${cl30}${triPar30 ? " hv-var30--tri" : ""}" title="${t("hv.titreVar30")}">${t("hv.var30")}: ${var30 > 0 ? "+" : ""}${var30}%</span>` +
       `<span class="hv-prix">${prix} <span class="icone-piece"></span></span>` +
-      `<span class="hv-possede">you: ${possede}</span>`;
+      `<span class="hv-possede">${t("hv.possede",{n: possede})}</span>`;
     ligne.querySelector(".hv-nom").textContent = d.nom;
     const btnA = document.createElement("button");
     btnA.className = "hv-btn";
-    btnA.textContent = "Buy";
+    btnA.textContent = t("hv.acheterBtn");
     btnA.disabled = inv.or < apercuAchat(marche, id, 1);
     btnA.addEventListener("click", (ev) => { ev.stopPropagation(); selId = id; acheter(id); });
     const btnV = document.createElement("button");
@@ -409,8 +409,8 @@ function rendreVente() {
   elVentePrix.hidden = enListe;
   elVenteTitre.textContent = enListe ? t("hv.venteTitre") : t("hv.fixePrix");
   elVenteAide.textContent = enListe
-    ? "[↑↓] Choose · [Enter] Select · [Esc] Back"
-    : "[←→] Price ±1% (Shift: ×10) · [Enter] List it · [Esc] Back";
+    ? t("hv.aideChoix")
+    : t("hv.aidePrix");
 
   if (enListe) {
     elVenteListe.replaceChildren();
@@ -419,7 +419,7 @@ function rendreVente() {
       const q = o.qualite && o.qualite !== "normale" ? QUALITES[o.qualite] : null;
       const l = document.createElement("div");
       l.className = "hv-vente-item" + (i === venteSel ? " sel" : "");
-      l.innerHTML = `<span></span><span style="color:#8fa0c8">value ${valeurReelle(o.id, o.qualite)} <span class="icone-piece"></span></span>`;
+      l.innerHTML = `<span></span><span style="color:#8fa0c8">${t("hv.valeur")} ${valeurReelle(o.id, o.qualite)} <span class="icone-piece"></span></span>`;
       l.children[0].textContent = d.nom + (q ? ` · ⚒ ${q.nom}` : "");
       l.children[0].style.color = couleurRarete(o.id);
       l.addEventListener("click", () => { venteSel = i; choisirObjetVente(); });
@@ -540,7 +540,7 @@ export function fermerHV() {
   overlay.hidden = true;
   window.removeEventListener("keydown", surTouche, true);
   clearTimeout(aideTimer);
-  elAide.textContent = AIDE_DEFAUT;
+  elAide.textContent = AIDE_DEFAUT();
   const cb = surFermerActif;
   surFermerActif = null;
   inv = null; marche = null;

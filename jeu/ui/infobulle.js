@@ -12,6 +12,7 @@ import { CARTES } from "../data/cartes.js";
 import { QUALITES, forceQualite } from "../data/recettes.js";
 import { cartesSuppleanceSlot } from "../systems/combat.js";
 import { garnirCarte } from "./carte.js";
+import { t } from "../systems/langue.js";
 
 let tip = null;
 function bulle() {
@@ -72,7 +73,7 @@ function blocSet(id) {
 
   const bonus = document.createElement("div");
   bonus.className = "inv-tip-set-bonus";
-  bonus.textContent = (complet ? "" : "Full set: ") + (set.bonus?.texte ?? "");
+  bonus.textContent = (complet ? "" : t("tip.setComplet")) + (set.bonus?.texte ?? "");
   bloc.append(bonus);
 
   return bloc;
@@ -91,11 +92,11 @@ function blocCombo(id) {
   bloc.className = "inv-tip-set" + (actif ? " inv-tip-set--actif" : "");
   const titre = document.createElement("div");
   titre.className = "inv-tip-set-titre";
-  titre.textContent = "Weapon Combo";
+  titre.textContent = t("tip.comboArme");
   bloc.append(titre);
   const bonus = document.createElement("div");
   bonus.className = "inv-tip-set-bonus";
-  bonus.textContent = (actif ? "" : "When set up: ") + d.comboArme.texte;
+  bonus.textContent = (actif ? "" : t("tip.comboCondition")) + d.comboArme.texte;
   bloc.append(bonus);
   return bloc;
 }
@@ -236,16 +237,16 @@ export function montrerNoteSlotVide(slot, label, e) {
   const supp = cartesSuppleanceSlot(slot);
   const c = supp && CARTES[supp.id];
   if (!c) { cacherInfobulle(); return false; }
-  const t = bulle();
+  const bl = bulle();
 
   const nom = document.createElement("div");
   nom.className = "inv-tip-nom";
-  nom.textContent = `${label} — empty`;
+  nom.textContent = t("tip.slotVide", { label });
   nom.style.color = "#9aa0a6"; // gris : emplacement vide
 
   const expl = document.createElement("div");
   expl.className = "inv-tip-ligne";
-  expl.textContent = "While empty, your deck holds:";
+  expl.textContent = t("tip.slotVideExpl");
 
   const cont = document.createElement("div");
   cont.className = "inv-tip-cartes";
@@ -260,10 +261,10 @@ export function montrerNoteSlotVide(slot, label, e) {
 
   const astuce = document.createElement("div");
   astuce.className = "inv-tip-ligne";
-  astuce.textContent = "Equip this slot to replace these.";
+  astuce.textContent = t("tip.slotVideAstuce");
 
-  t.replaceChildren(nom, expl, cont, astuce);
-  t.hidden = false;
+  bl.replaceChildren(nom, expl, cont, astuce);
+  bl.hidden = false;
   suivreInfobulle(e);
   return true;
 }
