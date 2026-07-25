@@ -15,6 +15,7 @@
 import { itemDef, couleurRarete, RARETES } from "../data/items.js";
 import { genererRivaux, mettreEnAttente } from "../systems/encheres.js";
 import { ajouterObjet } from "../systems/inventaire.js";
+import { t } from "../systems/langue.js";
 import { montrerInfobulleEl, cacherInfobulle } from "./infobulle.js";
 
 // Rythme du marteau et des rivaux (secondes RÉELLES — le ressenti de la salle).
@@ -51,9 +52,9 @@ export function ouvrirEncheres({ inv, enc, lots, jour, surFin }) {
   ctx = { inv, enc, lots: [...lots], jour, surFin };
   etat = null;
   resultats = [];
-  elJour.textContent = `Evening Auction — Day ${jour}`;
+  elJour.textContent = t("ench.jour",{jour});
   elLog.replaceChildren();
-  journal(`🔔 The bell rings. ${lots.length} lot${lots.length > 1 ? "s" : ""} tonight.`);
+  journal(t("ench.cloche",{n: lots.length, s: lots.length > 1 ? "s" : ""}));
   overlay.hidden = false;
   window.addEventListener("keydown", surTouche, true);
   timer = setInterval(tic, TICK * 1000);
@@ -80,7 +81,7 @@ function surTouche(e) {
   if (e.code === "Escape") {
     e.preventDefault(); e.stopPropagation();
     // Quitter en pleine vente = renoncer aux lots restants (on prévient).
-    if (etat && !etat.finVente) journal("You slip out of the hall…");
+    if (etat && !etat.finVente) journal(t("ench.sortie"));
     fermer();
   } else if (e.code === "Space" || e.code === "Enter") {
     e.preventDefault(); e.stopPropagation();
@@ -116,8 +117,8 @@ function prochainLot(delai = PAUSE_ENTRE_LOTS) {
   const d = itemDef(lot.id);
   const nomLot = lot.type === "paquet" ? `${d.nom} ×${lot.quantite}` : d.nom;
   journal(lot.duJoueur
-    ? `🎩 “And now… a piece from a private seller: ${nomLot}!”`
-    : `🎩 “Next lot: ${nomLot}. Starting at ${lot.misePrix} 🪙!”`);
+    ? t("ench.nouveauLotPrive",{nom: nomLot})
+    : t("ench.prochainLot",{nom: nomLot, prix: lot.misePrix}));
 }
 
 function finDeVente() {
@@ -140,7 +141,7 @@ function encherir(qui) { // qui = "vous" ou un rival
   etat.chrono = 0;
   etat.cranAnnonce = 0;
   etat.prochainRival = null;
-  journal(qui === "vous" ? `You bid ${etat.prix} 🪙.` : `${qui.nom} bids ${etat.prix} 🪙.`, qui === "vous" ? "ench-log--vous" : "");
+  journal(qui === "vous" ? t("ench.miseVous",{prix: etat.prix}) : t("ench.miseAutre",{qui: qui.nom, prix: etat.prix}), qui === "vous" ? "ench-log--vous" : "");
 }
 
 function adjuger() {
@@ -157,18 +158,18 @@ function adjuger() {
     // Retire CE dépôt de la liste (celui vendu), via sa référence portée sur le lot.
     const i = lot.depotRef ? ctx.enc.depots.indexOf(lot.depotRef) : -1;
     if (i >= 0) ctx.enc.depots.splice(i, 1);
-    journal(`🔨 SOLD! Your ${nomLot} goes for ${prix} 🪙.`, "ench-log--vendu");
-    resultats.push({ texte: `Your ${nomLot} sold for ${prix} 🪙.`, classe: "ok" });
+    journal(t("ench.venduTien",{nom: nomLot, prix}), "ench-log--vendu");
+    resultats.push({ texte: t("ench.venduTienMsg",{nom: nomLot, prix}), classe: "ok" });
   } else if (etat.tenant === "vous") {
     ctx.inv.or -= etat.prix;
     const ok = ajouterObjet(ctx.inv, lot.id, lot.quantite ?? 1, lot.qualite ? { qualite: lot.qualite } : null);
     if (!ok) mettreEnAttente(ctx.enc, lot);
-    journal(`🔨 SOLD to YOU! ${nomLot} for ${etat.prix} 🪙.${ok ? "" : " (Bag full — claim it from Magnar.)"}`, "ench-log--vendu");
-    resultats.push({ texte: `Won ${nomLot} for ${etat.prix} 🪙.`, classe: "ok" });
+    journal(t("ench.venduToi",{nom: nomLot, prix: etat.prix, suffixe: ok ? "" : t("ench.sacPleinRecup")}), "ench-log--vendu");
+    resultats.push({ texte: t("ench.gagne",{nom: nomLot, prix: etat.prix}), classe: "ok" });
   } else if (etat.tenant) {
-    journal(`🔨 SOLD to ${etat.tenant} for ${etat.prix} 🪙.`, "ench-log--vendu");
+    journal(t("ench.venduA",{qui: etat.tenant, prix: etat.prix}), "ench-log--vendu");
   } else {
-    journal(`🔨 No takers — withdrawn.`);
+    journal(t("ench.aucunAcheteur"));
   }
   etat.chrono = -PAUSE_ENTRE_LOTS; // entracte, puis lot suivant
 }
@@ -229,7 +230,7 @@ function rendre() {
   const entracte = etat.chrono < 0;
 
   // La scène : le lot, le prix courant, le tenant, le marteau.
-  const marteauTxt = etat.vendu ? "SOLD!" : etat.cranAnnonce === 2 ? "Going twice…" : etat.cranAnnonce === 1 ? "Going once…" : "";
+  const marteauTxt = etat.vendu ? t("ench.vendu") : etat.cranAnnonce === 2 ? t("ench.deuxFois") : etat.cranAnnonce === 1 ? t("ench.uneFois") : "";
   const pct = etat.vendu || entracte ? 0 : Math.min(1, etat.chrono / MARTEAU);
   elScene.innerHTML =
     `<div class="ench-lot">
@@ -238,14 +239,14 @@ function rendre() {
         : `<span class="ench-lot-pastille" id="ench-pastille" style="background:${d.icone ?? "#888"}"></span>`}
       <div class="ench-lot-txt">
         <div class="ench-lot-nom" style="color:${couleur}">${nomLot}</div>
-        <div class="ench-lot-sous">${lot.duJoueur ? "Your item — the room bids, you watch." : rarete}</div>
+        <div class="ench-lot-sous">${lot.duJoueur ? t("ench.tonObjet") : rarete}</div>
       </div>
     </div>` +
     (entracte
       ? `<div class="ench-prix-bloc"><div class="ench-attente">The auctioneer readies the next lot…</div></div>`
       : `<div class="ench-prix-bloc">
           <div class="ench-prix">${etat.prix} 🪙</div>
-          <div class="ench-tenant">${etat.tenant === "vous" ? "— YOUR bid —" : etat.tenant ? `held by ${etat.tenant}` : "opening price"}</div>
+          <div class="ench-tenant">${etat.tenant === "vous" ? t("ench.tonBid") : etat.tenant ? t("ench.detenuPar",{qui: etat.tenant}) : t("ench.prixDepart")}</div>
           <div class="ench-marteau"><div class="ench-marteau-fill" style="width:${Math.round(pct * 100)}%"></div>
             <span class="ench-marteau-txt">${marteauTxt}</span></div>
         </div>`) +
@@ -263,14 +264,14 @@ function rendre() {
   const peutEncherir = !entracte && !etat.vendu && !lot.duJoueur &&
     etat.tenant !== "vous" && ctx.inv.or >= suivant;
   elBoutons.innerHTML = lot.duJoueur
-    ? `<div class="ench-spectateur">Fingers crossed…</div>`
+    ? `<div class="ench-spectateur">${t("ench.doigtsCroises")}</div>`
     : `<button class="bat-btn bat-btn--or" id="ench-encherir" ${peutEncherir ? "" : "disabled"}>
-        ✋ Bid ${suivant} 🪙</button>`;
+        ${t("ench.miser",{prix: suivant})}</button>`;
   const btn = document.getElementById("ench-encherir");
   if (btn) btn.addEventListener("click", () => { if (peutEncherir) { encherir("vous"); rendre(); } });
   elAide.textContent = lot.duJoueur
-    ? "[Esc] leave the hall"
-    : (etat.tenant === "vous" ? "You hold the bid — wait for the hammer… · [Esc] leave"
-       : ctx.inv.or < suivant ? "Not enough gold for the next bid · [Esc] leave"
-       : "[Space] bid · [Esc] leave");
+    ? t("ench.quitterSalle")
+    : (etat.tenant === "vous" ? t("ench.tuTiensMise")
+       : ctx.inv.or < suivant ? t("ench.pasAssezMise")
+       : t("ench.miserAide"));
 }
