@@ -2102,7 +2102,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (horlogeVisible) dessinerHorloge(temps);
       const enMine = Boolean(zoneCourante.estMine);
       hudEtage.hidden = Boolean(combatEnCours) || enPause || !enMine;
-      if (enMine) hudEtage.textContent = `⛏ Floor ${zoneCourante.niveau ?? 1}`;
+      if (enMine) hudEtage.textContent = t("mine.etage", { n: zoneCourante.niveau ?? 1 });
       // Bulle de minerai masquée hors mine / en combat / en pause
       if (Boolean(combatEnCours) || enPause || !enMine) veineLabel.hidden = true;
       // Pendant un combat, c'est lui qui pilote tout (le monde est figé)
