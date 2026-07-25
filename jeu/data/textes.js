@@ -48,6 +48,12 @@ export const TEXTES = {
   "menu.prefRapide":  { fr: "Jeu rapide (combats accélérés — pour joueurs aguerris)", en: "Fast gameplay (quicker combat — for players who know the game)" },
   "menu.prefCibleAuto": { fr: "Cibler automatiquement le dernier ennemi (pas de ciblage manuel quand il n'en reste qu'un)", en: "Auto-target the last enemy (skip manual targeting when one enemy remains)" },
   "menu.aide":        { fr: "Tab / ↑↓ pour naviguer  ·  ←→ pour régler le volume  ·  Échap pour fermer", en: "Tab / ↑↓ to navigate  ·  ←→ to adjust volume  ·  Esc to close" },
+  "menu.sauver":      { fr: "Sauvegarder", en: "Save" },
+  "slot.vide":        { fr: "Vide", en: "Empty" },
+  "slot.numero":      { fr: "Emplacement {n}", en: "Slot {n}" },
+  "confirm.sur":      { fr: "Es-tu sûr ?", en: "Are you sure?" },
+  "confirm.oui":      { fr: "Confirmer", en: "Confirm" },
+  "confirm.non":      { fr: "Annuler", en: "Cancel" },
 
   // ---- Barre de menu (bas-droite) ----
   "barre.sac":       { fr: "Sac", en: "Bag" },

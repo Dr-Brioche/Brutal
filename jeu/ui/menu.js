@@ -16,6 +16,7 @@ import {
   getVolumeMusique, getVolumeBruitages, getVolumeMusiqueCombat,
 } from "../core/sons.js";
 import { getPreference, setPreference } from "../systems/preferences.js";
+import { t } from "../systems/langue.js";
 
 export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }) {
   const menu = document.getElementById("menu");
@@ -94,14 +95,14 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
       conteneurSlots.append(
         creerLigneSlot(numero, donnees, [
           {
-            texte: "Save",
+            texte: t("menu.sauver"),
             surClic: () => {
               ecrireSlot(numero, obtenirEtat());
               rafraichir();
             },
           },
           {
-            texte: "Load",
+            texte: t("demarrage.charger"),
             desactive: !donnees,
             surClic: () => {
               appliquerEtat(lireSlot(numero));
@@ -109,16 +110,16 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
             },
           },
           {
-            texte: "Delete",
+            texte: t("demarrage.supprimer"),
             desactive: !donnees,
             surClic: () => {
               // Action destructrice → confirmation (bouton sûr présélectionné).
               demanderConfirmation(
                 {
-                  titre: `Delete save — Slot ${numero}?`,
-                  message: "This save will be gone for good.",
-                  texteOui: "Delete",
-                  texteNon: "Keep",
+                  titre: t("demarrage.suppTitre", { n: numero }),
+                  message: t("demarrage.suppMsg"),
+                  texteOui: t("demarrage.supprimer"),
+                  texteNon: t("demarrage.garder"),
                   danger: true,
                 },
                 () => { effacerSlot(numero); rafraichir(); },
@@ -134,11 +135,11 @@ export function installerMenu({ obtenirEtat, appliquerEtat, surChangementPause }
     conteneurSlots.append(
       creerLigneSlot(SLOT_AUTO, donneesAuto, [
         {
-          texte: "Load",
+          texte: t("demarrage.charger"),
           desactive: !donneesAuto,
           surClic: () => { appliquerEtat(lireSlot(SLOT_AUTO)); fermer(); },
         },
-      ], "Auto-save (auto only)", "menu-slot--auto")
+      ], t("demarrage.autoLabel"), "menu-slot--auto")
     );
   }
 

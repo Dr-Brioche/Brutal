@@ -2,6 +2,7 @@
 // de sauvegarde : l'écran de démarrage et le menu pause.
 
 import { NB_SLOTS, SLOT_AUTO, lireSlot } from "../systems/sauvegarde.js";
+import { t } from "../systems/langue.js";
 
 // Tous les emplacements : [{ numero, donnees ou null }, ...]
 export function tousLesSlots() {
@@ -19,7 +20,7 @@ export function slotAuto() {
 
 // Texte affiché pour un emplacement (vide, ou équipement + date)
 export function resumeSlot(donnees) {
-  if (!donnees) return "Empty";
+  if (!donnees) return t("slot.vide");
   const date = new Date(donnees.date).toLocaleString();
   return `${donnees.armureNom} · ${donnees.armeNom}\n${date}`;
 }
@@ -36,7 +37,7 @@ export function creerLigneSlot(numero, donnees, boutons, label = null, classe = 
   info.className = "menu-slot-info";
   const nom = document.createElement("span");
   nom.className = "menu-slot-nom";
-  nom.textContent = label ?? `Slot ${numero}`;
+  nom.textContent = label ?? t("slot.numero", { n: numero });
   const res = document.createElement("span");
   res.className = "menu-slot-resume";
   res.textContent = resumeSlot(donnees);
