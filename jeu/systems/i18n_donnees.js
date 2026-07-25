@@ -34,6 +34,15 @@ function traduireEntree(obj, prefixe, id) {
     if (obj._texteEn === undefined) obj._texteEn = obj.texte;
     obj.texte = tr(`${prefixe}.${id}.texte`, obj._texteEn);
   }
+  // Combo d'arme (`comboArme.texte`) et passif propre (`passifPropre.texte`) d'un objet.
+  if (obj.comboArme && "texte" in obj.comboArme) {
+    if (obj.comboArme._texteEn === undefined) obj.comboArme._texteEn = obj.comboArme.texte;
+    obj.comboArme.texte = tr(`${prefixe}.${id}.combo`, obj.comboArme._texteEn);
+  }
+  if (obj.passifPropre && "texte" in obj.passifPropre) {
+    if (obj.passifPropre._texteEn === undefined) obj.passifPropre._texteEn = obj.passifPropre.texte;
+    obj.passifPropre.texte = tr(`${prefixe}.${id}.passif`, obj.passifPropre._texteEn);
+  }
 }
 
 export function appliquerLangueDonnees() {

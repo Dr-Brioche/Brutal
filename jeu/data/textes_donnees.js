@@ -135,6 +135,7 @@ export const TEXTES_DONNEES = {
   "item.pioche-de-mineur":  { fr: "Pioche de mineur" },
   "item.pioche-basique":    { fr: "Pioche basique" },
   "item.croc-de-basilic":   { fr: "Croc de basilic" },
+  "item.croc-de-basilic.combo": { fr: "Croc jumeau : +5 Force permanente si une autre dague est en seconde main." },
   "item.marteau-de-lave":   { fr: "Marteau de lave" },
   "item.hache-de-guerre":   { fr: "Hache de guerre" },
   "item.epee-onyx":         { fr: "Grande épée d'onyx" },
@@ -164,6 +165,7 @@ export const TEXTES_DONNEES = {
   "item.hache-berserk":     { fr: "Hache berserk" },
   "item.marteau-guerre":    { fr: "Marteau de guerre" },
   "item.dagues-jumelles":   { fr: "Dagues jumelles" },
+  "item.dagues-jumelles.combo": { fr: "Combo jumeau : +3 Force permanente si les mêmes Dagues jumelles sont en seconde main." },
   "item.lame-bourreau":     { fr: "Lame du bourreau" },
   "item.baguette-cristal":  { fr: "Baguette de cristal" },
   "item.fleau-cloute":      { fr: "Fléau clouté" },
@@ -171,6 +173,7 @@ export const TEXTES_DONNEES = {
 
   // ---- Objets : boucliers / main gauche ----
   "item.bouclier-tour":         { fr: "Bouclier-tour" },
+  "item.bouclier-tour.passif":  { fr: "Quand tu subis une attaque de mêlée, gagne 3 Pierre." },
   "item.bouclier-bois":         { fr: "Bouclier de bois" },
   "item.targe":                 { fr: "Targe" },
   "item.grimoire":              { fr: "Grimoire" },
@@ -181,6 +184,7 @@ export const TEXTES_DONNEES = {
   "item.grimoire-flammes":      { fr: "Grimoire des flammes" },
   "item.sceptre-commandement":  { fr: "Sceptre de commandement" },
   "item.bouclier-protecteur":   { fr: "Bouclier protecteur" },
+  "item.bouclier-protecteur.passif": { fr: "Quand tu subis une attaque de mêlée, l'attaquant subit 2 dégâts." },
   "item.grimoire-puissance":    { fr: "Tome de puissance" },
 
   // ---- Objets : armures ----
@@ -195,6 +199,7 @@ export const TEXTES_DONNEES = {
   "item.armure-peau":       { fr: "Armure de peau" },
   "item.plaque-de-fer":     { fr: "Plaque de fer basique" },
   "item.armure-cloutee":    { fr: "Armure cloutée" },
+  "item.armure-cloutee.passif": { fr: "Quand tu subis une attaque de mêlée, l'attaquant subit 2 dégâts." },
   "item.peau-berserk":      { fr: "Peau de berserk" },
   "item.armure-stone-age":  { fr: "Armure de pierre" },
 
@@ -634,5 +639,7 @@ export const TEXTES_DONNEES = {
 
   // ---- Bâtiments ----
   "batiment.scierie":  { fr: "Scierie" },
+  "batiment.scierie.desc": { fr: "Débite le bois descendu de la surface — un petit commerce régulier." },
   "batiment.tannerie": { fr: "Tannerie" },
+  "batiment.tannerie.desc": { fr: "Transforme les peaux en cuir — le même commerce tranquille, de l'autre côté de la place." },
 };
