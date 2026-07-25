@@ -8,6 +8,14 @@
 //     forge l'affiche alors en petit comme référence à copier).
 
 import { itemDef, couleurRarete, RARETES } from "../data/items.js";
+import { t } from "../systems/langue.js";
+
+// Catégories de recettes (clé interne anglaise → clé de traduction).
+const CAT_I18N = {
+  "Weapons": "cat.armes", "Two-Handed Weapons": "cat.grp.armes2m", "Off-Hand": "cat.grp.mainGauche",
+  "Armor": "cat.armures", "Gloves": "cat.grp.gants", "Boots": "cat.grp.bottes",
+  "Rings": "cat.grp.bagues", "Amulets": "cat.grp.amulettes", "Other": "cat.autres",
+};
 import { recettesParCategorie, compteBibliotheque } from "../systems/bibliotheque.js";
 
 let overlay, elTitre, elCorps, elAide;
@@ -80,17 +88,15 @@ function carteHtml(recette) {
 function rendre() {
   const groupes = recettesParCategorie(biblioRef);
   const { connues, total } = compteBibliotheque(biblioRef);
-  elTitre.innerHTML = `📖 Craftsman's Book <small class="livre-compte">${connues} / ${total} learned</small>`;
+  elTitre.innerHTML = t("livre.titreCompte", { connues, total });
 
   if (!groupes.length) {
-    elCorps.innerHTML =
-      `<div class="livre-vide">No recipes learned yet.<br>
-       <small>Read a craft scroll, or forge an item by finding its pattern — and it appears here forever.</small></div>`;
+    elCorps.innerHTML = t("livre.vide");
     return;
   }
   elCorps.innerHTML = groupes.map((g) =>
     `<div class="livre-section">
-       <div class="livre-section-tete">${g.categorie} <small>(${g.recettes.length})</small></div>
+       <div class="livre-section-tete">${CAT_I18N[g.categorie] ? t(CAT_I18N[g.categorie]) : g.categorie} <small>(${g.recettes.length})</small></div>
        <div class="livre-cartes">${g.recettes.map(carteHtml).join("")}</div>
      </div>`).join("");
 

@@ -244,4 +244,12 @@ export const TEXTES = {
   "coffre.coffre":    { fr: "📦 Coffre", en: "📦 Chest" },
   "coffre.aide":      { fr: "Clique un objet pour l'envoyer de l'autre côté · ←↑→↓ + Tab pour naviguer · Entrée pour déplacer · [Échap] fermer", en: "Click an item to move it to the other side · ←↑→↓ + Tab to navigate · Enter to move · [Esc] to close" },
   "coffre.deplacer":  { fr: "Glisse ou clique pour déplacer", en: "Drag or click to move" },
+
+  // ---- Livre de l'artisan ----
+  "livre.titre":      { fr: "📖 Livre de l'artisan", en: "📖 Craftsman's Book" },
+  "livre.titreCompte": { fr: '📖 Livre de l\'artisan <small class="livre-compte">{connues} / {total} apprises</small>', en: '📖 Craftsman\'s Book <small class="livre-compte">{connues} / {total} learned</small>' },
+  "livre.fermerTitre": { fr: "Fermer (Échap)", en: "Close (Esc)" },
+  "livre.aide":       { fr: "[L] / [Échap] fermer", en: "[L] / [Esc] close" },
+  "cat.autres":       { fr: "Autres", en: "Other" },
+  "livre.vide":       { fr: '<div class="livre-vide">Aucune recette apprise pour l\'instant.<br>\n       <small>Lis un parchemin de craft, ou forge un objet en trouvant son motif — et il apparaît ici pour toujours.</small></div>', en: '<div class="livre-vide">No recipes learned yet.<br>\n       <small>Read a craft scroll, or forge an item by finding its pattern — and it appears here forever.</small></div>' },
 };
