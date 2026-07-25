@@ -11,6 +11,7 @@
 
 import { itemDef, couleurRarete, RARETES } from "../data/items.js";
 import { RECETTES } from "../data/recettes.js";
+import { t } from "../systems/langue.js";
 
 let overlay, elTitre, elIllu, elGrille, elLegende, elResultat, elLore;
 let surFermerActif = null;
@@ -53,7 +54,7 @@ export function ouvrirParchemin(itemId, surFermer = null) {
 
   if (!recette) {
     elGrille.innerHTML = "";
-    elLegende.innerHTML = "<em>The ink has faded — this recipe is lost.</em>";
+    elLegende.innerHTML = `<em>${t("parch.encrePerdue")}</em>`;
     elResultat.innerHTML = "";
   } else {
     // 1) La GRILLE du motif (forme relative, comme à la forge).

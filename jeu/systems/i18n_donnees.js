@@ -43,6 +43,12 @@ function traduireEntree(obj, prefixe, id) {
     if (obj.passifPropre._texteEn === undefined) obj.passifPropre._texteEn = obj.passifPropre.texte;
     obj.passifPropre.texte = tr(`${prefixe}.${id}.passif`, obj.passifPropre._texteEn);
   }
+  // Lore (texte d'ambiance d'un parchemin fait main). Les parchemins GÉNÉRÉS ont
+  // leur lore reconstruit plus bas depuis un modèle.
+  if ("lore" in obj) {
+    if (obj._loreEn === undefined) obj._loreEn = obj.lore;
+    obj.lore = tr(`${prefixe}.${id}.lore`, obj._loreEn);
+  }
 }
 
 export function appliquerLangueDonnees() {
@@ -59,10 +65,16 @@ export function appliquerLangueDonnees() {
   // APRÈS avoir traduit les objets, à partir de l'objet enseigné (champ `revele`), au
   // lieu d'une entrée par recette. (Le repli laisse le nom anglais d'origine.)
   const prefixe = tr("item.recettePrefixe", "Recipe: ");
+  const modeleLore = tr("item.loreParchemin", null);
   for (const id in ITEMS) {
     const it = ITEMS[id];
     if (it.categorie === "parchemin" && it.revele && ITEMS[it.revele]) {
       it.nom = prefixe + ITEMS[it.revele].nom;
+      // Parchemin GÉNÉRÉ (id == "parchemin-" + résultat) : son lore suit un modèle.
+      // On le reconstruit avec le nom traduit du résultat. (Repli : l'anglais d'origine.)
+      if (id === "parchemin-" + it.revele && modeleLore) {
+        it.lore = modeleLore.split("{nom}").join(ITEMS[it.revele].nom);
+      }
     }
   }
 }

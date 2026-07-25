@@ -7,6 +7,7 @@
 // Échap ferme.
 
 import { ENNEMIS } from "../data/ennemis.js";
+import { t } from "../systems/langue.js";
 
 const PLACES_MAX = 5;
 const placesDe = (def) => (def.grand ? 2 : 1);
@@ -47,7 +48,7 @@ export function installerTesteur() {
 
   function rendre() {
     const used = placesUtilisees();
-    elCompteur.textContent = `${used} / ${PLACES_MAX} places`;
+    elCompteur.textContent = t("testeur.places", { used, max: PLACES_MAX });
     elCompteur.classList.toggle("testeur-compteur--plein", used >= PLACES_MAX);
 
     // Liste des monstres (boutons « + »).
@@ -61,7 +62,7 @@ export function installerTesteur() {
       b.innerHTML =
         `<span class="testeur-mob-nom">${def.nom}</span>` +
         `<span class="testeur-mob-niv">Lv ${def.niveau}</span>` +
-        `<span class="testeur-mob-places">${p === 2 ? "▮▮ big" : "▮"}</span>` +
+        `<span class="testeur-mob-places">${p === 2 ? t("testeur.grand") : "▮"}</span>` +
         (n > 0 ? `<span class="testeur-mob-n">×${n}</span>` : "");
       b.addEventListener("click", () => {
         if (peutAjouter(def)) { choisis.push(def.id); rendre(); }
@@ -74,14 +75,14 @@ export function installerTesteur() {
     if (choisis.length === 0) {
       const vide = document.createElement("span");
       vide.className = "testeur-vide";
-      vide.textContent = "Pick up to 5 places of monsters…";
+      vide.textContent = t("testeur.vide");
       elChoix.append(vide);
     } else {
       choisis.forEach((id, i) => {
         const def = ENNEMIS.find((e) => e.id === id);
         const chip = document.createElement("button");
         chip.className = "testeur-chip";
-        chip.title = "Remove";
+        chip.title = t("testeur.retirer");
         chip.innerHTML = `${def.nom} <span class="testeur-chip-lv">Lv ${def.niveau}</span> ✕`;
         chip.addEventListener("click", () => { choisis.splice(i, 1); rendre(); });
         elChoix.append(chip);

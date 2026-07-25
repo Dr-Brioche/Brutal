@@ -72,7 +72,7 @@ export function ouvrirChoixProfondeur(choix, opts = {}) {
   surChoisirActif = opts.surChoisir ?? null;
   selection = 0;
   rendre();
-  elAide.innerHTML = "← → choose &nbsp;·&nbsp; Enter pick &nbsp;·&nbsp; 1-" + choix.length + " quick pick";
+  elAide.innerHTML = t("cprof.aideDyn", { n: choix.length });
   overlay.hidden = false;
   window.addEventListener("keydown", surTouche, true);
 }

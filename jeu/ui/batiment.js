@@ -169,7 +169,7 @@ function rafraichir() {
     const vOr = document.getElementById("bat-v-or");
     vOr.innerHTML = `<b class="${inv.or >= def.prix ? "bat-ok" : "bat-manque"}">${inv.or} 🪙</b>`;
     elEtat.className = "bat-etat bat-etat--vente";
-    elEtat.textContent = "🪧 FOR SALE";
+    elEtat.textContent = t("bat.aVendre");
     const btn = document.getElementById("bat-acheter");
     btn.disabled = inv.or < def.prix;
     return;
