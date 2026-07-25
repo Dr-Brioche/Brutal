@@ -18,6 +18,7 @@ import { ITEMS, RARETES } from "../data/items.js";
 import { CARTES } from "../data/cartes.js";
 import { TALENTS, BRANCHES } from "../data/talents.js";
 import { QUALITES } from "../data/recettes.js";
+import { BATIMENTS } from "./batiments.js";
 import { tr, surChangementLangue } from "./langue.js";
 
 // Réécrit `nom` (et `description` si présente) d'un objet depuis la clé `prefixe.id`.
@@ -43,6 +44,7 @@ export function appliquerLangueDonnees() {
   for (const id in RARETES) traduireEntree(RARETES[id], "rarete", id);
   for (const id in BRANCHES) traduireEntree(BRANCHES[id], "branche", id);
   for (const id in QUALITES) traduireEntree(QUALITES[id], "qualite", id);
+  for (const id in BATIMENTS) traduireEntree(BATIMENTS[id], "batiment", id);
 
   // RECETTES (parchemins) : leur nom est « préfixe + objet produit ». On le reconstruit
   // APRÈS avoir traduit les objets, à partir de l'objet enseigné (champ `revele`), au

@@ -631,4 +631,8 @@ export const TEXTES_DONNEES = {
   "carte.sentence-de-mort.texte": { fr: "Inflige 42 dégâts. Doublés si la cible est sous 50 % de ses PV." },
   "carte.moisson.texte": { fr: "Soigne 15 PV par ennemi qui saigne." },
   "carte.fauche-d-ames.texte": { fr: "Inflige 50 dégâts. Si la cible meurt, gagne 5 Force et soigne 10 PV." },
+
+  // ---- Bâtiments ----
+  "batiment.scierie":  { fr: "Scierie" },
+  "batiment.tannerie": { fr: "Tannerie" },
 };

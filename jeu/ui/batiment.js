@@ -21,6 +21,7 @@ const resNom = (rid) => itemDef(rid)?.nom ?? rid;
 const stockTexte = (stock) => Object.entries(stock ?? {})
   .filter(([, n]) => n > 0).map(([rid, n]) => `${n} ${resNom(rid)}`).join(" + ");
 import { afficherMessage } from "./effets.js";
+import { t } from "../systems/langue.js";
 
 let actif = false;
 let overlay, elTitre, elSous, elEtat, elLignes, elBoutons, elAide;
@@ -75,11 +76,11 @@ function fermer() {
 function acheter() {
   const def = BATIMENTS[batId];
   if (acheterBatiment(bats, inv, batId)) {
-    afficherMessage(`🪚 The ${def.nom} is yours! First payout in 1 h of play.`);
+    afficherMessage(t("bat.achat",{nom: def.nom}));
     modeAffiche = null; // la fiche passe en mode « possédé »
     rafraichir();
   } else {
-    afficherMessage(`Not enough gold — it costs ${def.prix} 🪙 and you have ${inv.or} 🪙.`);
+    afficherMessage(t("bat.pasAssez",{prix: def.prix, or: inv.or}));
   }
 }
 
@@ -87,10 +88,10 @@ function collecter() {
   const def = BATIMENTS[batId];
   const r = collecterTresorerie(bats, inv, batId);
   if (!r) return;
-  let msg = `💰 +${r.or} 🪙 from the ${def.nom}`;
+  let msg = t("bat.msgVersement",{or: r.or, nom: def.nom});
   const pris = r.bonus.map((x) => `+${x.pris} ${resNom(x.id)}`).join(", ");
   if (pris) msg += `, ${pris}`;
-  if (r.reste > 0) msg += ` — bag full: ${r.reste} left at the building`;
+  if (r.reste > 0) msg += t("bat.msgReste",{reste: r.reste});
   afficherMessage(msg + ".");
   rafraichir();
 }
@@ -133,37 +134,34 @@ function rafraichir() {
     elTitre.textContent = `${def.icone ?? "🏠"} ${def.nom}`;
     elSous.textContent = def.description ?? "";
     if (mode === "vente") {
-      const raresTexte = rares.map((d) => `${Math.round(d.chance * 100)}% ${resNom(d.id)}`).join(", ");
+      const raresTexte = rares.map((d) => t("bat.pourcentRes",{pct: Math.round(d.chance * 100), res: resNom(d.id)})).join(", ");
       elLignes.innerHTML =
-        ligne("Price (one-time)", `<b class="bat-or">${def.prix} 🪙</b>`) +
-        ligne("Your gold", `<span id="bat-v-or"></span>`) +
-        ligne("Income", `+${def.revenu} 🪙${base ? ` and +${base.parVersement} ${baseNom}` : ""} <small>every hour of play</small>`) +
-        (raresTexte ? ligne("Rare finds", `<small>chance each hour: ${raresTexte}</small>`) : "") +
-        ligne("Treasury cap", `${def.tresorerieMax} 🪙 <small>(≈ ${Math.round(def.tresorerieMax / def.revenu)} h of income)</small>`) +
-        `<div class="bat-note">⚠ When the treasury is FULL, production <b>stops</b> — nothing more is earned.
-         Walk back to the sign and <b>collect regularly</b>. Time keeps flowing while you play
-         (only the pause menu stops the clock).</div>`;
+        ligne(t("bat.prixUnique"), `<b class="bat-or">${def.prix} 🪙</b>`) +
+        ligne(t("bat.tonOr"), `<span id="bat-v-or"></span>`) +
+        ligne(t("bat.revenu"), t("bat.revenuVal",{revenu: def.revenu, plus: base ? t("bat.etBase",{n: base.parVersement, res: baseNom}) : ""})) +
+        (raresTexte ? ligne(t("bat.raresTrouvailles"), t("bat.raresVal",{txt: raresTexte})) : "") +
+        ligne(t("bat.tresorCap"), t("bat.tresorCapVal",{max: def.tresorerieMax, h: Math.round(def.tresorerieMax / def.revenu)})) +
+        `<div class="bat-note">${t("bat.noteVente")}</div>`;
       elBoutons.innerHTML =
-        `<button class="bat-btn bat-btn--or" id="bat-acheter">🪙 Buy — ${def.prix} 🪙</button>` +
-        `<button class="bat-btn bat-btn--gris" id="bat-quitter">Leave</button>`;
+        `<button class="bat-btn bat-btn--or" id="bat-acheter">${t("bat.acheter",{prix: def.prix})}</button>` +
+        `<button class="bat-btn bat-btn--gris" id="bat-quitter">${t("bat.quitter")}</button>`;
       document.getElementById("bat-acheter").addEventListener("click", acheter);
     } else {
       elLignes.innerHTML =
-        ligne("Treasury", jauge("bat-j-treso", "bat-jauge--or")) +
-        ligne("Next payout", `<span id="bat-v-prochain"></span>`) +
+        ligne(t("bat.tresorerie"), jauge("bat-j-treso", "bat-jauge--or")) +
+        ligne(t("bat.prochainVersement"), `<span id="bat-v-prochain"></span>`) +
         ligne("", jauge("bat-j-prochain")) +
-        (def.bonus ? ligne("Materials stored", `<span id="bat-v-stock"></span>`) : "") +
-        `<div class="bat-note">The saw keeps working while you play — even with this window open.
-         ⚠ Full treasury = production <b>stops</b>. Collect regularly!</div>`;
+        (def.bonus ? ligne(t("bat.materielStocke"), `<span id="bat-v-stock"></span>`) : "") +
+        `<div class="bat-note">${t("bat.notePossede")}</div>`;
       elBoutons.innerHTML =
         `<button class="bat-btn bat-btn--or" id="bat-collecter"></button>` +
-        `<button class="bat-btn bat-btn--gris" id="bat-quitter">Close</button>`;
+        `<button class="bat-btn bat-btn--gris" id="bat-quitter">${t("bat.fermer")}</button>`;
       document.getElementById("bat-collecter").addEventListener("click", collecter);
     }
     document.getElementById("bat-quitter").addEventListener("click", fermer);
     elAide.textContent = mode === "vente"
-      ? "[Space] buy · [Esc] leave · click outside to close"
-      : "[Space] collect · [Esc] close · click outside to close";
+      ? t("bat.aideAchat")
+      : t("bat.aideCollecte");
   }
 
   // --- Valeurs vivantes (mises à jour 4×/s : le temps s'écoule ici !) ---
@@ -193,7 +191,7 @@ function rafraichir() {
   const attente = tempsAvantVersement(bats, batId);
   document.getElementById("bat-v-prochain").innerHTML = plein
     ? `<b class="bat-manque">halted</b>`
-    : `+${def.revenu} 🪙${base ? ` and +${base.parVersement} ${baseNom}` : ""} <small>in ${fmtMin(attente)} of play</small>`;
+    : t("bat.revenuAttente",{revenu: def.revenu, plus: base ? t("bat.etBase",{n: base.parVersement, res: baseNom}) : "", temps: fmtMin(attente)});
   const jp = document.getElementById("bat-j-prochain");
   jp.style.width = plein ? "0%" : Math.round((1 - attente / def.periode) * 100) + "%";
   document.getElementById("bat-j-prochain-txt").textContent = "";
@@ -209,5 +207,5 @@ function rafraichir() {
   btn.disabled = rien;
   btn.textContent = rien
     ? "💰 Nothing to collect yet"
-    : `💰 Collect ${b.tresorerie} 🪙${stockTxt ? ` + ${stockTxt}` : ""}`;
+    : t("bat.collecter",{or: b.tresorerie, stock: stockTxt ? ` + ${stockTxt}` : ""});
 }
