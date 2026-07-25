@@ -1266,7 +1266,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     temps.total += tempsAvantSoir(temps) + 1; // 1 s DANS la nuit
     if (encheres.derniereVenteJouee >= numeroJour(temps)) temps.total += DUREE_JOUR; // déjà vue → soir suivant
     encheres.ticketPour = numeroJour(temps);  // ticket gratuit du soir
-    afficherMessage("🧪 TEST: dusk! Nobility + ticket granted — go see Magnar to enter the auction.");
+    afficherMessage(t("testeur.soir"));
   });
 
   // La fenêtre de butin (fin de combat gagné) : on récupère le loot d'un clic / Espace.
@@ -1345,9 +1345,9 @@ export async function demarrerJeu(donneesInitiales = null) {
         heros.pv = heros.pvMax; // test : soigné à fond, aucun enjeu
         enPause = false;
         afficherMessage(
-          resultat === "victoire" ? "⚔ Test fight won — healed up."
-          : resultat === "fuite"  ? "🏃 Fled the test fight."
-          : "💀 Test fight lost — no penalty, healed up.");
+          resultat === "victoire" ? t("testeur.gagne")
+          : resultat === "fuite"  ? t("testeur.fui")
+          : t("testeur.perdu"));
       },
     });
   }

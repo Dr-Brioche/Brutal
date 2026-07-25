@@ -562,7 +562,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     enfants.push(segIG(complet));
     const bonus = document.createElement("div");
     bonus.className = "inv-ig-bonus" + (complet ? " inv-ig-bonus--actif" : "");
-    bonus.textContent = "♾ Infinity Gauntlet";
+    bonus.textContent = t("combat.infinityNom");
     const doublons = n === 5 && !toutesUniques;
     bonus.dataset.tooltip = complet
       ? t("inv.gauntletActif")

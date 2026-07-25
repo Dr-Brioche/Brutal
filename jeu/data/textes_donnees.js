@@ -96,6 +96,8 @@ export const TEXTES_DONNEES = {
   // ---- Objets : RECETTE (parchemin). Le nom est reconstruit « préfixe + objet
   // produit » par i18n_donnees.js (pas d'entrée par recette). ----
   "item.recettePrefixe": { fr: "Recette : ", en: "Recipe: " },
+  "item.loreParchemin": { fr: "Anciennes instructions de forge pour {nom}. Lis-le pour apprendre la recette.", en: "Aged forging instructions for the {nom}. Read it to learn the recipe." },
+  "item.parchemin-pioche.lore": { fr: "Le premier outil que forge tout nain. Trois barres de fer honnête posées à plat, deux manches de bois de surface en dessous — simple comme la pierre, têtu comme la montagne. Maîtrise-le, et les filons de l'Abîme ne resteront pas cachés bien longtemps." },
 
   // ---- Objets : ressources ----
   "item.pierre-taillee": { fr: "Pierre taillée" },

@@ -249,6 +249,7 @@ export const TEXTES = {
   "cprof.titre":      { fr: "⛏ Une faveur des profondeurs", en: "⛏ A boon from the depths" },
   "cprof.sous":       { fr: "Choisis-en une — elle dure toute ta descente, puis s'estompe quand tu remontes.", en: "Pick one — it lasts your whole delve, then fades when you leave." },
   "cprof.aide":       { fr: "← → choisir  ·  Entrée valider  ·  1-4 choix rapide", en: "← → choose  ·  Enter pick  ·  1-4 quick pick" },
+  "cprof.aideDyn":    { fr: "← → choisir &nbsp;·&nbsp; Entrée valider &nbsp;·&nbsp; 1-{n} choix rapide", en: "← → choose &nbsp;·&nbsp; Enter pick &nbsp;·&nbsp; 1-{n} quick pick" },
   "prof.force":       { fr: "+{v} Force", en: "+{v} Force" },
   "prof.gold":        { fr: "+{v} Or", en: "+{v} Gold" },
   "prof.celerite":    { fr: "+{v}% Vitesse", en: "+{v}% Speed" },
@@ -380,6 +381,21 @@ export const TEXTES = {
   // ---- Parchemin de recette ----
   "parch.fermerTitre": { fr: "Fermer (Échap)", en: "Close (Esc)" },
   "parch.aide":       { fr: "[Espace] / [Échap] fermer", en: "[Space] / [Esc] to close" },
+  "parch.encrePerdue": { fr: "L'encre s'est effacée — cette recette est perdue.", en: "The ink has faded — this recipe is lost." },
+
+  // ---- Simulateur de combat (écran de test) ----
+  "testeur.titre":    { fr: "⚔ Simulateur de combat (test)", en: "⚔ Combat Simulator (test)" },
+  "testeur.vider":    { fr: "Vider", en: "Clear" },
+  "testeur.lancer":   { fr: "⚔ Combattre !", en: "⚔ Fight!" },
+  "testeur.aide":     { fr: "Choisis des monstres (les grands prennent 2 places) jusqu'à 5, puis Combattre. Aucun enjeu — un pur test · [Échap] fermer", en: "Pick monsters (big ones take 2 places) up to 5, then Fight. No stakes — a pure test · [Esc] to close" },
+  "testeur.places":   { fr: "{used} / {max} places", en: "{used} / {max} places" },
+  "testeur.grand":    { fr: "▮▮ grand", en: "▮▮ big" },
+  "testeur.vide":     { fr: "Choisis jusqu'à 5 places de monstres…", en: "Pick up to 5 places of monsters…" },
+  "testeur.retirer":  { fr: "Retirer", en: "Remove" },
+  "testeur.gagne":    { fr: "⚔ Combat de test gagné — soigné à fond.", en: "⚔ Test fight won — healed up." },
+  "testeur.fui":      { fr: "🏃 Fui le combat de test.", en: "🏃 Fled the test fight." },
+  "testeur.perdu":    { fr: "💀 Combat de test perdu — aucune pénalité, soigné à fond.", en: "💀 Test fight lost — no penalty, healed up." },
+  "testeur.soir":     { fr: "🧪 TEST : crépuscule ! Noblesse + ticket accordés — va voir Magnar pour entrer aux enchères.", en: "🧪 TEST: dusk! Nobility + ticket granted — go see Magnar to enter the auction." },
 
   // ---- Bâtiments (revenu passif) ----
   "bat.prixUnique":   { fr: "Prix (une fois)", en: "Price (one-time)" },
@@ -410,6 +426,7 @@ export const TEXTES = {
   "bat.aideCollecte": { fr: "[Espace] encaisser · [Échap] fermer · clique dehors pour fermer", en: "[Space] collect · [Esc] close · click outside to close" },
   "bat.prodStop":     { fr: "⛔ PRODUCTION ARRÊTÉE — trésorerie pleine, encaisse maintenant !", en: "⛔ PRODUCTION STOPPED — treasury full, collect now!" },
   "bat.prodEnCours":  { fr: "● Production…", en: "● Producing…" },
+  "bat.aVendre":      { fr: "🪧 À VENDRE", en: "🪧 FOR SALE" },
 
   // ---- Dialogues des PNJ de la ville ----
   // Le Fanatique
