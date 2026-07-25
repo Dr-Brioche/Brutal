@@ -22,6 +22,7 @@ import {
 } from "../systems/marche.js";
 import { ajouterObjet, compterRessource, retirerRessource, jeterObjet } from "../systems/inventaire.js";
 import { police } from "../core/texte.js";
+import { t } from "../systems/langue.js";
 
 let overlay, elOr, elBandeau, elRessources, elHisto, elHistoTitre, elAnnonces,
     elBtnVendre, elVente, boutonFermer, elAide, elGraphe, elTri;
@@ -119,14 +120,14 @@ function noter(txt, duree = 2000) {
 
 function acheter(id) {
   const cout = apercuAchat(marche, id, 1);
-  if (inv.or < cout) { noter(`Not enough gold (need ${cout} 🪙).`); return; }
-  if (!ajouterObjet(inv, id)) { noter("Your bag is full."); return; }
+  if (inv.or < cout) { noter(t("hv.pasAssezOr",{cout})); return; }
+  if (!ajouterObjet(inv, id)) { noter(t("hv.sacPlein")); return; }
   inv.or -= acheterRessource(marche, id, 1);
   rendre();
 }
 
 function vendre(id) {
-  if (compterRessource(inv, id) < 1) { noter("You don't have any."); return; }
+  if (compterRessource(inv, id) < 1) { noter(t("hv.pasEnStock")); return; }
   retirerRessource(inv, id, 1);
   inv.or += vendreRessource(marche, id, 1);
   rendre();
@@ -143,8 +144,8 @@ function rendre() {
     const nom = itemDef(e.id)?.nom ?? e.id;
     elBandeau.className = `hv-bandeau hv-bandeau--${e.type}`;
     elBandeau.textContent = e.type === "penurie"
-      ? `⚠ Shortage — every guild is after ${nom}. Prices are soaring!`
-      : `📦 Glut — crates of ${nom} flood the market. Prices are melting!`;
+      ? t("hv.penurie",{nom})
+      : t("hv.surplus",{nom});
     elBandeau.hidden = false;
   } else {
     elBandeau.hidden = true;
@@ -186,7 +187,7 @@ function rendre() {
     btnA.addEventListener("click", (ev) => { ev.stopPropagation(); selId = id; acheter(id); });
     const btnV = document.createElement("button");
     btnV.className = "hv-btn";
-    btnV.textContent = "Sell";
+    btnV.textContent = t("hv.vendreBtn");
     btnV.disabled = possede < 1;
     btnV.addEventListener("click", (ev) => { ev.stopPropagation(); selId = id; vendre(id); });
     ligne.append(btnA, btnV);
@@ -195,7 +196,7 @@ function rendre() {
   });
 
   // Colonne droite : graphique des prix de la ressource sélectionnée.
-  elHistoTitre.textContent = `Price history — ${itemDef(selId)?.nom ?? selId}`;
+  elHistoTitre.textContent = t("hv.histoDe",{nom: itemDef(selId)?.nom ?? selId});
   rendreGraphe(selId);
 
   rendreAnnonces();
@@ -317,7 +318,7 @@ function rendreGraphe(id) {
     g.fillStyle = "#6a7290";
     g.font = police(10);
     g.textAlign = "center"; g.textBaseline = "alphabetic";
-    g.fillText("History builds up as you play…", (M.g + larg - M.d) / 2, M.h + 14);
+    g.fillText(t("hv.histoVide"), (M.g + larg - M.d) / 2, M.h + 14);
   }
 }
 
@@ -345,7 +346,7 @@ function rendreAnnonces() {
       const pv = document.createElement("span");
       pv.className = "hv-annonce-pv " + (pvPct >= 0 ? "hv-annonce-pv--gain" : "hv-annonce-pv--perte");
       pv.textContent = `${pvPct >= 0 ? "+" : ""}${pvPct}%`;
-      pv.title = "Plus-value vs. selling this item straight to the merchant";
+      pv.title = t("hv.plusValueTip");
       const btn = document.createElement("button");
       btn.className = "hv-btn hv-btn--or";
       btn.textContent = "💰 Collect";
@@ -371,7 +372,7 @@ function collecter(v) {
   if (!res) return; // déjà récoltée entre-temps (ne devrait pas arriver, sécurité)
   inv.or += res.prix;
   const pvPct = prixMarchand > 0 ? Math.round((res.prix - prixMarchand) / prixMarchand * 100) : 0;
-  noter(`💰 Collected ${res.prix} 🪙 for ${d?.nom ?? v.id} — ${pvPct >= 0 ? "+" : ""}${pvPct}% vs. the merchant.`, 3500);
+  noter(t("hv.collecte",{prix: res.prix, nom: d?.nom ?? v.id, pct: (pvPct>=0?"+":"")+pvPct}), 3500);
   rendre();
 }
 
@@ -406,7 +407,7 @@ function rendreVente() {
   const enListe = venteEtape === "liste";
   elVenteListe.hidden = !enListe;
   elVentePrix.hidden = enListe;
-  elVenteTitre.textContent = enListe ? "Sell an item" : "Set your price";
+  elVenteTitre.textContent = enListe ? t("hv.venteTitre") : t("hv.fixePrix");
   elVenteAide.textContent = enListe
     ? "[↑↓] Choose · [Enter] Select · [Esc] Back"
     : "[←→] Price ±1% (Shift: ×10) · [Enter] List it · [Esc] Back";
@@ -438,11 +439,11 @@ function rendreVente() {
   const e = estimerDelaiVente(id, ventePrix, ql);
   // Écart à la VALEUR : négatif = en dessous (vente sûre), positif = au-dessus (pari).
   const ecart = Math.round((ventePrix / valeurReelle(id, ql) - 1) * 100);
-  const ecartTxt = ecart >= 0 ? `+${ecart}% above value` : `${ecart}% below value`;
+  const ecartTxt = ecart >= 0 ? t("hv.surValeur",{ecart}) : t("hv.sousValeur",{ecart});
   elVenteNote.innerHTML =
-    `Estimated sale time: <b>${fmtEstim(e.min)} – ${fmtEstim(e.max)}</b> of play` +
+    t("hv.tempsEstime",{min: fmtEstim(e.min), max: fmtEstim(e.max)}) +
     ` &nbsp;(${ecartTxt})<br>` +
-    `Recommended: ${prixConseille(id, ql)} <span class="icone-piece"></span> · Merchant would pay: ${prixVente(id, ql)} <span class="icone-piece"></span>`;
+    t("hv.recommande",{conseil: prixConseille(id, ql), marchand: prixVente(id, ql)});
 }
 
 function choisirObjetVente() {
@@ -470,7 +471,7 @@ function confirmerVente() {
   // elle reviendra si on ajoute un jour l'annulation d'annonce).
   jeterObjet(inv, venteObjet);
   mettreEnVente(marche, venteObjet.id, ventePrix, venteObjet.qualite ?? null);
-  noter(`📈 ${itemDef(venteObjet.id).nom} listed for ${ventePrix} 🪙.`);
+  noter(t("hv.listeConfirm",{nom: itemDef(venteObjet.id).nom, prix: ventePrix}));
   fermerVente();
   rendre();
 }
@@ -527,7 +528,7 @@ function surTouche(e) {
     e.preventDefault(); e.stopPropagation();
     const v = marche.ventes.find((v) => v.vendu);
     if (v) collecter(v);
-    else noter("Nothing ready to collect yet.");
+    else noter(t("hv.rienACollecter"));
   }
 }
 
@@ -560,19 +561,19 @@ export function phraseCourtier(marche) {
   if (e?.type === "penurie") {
     const nom = itemDef(e.id)?.nom ?? e.id;
     return [
-      "Welcome to the Deep-Market Exchange, friend.",
-      `Between us… the ${nom} wagons never made it through the tunnels this week. Every guild is paying a fortune for it.`,
+      t("hv.bienvenue"),
+      t("hv.penurieDialogue",{nom}),
     ];
   }
   if (e?.type === "surplus") {
     const nom = itemDef(e.id)?.nom ?? e.id;
     return [
-      "Welcome to the Deep-Market Exchange, friend.",
+      t("hv.bienvenue"),
       `A caravan just dumped crates of ${nom} on the market… I wouldn't sell any of it right now, friend.`,
     ];
   }
   return [
-    "Welcome to the Deep-Market Exchange, friend.",
-    "Ore, gems, timber — everything has a price. And prices… move.",
+    t("hv.bienvenue"),
+    t("hv.tagline"),
   ];
 }

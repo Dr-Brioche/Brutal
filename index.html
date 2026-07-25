@@ -2898,9 +2898,9 @@
   <div class="hv" id="hv" hidden>
     <div class="hv-zone">
       <div class="forge-entete">
-        <h1 class="forge-titre">Deep-Market Exchange</h1>
+        <h1 class="forge-titre" data-i18n="hv.titre">Deep-Market Exchange</h1>
         <div class="hv-or"><span class="icone-piece"></span> <span id="hv-or">0</span></div>
-        <button class="forge-fermer" id="hv-fermer" title="Leave (Esc)">✕</button>
+        <button class="forge-fermer" id="hv-fermer" title="Leave (Esc)" data-i18n-title="hv.quitterTitre">✕</button>
       </div>
       <!-- Bandeau d'événement (pénurie / surplus) avec la phrase-indice. -->
       <div class="hv-bandeau" id="hv-bandeau" hidden></div>
@@ -2908,30 +2908,30 @@
         <!-- Colonne gauche : tri + ressources (prix vivant, tendance, achat/vente). -->
         <div class="hv-colonne-gauche">
           <div class="hv-tri" id="hv-tri">
-            <button class="hv-tri-btn hv-tri-btn--actif" data-tri="defaut">Default</button>
-            <button class="hv-tri-btn" data-tri="hausse">📈 Top gainers (30m)</button>
-            <button class="hv-tri-btn" data-tri="baisse">📉 Top losers (30m)</button>
+            <button class="hv-tri-btn hv-tri-btn--actif" data-tri="defaut" data-i18n="hv.triDefaut">Default</button>
+            <button class="hv-tri-btn" data-tri="hausse" data-i18n="hv.triHausse">📈 Top gainers (30m)</button>
+            <button class="hv-tri-btn" data-tri="baisse" data-i18n="hv.triBaisse">📉 Top losers (30m)</button>
           </div>
           <div class="hv-ressources" id="hv-ressources"></div>
         </div>
         <!-- Colonne droite : graphique des prix de la ressource sélectionnée
              (façon trading, 1 h de jeu actif) + annonces. -->
         <div class="hv-droite">
-          <div class="hv-sous-titre" id="hv-histo-titre">Price history</div>
+          <div class="hv-sous-titre" id="hv-histo-titre" data-i18n="hv.histoTitre">Price history</div>
           <div class="hv-histo" id="hv-histo">
             <canvas id="hv-graphe"></canvas>
           </div>
-          <div class="hv-sous-titre">Your listings</div>
+          <div class="hv-sous-titre" data-i18n="hv.tesAnnonces">Your listings</div>
           <div class="hv-annonces" id="hv-annonces"></div>
-          <button class="hv-btn" id="hv-vendre-objet">＋ Sell an item…</button>
+          <button class="hv-btn" id="hv-vendre-objet" data-i18n="hv.vendreObjet">＋ Sell an item…</button>
         </div>
       </div>
-      <div class="forge-aide">[↑↓] Browse · [A] Buy · [V] Sell · [Esc] Leave</div>
+      <div class="forge-aide" data-i18n="hv.aide">[↑↓] Browse · [A] Buy · [V] Sell · [Esc] Leave</div>
 
       <!-- Sous-fenêtre de MISE EN VENTE d'un objet (choix + prix libre). -->
       <div class="hv-vente" id="hv-vente" hidden>
         <div class="hv-vente-boite">
-          <div class="hv-sous-titre" id="hv-vente-titre">Sell an item</div>
+          <div class="hv-sous-titre" id="hv-vente-titre" data-i18n="hv.venteTitre">Sell an item</div>
           <div class="hv-vente-liste" id="hv-vente-liste"></div>
           <div class="hv-vente-prix" id="hv-vente-prix" hidden>
             <div class="hv-vente-nom" id="hv-vente-nom"></div>
@@ -2941,16 +2941,16 @@
               <button class="hv-btn" id="hv-prix-plus">＋</button>
             </div>
             <div class="hv-vente-note" id="hv-vente-note"></div>
-            <button class="hv-btn hv-btn--or" id="hv-vente-confirmer">📈 List it</button>
+            <button class="hv-btn hv-btn--or" id="hv-vente-confirmer" data-i18n="hv.listIt">📈 List it</button>
           </div>
-          <div class="forge-aide" id="hv-vente-aide">[↑↓] Choose · [Enter] Select · [Esc] Back</div>
+          <div class="forge-aide" id="hv-vente-aide" data-i18n="hv.venteAide">[↑↓] Choose · [Enter] Select · [Esc] Back</div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- L'invite « parler » près d'un PNJ -->
-  <div class="invite" id="invite" hidden>[Space] Talk</div>
+  <div class="invite" id="invite" hidden data-i18n="hud.parler">[Space] Talk</div>
 
   <!-- Les dialogues (PNJ) : texte + choix, navigables au clavier -->
   <div class="dialogue" id="dialogue" hidden>
@@ -2966,7 +2966,7 @@
   <div class="inventaire" id="inventaire" hidden>
     <div class="inv-panneau panneau-ui">
       <div class="inv-entete">
-        <span class="inv-titre">Character</span>
+        <span class="inv-titre" data-i18n="inv.titre">Character</span>
         <span class="inv-pv-boite">❤ <span id="inv-pv">0/0</span></span>
         <span class="inv-or-boite"><span class="icone-piece"></span> <span id="inv-or">0</span></span>
         <button id="inv-deck">🃏 Deck</button>
@@ -2987,7 +2987,7 @@
       </div>
       <div class="inv-onglets" id="inv-onglets"></div>
       <div class="inv-grille" id="inv-grille"></div>
-      <p class="inv-aide">Click an item to pick it up · drop it where you want or on a slot · X: equip/discard · [B] to close</p>
+      <p class="inv-aide" data-i18n="inv.aideComplet">Click an item to pick it up · drop it where you want or on a slot · X: equip/discard · [B] to close</p>
     </div>
   </div>
 
