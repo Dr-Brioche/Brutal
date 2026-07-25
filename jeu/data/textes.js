@@ -290,6 +290,7 @@ export const TEXTES = {
   "hv.rienACollecter": { fr: "Rien à encaisser pour l'instant.", en: "Nothing ready to collect yet." },
   "hv.bienvenue":     { fr: "Bienvenue à l'Hôtel des ventes des profondeurs, l'ami.", en: "Welcome to the Deep-Market Exchange, friend." },
   "hv.penurieDialogue": { fr: "Entre nous… les chariots de {nom} ne sont pas passés par les tunnels cette semaine. Toutes les guildes le paient une fortune.", en: "Between us… the {nom} wagons never made it through the tunnels this week. Every guild is paying a fortune for it." },
+  "hv.surplusDialogue": { fr: "Une caravane vient de déverser des caisses de {nom} sur le marché… je n'en vendrais surtout pas maintenant, l'ami.", en: "A caravan just dumped crates of {nom} on the market… I wouldn't sell any of it right now, friend." },
   "hv.tagline":       { fr: "Minerais, gemmes, bois — tout a un prix. Et les prix… bougent.", en: "Ore, gems, timber — everything has a price. And prices… move." },
 
   // ---- Banque ----
@@ -372,4 +373,79 @@ export const TEXTES = {
   "bat.noteVente":    { fr: "⚠ Quand la trésorerie est PLEINE, la production <b>s'arrête</b> — plus rien n'est gagné. Reviens au panneau et <b>encaisse régulièrement</b>. Le temps continue de s'écouler pendant que tu joues (seul le menu pause arrête l'horloge).", en: "⚠ When the treasury is FULL, production <b>stops</b> — nothing more is earned. Walk back to the sign and <b>collect regularly</b>. Time keeps flowing while you play (only the pause menu stops the clock)." },
   "bat.notePossede":  { fr: "La scie tourne pendant que tu joues — même cette fenêtre ouverte. ⚠ Trésorerie pleine = production <b>arrêtée</b>. Encaisse régulièrement !", en: "The saw keeps working while you play — even with this window open. ⚠ Full treasury = production <b>stops</b>. Collect regularly!" },
   "bat.aideCollecte": { fr: "[Espace] encaisser · [Échap] fermer · clique dehors pour fermer", en: "[Space] collect · [Esc] close · click outside to close" },
+
+  // ---- Dialogues des PNJ de la ville ----
+  // Le Fanatique
+  "pnj.fanatic.nom":   { fr: "Le Fanatique", en: "The Fanatic" },
+  "pnj.fanatic.t1":    { fr: "Repens-toi, nain — l'Abîme s'éveille, et il connaît ton nom.", en: "Repent, dwarf — the Deep stirs, and it knows your name." },
+  "pnj.fanatic.t2":    { fr: "Agenouille-toi, et son feu de forge ressoudera ta chair brisée.", en: "Kneel, and its forge-fire shall mend your broken flesh." },
+  "pnj.fanatic.soin":  { fr: "J'ai la foi — soigne-moi.", en: "I have faith — heal me." },
+  "pnj.fanatic.soinMsg": { fr: "✨ Une chaleur inonde tes os — entièrement soigné.", en: "✨ Warmth floods your bones — fully healed." },
+  "pnj.fanatic.refus": { fr: "Ta religion est une secte.", en: "Your religion is a cult." },
+  "pnj.fanatic.refusMsg": { fr: "Le Fanatique ricane et te tourne le dos.", en: "The Fanatic sneers and turns away." },
+
+  // Ferran le forgeron
+  "pnj.ferran.nom":    { fr: "Ferran le forgeron", en: "Ferran the Blacksmith" },
+  "pnj.ferran.t1":     { fr: "Bienvenue à la forge, nain. Le feu ne dort jamais, ici.", en: "Welcome to the forge, dwarf. The fire never sleeps here." },
+  "pnj.ferran.t2":     { fr: "Apporte-moi minerai et volonté — ensemble, on façonnera ton acier.", en: "Bring me ore and willpower — together, we'll shape your steel." },
+  "pnj.ferran.forger": { fr: "⚒  Forger", en: "⚒  Forge" },
+  "pnj.ferran.plusTard": { fr: "Plus tard", en: "Later" },
+
+  // Baldrik le courtier
+  "pnj.baldrik.nom":   { fr: "Baldrik le courtier", en: "Baldrik the Broker" },
+  "pnj.baldrik.refus1": { fr: "« La Bourse du Marché Profond commerce avec les CITOYENS de Brütàl, l'ami — pas avec les vagabonds. »", en: "“The Deep-Market Exchange trades with CITIZENS of Brütàl, friend — not with drifters.”" },
+  "pnj.baldrik.refus2": { fr: "« Gagne ta Citoyenneté — va voir les maîtres de talents — et mes registres sont à toi. »", en: "“Earn your Citizenship — see the talent masters — and my ledgers are yours.”" },
+  "pnj.baldrik.partir": { fr: "Partir", en: "Leave" },
+  "pnj.baldrik.trade": { fr: "📈  Commercer", en: "📈  Trade" },
+  "pnj.baldrik.later": { fr: "Plus tard", en: "Later" },
+
+  // La Fontaine ancienne
+  "pnj.fontaine.nom":  { fr: "Fontaine ancienne", en: "Ancient Fountain" },
+  "pnj.fontaine.t1":   { fr: "L'eau brille d'une vieille magie de forge.", en: "The water glows with old forge-magic." },
+  "pnj.fontaine.t2":   { fr: "Bois, et sens ta puissance grandir.", en: "Drink, and feel your power grow." },
+  "pnj.fontaine.boire": { fr: "💧  Boire — gagner 1 niveau", en: "💧  Drink — gain 1 level" },
+  "pnj.fontaine.boireMsg": { fr: "⬆ Niveau {niveau} !  +1 point de talent — appuie sur T pour le dépenser.", en: "⬆ Level {niveau}!  +1 talent point — press T to spend it." },
+  "pnj.fontaine.partir": { fr: "Partir", en: "Leave" },
+
+  // Magnar le commissaire-priseur
+  "pnj.magnar.nom":    { fr: "Magnar le commissaire-priseur", en: "Magnar the Auctioneer" },
+  "pnj.magnar.refus1": { fr: "« Les enchères du soir sont réservées aux TITRÉS de Brütàl, étranger. »", en: "“The evening auctions are for the TITLED of Brütàl, stranger.”" },
+  "pnj.magnar.refus2": { fr: "« Gagne-toi un Titre de Noblesse — va voir les maîtres de talents — et nous parlerons affaires. »", en: "“Earn yourself a Title of Nobility — see the talent masters — and we shall talk business.”" },
+  "pnj.magnar.arrive": { fr: "« Vous voilà, mon seigneur. La salle chauffe — on y va ? »", en: "“You made it, my lord. The hall is warming up — shall we go in?”" },
+  "pnj.magnar.dejaJoue": { fr: "« Beau spectacle ce soir, non ? Repassez demain soir. »", en: "“Quite a show tonight, wasn't it? Come back tomorrow evening.”" },
+  "pnj.magnar.porteFermee": { fr: "« Les portes sont closes — l'enchère de ce soir se fera sans vous. Il y a toujours demain. »", en: "“The doors are shut — tonight's auction goes on without you. There is always tomorrow.”" },
+  "pnj.magnar.inscrOuverte": { fr: "« L'enchère commence au crépuscule — dans {temps} de jeu. Les inscriptions sont OUVERTES, mon seigneur. »", en: "“The auction starts at dusk — in {temps} of play. Registrations are OPEN, my lord.”" },
+  "pnj.magnar.inscrBientot": { fr: "« Prochaine enchère au crépuscule, dans {temps} de jeu. Les inscriptions ouvrent peu avant — ne soyez pas en retard. »", en: "“Next auction at dusk, in {temps} of play. Registrations open shortly before — don't be late.”" },
+  "pnj.magnar.deposes": { fr: "« Consignés pour la prochaine vente : {noms}. La salle décidera de leur sort. »", en: "“Consigned for the next sale: {noms}. The room will decide their fate.”" },
+  "pnj.magnar.collecter": { fr: "💰  Récupérer ton dû — {detail}", en: "💰  Collect your dues — {detail}" },
+  "pnj.magnar.item1":  { fr: "objet", en: "item" },
+  "pnj.magnar.itemN":  { fr: "objets", en: "items" },
+  "pnj.magnar.entrer": { fr: "🔔  Entrer dans la salle des ventes", en: "🔔  Enter the auction hall" },
+  "pnj.magnar.ticket": { fr: "🎫  Acheter l'entrée de ce soir — {prix} 🪙", en: "🎫  Buy tonight's entry ticket — {prix} 🪙" },
+  "pnj.magnar.ticketMsg": { fr: "🎫 Ticket en poche — sois à la salle quand la cloche sonne !", en: "🎫 Ticket in pocket — be at the hall when the bell rings!" },
+  "pnj.magnar.ticketPasAssez": { fr: "Pas assez d'or (le ticket coûte {prix} 🪙).", en: "Not enough gold (the ticket costs {prix} 🪙)." },
+  "pnj.magnar.slot1":  { fr: "({n} place restante)", en: "({n} slot left)" },
+  "pnj.magnar.slotN":  { fr: "({n} places restantes)", en: "({n} slots left)" },
+  "pnj.magnar.deposDerniere": { fr: "📦  Consignation de dernière minute…  {slots}", en: "📦  Last-minute consignment…  {slots}" },
+  "pnj.magnar.deposConsigner": { fr: "📦  Consigner un objet à vendre…  {slots}", en: "📦  Consign an item to sell…  {slots}" },
+  "pnj.magnar.partir": { fr: "Partir", en: "Leave" },
+  // Sous-menu dépôt
+  "pnj.magnar.depNom": { fr: "Magnar — Consignation", en: "Magnar — Consignment" },
+  "pnj.magnar.depRien": { fr: "« Rien dans ton sac n'est digne de ma salle — apporte-moi de l'artisanat RARE ou mieux. »", en: "“Nothing in your bag is worthy of my room — bring me RARE craft or better.”" },
+  "pnj.magnar.depRetour": { fr: "←  Retour", en: "←  Back" },
+  "pnj.magnar.depLigne": { fr: "Consigner {nom}  ·  valeur ~{val} 🪙", en: "Consign {nom}  ·  value ~{val} 🪙" },
+  "pnj.magnar.depMsg": { fr: "📦 {nom} consigné — il passera sous le marteau à la prochaine vente.", en: "📦 {nom} consigned — it goes under the hammer at the next sale." },
+  "pnj.magnar.depNote": { fr: "« Un mot d'honnêteté : c'est la salle qui décide du prix. La fortune… ou la perte. Prix plancher = ce qu'un marchand paierait. »", en: "“A word of honesty: the room decides the price. Riches… or a loss. Floor price = what a merchant would pay.”" },
+
+  // Grimbrück le banquier
+  "pnj.grimbruck.nom": { fr: "Grimbrück le banquier", en: "Grimbrück the Banker" },
+  "pnj.grimbruck.t1":  { fr: "« L'or qui dort est de l'or gâché, l'ami. Dépose-le dans mon coffre pour un rendement sûr et régulier… »", en: "“Gold left idle is gold wasted, friend. Lodge it in my vault for safe, steady returns…”" },
+  "pnj.grimbruck.t2":  { fr: "« …ou finance les meilleures entreprises de Brütàl — gains plus juteux, mais risques plus vifs. Les krachs arrivent. La ruine aussi. »", en: "“…or back Brütàl's finest ventures — richer rewards, but sharper risks. Crashes happen. Ruin, too.”" },
+  "pnj.grimbruck.gerer": { fr: "🏦  Gérer mon argent", en: "🏦  Manage my money" },
+  "pnj.grimbruck.partir": { fr: "Partir", en: "Leave" },
+
+  // Unités de temps de jeu (Magnar)
+  "pnj.temps.s":       { fr: "{n} s", en: "{n} s" },
+  "pnj.temps.min":     { fr: "{n} min", en: "{n} min" },
+  "pnj.temps.h":       { fr: "{h} h {m}", en: "{h} h {m}" },
 };
