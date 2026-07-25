@@ -574,4 +574,13 @@ export const TEXTES = {
   "msg.soir":         { fr: "🌙 Le crépuscule tombe sur Brütàl.", en: "🌙 Dusk falls on Brütàl." },
   "msg.aube":         { fr: "🌅 Le jour {n} se lève sur Brütàl.", en: "🌅 Day {n} dawns on Brütàl." },
   "msg.venteAuto":    { fr: "🔨 Ton {nom} a été vendu aux enchères pour {prix} 🪙 — récupère-le chez Magnar.", en: "🔨 Your {nom} sold at auction for {prix} 🪙 — collect from Magnar." },
+
+  // ---- Noms de zones (message d'entrée) ----
+  "zone.Brütàl — the City":      { fr: "Brütàl — la Cité", en: "Brütàl — the City" },
+  "zone.Eastern Under-tunnels":  { fr: "Souterrains de l'Est", en: "Eastern Under-tunnels" },
+  "zone.The Depths":             { fr: "Les Profondeurs", en: "The Depths" },
+  "zone.Crystal Depths":         { fr: "Profondeurs de cristal", en: "Crystal Depths" },
+  "zone.Frozen Depths":          { fr: "Profondeurs gelées", en: "Frozen Depths" },
+  "zone.Molten Depths":          { fr: "Profondeurs de lave", en: "Molten Depths" },
+  "zone.Flooded Depths":         { fr: "Profondeurs inondées", en: "Flooded Depths" },
 };

@@ -16,7 +16,7 @@ import {
   ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
   equiperNeuf, equiper, estEquipable,
 } from "./systems/inventaire.js";
-import { t } from "./systems/langue.js";
+import { t, tr } from "./systems/langue.js";
 import {
   creerMaitrise, etatMaitrise, chargerMaitrise,
 } from "./systems/maitrise.js";
@@ -1533,7 +1533,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     surEntreeMine = true;            // … ni une entrée de mine si on atterrit dessus
     surDescente = true;              // … ni un passage de descente
     mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
-    afficherMessage(carte.nom);
+    afficherMessage(carte.nom ? tr(`zone.${carte.nom}`, carte.nom) : carte.nom);
     majHudInfo();                    // HUD : niveau des mobs + minerais de l'étage
     const musique = zone.musique ?? null;
     if (musique) jouerMusique(musique); else arreterMusique();
