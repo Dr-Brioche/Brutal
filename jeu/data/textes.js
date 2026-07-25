@@ -237,4 +237,11 @@ export const TEXTES = {
   "prof.porte":       { fr: "Passage garanti", en: "Guaranteed passage" },
   "prof.popMonstre":  { fr: "Aucun monstre", en: "No monsters" },
   "prof.chanceMinerais": { fr: "+{v}% minerai", en: "+{v}% ore" },
+
+  // ---- Coffre de ville ----
+  "coffre.titre":     { fr: "Coffre de rangement", en: "Storage Chest" },
+  "coffre.sac":       { fr: "🎒 Sac", en: "🎒 Bag" },
+  "coffre.coffre":    { fr: "📦 Coffre", en: "📦 Chest" },
+  "coffre.aide":      { fr: "Clique un objet pour l'envoyer de l'autre côté · ←↑→↓ + Tab pour naviguer · Entrée pour déplacer · [Échap] fermer", en: "Click an item to move it to the other side · ←↑→↓ + Tab to navigate · Enter to move · [Esc] to close" },
+  "coffre.deplacer":  { fr: "Glisse ou clique pour déplacer", en: "Drag or click to move" },
 };

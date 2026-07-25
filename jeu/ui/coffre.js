@@ -12,6 +12,7 @@
 // La grille et les icônes réutilisent le style de l'inventaire (classes .inv-*).
 
 import { itemDef, couleurRarete } from "../data/items.js";
+import { t } from "../systems/langue.js";
 import { rangsInventaire, colsInventaire, nbSacs, objetSousCase, peutPlacerA, deplacerObjet } from "../systems/inventaire.js";
 import { transfererObjet, coffreCols, coffreRangs } from "../systems/coffre.js";
 import { montrerToast } from "./effets.js";
@@ -173,7 +174,7 @@ export function installerCoffre() {
         const q = document.createElement("span");
         q.className = "inv-item-qte"; q.textContent = o.quantite; ic.append(q);
       }
-      ic.title = "Drag or click to move";
+      ic.title = t("coffre.deplacer");
       // Appui = début d'un drag potentiel (ou d'un clic si on ne bouge pas).
       ic.addEventListener("pointerdown", (ev) => {
         if (ev.button !== 0) return;
@@ -200,11 +201,11 @@ export function installerCoffre() {
     const n = nbSacs(inv);
     elOnglets.style.display = n > 1 ? "flex" : "none";
     if (n <= 1) return;
-    for (let t = 0; t < n; t++) {
+    for (let ti = 0; ti < n; ti++) {
       const b = document.createElement("button");
-      b.className = "inv-onglet" + (t === ongletSac ? " inv-onglet--actif" : "");
-      b.textContent = t === 0 ? "Bag" : "Bag 2";
-      b.addEventListener("click", () => { ongletSac = t; clamperCurseur(); rendre(); });
+      b.className = "inv-onglet" + (ti === ongletSac ? " inv-onglet--actif" : "");
+      b.textContent = ti === 0 ? t("inv.slot.sac") : t("inv.slot.sac2");
+      b.addEventListener("click", () => { ongletSac = ti; clamperCurseur(); rendre(); });
       elOnglets.append(b);
     }
   }
