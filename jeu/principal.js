@@ -491,22 +491,19 @@ export async function demarrerJeu(donneesInitiales = null) {
     enPause = true;
     invite.hidden = true;
     ouvrirDialogue({
-      nom: "The Fanatic",
-      texte: [
-        "Repent, dwarf — the Deep stirs, and it knows your name.",
-        "Kneel, and its forge-fire shall mend your broken flesh.",
-      ],
+      nom: t("pnj.fanatic.nom"),
+      texte: [t("pnj.fanatic.t1"), t("pnj.fanatic.t2")],
       choix: [
         {
-          texte: "I have faith — heal me.",
+          texte: t("pnj.fanatic.soin"),
           action: () => {
             heros.pv = heros.pvMax;
-            afficherMessage("✨ Warmth floods your bones — fully healed.");
+            afficherMessage(t("pnj.fanatic.soinMsg"));
           },
         },
         {
-          texte: "Your religion is a cult.",
-          action: () => afficherMessage("The Fanatic sneers and turns away."),
+          texte: t("pnj.fanatic.refus"),
+          action: () => afficherMessage(t("pnj.fanatic.refusMsg")),
         },
       ],
     }, () => { enPause = false; });
@@ -520,14 +517,11 @@ export async function demarrerJeu(donneesInitiales = null) {
     enPause = true;
     invite.hidden = true;
     ouvrirDialogue({
-      nom: "Ferran le forgeron",
-      texte: [
-        "Bienvenue à la forge, nain. Le feu ne dort jamais, ici.",
-        "Apporte-moi minerai et volonté — ensemble, on façonnera ton acier.",
-      ],
+      nom: t("pnj.ferran.nom"),
+      texte: [t("pnj.ferran.t1"), t("pnj.ferran.t2")],
       choix: [
-        { texte: "⚒  Forger", action: () => ouvrirForge(inventaire, heros, () => { enPause = false; }, { surDecouverte: apprendreRecette, bibliotheque }) },
-        { texte: "Plus tard", action: () => {} },
+        { texte: t("pnj.ferran.forger"), action: () => ouvrirForge(inventaire, heros, () => { enPause = false; }, { surDecouverte: apprendreRecette, bibliotheque }) },
+        { texte: t("pnj.ferran.plusTard"), action: () => {} },
       ],
     }, () => { if (!forgeActive()) enPause = false; });
   }
@@ -545,21 +539,18 @@ export async function demarrerJeu(donneesInitiales = null) {
     // Sans le titre de CITOYEN, le courtier refuse l'accès à l'Hôtel des ventes.
     if (!heros.citoyen) {
       ouvrirDialogue({
-        nom: "Baldrik the Broker",
-        texte: [
-          "“The Deep-Market Exchange trades with CITIZENS of Brütàl, friend — not with drifters.”",
-          "“Earn your Citizenship — see the talent masters — and my ledgers are yours.”",
-        ],
-        choix: [{ texte: "Leave", action: () => {} }],
+        nom: t("pnj.baldrik.nom"),
+        texte: [t("pnj.baldrik.refus1"), t("pnj.baldrik.refus2")],
+        choix: [{ texte: t("pnj.baldrik.partir"), action: () => {} }],
       }, () => { enPause = false; });
       return;
     }
     ouvrirDialogue({
-      nom: "Baldrik the Broker",
+      nom: t("pnj.baldrik.nom"),
       texte: phraseCourtier(marche),
       choix: [
-        { texte: "📈  Trade", action: () => ouvrirHV(inventaire, marche, () => { enPause = false; }) },
-        { texte: "Later", action: () => {} },
+        { texte: t("pnj.baldrik.trade"), action: () => ouvrirHV(inventaire, marche, () => { enPause = false; }) },
+        { texte: t("pnj.baldrik.later"), action: () => {} },
       ],
     }, () => { if (!hvActive()) enPause = false; });
   }
@@ -569,21 +560,18 @@ export async function demarrerJeu(donneesInitiales = null) {
     enPause = true;
     invite.hidden = true;
     ouvrirDialogue({
-      nom: "Ancient Fountain",
-      texte: [
-        "The water glows with old forge-magic.",
-        "Drink, and feel your power grow.",
-      ],
+      nom: t("pnj.fontaine.nom"),
+      texte: [t("pnj.fontaine.t1"), t("pnj.fontaine.t2")],
       choix: [
         {
-          texte: "💧  Drink — gain 1 level",
+          texte: t("pnj.fontaine.boire"),
           action: () => {
             heros.niveau += 1;
             heros.pointsTalent += 1;
-            afficherMessage(`⬆ Level ${heros.niveau}!  +1 talent point — press T to spend it.`);
+            afficherMessage(t("pnj.fontaine.boireMsg", { niveau: heros.niveau }));
           },
         },
-        { texte: "Leave", action: () => {} },
+        { texte: t("pnj.fontaine.partir"), action: () => {} },
       ],
     }, () => { enPause = false; });
   }
@@ -603,9 +591,11 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // Minutes de jeu lisibles (« 12 min » / « 1 h 05 »).
   function fmtTempsJeu(s) {
-    if (s < 90) return `${Math.max(1, Math.round(s))} s`;
+    if (s < 90) return t("pnj.temps.s", { n: Math.max(1, Math.round(s)) });
     const m = Math.ceil(s / 60);
-    return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
+    return m < 60
+      ? t("pnj.temps.min", { n: m })
+      : t("pnj.temps.h", { h: Math.floor(m / 60), m: String(m % 60).padStart(2, "0") });
   }
 
   function parlerAuCommissaire() {
@@ -623,12 +613,9 @@ export async function demarrerJeu(donneesInitiales = null) {
     // Sans titre de noblesse : la porte reste fermée (contenu tardif).
     if (!heros.noblesse) {
       ouvrirDialogue({
-        nom: "Magnar the Auctioneer",
-        texte: [
-          "“The evening auctions are for the TITLED of Brütàl, stranger.”",
-          "“Earn yourself a Title of Nobility — see the talent masters — and we shall talk business.”",
-        ],
-        choix: [{ texte: "Leave", action: () => {} }],
+        nom: t("pnj.magnar.nom"),
+        texte: [t("pnj.magnar.refus1"), t("pnj.magnar.refus2")],
+        choix: [{ texte: t("pnj.magnar.partir"), action: () => {} }],
       }, finCommissaire);
       return;
     }
@@ -640,38 +627,38 @@ export async function demarrerJeu(donneesInitiales = null) {
 
     const texte = [];
     if (porteOuverte) {
-      texte.push("“You made it, my lord. The hall is warming up — shall we go in?”");
+      texte.push(t("pnj.magnar.arrive"));
     } else if (nuit) {
       texte.push(encheres.derniereVenteJouee >= jour
-        ? "“Quite a show tonight, wasn't it? Come back tomorrow evening.”"
-        : "“The doors are shut — tonight's auction goes on without you. There is always tomorrow.”");
+        ? t("pnj.magnar.dejaJoue")
+        : t("pnj.magnar.porteFermee"));
     } else if (enFenetreInscription(temps)) {
-      texte.push(`“The auction starts at dusk — in ${fmtTempsJeu(attente)} of play. Registrations are OPEN, my lord.”`);
+      texte.push(t("pnj.magnar.inscrOuverte", { temps: fmtTempsJeu(attente) }));
     } else {
-      texte.push(`“Next auction at dusk, in ${fmtTempsJeu(attente)} of play. Registrations open shortly before — don't be late.”`);
+      texte.push(t("pnj.magnar.inscrBientot", { temps: fmtTempsJeu(attente) }));
     }
     if (encheres.depots.length) {
       const noms = encheres.depots.map((d) => ITEMS[d.id].nom).join(", ");
-      texte.push(`“Consigned for the next sale: ${noms}. The room will decide their fate.”`);
+      texte.push(t("pnj.magnar.deposes", { noms }));
     }
 
     const choix = [];
     // Gains / lots en attente (vente hors écran, sac plein…).
     const du = encheres.aRecuperer;
     if (du.or > 0 || du.objets.length) {
-      const detail = [du.or > 0 ? `${du.or} 🪙` : null, du.objets.length ? `${du.objets.length} item${du.objets.length > 1 ? "s" : ""}` : null]
+      const detail = [du.or > 0 ? `${du.or} 🪙` : null, du.objets.length ? `${du.objets.length} ${t(du.objets.length > 1 ? "pnj.magnar.itemN" : "pnj.magnar.item1")}` : null]
         .filter(Boolean).join(" + ");
-      choix.push({ texte: `💰  Collect your dues — ${detail}`, action: collecterDusEncheres });
+      choix.push({ texte: t("pnj.magnar.collecter", { detail }), action: collecterDusEncheres });
     }
     if (porteOuverte) {
-      choix.push({ texte: "🔔  Enter the auction hall", action: () => entrerEnchere(jour) });
+      choix.push({ texte: t("pnj.magnar.entrer"), action: () => entrerEnchere(jour) });
     }
     if (!nuit && enFenetreInscription(temps) && !aTicket(encheres, jour)) {
       choix.push({
-        texte: `🎫  Buy tonight's entry ticket — ${TICKET} 🪙`,
+        texte: t("pnj.magnar.ticket", { prix: TICKET }),
         action: () => {
-          if (acheterTicket(encheres, inventaire, jour)) afficherMessage("🎫 Ticket in pocket — be at the hall when the bell rings!");
-          else afficherMessage(`Not enough gold (the ticket costs ${TICKET} 🪙).`);
+          if (acheterTicket(encheres, inventaire, jour)) afficherMessage(t("pnj.magnar.ticketMsg"));
+          else afficherMessage(t("pnj.magnar.ticketPasAssez", { prix: TICKET }));
         },
       });
     }
@@ -680,16 +667,16 @@ export async function demarrerJeu(donneesInitiales = null) {
     // par la nuit. Le lot rejoint la prochaine vente (cf. entrerEnchere : d.jour<=jour).
     if (encheres.depots.length < (heros.depotsEncheresMax ?? 1)) {
       const reste = (heros.depotsEncheresMax ?? 1) - encheres.depots.length;
-      const slots = `(${reste} slot${reste > 1 ? "s" : ""} left)`;
+      const slots = t(reste > 1 ? "pnj.magnar.slotN" : "pnj.magnar.slot1", { n: reste });
       choix.push({
         texte: porteOuverte
-          ? `📦  Last-minute consignment…  ${slots}`
-          : `📦  Consign an item to sell…  ${slots}`,
+          ? t("pnj.magnar.deposDerniere", { slots })
+          : t("pnj.magnar.deposConsigner", { slots }),
         action: () => menuDepotEnchere(),
       });
     }
-    choix.push({ texte: "Leave", action: () => {} });
-    ouvrirDialogue({ nom: "Magnar the Auctioneer", texte, choix }, finCommissaire);
+    choix.push({ texte: t("pnj.magnar.partir"), action: () => {} });
+    ouvrirDialogue({ nom: t("pnj.magnar.nom"), texte, choix }, finCommissaire);
   }
 
   // Sous-menu de DÉPÔT : les objets du sac dignes de la salle (équipement rare+).
@@ -697,19 +684,19 @@ export async function demarrerJeu(donneesInitiales = null) {
     const eligibles = inventaire.objets.filter((o) => depotAcceptable(o.id));
     if (!eligibles.length) {
       ouvrirDialogue({
-        nom: "Magnar the Auctioneer",
-        texte: ["“Nothing in your bag is worthy of my room — bring me RARE craft or better.”"],
-        choix: [{ texte: "←  Back", action: () => menuCommissaire() }],
+        nom: t("pnj.magnar.nom"),
+        texte: [t("pnj.magnar.depRien")],
+        choix: [{ texte: t("pnj.magnar.depRetour"), action: () => menuCommissaire() }],
       }, finCommissaire);
       return;
     }
     const choix = eligibles.map((o) => ({
-      texte: `Consign ${ITEMS[o.id].nom}  ·  value ~${valeurReelle(o.id, o.qualite ?? null)} 🪙`,
+      texte: t("pnj.magnar.depLigne", { nom: ITEMS[o.id].nom, val: valeurReelle(o.id, o.qualite ?? null) }),
       itemId: o.id,
       action: () => {
         jeterObjet(inventaire, o); // il quitte le sac (il est chez Magnar désormais)
         encheres.depots.push({ id: o.id, qualite: o.qualite ?? null, jour: numeroJour(temps) });
-        afficherMessage(`📦 ${ITEMS[o.id].nom} consigned — it goes under the hammer at the next sale.`);
+        afficherMessage(t("pnj.magnar.depMsg", { nom: ITEMS[o.id].nom }));
         inventaireUI.rendre();
         // S'il reste des emplacements de dépôt, on rouvre le menu pour en confier
         // un autre ; sinon retour au commissaire.
@@ -717,10 +704,10 @@ export async function demarrerJeu(donneesInitiales = null) {
         else menuCommissaire();
       },
     }));
-    choix.push({ texte: "←  Back", action: () => menuCommissaire() });
+    choix.push({ texte: t("pnj.magnar.depRetour"), action: () => menuCommissaire() });
     ouvrirDialogue({
-      nom: "Magnar — Consignment",
-      texte: ["“A word of honesty: the room decides the price. Riches… or a loss. Floor price = what a merchant would pay.”"],
+      nom: t("pnj.magnar.depNom"),
+      texte: [t("pnj.magnar.depNote")],
       choix,
     }, finCommissaire);
   }
@@ -733,14 +720,11 @@ export async function demarrerJeu(donneesInitiales = null) {
     enPause = true;
     invite.hidden = true;
     ouvrirDialogue({
-      nom: "Grimbrück the Banker",
-      texte: [
-        "“Gold left idle is gold wasted, friend. Lodge it in my vault for safe, steady returns…”",
-        "“…or back Brütàl's finest ventures — richer rewards, but sharper risks. Crashes happen. Ruin, too.”",
-      ],
+      nom: t("pnj.grimbruck.nom"),
+      texte: [t("pnj.grimbruck.t1"), t("pnj.grimbruck.t2")],
       choix: [
-        { texte: "🏦  Manage my money", action: () => ouvrirBanque() },
-        { texte: "Leave", action: () => {} },
+        { texte: t("pnj.grimbruck.gerer"), action: () => ouvrirBanque() },
+        { texte: t("pnj.grimbruck.partir"), action: () => {} },
       ],
     }, () => { if (!banqueActif()) enPause = false; });
   }

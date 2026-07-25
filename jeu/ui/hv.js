@@ -569,7 +569,7 @@ export function phraseCourtier(marche) {
     const nom = itemDef(e.id)?.nom ?? e.id;
     return [
       t("hv.bienvenue"),
-      `A caravan just dumped crates of ${nom} on the market… I wouldn't sell any of it right now, friend.`,
+      t("hv.surplusDialogue",{nom}),
     ];
   }
   return [
