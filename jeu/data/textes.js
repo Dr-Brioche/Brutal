@@ -55,6 +55,14 @@ export const TEXTES = {
   "confirm.oui":      { fr: "Confirmer", en: "Confirm" },
   "confirm.non":      { fr: "Annuler", en: "Cancel" },
 
+  // ---- Infobulle d'objet (set / combo / slot vide) ----
+  "tip.setComplet":   { fr: "Set complet : ", en: "Full set: " },
+  "tip.comboArme":    { fr: "Combo d'arme", en: "Weapon Combo" },
+  "tip.comboCondition": { fr: "Quand assemblé : ", en: "When set up: " },
+  "tip.slotVide":     { fr: "{label} — vide", en: "{label} — empty" },
+  "tip.slotVideExpl": { fr: "À vide, ton deck contient :", en: "While empty, your deck holds:" },
+  "tip.slotVideAstuce": { fr: "Équipe cet emplacement pour les remplacer.", en: "Equip this slot to replace these." },
+
   // ---- Barre de menu (bas-droite) ----
   "barre.sac":       { fr: "Sac", en: "Bag" },
   "barre.sacTitre":  { fr: "Inventaire (B)", en: "Inventory (B)" },
@@ -75,6 +83,13 @@ export const TEXTES = {
   "combat.victoire":  { fr: "Victoire !", en: "Victory!" },
   "combat.defaite":   { fr: "Défaite", en: "Defeat" },
   "combat.fuiteRatee": { fr: "✗ Fuite ratée !", en: "✗ Escape failed!" },
+  "combat.brulureTour": { fr: "🔥 -{n}/tour", en: "🔥 -{n}/turn" },
+  "combat.lvlEnn":    { fr: "niv {n}", en: "lvl {n}" },
+  "combat.permForce": { fr: "Force permanente : chaque coup inflige +{n} dégâts bonus pendant tout le combat.", en: "Permanent Force: every hit deals +{n} bonus damage for the whole combat." },
+  "combat.permArmure": { fr: "Armure permanente : gagne {n} Pierre au début de chaque tour pendant tout le combat.", en: "Permanent armor: gain {n} Stone at the start of every turn for the whole combat." },
+  "combat.infinityNom": { fr: "♾ Gantelet de l'infini", en: "♾ Infinity Gauntlet" },
+  "combat.infinityTip": { fr: "Les 5 emplacements de bague remplis : +1 carte/tour · +4 Force · +5 Agilité", en: "All 5 ring slots filled: +1 card/turn · +4 Force · +5 Agility" },
+  "combat.forceChampi": { fr: "Force des champignons : tant que les champignons restent groupés, chacun de leurs coups inflige +{n} dégâts bonus (+1 par champignon, +5 pour le Roi champignon). Tue-les pour la réduire.", en: "Mushroom Force: while mushrooms stand together, each of their hits deals +{n} bonus damage (+1 per mushroom, +5 for the Mushroom King). Kill them to shrink it." },
   "combat.fuiteConfTitre": { fr: "Fuir le combat ?", en: "Flee the battle?" },
   "combat.fuiteConfMsg": { fr: "Vous partez SANS récompense. Chance de fuite : {pct}% (plus d'ennemis = moins) — sinon vous perdez juste votre tour.", en: "You'll leave with NO rewards. Escape chance: {pct}% (more enemies = lower) — otherwise you just lose your turn." },
   "combat.fuiteOui":  { fr: "Fuir", en: "Flee" },
@@ -298,6 +313,15 @@ export const TEXTES = {
   "hv.penurieDialogue": { fr: "Entre nous… les chariots de {nom} ne sont pas passés par les tunnels cette semaine. Toutes les guildes le paient une fortune.", en: "Between us… the {nom} wagons never made it through the tunnels this week. Every guild is paying a fortune for it." },
   "hv.surplusDialogue": { fr: "Une caravane vient de déverser des caisses de {nom} sur le marché… je n'en vendrais surtout pas maintenant, l'ami.", en: "A caravan just dumped crates of {nom} on the market… I wouldn't sell any of it right now, friend." },
   "hv.tagline":       { fr: "Minerais, gemmes, bois — tout a un prix. Et les prix… bougent.", en: "Ore, gems, timber — everything has a price. And prices… move." },
+  "hv.aideDefaut":    { fr: "[↑↓] Parcourir · [A] Acheter · [V] Vendre · [C] Encaisser · [Échap] Partir", en: "[↑↓] Browse · [A] Buy · [V] Sell · [C] Collect · [Esc] Leave" },
+  "hv.titreTendance": { fr: "prix actuel vs. son prix normal", en: "current price vs. its normal price" },
+  "hv.titreVar30":    { fr: "variation du prix sur les 30 dernières min de jeu", en: "price change over the last 30 min of play" },
+  "hv.var30":         { fr: "30m", en: "30m" },
+  "hv.possede":       { fr: "à toi : {n}", en: "you: {n}" },
+  "hv.acheterBtn":    { fr: "Acheter", en: "Buy" },
+  "hv.valeur":        { fr: "valeur", en: "value" },
+  "hv.aideChoix":     { fr: "[↑↓] Choisir · [Entrée] Sélectionner · [Échap] Retour", en: "[↑↓] Choose · [Enter] Select · [Esc] Back" },
+  "hv.aidePrix":      { fr: "[←→] Prix ±1% (Maj : ×10) · [Entrée] Mettre en vente · [Échap] Retour", en: "[←→] Price ±1% (Shift: ×10) · [Enter] List it · [Esc] Back" },
 
   // ---- Banque ----
   "banque.titre":     { fr: "Banque de Brütàl", en: "Bank of Brütàl" },
@@ -347,6 +371,11 @@ export const TEXTES = {
   "ench.miserAide":   { fr: "[Espace] miser · [Échap] partir", en: "[Space] bid · [Esc] leave" },
   "ench.tonBid":      { fr: "— TA mise —", en: "— YOUR bid —" },
   "ench.prixDepart":  { fr: "prix de départ", en: "opening price" },
+  "ench.close":       { fr: "🔨 Vente close", en: "🔨 Auction closed" },
+  "ench.mainsVides":  { fr: "Tu repars les mains vides ce soir.", en: "You leave empty-handed tonight." },
+  "ench.quitterSalleBtn": { fr: "Quitter la salle", en: "Leave the hall" },
+  "ench.aideQuitter": { fr: "[Espace] partir · [Échap] partir", en: "[Space] leave · [Esc] leave" },
+  "ench.prepareLot":  { fr: "Le commissaire prépare le lot suivant…", en: "The auctioneer readies the next lot…" },
 
   // ---- Parchemin de recette ----
   "parch.fermerTitre": { fr: "Fermer (Échap)", en: "Close (Esc)" },
@@ -379,6 +408,8 @@ export const TEXTES = {
   "bat.noteVente":    { fr: "⚠ Quand la trésorerie est PLEINE, la production <b>s'arrête</b> — plus rien n'est gagné. Reviens au panneau et <b>encaisse régulièrement</b>. Le temps continue de s'écouler pendant que tu joues (seul le menu pause arrête l'horloge).", en: "⚠ When the treasury is FULL, production <b>stops</b> — nothing more is earned. Walk back to the sign and <b>collect regularly</b>. Time keeps flowing while you play (only the pause menu stops the clock)." },
   "bat.notePossede":  { fr: "La scie tourne pendant que tu joues — même cette fenêtre ouverte. ⚠ Trésorerie pleine = production <b>arrêtée</b>. Encaisse régulièrement !", en: "The saw keeps working while you play — even with this window open. ⚠ Full treasury = production <b>stops</b>. Collect regularly!" },
   "bat.aideCollecte": { fr: "[Espace] encaisser · [Échap] fermer · clique dehors pour fermer", en: "[Space] collect · [Esc] close · click outside to close" },
+  "bat.prodStop":     { fr: "⛔ PRODUCTION ARRÊTÉE — trésorerie pleine, encaisse maintenant !", en: "⛔ PRODUCTION STOPPED — treasury full, collect now!" },
+  "bat.prodEnCours":  { fr: "● Production…", en: "● Producing…" },
 
   // ---- Dialogues des PNJ de la ville ----
   // Le Fanatique
@@ -511,6 +542,12 @@ export const TEXTES = {
   "boon.lblSoin":     { fr: "Soigne {v} PV", en: "Heal {v} HP" },
   "boon.lblPorte":    { fr: "passage garanti vers le bas", en: "guaranteed passage down" },
   "boon.lblDefaut":   { fr: "+{v}", en: "+{v}" },
+  // Bandeau des buffs de run actifs (HUD de mine)
+  "run.force":        { fr: "+{n} Force au combat", en: "+{n} Force in combat" },
+  "run.celerite":     { fr: "+{n}% de vitesse de combat", en: "+{n}% combat speed" },
+  "run.agilite":      { fr: "+{n} Agilité au combat", en: "+{n} Agility in combat" },
+  "run.armure":       { fr: "+{n} d'armure au début du combat", en: "+{n} armor at combat start" },
+  "run.gold":         { fr: "+{n} d'or — versé seulement si tu ressors vivant de la mine", en: "+{n} gold — paid only if you leave the mine alive" },
 
   // ---- Messages de mine (remontée, caches, minage, mort) ----
   "mine.resurface":   { fr: "🪙 Tu remontes avec {n} d'or des profondeurs !", en: "🪙 You resurface with {n} gold from the depths!" },

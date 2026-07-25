@@ -211,13 +211,13 @@ function rendre() {
   if (etat?.finVente) {
     // Résumé de fin : ce que la soirée a donné.
     elScene.innerHTML =
-      `<div class="ench-fin-titre">🔨 Auction closed</div>` +
+      `<div class="ench-fin-titre">${t("ench.close")}</div>` +
       (resultats.length
         ? resultats.map((r) => `<div class="ench-fin-ligne ench-fin--${r.classe}">${r.texte}</div>`).join("")
-        : `<div class="ench-fin-ligne">You leave empty-handed tonight.</div>`);
-    elBoutons.innerHTML = `<button class="bat-btn bat-btn--or" id="ench-fermer2">Leave the hall</button>`;
+        : `<div class="ench-fin-ligne">${t("ench.mainsVides")}</div>`);
+    elBoutons.innerHTML = `<button class="bat-btn bat-btn--or" id="ench-fermer2">${t("ench.quitterSalleBtn")}</button>`;
     document.getElementById("ench-fermer2").addEventListener("click", fermer);
-    elAide.textContent = "[Space] leave · [Esc] leave";
+    elAide.textContent = t("ench.aideQuitter");
     return;
   }
   if (!etat) return;
@@ -243,7 +243,7 @@ function rendre() {
       </div>
     </div>` +
     (entracte
-      ? `<div class="ench-prix-bloc"><div class="ench-attente">The auctioneer readies the next lot…</div></div>`
+      ? `<div class="ench-prix-bloc"><div class="ench-attente">${t("ench.prepareLot")}</div></div>`
       : `<div class="ench-prix-bloc">
           <div class="ench-prix">${etat.prix} 🪙</div>
           <div class="ench-tenant">${etat.tenant === "vous" ? t("ench.tonBid") : etat.tenant ? t("ench.detenuPar",{qui: etat.tenant}) : t("ench.prixDepart")}</div>

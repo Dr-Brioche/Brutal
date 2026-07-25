@@ -12,6 +12,7 @@
 // ajoute des loots au fil du temps sans toucher à ce fichier.
 
 import { LOOTS_PROFONDEUR, CHANCES_RARETE_PROFONDEUR } from "../data/profondeur.js";
+import { t } from "./langue.js";
 
 // Rareté d'un loot : nom affiché + couleur (comme les objets).
 export const RARETES_PROFONDEUR = {
@@ -98,10 +99,10 @@ export function bonusCombatRun(run) {
 export function resumeRun(run) {
   if (!run) return [];
   const out = [];
-  if (run.force) out.push({ icone: "💪", texte: `+${run.force}`, tip: `+${run.force} Force in combat` });
-  if (run.celerite) out.push({ icone: "⚡", texte: `+${run.celerite}%`, tip: `+${run.celerite}% combat speed` });
-  if (run.agilite) out.push({ icone: "⚡", texte: `+${run.agilite}`, tip: `+${run.agilite} Agility in combat` });
-  if (run.armure) out.push({ icone: "🛡", texte: `+${run.armure}`, tip: `+${run.armure} armor at combat start` });
-  if (run.gold) out.push({ icone: "🪙", texte: `+${run.gold}`, tip: `+${run.gold} gold — paid only if you leave the mine alive` });
+  if (run.force) out.push({ icone: "💪", texte: `+${run.force}`, tip: t("run.force", { n: run.force }) });
+  if (run.celerite) out.push({ icone: "⚡", texte: `+${run.celerite}%`, tip: t("run.celerite", { n: run.celerite }) });
+  if (run.agilite) out.push({ icone: "⚡", texte: `+${run.agilite}`, tip: t("run.agilite", { n: run.agilite }) });
+  if (run.armure) out.push({ icone: "🛡", texte: `+${run.armure}`, tip: t("run.armure", { n: run.armure }) });
+  if (run.gold) out.push({ icone: "🪙", texte: `+${run.gold}`, tip: t("run.gold", { n: run.gold }) });
   return out;
 }

@@ -434,7 +434,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     jaugeBar.classList.toggle("surchauffe", combat.chaleur > combat.chaleurSeuil);
     jaugeValeur.textContent = combat.chaleur;
     const brulure = degatsSurchauffe(combat);
-    jaugeBrulure.textContent = brulure > 0 ? `🔥 -${brulure}/turn` : "";
+    jaugeBrulure.textContent = brulure > 0 ? t("combat.brulureTour", { n: brulure }) : "";
   }
   function pulserJauge() {
     jauge.classList.remove("brule");
@@ -500,21 +500,21 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const el = document.createElement("div");
       el.className = "combat-perm-buff";
       el.textContent = `💪 +${combat.forcePerm}`;
-      el.dataset.tooltip = `Permanent Force: every hit deals +${combat.forcePerm} bonus damage for the whole combat.`;
+      el.dataset.tooltip = t("combat.permForce", { n: combat.forcePerm });
       elPermBuff.append(el);
     }
     if (combat.pierreParTour > 0) {
       const el = document.createElement("div");
       el.className = "combat-perm-buff combat-perm-buff--armure";
       el.textContent = `🛡 +${combat.pierreParTour}`;
-      el.dataset.tooltip = `Permanent armor: gain ${combat.pierreParTour} Stone at the start of every turn for the whole combat.`;
+      el.dataset.tooltip = t("combat.permArmure", { n: combat.pierreParTour });
       elPermBuff.append(el);
     }
     if (combat.infinityGauntlet) {
       const el = document.createElement("div");
       el.className = "combat-perm-buff combat-perm-buff--infinity";
-      el.textContent = "♾ Infinity Gauntlet";
-      el.dataset.tooltip = "All 5 ring slots filled: +1 card/turn · +4 Force · +5 Agility";
+      el.textContent = t("combat.infinityNom");
+      el.dataset.tooltip = t("combat.infinityTip");
       elPermBuff.append(el);
     }
     elPermBuff.hidden = elPermBuff.childElementCount === 0;
@@ -530,7 +530,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const el = document.createElement("div");
       el.className = "combat-perm-buff combat-perm-buff--champi";
       el.textContent = `🍄 +${combat.forceChampi}`;
-      el.dataset.tooltip = `Mushroom Force: while mushrooms stand together, each of their hits deals +${combat.forceChampi} bonus damage (+1 per mushroom, +5 for the Mushroom King). Kill them to shrink it.`;
+      el.dataset.tooltip = t("combat.forceChampi", { n: combat.forceChampi });
       elPermMonstres.append(el);
     }
     elPermMonstres.hidden = elPermMonstres.childElementCount === 0;
@@ -1836,7 +1836,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       // Pill de niveau (rectangle arrondi doré) à droite de la barre de vie.
       const lvlEnn = u.e.def?.niveau;
       if (lvlEnn != null) {
-        const txt = `lvl ${lvlEnn}`;
+        const txt = t("combat.lvlEnn", { n: lvlEnn });
         ctx.font = police(6, POLICE_NOM);
         const tw = ctx.measureText(txt).width;
         const pw = tw + 9, ph = 9; // largeur et hauteur de la pill

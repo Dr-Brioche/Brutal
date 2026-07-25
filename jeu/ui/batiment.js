@@ -179,8 +179,8 @@ function rafraichir() {
   const plein = b.tresorerie >= def.tresorerieMax;
   elEtat.className = "bat-etat " + (plein ? "bat-etat--stop" : "bat-etat--ok");
   elEtat.textContent = plein
-    ? "⛔ PRODUCTION STOPPED — treasury full, collect now!"
-    : "● Producing…";
+    ? t("bat.prodStop")
+    : t("bat.prodEnCours");
 
   // Jauge de trésorerie.
   const jt = document.getElementById("bat-j-treso");
