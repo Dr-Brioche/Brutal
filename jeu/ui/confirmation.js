@@ -11,6 +11,8 @@
 // `confirmationActive()` permet aux autres écrans (butin, inventaire, dialogue
 // marchand) d'ignorer le clavier / la souris pendant qu'une confirmation est là.
 
+import { t } from "../systems/langue.js";
+
 let actif = false;
 export function confirmationActive() { return actif; }
 
@@ -21,7 +23,7 @@ const VERS_OUI = new Set(["ArrowRight", "ArrowDown", "KeyD", "KeyS"]);
 // `surOui` / `surNon` : callbacks (optionnels). `danger` colore le bouton de
 // validation en rouge (action destructrice) ET met le focus initial sur « Non ».
 export function demanderConfirmation(
-  { titre, message, texteOui = "Confirm", texteNon = "Cancel", danger = false },
+  { titre, message, texteOui, texteNon, danger = false },
   surOui,
   surNon,
 ) {
@@ -33,10 +35,10 @@ export function demanderConfirmation(
   const btnOui = document.getElementById("confirm-oui");
   const btnNon = document.getElementById("confirm-non");
 
-  elTitre.textContent = titre ?? "Are you sure?";
+  elTitre.textContent = titre ?? t("confirm.sur");
   elMsg.textContent = message ?? "";
-  btnOui.textContent = texteOui;
-  btnNon.textContent = texteNon;
+  btnOui.textContent = texteOui ?? t("confirm.oui");
+  btnNon.textContent = texteNon ?? t("confirm.non");
   btnOui.classList.toggle("confirm-danger", !!danger);
 
   function fini(reponse) {
