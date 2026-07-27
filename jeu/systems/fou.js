@@ -19,6 +19,10 @@
 export const PRIX_FOU = [500, 2000, 10000];
 // Ce qu'il vole en s'échappant si on l'a frappé sans l'achever.
 export const VOL_FOU = 200;
+// LA RANCUNE — la rencontre d'APRÈS le cadeau. Là, il ne marchande plus et ne
+// s'enfuit plus : il RESTE et il FRAPPE, pour ces dégâts par attaque. C'est la
+// seule fois où il se bat vraiment (avant, il file avant même d'avoir pu cogner).
+export const ATTAQUE_RANCUNE = 60;
 // Sa récompense après le 3e paiement (XP + ressources).
 export const CADEAU_FOU = {
   xp: 50000,

@@ -1020,8 +1020,10 @@ Ce n'est pas un combat, c'est un **pari**. Il surgit à **n'importe quelle
 profondeur** (0,1 % par rencontre de mine — tirage dédié dans `declencherRencontre`,
 il n'est dans le pool d'aucune zone) et **propose un marché** avant toute chose.
 
-**Niveau 10 · 100 PV · il ne frappe JAMAIS** (attaque 0) : le danger n'est pas ses
-coups, c'est ce qu'il vous coûte.
+**Niveau 10 · 100 PV.** Tant qu'il marchande, **il ne frappe jamais** (attaque 0) —
+et pour cause : il s'enfuit avant même d'en avoir l'occasion. Le danger n'est pas
+ses coups, c'est ce qu'il vous coûte. **Une seule exception, la RANCUNE** (voir
+plus bas) : là il reste, et il frappe à **60 par attaque**.
 
 - **Accepter** → l'or part vraiment, il s'en va en riant, aucun combat.
 - **Refuser** → combat, mais **UN SEUL tour** pour l'abattre (`fuiteApresToursHeros`) :
@@ -1035,10 +1037,11 @@ coups, c'est ce qu'il vous coûte.
 **Le marché monte à chaque fois qu'on cède** : 500 🪙, puis 2 000, puis 10 000.
 Au **3e paiement seulement**, il récompense enfin la crédulité — 50 000 XP,
 10 onyx, 10 sunstone, 20 bois enchantés, 20 cuirs étranges — puis prévient :
-« notre prochaine rencontre sera moins plaisante ». **Après ça il ne propose plus
-rien** : on passe directement au combat (même règle du tour unique).
-*(Cette dernière règle est une interprétation de la phrase d'adieu : à changer
-d'une ligne dans `fouProposeMarche` si tu la voulais autrement.)*
+« notre prochaine rencontre sera moins plaisante ».
+
+**LA RANCUNE** — la rencontre d'après. Il ne marchande plus, **et il ne fuit plus** :
+c'est le seul vrai combat de toute son histoire, et il cogne à **60 par attaque**
+(`ATTAQUE_RANCUNE`). Son butin garanti reste le même s'il tombe.
 
 - **État** (survit à la sauvegarde) : `jeu/systems/fou.js` — nombre de paiements,
   cadeau déjà donné, tué ou non. Chiffres réglables en tête du fichier.
