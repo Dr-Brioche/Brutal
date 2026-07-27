@@ -270,7 +270,33 @@ légendaire, `+10` pour des bottes usées) se lisent enfin comme un pourcentage.
   la lisaient (`systems/combat.js`, `ui/combat.js`, `ui/inventaire.js`) ; tous partent
   maintenant de `STATS_HEROS_BASE.vitesseCombat`.
 
-**Ce que ça donne en combat** (mesuré sur 4 000 tours, nain sans bottes) :
+### LA HÂTE — bonus FIXE (27/07/2026)
+
+La Hâte donne **+30 % de vitesse** — un bonus **fixe**, pas proportionnel au nombre
+de ticks. 1 tick ou 12, c'est le même +30 % : les ticks ne servent qu'à la **DURÉE**
+(−1 par tour de son porteur). Le **Gel** suit exactement la même forme (×0,70) : les
+deux statuts de vitesse sont enfin symétriques.
+
+**À 8 ticks accumulés**, le combattant **rejoue immédiatement** un tour — et ça lui
+**coûte 8 ticks** (le surplus reste). Règle identique pour le héros et les monstres.
+
+**Pourquoi.** Avant, chaque tick donnait +5 % de vitesse en plus. Une carte à +2 Hâte
+contre une décroissance de −1 par tour, c'est +1 net par tour joué : la vitesse
+grimpait sans plafond et on finissait par enchaîner trois ou quatre tours d'affilée.
+Enchaîner les tours casse le jeu — c'est la chose à éviter en priorité. Avec un bonus
+fixe, le plafond est atteint dès le premier tick et ne bouge plus.
+
+**Combien de tours d'affilée au maximum**, Hâte entretenue en permanence (le pire cas) :
+
+| adversaire | tours d'affilée max |
+|---|---|
+| Cave Goblin (90) | 2 |
+| Ogre masqué (55, le plus lent du jeu) | 3 |
+
+(Ce qui reste vient de l'écart d'agilité lui-même, pas de la Hâte : 130 contre 55,
+c'est 2,4× — normal d'enchaîner. Réglages dans l'onglet `Général` de l'Excel.)
+
+**Ce que l'agilité donne en combat** (mesuré sur 4 000 tours, nain sans bottes) :
 
 | adversaire | part des tours du nain | ses tours qui sont un doublon |
 |---|---|---|
