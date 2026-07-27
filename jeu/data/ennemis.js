@@ -441,6 +441,7 @@ export const ENNEMIS = [
     vitesse: 6,
     affix: "melee",
     grand: true, // ours de guerre bardé : occupe 2 places, gros pic de difficulté
+    tailleRel: 1.2, // affiché 1/5 plus grand : il doit en imposer face à l'ours nu
     planche: "images/ennemis/armor-bear.png",
     portrait: { sx: 18, sy: 4, sw: 150, sh: 150 }, // premier jet (à recadrer)
     sprite: { caseL: 356, caseH: 220, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
