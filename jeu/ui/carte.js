@@ -27,9 +27,15 @@ const CADRE_PAR_TYPE = {
 //   1. .webp — le format OPTIMISÉ (généré par outils/optimiser_illustrations.py) ;
 //   2. .png  — un upload frais, pas encore passé à l'outil ;
 //   3. .png avec 1re lettre majuscule — Windows capitalise parfois les noms.
+//
+// ⚠ TOUJOURS partir du nom ANGLAIS (`_nomEn`, mémorisé par systems/i18n_donnees.js
+// avant de traduire `.nom`) : les fichiers d'illustration sont nommés d'après le nom
+// anglais, et l'id ne convient pas (les ids sont des slugs français : "mains-nues"
+// pour "Bare Hands"). Sans ça, passer le jeu en français fait disparaître TOUTES les
+// illustrations. (Avant toute traduction `_nomEn` n'existe pas → repli sur `.nom`.)
 function cheminsIllustration(carte) {
   if (carte.illustration) return [carte.illustration];
-  const base = (carte.nom || carte.id || "")
+  const base = (carte._nomEn || carte.nom || carte.id || "")
     .toLowerCase()
     .normalize("NFD").replace(/[̀-ͯ]/g, "") // enlève les accents
     .replace(/['’]/g, "")                              // apostrophes

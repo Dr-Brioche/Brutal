@@ -1486,6 +1486,13 @@ Le choix est **mémorisé** en localStorage : au retour, le jeu s'ouvre dans la 
   dans `textes_donnees.js` : l'anglais des data sert de repli via `tr()`.
 - **Repli** : une clé absente retombe sur l'anglais → traduction **progressive** possible
   (rien ne casse tant qu'on traduit par lots). Défaut = anglais.
+- **⚠ PIÈGE (corrigé 27/07/2026) — un ASSET ne se cherche JAMAIS par un nom traduit.**
+  Les illustrations de cartes (`images/cartes/illustrations/`) sont nommées d'après le nom
+  **anglais** (« Bare Hands » → `bare-hands.webp`) et l'id ne convient pas (les ids sont des
+  slugs français : `mains-nues`). Comme l'overlay réécrit `.nom`, passer en français faisait
+  disparaître les 150 illustrations. → `cheminsIllustration()` (`jeu/ui/carte.js`) part
+  désormais de **`_nomEn`**. Règle générale : tout chemin de fichier déduit d'une donnée doit
+  partir de l'`id` ou de `_nomEn`, jamais de `.nom`.
 - **État : COMPLET (25/07/2026).** Tout le jeu est bilingue : menu de langue, titre, menu pause
   (sauvegardes, réglages), HUD, combat (boutons, bulles de permanents, jauge de forge), écran de
   démarrage, marchand, inventaire/personnage, infobulles d'objets, forge, deck, talents, butin,
