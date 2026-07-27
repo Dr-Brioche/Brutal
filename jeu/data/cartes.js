@@ -42,8 +42,11 @@
 //                         par point), puis la forge refroidit (chaleur → 0)
 //            - "stun"   : étourdit l'ennemi `valeur` tours (il saute ses tours).
 //                         Cumulable : rejouer en ajoute (les ticks s'additionnent)
-//            - "celerite": ajoute `valeur` ticks de HÂTE au héros. Chaque tick = +5%
-//                         de vitesse ; les ticks s'écoulent de 1 par tour du héros.
+//            - "celerite": ajoute `valeur` ticks de HÂTE au héros. La Hâte donne un
+//                         bonus FIXE de +30 % de vitesse tant qu'il reste au moins un
+//                         tick (jamais plus, quel que soit le nombre) ; les ticks
+//                         s'écoulent de 1 par tour du héros et ne servent donc qu'à la
+//                         DURÉE. À 8 ticks : un tour bonus, qui coûte ces 8 ticks.
 //            - "lenteur" : GÈLE l'ennemi visé (−30% de vitesse) pendant `valeur` de ses tours
 
 export const CARTES = {

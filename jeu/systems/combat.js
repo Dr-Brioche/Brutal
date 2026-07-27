@@ -80,12 +80,17 @@ const SEUIL_INIT = 100;        // jauge d'initiative à remplir pour agir
 // déborde. Sert aux RENFORTS appelés en plein combat (porte-étendard de siège).
 const MAX_ENNEMIS = 5;
 // Statuts de VITESSE (temporaires : ils tickent par tour comme le poison).
-// La VALEUR d'une carte = le NOMBRE DE TICKS ajoutés. Chaque tick de Hâte donne
-// +5% de vitesse ; chaque tour un tick s'écoule → plus de stacks = plus rapide.
-const HATE_PAR_TICK = 0.05; // « Hâte » : +5% de vitesse par tick actif (N ticks = +N×5%)
-// À HASTE_DOUBLE stacks de Hâte, le combattant (héros OU ennemi) REJOUE
-// immédiatement un tour — mais ça CONSOMME TOUS ses stacks de Hâte (burst).
-export const HASTE_DOUBLE = 10;
+// La VALEUR d'une carte = le NOMBRE DE TICKS ajoutés ; un tick s'écoule à chaque tour.
+//
+// ⚠ L'effet est FIXE, pas proportionnel au nombre de ticks : dès 1 tick actif, la
+// vitesse est multipliée par HATE_MULT, et pas davantage à 5 ticks qu'à 1. Les ticks
+// ne servent qu'à la DURÉE. Avant, chaque tick ajoutait +5 % et l'empilement finissait
+// par faire jouer trois ou quatre tours d'affilée — injouable. Le Gel suit exactement
+// la même forme (GEL_MULT), les deux statuts sont donc enfin symétriques.
+const HATE_MULT = 1.30;     // « Hâte » : ×1,30 de vitesse tant qu'il reste un tick
+// À HASTE_DOUBLE ticks de Hâte, le combattant (héros OU ennemi) REJOUE immédiatement
+// un tour — et ça lui COÛTE HASTE_DOUBLE ticks (le surplus est conservé, comme le Gel).
+export const HASTE_DOUBLE = 8;
 const GEL_MULT  = 0.70; // « Gel » (lenteur)   : vitesse de l'ennemi ×0.70 pendant N tours
 // À GEL_EXPLOSION stacks de Gel, l'ennemi est immédiatement étourdi (1 tour) et
 // perd GEL_EXPLOSION stacks ; le surplus est conservé. Héros : identique mais déclenché
@@ -226,7 +231,7 @@ export function creerCombat(ennemisDefs, opts = {}) {
     vitesseHerosBase: VITESSE_HEROS_BASE + (stats.agilite || 0), // + talents d'agilité
     celeritePct: stats.celeritePct || 0, // bonus PASSIF de célérité (%) des bottes (toujours actif en combat)
     hate: 0,               // « Hâte » : nb de tours du héros encore accélérés (+5%/tick d'agilité), s'écoule
-    hatePerm: 0,           // Hâte PERMANENTE (ne s'écoule pas) : alimentée par Long run (+5%/tick aussi)
+    hatePerm: 0,           // Hâte PERMANENTE (ne s'écoule pas) : alimentée par Long run
     riposte: 0,            // « Riposte » (Rebond) : renvoie les dégâts de MÊLÉE reçus, −1 tick par renvoi
     toursBonus: 0,         // « Joue 2 fois » (Innaretable) : tours du héros à enchaîner sans laisser agir les ennemis
     celeriteParTour: 0,    // « Long run » : ticks de Hâte gagnés au début de CHAQUE tour du héros (cumulable)
@@ -267,13 +272,14 @@ export function creerCombat(ennemisDefs, opts = {}) {
 
 // Vitesse EFFECTIVE (après les statuts de vitesse Hâte/Gel). Jamais < 1.
 export function vitesseHeros(combat) {
-  let v = combat.vitesseHerosBase * (1 + (combat.hate + combat.hatePerm) * HATE_PAR_TICK); // +5% par tick de Hâte (temporaire + permanente)
+  // Hâte : bonus FIXE, qu'il reste 1 tick ou 12 (temporaire ou permanente).
+  let v = combat.vitesseHerosBase * ((combat.hate + combat.hatePerm) > 0 ? HATE_MULT : 1);
   if (combat.celeritePct) v *= 1 + combat.celeritePct / 100; // bonus passif des bottes (toujours actif)
   if (combat.gelHeros > 0) v *= GEL_MULT; // Gel héros : −30% de vitesse
   return Math.max(1, v);
 }
 export function vitesseEnnemi(e) {
-  let v = e.vitesse * (1 + e.haste * HATE_PAR_TICK); // +5% par tick de Hâte alliée
+  let v = e.vitesse * (e.haste > 0 ? HATE_MULT : 1); // Hâte alliée : bonus FIXE
   if (e.gel > 0) v *= GEL_MULT; // Gel : −30% de vitesse
   return Math.max(1, v);
 }
@@ -1471,12 +1477,12 @@ export function agirEnnemi(combat, i) {
     for (const a of alliés) a.bouclier += e.intention.valeur;
     evt.bouclier_allie = alliés.length ? e.intention.valeur : 0;
   }
-  // Hâte à 10 : l'ennemi qui vient d'AGIR rejoue tout de suite — on remet sa jauge
-  // d'initiative au seuil (elle sera reprise au prochain pas) et on consomme TOUS
-  // ses stacks de Hâte. (Un ennemi étourdi/gelé/mort est déjà ressorti plus haut :
+  // Hâte au seuil : l'ennemi qui vient d'AGIR rejoue tout de suite — on remet sa jauge
+  // d'initiative au seuil (elle sera reprise au prochain pas) et ça lui COÛTE
+  // HASTE_DOUBLE ticks. (Un ennemi étourdi/gelé/mort est déjà ressorti plus haut :
   // il n'a pas agi, donc pas de double tour.)
   if (hasteAvant >= HASTE_DOUBLE && e.pv > 0) {
-    e.haste = 0;
+    e.haste = Math.max(0, e.haste - HASTE_DOUBLE);
     e.init = SEUIL_INIT;
     evt.doubleTour = true;
   }
@@ -1568,12 +1574,12 @@ export function finirTourHeros(combat) {
   propagerFeu(combat); // le Feu posé par une carte ce tour se répand une fois aux voisins
   combat.defausse.push(...combat.main);
   combat.main = [];
-  // Hâte à 10 : le héros REJOUE immédiatement (comme un tour bonus), mais TOUS ses
-  // stacks de Hâte temporaire sont consommés d'un coup. (La Hâte permanente ne compte
-  // pas : sinon on rejouerait à chaque tour.) — décision Brioche.
+  // Hâte au seuil : le héros REJOUE immédiatement (comme un tour bonus), et ça lui
+  // COÛTE HASTE_DOUBLE ticks de Hâte temporaire (le surplus reste). (La Hâte permanente
+  // ne compte pas : sinon on rejouerait à chaque tour.) — décision Brioche.
   combat.doubleTourHate = false;
   if (combat.hate >= HASTE_DOUBLE) {
-    combat.hate = 0;
+    combat.hate = Math.max(0, combat.hate - HASTE_DOUBLE);
     combat.toursBonus += 1;
     combat.doubleTourHate = true;
   }
