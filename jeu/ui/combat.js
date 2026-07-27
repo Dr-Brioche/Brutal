@@ -1238,6 +1238,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       selection = -1;             // nouveau tour : AUCUNE carte levée par défaut
                                   // (sinon une carte reste en surbrillance même souris ailleurs)
       commencerTourHeros(combat); // recharge Chaleur + statuts du héros + pioche
+      // Un MONSTRE FUYARD a pu s'échapper à cet instant (cf. fuiteApresToursHeros) :
+      // le combat est alors déjà fini, on n'ouvre pas le tour.
+      if (combat.fini) { verifierFin(); return; }
       if (combat.tourSaute) {     // glace brisée : le héros est gelé solide, il saute son tour
         animerGelExplosionHeros();
         minuterie = PAS_ENNEMI;   // courte pause, puis l'initiative reprend
@@ -1450,7 +1453,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // On transmet les DÉFINITIONS FINALES des ennemis (après d'éventuelles évolutions —
     // ex. le Lapin blanc arrivé au stade 3) : c'est le butin/XP de ce qu'ils sont DEVENUS
     // qui doit être versé, pas celui du stade de départ.
-    surFin(combat.resultat, combat.ennemis.map((e) => e.def));
+    // 3e argument : un instantané de l'état FINAL des ennemis. Sert à décider ce qui
+    // suit quand personne n'a gagné — ex. le Fou du roi qui s'échappe vole 200 🪙
+    // SEULEMENT si on l'a touché. (Argument optionnel : les autres appels l'ignorent.)
+    surFin(combat.resultat, combat.ennemis.map((e) => e.def),
+      { ennemis: combat.ennemis.map((e) => ({ id: e.def?.id, pv: e.pv, pvMax: e.pvMax })) });
   }
 
   boutonFin.addEventListener("click", finDeTour);
@@ -1551,7 +1558,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         termine = true;
         // Victoire : on enchaîne direct sur la fenêtre de butin (côté principal,
         // via surFin). Défaite : on montre l'écran « Defeat ».
-        if (combat.resultat === "victoire" || combat.resultat === "fuite") fermer();
+        // "fuite-monstre" = l'ennemi s'est échappé : pas d'écran « Defeat », on
+        // rend la main à l'exploration comme pour une fuite du héros.
+        if (combat.resultat === "victoire" || combat.resultat === "fuite"
+            || combat.resultat === "fuite-monstre") fermer();
         else terminer();
       }
     }

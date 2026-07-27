@@ -1014,6 +1014,45 @@ valeurs **~1.5×** les armes à une main, chacune avec son **combo** :
 - *À venir* : navigation clavier complète, vraies icônes pixel art,
   agrandissement du sac, prix d'**achat** (le marchand de test est encore gratuit).
 
+## LE FOU DU ROI — rencontre-énigme (27/07/2026)
+
+Ce n'est pas un combat, c'est un **pari**. Il surgit à **n'importe quelle
+profondeur** (0,1 % par rencontre de mine — tirage dédié dans `declencherRencontre`,
+il n'est dans le pool d'aucune zone) et **propose un marché** avant toute chose.
+
+**Niveau 10 · 100 PV · il ne frappe JAMAIS** (attaque 0) : le danger n'est pas ses
+coups, c'est ce qu'il vous coûte.
+
+- **Accepter** → l'or part vraiment, il s'en va en riant, aucun combat.
+- **Refuser** → combat, mais **UN SEUL tour** pour l'abattre (`fuiteApresToursHeros`) :
+  100 PV à sortir d'un coup. Ensuite il s'échappe.
+  - touché sans être tué → il **vole 200 🪙** en partant ;
+  - pas touché du tout → il s'éclipse sans rien prendre ;
+  - **abattu** → il ne revient **plus jamais** de la partie, et lâche un butin
+    **garanti** : 5 000 🪙 + 10 rubis + 10 émeraudes + 10 saphirs + 10 diamants
+    + 1 onyx + 1 sunstone.
+
+**Le marché monte à chaque fois qu'on cède** : 500 🪙, puis 2 000, puis 10 000.
+Au **3e paiement seulement**, il récompense enfin la crédulité — 50 000 XP,
+10 onyx, 10 sunstone, 20 bois enchantés, 20 cuirs étranges — puis prévient :
+« notre prochaine rencontre sera moins plaisante ». **Après ça il ne propose plus
+rien** : on passe directement au combat (même règle du tour unique).
+*(Cette dernière règle est une interprétation de la phrase d'adieu : à changer
+d'une ligne dans `fouProposeMarche` si tu la voulais autrement.)*
+
+- **État** (survit à la sauvegarde) : `jeu/systems/fou.js` — nombre de paiements,
+  cadeau déjà donné, tué ou non. Chiffres réglables en tête du fichier.
+- **Fiche du monstre** : `jeu/data/ennemis.js` (+ onglet `Monstres` de l'Excel).
+  Son butin garanti passe par `butinFixe`, qui court-circuite tout tirage.
+- **Déroulé** (dialogues, paiements, vol, récompense) : `principal.js`,
+  section « LE FOU DU ROI ».
+- **Mécanique réutilisable** : `fuiteApresToursHeros` sur un monstre → il
+  s'échappe après N tours du héros, et le combat se termine sur le résultat
+  `"fuite-monstre"` (ni butin ni XP). `surFin` reçoit un 3e argument avec les
+  PV finaux de chaque ennemi, pour savoir si on l'avait entamé.
+- **Tester** : `outils/test-fou.html` (24 vérifications automatiques) ou le
+  Maître d'arène, qui rejoue la vraie rencontre.
+
 ## Planches d'ARMURE en combat (set complet) — 27/07/2026
 
 Porter **toutes les pièces d'un set** change l'**illustration de combat** du nain :

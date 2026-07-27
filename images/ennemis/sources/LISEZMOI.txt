@@ -1,0 +1,15 @@
+SOURCES de monstres (fond vert) — PAS utilisées par le jeu.
+
+Le jeu charge les fichiers détourés du dossier parent (images/ennemis/).
+Ces PNG sont les originaux fournis, gardés pour pouvoir refaire un détourage.
+
+Le détourage réutilise la fonction du script des armures :
+    python3 -c "
+    import sys; sys.path.insert(0,'outils')
+    from caler_planche_heros import detourer
+    im = detourer('images/ennemis/sources/fou-du-roi.png')
+    bb = im.getchannel('A').point(lambda p: 255 if p > 24 else 0).getbbox()
+    im = im.crop(bb)
+    H = 250; im = im.resize((round(im.width*H/im.height), H))
+    im.save('images/ennemis/fou-du-roi.webp', 'WEBP', quality=92, method=6)
+    "
