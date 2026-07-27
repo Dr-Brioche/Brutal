@@ -1142,6 +1142,12 @@ Au **3e paiement seulement**, il récompense enfin la crédulité — 50 000 XP,
 10 onyx, 10 sunstone, 20 bois enchantés, 20 cuirs étranges — puis prévient :
 « notre prochaine rencontre sera moins plaisante ».
 
+Ce cadeau passe par la **fenêtre de butin**, exactement comme après une victoire :
+il n'y a pas eu un seul coup échangé, mais on doit VOIR ce qu'on empoche (et le
+ramasser pièce par pièce, ce qui laisse le temps de faire de la place dans le sac).
+C'est à ça que sert `ouvrirButin({ or, xp, items })`, la fenêtre de butin avec un
+contenu déjà connu — réutilisable pour tout gain hors combat.
+
 **LA RANCUNE** — la rencontre d'après. Il ne marchande plus, **et il ne fuit plus** :
 c'est le seul vrai combat de toute son histoire, et il cogne à **60 par attaque**
 (`ATTAQUE_RANCUNE`). Son butin garanti reste le même s'il tombe.

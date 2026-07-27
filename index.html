@@ -2174,7 +2174,16 @@
       color: #ffcf57; text-shadow: 0 0 24px rgba(255, 200, 80, 0.4);
       margin-bottom: 12px;
     }
-    .butin-liste { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    /* La liste DÉFILE : un butin normal tient en 3-4 lignes, mais le cadeau du Fou
+       du roi en fait 60 (10 onyx + 10 pierres solaires + 20 bois + 20 cuirs). Sans
+       plafond, la fenêtre débordait de l'écran et le titre passait hors du cadre.
+       Le reste du panneau (titre, barre d'XP, bouton) tient dans les 14rem réservés. */
+    .butin-liste {
+      display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;
+      max-height: calc(var(--zh) - 2 * var(--ouv-y) - 14rem);
+      overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: #4a2f1a #0f0d15;
+    }
     .butin-ligne {
       display: flex; align-items: center; gap: 10px;
       padding: 8px 12px; font-size: 0.98rem; color: #e5e7eb;

@@ -1956,6 +1956,13 @@ export async function demarrerJeu(donneesInitiales = null) {
       xp += e.xp || 0;
       items.push(...butin.objets);
     }
+    ouvrirButin({ or, xp, items });
+  }
+
+  // Même fenêtre, mais avec un butin DÉJÀ CONNU. Sert à tout gain qui ne vient pas
+  // d'un combat gagné — le cadeau du Fou du roi, par exemple : il n'y a pas eu un
+  // seul coup échangé, mais on doit quand même VOIR ce qu'on empoche.
+  function ouvrirButin({ or = 0, xp = 0, items = [] }) {
     // L'XP est appliquée TOUT DE SUITE (le héros est à jour pour la suite) ; on
     // mémorise l'état d'avant pour que la fenêtre REJOUE la montée animée (barre
     // d'XP qui se remplit + éclats dorés au passage de niveau).
@@ -2053,7 +2060,12 @@ export async function demarrerJeu(donneesInitiales = null) {
     combatEnCours.setPause(false);
   }
   // Le marché est conclu : il empoche et s'en va, il n'y a plus rien à combattre.
-  function finirMarcheDuFou() {
+  // `cadeau` (optionnel) : le butin à MONTRER une fois le combat refermé. Il ne peut
+  // pas s'afficher tout de suite — l'écran de combat est encore là — donc on le met
+  // de côté et surFin ouvre la fenêtre de butin quand la scène est rendue.
+  let cadeauDuFou = null;
+  function finirMarcheDuFou(cadeau = null) {
+    cadeauDuFou = cadeau;
     combatEnCours?.conclure("depart-monstre");
   }
 
@@ -2080,19 +2092,20 @@ export async function demarrerJeu(donneesInitiales = null) {
       }, () => finirMarcheDuFou());
       return;
     }
-    // 3e paiement : le cadeau. XP tout de suite, ressources dans le sac (ce qui
-    // rentre — le surplus est perdu, on prévient dans le message).
-    gagnerXp(heros, CADEAU_FOU.xp);
-    for (const o of CADEAU_FOU.objets) {
-      for (let i = 0; i < o.n; i++) ajouterObjet(inventaire, o.id);
-    }
-    inventaireUI.rendre();
+    // 3e paiement : LE CADEAU. Il passe par la FENÊTRE DE BUTIN, comme après une
+    // victoire : il n'y a pas eu un seul coup échangé, mais 50 000 XP et quatre piles
+    // de ressources rares méritent d'être VUES (et ramassées une par une, ce qui laisse
+    // au joueur le temps de faire de la place dans son sac).
     afficherMessage(t("fou.cadeauMsg", { xp: CADEAU_FOU.xp }));
+    const objets = [];
+    for (const o of CADEAU_FOU.objets) {
+      for (let i = 0; i < o.n; i++) objets.push(o.id);
+    }
     ouvrirDialogue({
       nom: t("fou.nom"),
       texte: [t("fou.cadeau1"), t("fou.cadeau2"), t("fou.adieu")],
       choix: [{ texte: t("pnj.magnar.partir"), action: () => {} }],
-    }, () => finirMarcheDuFou());
+    }, () => finirMarcheDuFou({ xp: CADEAU_FOU.xp, items: objets }));
   }
 
   // Le combat lui-même, avec sa règle du tour unique.
@@ -2125,6 +2138,9 @@ export async function demarrerJeu(donneesInitiales = null) {
         if (resultat === "depart-monstre") {
           // Marché conclu : il repart avec l'or, sans un coup échangé.
           rencontres = creerRencontres(); // pas de re-rencontre immédiate
+          // Au 3e paiement il a laissé un cadeau : on l'ouvre comme un butin de
+          // victoire (c'est ce qui rend enPause à false une fois le sac rempli).
+          if (cadeauDuFou) { const c = cadeauDuFou; cadeauDuFou = null; ouvrirButin(c); return; }
           enPause = false;
           return;
         }
