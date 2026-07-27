@@ -427,6 +427,53 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     }
   }
 
+  // Barre de vie + états + bouclier + pastille de niveau de chaque ennemi vivant.
+  // Appelée AVANT les sprites (les barres passent donc derrière eux), en ORDRE DE
+  // PROFONDEUR : entre deux barres qui se chevauchent, c'est celle du monstre de
+  // DEVANT qui l'emporte. Les ennemis « arrière » reçoivent le même léger zoom-out
+  // (RATIO_ARRIERE) que leur sprite, pivoté au centre de leurs pieds.
+  function dessinerBarresEnnemis(ordre) {
+    for (const u of ordre) {
+      if (u.e.pv <= 0 || u.mort.actif) continue;
+      ctx.save();
+      if (!u.avant) {
+        ctx.translate(u.ecran.cx, u.ecran.sol);
+        ctx.scale(RATIO_ARRIERE, RATIO_ARRIERE);
+        ctx.translate(-u.ecran.cx, -u.ecran.sol);
+      }
+      // La barre de vie de la cible survolée à la souris CLIGNOTE (indique la cible).
+      const estCibleSouris = drag && drag.vise && drag.cibleSurvol === ennemisUI.indexOf(u);
+      const alphaAvantBarre = ctx.globalAlpha;
+      if (estCibleSouris)
+        ctx.globalAlpha = alphaAvantBarre * (0.28 + 0.72 * (0.5 + 0.5 * Math.sin(temps * 11)));
+      barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
+        `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), u.e.bouclier || 0, u.affInit);
+      ctx.globalAlpha = alphaAvantBarre;
+      // Pastille de niveau (rectangle arrondi doré) à droite de la barre de vie.
+      const lvlEnn = u.e.def?.niveau;
+      if (lvlEnn != null) {
+        const txt = t("combat.lvlEnn", { n: lvlEnn });
+        ctx.font = police(6, POLICE_NOM);
+        const tw = ctx.measureText(txt).width;
+        const pw = tw + 9, ph = 9; // largeur et hauteur de la pastille
+        let cx = u.ecran.cx + BAR_L / 2 + 6 + pw / 2;
+        if (cx + pw / 2 > 638) cx = u.ecran.cx - BAR_L / 2 - 6 - pw / 2;
+        const cy = u.ecran.sol + VIE_SOUS + BAR_H / 2;
+        ctx.fillStyle = "rgba(12, 9, 6, 0.90)";
+        ctx.beginPath();
+        ctx.roundRect(cx - pw / 2, cy - ph / 2, pw, ph, ph / 2);
+        ctx.fill();
+        ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(txt, cx, cy + 0.5);
+        ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+      }
+      ctx.restore();
+    }
+  }
+
   // Programme l'écran de fin après un court délai (laisse jouer le poof / coup fatal)
   function verifierFin() {
     if (combat.fini && delaiFin < 0) {
@@ -1649,6 +1696,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // SPRITES ennemis : du plus loin au plus proche (arrière-plan d'abord).
     // Chaque ennemi a sa propre échelle — on ne peut pas utiliser un transform global.
     const ordreDessin = [...ennemisUI].sort((a, b) => a.ecran.sol - b.ecran.sol);
+    // BARRES DE VIE : dessinées AVANT les sprites, donc DERRIÈRE eux. Sinon la barre
+    // d'un monstre d'arrière-plan passait par-dessus le monstre de devant, qui est
+    // pourtant plus proche — ça cassait la profondeur. Un bout de barre peut se
+    // retrouver masqué : ce n'est pas grave, le chiffre des PV est au centre et reste
+    // lisible. (L'intention et le tag NEXT, eux, restent AU-DESSUS : voir plus bas.)
+    dessinerBarresEnnemis(ordreDessin);
     for (const u of ordreDessin) {
       if (u.partis) continue;
       // Halo jaune de CIBLAGE derrière le monstre survolé à la souris : il pulse
@@ -1842,55 +1895,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       }
     }
 
-    // Vie + états + intention + tag NEXT de chaque ennemi vivant. Dessiné APRÈS tous
-    // les sprites (donc TOUJOURS au-dessus d'eux) et en ORDRE DE PROFONDEUR (arrière
-    // d'abord) : quand deux barres/pastilles de monstres voisins se chevauchent — cas
-    // fréquent avec de GROS monstres serrés — c'est celle du monstre AVANT qui passe
-    // devant, jamais l'inverse.
-    // Les ennemis « arrière » (impairs) reçoivent un léger zoom-out de leur UI
-    // (même ratio 0.78 que leur sprite) pour renforcer l'effet de perspective.
-    // Le pivot du scale est au centre de leurs pieds (ecran.cx, ecran.sol).
+    // INTENTION et tag NEXT de chaque ennemi vivant. Contrairement aux barres de vie
+    // (dessinées AVANT les sprites, cf. dessinerBarresEnnemis), ceux-ci restent
+    // AU-DESSUS : ce sont des informations de décision, il ne faut jamais les rater.
+    // Hors du transform d'échelle : ecran.haut est déjà en espace écran, la
+    // perspective est donc correcte pour l'avant comme pour l'arrière-plan.
     const prochainIdx = combat.fini ? -1 : prochainEnnemiIndex();
     [...ennemisUI].sort((a, b) => a.ecran.sol - b.ecran.sol).forEach((u) => {
       if (u.e.pv <= 0 || u.mort.actif) return;
-      ctx.save();
-      if (!u.avant) {
-        ctx.translate(u.ecran.cx, u.ecran.sol);
-        ctx.scale(RATIO_ARRIERE, RATIO_ARRIERE);
-        ctx.translate(-u.ecran.cx, -u.ecran.sol);
-      }
-      // La barre de vie de la cible survolée à la souris CLIGNOTE (indique la cible).
-      const estCibleSouris = drag && drag.vise && drag.cibleSurvol === ennemisUI.indexOf(u);
-      const alphaAvantBarre = ctx.globalAlpha;
-      if (estCibleSouris)
-        ctx.globalAlpha = alphaAvantBarre * (0.28 + 0.72 * (0.5 + 0.5 * Math.sin(temps * 11)));
-      barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
-        `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), u.e.bouclier || 0, u.affInit);
-      ctx.globalAlpha = alphaAvantBarre;
-      // Pill de niveau (rectangle arrondi doré) à droite de la barre de vie.
-      const lvlEnn = u.e.def?.niveau;
-      if (lvlEnn != null) {
-        const txt = t("combat.lvlEnn", { n: lvlEnn });
-        ctx.font = police(6, POLICE_NOM);
-        const tw = ctx.measureText(txt).width;
-        const pw = tw + 9, ph = 9; // largeur et hauteur de la pill
-        let cx = u.ecran.cx + BAR_L / 2 + 6 + pw / 2;
-        if (cx + pw / 2 > 638) cx = u.ecran.cx - BAR_L / 2 - 6 - pw / 2;
-        const cy = u.ecran.sol + VIE_SOUS + BAR_H / 2;
-        ctx.fillStyle = "rgba(12, 9, 6, 0.90)";
-        ctx.beginPath();
-        ctx.roundRect(cx - pw / 2, cy - ph / 2, pw, ph, ph / 2);
-        ctx.fill();
-        ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 1;
-        ctx.stroke();
-        ctx.fillStyle = "#ffffff";
-        ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText(txt, cx, cy + 0.5);
-        ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-      }
-      ctx.restore();
-      // Intention et tag NEXT hors du transform d'échelle : ecran.haut est déjà en
-      // espace écran, la perspective est donc correcte pour avant et arrière-plan.
       if (u.e.stun <= 0) dessinerIntention(ctx, u.e.intention, u.ecran.cx, u.ecran.haut - 8);
       if (prochainIdx === ennemisUI.indexOf(u) && !u.partis)
         dessinerTagProchain(ctx, u.ecran, temps);
