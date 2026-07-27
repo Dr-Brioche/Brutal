@@ -13,7 +13,7 @@ import { tuileDef, estPorte } from "./data/tuiles.js";
 import { ITEMS, itemDef, prixVente, RARETES, rareteAuMoins, distributionMinerais } from "./data/items.js";
 import {
   creerInventaire, appliquerEquipement, armeEquipee, armureEquipee,
-  ajouterObjet, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
+  ajouterObjet, rangerObjets, ajouterOr, vendreObjet, jeterObjet, etatInventaire, chargerInventaire,
   equiperNeuf, equiper, estEquipable,
 } from "./systems/inventaire.js";
 import { t, tr } from "./systems/langue.js";
@@ -1972,10 +1972,13 @@ export async function demarrerJeu(donneesInitiales = null) {
     document.body.classList.add("en-butin");
     inventaireUI.ouvrir();
     butinUI.ouvrir({ or, xp, items, xpAnim: { niveauDepart: niveauAvant, xpDepart: xpAvant, gain: xp } }, {
-      prendre: (id) => {
-        const ok = ajouterObjet(inventaire, id); // range l'objet, false si sac plein
-        if (ok) inventaireUI.rendre();            // l'objet apparaît tout de suite
-        return ok;
+      // Range JUSQU'À `n` exemplaires et dit combien sont entrés. Un rangement
+      // partiel est normal : la fenêtre de butin garde le reste en attente (on
+      // peut faire de la place dans le sac ouvert à côté, puis reprendre).
+      prendre: (id, n = 1) => {
+        const mis = rangerObjets(inventaire, id, n);
+        if (mis > 0) inventaireUI.rendre();       // les objets apparaissent tout de suite
+        return mis;
       },
       surFin: () => {
         ajouterOr(inventaire, or); // l'XP, elle, a déjà été appliquée (montée animée)

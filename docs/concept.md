@@ -1143,10 +1143,25 @@ Au **3e paiement seulement**, il récompense enfin la crédulité — 50 000 XP,
 « notre prochaine rencontre sera moins plaisante ».
 
 Ce cadeau passe par la **fenêtre de butin**, exactement comme après une victoire :
-il n'y a pas eu un seul coup échangé, mais on doit VOIR ce qu'on empoche (et le
-ramasser pièce par pièce, ce qui laisse le temps de faire de la place dans le sac).
-C'est à ça que sert `ouvrirButin({ or, xp, items })`, la fenêtre de butin avec un
-contenu déjà connu — réutilisable pour tout gain hors combat.
+il n'y a pas eu un seul coup échangé, mais on doit VOIR ce qu'on empoche. C'est à ça
+que sert `ouvrirButin({ or, xp, items })`, la fenêtre de butin avec un contenu déjà
+connu — réutilisable pour tout gain hors combat.
+
+### La fenêtre de butin : des TAS, et un rangement partiel (27/07/2026)
+
+- **Un tas par objet.** Les exemplaires identiques sont regroupés en UNE ligne avec
+  sa quantité (« Onyx ×10 »), ramassée d'un seul geste. Avant, le cadeau du Fou
+  faisait 60 lignes à cliquer une par une.
+- **Le rangement suit la taille de pile du sac**, pilotée par le talent *Ore Hauler*
+  (base 5, +5 par rang jusqu'à 30) : 10 onyx font 2 piles de 5 sans le talent, une
+  seule pile de 10 avec.
+- **Si le sac ne peut pas tout prendre**, il prend le MAXIMUM possible et **le reste
+  attend dans la fenêtre** (la ligne affiche ce qui reste). On peut alors faire de la
+  place dans l'inventaire — ouvert juste à côté — et reprendre, ou abandonner le reste
+  en fermant. Rien n'est perdu en silence.
+- Côté code : `rangerObjets(inv, id, n)` (`systems/inventaire.js`) range jusqu'à `n`
+  exemplaires et renvoie **combien sont entrés**. `ajouterObjet` reste la version
+  tout-ou-rien pour le reste du jeu.
 
 **LA RANCUNE** — la rencontre d'après. Il ne marchande plus, **et il ne fuit plus** :
 c'est le seul vrai combat de toute son histoire, et il cogne à **60 par attaque**

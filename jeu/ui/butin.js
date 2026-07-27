@@ -48,11 +48,16 @@ export function installerButin() {
     return d;
   }
 
-  function ligneObjet(id) {
+  // Une ligne = UN TAS. Plusieurs exemplaires du même objet sont regroupés (le
+  // cadeau du Fou du roi faisait 60 lignes…) : la ligne porte sa quantité dans
+  // `dataset.n` et se ramasse d'un geste. Si le sac ne peut pas tout prendre, la
+  // ligne RESTE avec ce qu'il n'a pas pu avaler.
+  function ligneObjet(id, n) {
     const d = ITEMS[id];
     const el = document.createElement("button");
     el.className = "butin-ligne butin-objet";
     el.dataset.id = id;
+    el.dataset.n = n;
     // Bonus passifs (Agilité, Vitesse, Pierre…) affichés SOUS le nom, pour voir ce
     // qu'apporte la pièce (ex. des bottes) avant même de la ramasser.
     const passifs = bonusPassifs(id);
@@ -63,9 +68,16 @@ export function installerButin() {
       visuel +
       `<span class="butin-corps"><span class="butin-nom">${d.nom}</span>` +
       (passifs.length ? `<span class="butin-passif">${passifs.join(" · ")}</span>` : ``) +
-      `</span><span class="butin-hint">Take</span>`;
+      `</span><span class="butin-qte"></span><span class="butin-hint">Take</span>`;
+    majQuantite(el);
     el.addEventListener("click", (e) => { e.stopPropagation(); prendreUn(el); });
     return el;
+  }
+
+  // Affiche « ×N » tant qu'il reste plus d'un exemplaire (rien pour un objet seul).
+  function majQuantite(el) {
+    const n = Number(el.dataset.n);
+    el.querySelector(".butin-qte").textContent = n > 1 ? `×${n}` : "";
   }
 
   // Sac plein : on secoue la ligne et on la laisse en place.
@@ -75,23 +87,30 @@ export function installerButin() {
     el.classList.add("butin-ligne--pleine");
   }
 
+  // Ramasse un TAS. `prendre` renvoie COMBIEN d'exemplaires sont entrés dans le
+  // sac (0 = plus une case). Ce qui reste ne disparaît pas : la ligne le garde, et
+  // on pourra le reprendre après avoir fait de la place dans l'inventaire (ouvert
+  // juste à côté) — ou l'abandonner en fermant la fenêtre.
+  function ramasser(el) {
+    const reste = Number(el.dataset.n);
+    const pris = prendre(el.dataset.id, reste) || 0;
+    if (pris <= 0) { refuser(el); return 0; }
+    restants -= pris;
+    el.dataset.n = reste - pris;
+    if (reste - pris <= 0) el.remove();
+    else { majQuantite(el); refuser(el); } // partiel : la ligne reste et le signale
+    return pris;
+  }
+
   function prendreUn(el) {
     if (!prendre) return;
-    if (prendre(el.dataset.id)) {
-      el.remove();
-      restants -= 1;
-      if (restants <= 0) fermer(); // tout pris → la fenêtre se ferme seule
-    } else {
-      refuser(el);
-    }
+    ramasser(el);
+    if (restants <= 0) fermer(); // tout pris → la fenêtre se ferme seule
   }
 
   function prendreTout() {
     if (!prendre) return;
-    for (const el of [...liste.querySelectorAll(".butin-objet")]) {
-      if (prendre(el.dataset.id)) { el.remove(); restants -= 1; }
-      else refuser(el);
-    }
+    for (const el of [...liste.querySelectorAll(".butin-objet")]) ramasser(el);
     if (restants <= 0) fermer();
   }
 
@@ -180,12 +199,18 @@ export function installerButin() {
       surFin = opts.surFin;
       liste.replaceChildren();
       if (or > 0) liste.append(ligneInfo(t("butin.or", { or }))); // l'XP est dans la barre
+      // On REGROUPE les exemplaires identiques en un seul tas, dans l'ordre où ils
+      // sont arrivés. `items` peut aussi contenir des { id, n } tout faits.
       restants = 0;
-      for (const id of items) {
-        if (!ITEMS[id]) continue;
-        liste.append(ligneObjet(id)); // une ligne par exemplaire (on prend 1 par 1)
-        restants += 1;
+      const tas = new Map();
+      for (const it of items) {
+        const id = typeof it === "string" ? it : it?.id;
+        const n = typeof it === "string" ? 1 : (it?.n ?? 1);
+        if (!ITEMS[id] || n <= 0) continue;
+        tas.set(id, (tas.get(id) ?? 0) + n);
+        restants += n;
       }
+      for (const [id, n] of tas) liste.append(ligneObjet(id, n));
       // Sans objet à trier, un seul bouton « Close » (or + XP seulement).
       btnTout.textContent = restants ? t("butin.prendreTout") : t("butin.fermer");
       btnLaisser.hidden = restants === 0;
