@@ -25,7 +25,7 @@ import { forceQualite } from "../data/recettes.js";
 import { bonusTalents } from "../systems/talents.js";
 import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
-import { police, POLICE_NOM } from "../core/texte.js"; // polices centrales (cf. core/texte.js)
+import { police } from "../core/texte.js"; // polices centrales (cf. core/texte.js)
 import { cheminArrondi, RAYON } from "../core/style.js"; // coins arrondis centraux (cf. core/style.js)
 import { garnirCarte } from "./carte.js";
 import { t } from "../systems/langue.js";
@@ -101,7 +101,10 @@ function poserEnnemis(spans, largeurs) {
   return Array.from({ length: n }, (_, i) => x0 + i * espace);
 }
 // Barre de vie sous chaque perso (unités SCÈNE, taille réelle, PV chiffrés dedans).
-const BAR_L = 56, BAR_H = 8;
+// Volontairement DISCRÈTE : l'info utile est le chiffre au centre, pas la longueur
+// de la barre. (Anciennement 56×8 — rétrécie d'1/3 en largeur et d'1/4 en épaisseur ;
+// la barre d'initiative orange, calée sur ces valeurs, suit automatiquement.)
+const BAR_L = 37, BAR_H = 6;
 const VIE_SOUS = 11;           // écart pieds (sol) → haut de la barre (loge la rangée de BONUS au-dessus de la barre, sous les pieds)
 const ETATS_SOUS = 10;         // écart bas de la barre → rangée d'états (laisse place à l'init)
 // File d'ordre des tours (en haut) : carrés-portraits des prochains acteurs.
@@ -467,7 +470,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     }
   }
 
-  // Barre de vie + états + bouclier + pastille de niveau de chaque ennemi vivant.
+  // Barre de vie + états + bouclier de chaque ennemi vivant. (Le NIVEAU du monstre
+  // n'est plus affiché : il prenait de la place à l'écran sans rien apporter au
+  // joueur. Il reste dans les données — c'est lui qui classe les monstres par
+  // difficulté dans l'Excel et qui décide de leur profondeur d'apparition.)
   // Appelée AVANT les sprites (les barres passent donc derrière eux), en ORDRE DE
   // PROFONDEUR : entre deux barres qui se chevauchent, c'est celle du monstre de
   // DEVANT qui l'emporte. Les ennemis « arrière » reçoivent le même léger zoom-out
@@ -489,27 +495,6 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       barreVieAuSol(ctx, u.ecran, u.affPv / u.e.pvMax,
         `${Math.round(u.e.pv)}/${u.e.pvMax}`, "#c0392b", etatsEnnemi(u.e), u.e.bouclier || 0, u.affInit);
       ctx.globalAlpha = alphaAvantBarre;
-      // Pastille de niveau (rectangle arrondi doré) à droite de la barre de vie.
-      const lvlEnn = u.e.def?.niveau;
-      if (lvlEnn != null) {
-        const txt = t("combat.lvlEnn", { n: lvlEnn });
-        ctx.font = police(6, POLICE_NOM);
-        const tw = ctx.measureText(txt).width;
-        const pw = tw + 9, ph = 9; // largeur et hauteur de la pastille
-        let cx = u.ecran.cx + BAR_L / 2 + 6 + pw / 2;
-        if (cx + pw / 2 > 638) cx = u.ecran.cx - BAR_L / 2 - 6 - pw / 2;
-        const cy = u.ecran.sol + VIE_SOUS + BAR_H / 2;
-        ctx.fillStyle = "rgba(12, 9, 6, 0.90)";
-        ctx.beginPath();
-        ctx.roundRect(cx - pw / 2, cy - ph / 2, pw, ph, ph / 2);
-        ctx.fill();
-        ctx.strokeStyle = "#ffcf57"; ctx.lineWidth = 1;
-        ctx.stroke();
-        ctx.fillStyle = "#ffffff";
-        ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText(txt, cx, cy + 0.5);
-        ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-      }
       ctx.restore();
     }
   }
@@ -2434,7 +2419,15 @@ function dessinerBarreVie(ctx, x, y, l, h, ratio, couleur, texte) {
     ctx.restore();
   }
   if (texte) {
-    ctx.font = police(Math.round(h * 0.82));
+    // Le chiffre est l'information UTILE de la barre : il doit tenir DEDANS. Depuis
+    // que les barres ont été rétrécies, « 220/220 » débordait des deux côtés — on
+    // réduit donc la police d'un cran tant que ça dépasse (plancher : 4 px).
+    let taille = Math.max(4, Math.round(h * 0.82));
+    ctx.font = police(taille);
+    while (taille > 4 && ctx.measureText(texte).width > l - 3) {
+      taille -= 1;
+      ctx.font = police(taille);
+    }
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.lineWidth = 2.4;

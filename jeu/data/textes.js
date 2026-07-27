@@ -85,7 +85,6 @@ export const TEXTES = {
   "combat.fuiteRatee": { fr: "✗ Fuite ratée !", en: "✗ Escape failed!" },
   "combat.brulureTour": { fr: "🔥 -{n}/tour", en: "🔥 -{n}/turn" },
   "combat.forgeHeat": { fr: "Chaleur de forge", en: "Forge Heat" },
-  "combat.lvlEnn":    { fr: "niv {n}", en: "lvl {n}" },
   "combat.permForce": { fr: "Force permanente : chaque coup inflige +{n} dégâts bonus pendant tout le combat.", en: "Permanent Force: every hit deals +{n} bonus damage for the whole combat." },
   "combat.permArmure": { fr: "Armure permanente : gagne {n} Pierre au début de chaque tour pendant tout le combat.", en: "Permanent armor: gain {n} Stone at the start of every turn for the whole combat." },
   "combat.infinityNom": { fr: "♾ Gantelet de l'infini", en: "♾ Infinity Gauntlet" },
