@@ -14,12 +14,21 @@ partie. On ouvre une page de test qui appelle directement le module concerné.
 | Ce que tu veux voir | Utilise |
 |---|---|
 | Le héros en combat (armure de set, skin d'arme) | `outils/test-armures.html` |
+| Plusieurs monstres à l'écran (barres qui se chevauchent) | `outils/test-armures.html`, menu « Monstres » |
+| Les règles du Fou du roi (marché, butin, fuite) | `outils/test-fou.html` |
+| La mise en scène du Fou (combat gelé → marché → reprise) | `outils/test-fou-marche.html` |
 | Que le jeu démarre sans erreur | la sonde de démarrage (§3) |
 
 `outils/test-armures.html` : deux menus déroulants (armure / arme) + un bouton,
 et le combat démarre. Elle appelle le **vrai** `demarrerCombat()` — donc ce
 qu'elle montre est ce que le jeu montre. Elle expose `window.__lancerTest()`
 pour être pilotée depuis un script Playwright.
+
+`outils/test-fou-marche.html` : rejoue la rencontre du Fou (combat gelé une
+seconde, puis son marché par-dessus). Deux menus : l'or du héros (pour tester le
+cas « pas assez ») et l'étape du marché (1re offre / 2e / 3e / rancune). Elle
+expose `window.__rejouer()` et `window.__phase()` — cette dernière rend lisible
+depuis un script ce qui, en jeu, ne se voit qu'à l'absence de réaction.
 
 **Ajouter une page de test** pour un autre écran suit le même patron (voir §5) :
 c'est presque toujours plus rapide que de naviguer.
