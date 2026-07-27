@@ -1,0 +1,12 @@
+SOURCES des planches d'armure (fond vert) — PAS utilisées par le jeu.
+
+Le jeu charge uniquement les .webp du dossier parent (images/heros/), qui sont
+détourés et CALÉS sur le gabarit des planches par défaut. Ces PNG sont les
+originaux : on les garde pour pouvoir refaire le calage si besoin.
+
+Pour régénérer une planche :
+    python3 outils/caler_planche_heros.py \
+        images/heros/sources-armures/plastron-de-croise-1.png 1 \
+        -o images/heros/plastron-de-croise-1.webp
+
+(le « 1 » = pose arme à une main, « 2 » = arme à deux mains)

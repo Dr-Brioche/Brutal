@@ -1014,6 +1014,42 @@ valeurs **~1.5×** les armes à une main, chacune avec son **combo** :
 - *À venir* : navigation clavier complète, vraies icônes pixel art,
   agrandissement du sac, prix d'**achat** (le marchand de test est encore gratuit).
 
+## Planches d'ARMURE en combat (set complet) — 27/07/2026
+
+Porter **toutes les pièces d'un set** change l'**illustration de combat** du nain :
+il apparaît vêtu de l'armure (et sa tête dans le dérouleur de tours suit).
+Sets équipés d'une planche à ce jour : **mailles** (Cotte du maître-forgeron) et
+**croisé** (Plastron du croisé). Table : `PLANCHES_SET` dans `jeu/ui/combat.js`.
+
+Deux planches par set — pose **1 main** (`…-1.webp`) et pose **2 mains**
+(`…-2.webp`) — exactement comme les planches par défaut `nain-combat*.png`.
+
+**⚠ Le CALAGE des planches n'est pas optionnel.** `ui/combat.js` dessine le héros
+dans un cadre dont la HAUTEUR est fixe et la LARGEUR suit le ratio de l'image
+(le nain est centré dessus) ; le BAS de l'image est la ligne de SOL ; et le skin
+d'arme pose la prise à une **fraction (fx, fy) du cadre**. Une planche mal calée
+met donc l'arme à côté de la main. D'où trois règles :
+1. **même ratio** largeur/hauteur que la planche par défaut de la pose ;
+2. **pieds au bas** de l'image ;
+3. **poing à la même fraction** du cadre.
+
+C'est ce que fait `outils/caler_planche_heros.py` (détourage du fond vert +
+calage + export .webp ≈50 Ko). Les trois règles donnent trois équations pour
+trois inconnues → le calage est entièrement déterminé ; appliqué à une planche
+par défaut il la reproduit à l'identique, ce que vérifie `--verifier`.
+Les originaux fond vert restent dans `images/heros/sources-armures/`.
+
+**Pour voir le résultat sans jouer** : `outils/test-armures.html` lance un combat
+directement avec l'armure et l'arme choisies dans deux menus déroulants.
+
+Une planche plus large que le gabarit est **rognée** sur les bords (l'outil le
+signale) : c'est le cas du croisé 1 main, dont le sac à dos perd ~12 px à gauche.
+
+**Note technique** : l'échelle de l'arme se rapporte à `H_REF_PLANCHE_HEROS`
+(210 px, la hauteur des planches par défaut) et **non** à la hauteur native de la
+planche affichée — sinon une planche mieux définie (les armures sont en 420 px)
+rapetisserait l'arme d'autant.
+
 ## Le coffre de ville (rangement partagé) — 1er jet (17/07/2026)
 
 Un **coffre** posé sur le dallage de la cité (près du centre) sert de **rangement
