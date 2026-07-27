@@ -1144,6 +1144,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   }
 
   function debutDrag(i, el, ev) {
+    if (enPause) return; // combat gelé (menu pause, marché du Fou) : la souris non plus ne joue pas
     if (combat.fini || !combat.tourJoueur || phaseCiblage) return;
     const carte = combat.main[i];
     if (!carte || carte.cout > combat.chaleur) return; // injouable
@@ -1202,6 +1203,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const PAUSE_AVANT_PIOCHE = 500;    // pause (ms) après la fin des attaques ennemies AVANT la pioche du héros
 
   function finDeTour() {
+    if (enPause) return; // combat gelé : ni le clavier ni le bouton ne passent
     if (phaseCiblage || combat.fini || !combat.tourJoueur) return;
     if (enAnimPioche) return;
     const feuAvants = combat.ennemis.map((e) => e.feu);
@@ -1229,6 +1231,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // À la validation : 1 chance sur 5 d'ÉCHOUER → message « raté » + on passe juste
   // le tour (comme End Turn). Sinon la fuite réussit → fin du combat sans butin.
   function tenterFuite() {
+    if (enPause) return; // combat gelé : ni le clavier ni le bouton ne passent
     if (phaseCiblage || combat.fini || !combat.tourJoueur || enAnimPioche) return;
     if (carteJouee) return; // déjà joué une carte ce tour → fuite interdite (raccourci clavier)
     if (confirmationActive()) return;
@@ -1608,7 +1611,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         // "fuite-monstre" = l'ennemi s'est échappé : pas d'écran « Defeat », on
         // rend la main à l'exploration comme pour une fuite du héros.
         if (combat.resultat === "victoire" || combat.resultat === "fuite"
-            || combat.resultat === "fuite-monstre") fermer();
+            || combat.resultat === "fuite-monstre" || combat.resultat === "depart-monstre") fermer();
         else terminer();
       }
     }
@@ -1945,7 +1948,25 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   }
 
   // setPause : principal.js fige/défige le combat quand le menu pause s'ouvre/ferme.
-  return { mettreAJour, dessiner, setPause: (p) => { enPause = p; } };
+  return {
+    mettreAJour,
+    dessiner,
+    // FIGE tout : initiative, animations, minuteries. Sert au menu pause, mais
+    // aussi à GELER le combat pendant qu'un dialogue se joue par-dessus (le Fou
+    // du roi propose son marché au milieu de la bagarre). Le clavier n'est alors
+    // plus intercepté : les touches filent au dialogue. La souris, elle, est déjà
+    // bloquée par le voile plein écran du dialogue (z-index 20 > combat 12).
+    setPause: (p) => { enPause = p; },
+    // CONCLURE le combat de l'extérieur, sans qu'il soit allé à son terme :
+    // le Fou empoche l'or et s'en va, il n'y a plus rien à combattre.
+    conclure: (resultat) => {
+      if (combat.fini) return;
+      combat.fini = true;
+      combat.resultat = resultat;
+      enPause = false;   // sinon la boucle ne déroulerait pas le délai de sortie
+      verifierFin();
+    },
+  };
 }
 
 // ----- Animation -----------------------------------------------------------

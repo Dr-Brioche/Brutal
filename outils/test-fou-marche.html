@@ -1,0 +1,209 @@
+<!doctype html>
+<!--
+  ⚠ PAGE DE TEST (hors jeu) — À NE PAS EMBARQUER DANS L'EXPORT FINAL.
+
+  Rejoue la MISE EN SCÈNE du Fou du roi sans avoir à descendre dans la mine et
+  à tomber sur lui (0,1 % de chance…) :
+     1. le combat démarre et reste GELÉ (aucune action possible) ;
+     2. une seconde plus tard, son marché s'affiche PAR-DESSUS le combat ;
+     3. « Refuser » (ou bourse trop légère) → le combat reprend ;
+        « Accepter » → il empoche et le combat se conclut sans un coup.
+
+  Le bandeau du haut montre en direct l'état réel (gelé / en cours / conclu),
+  ce qui permet de vérifier d'un coup d'œil qu'on ne peut pas jouer pendant le
+  dialogue. Le bouton « Or : 0 » sert à tester le cas « pas assez d'argent ».
+
+  Ouvrir : outils/test-fou-marche.html (depuis un serveur local, comme le jeu).
+-->
+<meta charset="utf-8">
+<!-- Page dans outils/ : sans cette <base>, tous les chemins iraient chercher
+     outils/images/… (cf. docs/tests.md). Tout s'écrit donc DEPUIS LA RACINE. -->
+<base href="../">
+<title>Brütàl — test du marché du Fou du roi</title>
+<style>
+  body { margin: 0; background: #14110d; color: #e8e0cc; font-family: system-ui, sans-serif; }
+  #barre { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 10px 14px;
+           background: #1e1a14; border-bottom: 1px solid #3a3227; }
+  label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+  select, button { font: inherit; padding: 4px 8px; background: #2a241b; color: #e8e0cc;
+                   border: 1px solid #52463433; border-radius: 6px; }
+  button { cursor: pointer; background: #6b5426; }
+  #etat { font-size: 12px; opacity: .85; margin-left: auto; font-variant-numeric: tabular-nums; }
+</style>
+
+<div id="barre">
+  <label>Or du héros
+    <select id="sel-or">
+      <option value="99999" selected>99 999 (il peut payer)</option>
+      <option value="0">0 (pas assez → comme un refus)</option>
+    </select>
+  </label>
+  <label>Marché
+    <select id="sel-etape">
+      <option value="0" selected>1re offre — 500 🪙</option>
+      <option value="1">2e offre — 2 000 🪙</option>
+      <option value="2">3e offre — 10 000 🪙 (cadeau)</option>
+      <option value="3">après le cadeau — la rancune</option>
+    </select>
+  </label>
+  <button id="go">Rejouer la rencontre</button>
+  <span id="etat"></span>
+</div>
+
+<div id="scene"></div>
+
+<script type="module">
+  import { demarrerCombat } from "./jeu/ui/combat.js";
+  import { ouvrirDialogue } from "./jeu/ui/dialogue.js";
+  import { creerHeros } from "./jeu/entities/heros.js";
+  import { creerInventaire } from "./jeu/systems/inventaire.js";
+  import { creerMaitrise } from "./jeu/systems/maitrise.js";
+  import { ENNEMIS, ennemiParId } from "./jeu/data/ennemis.js";
+  import { ITEMS } from "./jeu/data/items.js";
+  import { creerFou, fouProposeMarche, prixFou, payerFou, ATTAQUE_RANCUNE } from "./jeu/systems/fou.js";
+  import { installerLangueDonnees } from "./jeu/systems/i18n_donnees.js";
+  import { appliquerTextesDOM, t } from "./jeu/systems/langue.js";
+  import { RES } from "./jeu/core/texte.js";
+
+  const VUE = { l: 960, h: 540 };
+  const FOND_FIXE = "images/fonds/brutal/brutal-1.jpg";
+  const DELAI_MARCHE_FOU = 1000;   // doit rester égal à la constante de principal.js
+
+  const etat = document.getElementById("etat");
+
+  // --- 1) Récupère le DOM du jeu (canvas, HUD, dialogue, styles) depuis index.html
+  const html = await (await fetch("./index.html")).text();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  for (const st of doc.querySelectorAll("style")) document.head.append(st.cloneNode(true));
+  const scene = document.getElementById("scene");
+  for (const el of doc.body.children) {
+    if (el.tagName === "SCRIPT") continue;
+    scene.append(el.cloneNode(true));
+  }
+  for (const id of ["ecran-titre", "dbgr-btn", "dbgr-overlay", "barre-menu", "tactile"]) {
+    document.getElementById(id)?.remove();
+  }
+  document.getElementById("jeu").hidden = false;
+  document.getElementById("cadre-jeu").hidden = false;
+  appliquerTextesDOM();
+  installerLangueDonnees();
+
+  // --- 2) Charge les planches (mêmes chemins que principal.js)
+  const chargerImage = (src) => new Promise((res) => {
+    const i = new Image(); i.onload = () => res(i); i.onerror = () => res(i); i.src = src;
+  });
+  const chemins = [...new Set([...Object.values(ITEMS), ...ENNEMIS]
+    .filter((o) => o.planche).map((o) => o.planche))];
+  const images = await Promise.all(chemins.map(chargerImage));
+  const planches = new Map(chemins.map((c, i) => [c, images[i]]));
+
+  const canvas = document.getElementById("jeu");
+  const ctx = canvas.getContext("2d");
+  function ajusterEchelle() {
+    canvas.width = VUE.l * RES; canvas.height = VUE.h * RES;
+    const zoneL = Math.min(innerWidth, (innerHeight - 50) * 16 / 9);
+    canvas.style.width = Math.round(zoneL) + "px";
+    canvas.style.height = Math.round(zoneL * 9 / 16) + "px";
+    ctx.imageSmoothingEnabled = false;
+  }
+  addEventListener("resize", ajusterEchelle);
+  ajusterEchelle();
+
+  // --- 3) La rencontre, dans le MÊME ordre que principal.js
+  let combatEnCours = null, fou = null, inventaire = null, boucleId = 0;
+  // `phase` n'existe que pour le bandeau de test : il rend visible ce qui, en
+  // jeu, ne se voit que par l'absence de réaction (combat gelé).
+  let phase = "";
+  const dire = () => {
+    etat.textContent = `phase : ${phase} · or : ${inventaire?.or ?? "—"}`
+      + ` · paiements : ${fou?.paiements ?? 0}${fou?.recompense ? " (cadeau donné)" : ""}`;
+  };
+  window.__phase = () => phase;   // lu par le script de capture
+
+  async function rejouer() {
+    boucleId++;
+    combatEnCours = null;
+    const heros = creerHeros();
+    inventaire = creerInventaire();
+    inventaire.or = Number(document.getElementById("sel-or").value);
+    // Amène le Fou à l'étape voulue du marché (sans toucher à l'or du test).
+    fou = creerFou();
+    const etape = Number(document.getElementById("sel-etape").value);
+    for (let i = 0; i < etape; i++) payerFou(fou);
+
+    const base = ennemiParId("fou-du-roi");
+    const def = fou.recompense
+      ? { ...base, attaque: ATTAQUE_RANCUNE, fuiteApresToursHeros: 0 }
+      : base;
+    phase = "combat gelé"; dire();
+    combatEnCours = demarrerCombat({
+      ctx, heros, inventaire, planches, ennemis: [def], maitrise: creerMaitrise(),
+      fond: FOND_FIXE,
+      surPause: () => {},
+      surFin: (resultat) => { combatEnCours = null; phase = `fini : ${resultat}`; dire(); },
+    });
+    combatEnCours.setPause(true);
+
+    const mien = boucleId;
+    let tps = performance.now();
+    (function boucle(now) {
+      if (mien !== boucleId) return;
+      const dt = Math.min(0.05, (now - tps) / 1000); tps = now;
+      // On RETESTE combatEnCours entre les deux appels : la mise à jour peut
+      // conclure le combat (surFin le remet à null) — sinon on dessinerait un null.
+      if (combatEnCours) combatEnCours.mettreAJour(dt);
+      if (combatEnCours) combatEnCours.dessiner?.();
+      requestAnimationFrame(boucle);
+    })(tps);
+
+    await new Promise((r) => setTimeout(r, DELAI_MARCHE_FOU));
+    if (combatEnCours) { phase = "marché ouvert"; dire(); ouvrirMarche(); }
+  }
+
+  function ouvrirMarche() {
+    const prix = prixFou(fou);
+    if (!fouProposeMarche(fou)) {
+      ouvrirDialogue({
+        nom: t("fou.nom"), texte: [t("fou.rancune")],
+        choix: [{ texte: t("fou.refuser"), action: () => {} }],
+      }, () => reprendre());
+      return;
+    }
+    ouvrirDialogue({
+      nom: t("fou.nom"),
+      texte: [t("fou.offre1"), t("fou.offre2", { prix })],
+      choix: [
+        { texte: t("fou.accepter", { prix }), action: () => payer(prix) },
+        { texte: t("fou.refuser"), action: () => reprendre() },
+      ],
+    }, () => {});
+  }
+
+  function reprendre() {
+    if (!combatEnCours) return;
+    phase = "combat repris"; dire();
+    combatEnCours.setPause(false);
+  }
+  function conclure() { combatEnCours?.conclure("depart-monstre"); }
+
+  function payer(prix) {
+    if (inventaire.or < prix) {           // pas la somme = exactement comme un refus
+      ouvrirDialogue({
+        nom: t("fou.nom"), texte: [t("fou.pasAssez", { prix })],
+        choix: [{ texte: t("pnj.magnar.partir"), action: () => {} }],
+      }, () => reprendre());
+      return;
+    }
+    inventaire.or -= prix;
+    const cadeau = payerFou(fou);
+    ouvrirDialogue({
+      nom: t("fou.nom"),
+      texte: cadeau ? [t("fou.cadeau1"), t("fou.cadeau2"), t("fou.adieu")] : [t("fou.moque")],
+      choix: [{ texte: t("pnj.magnar.partir"), action: () => {} }],
+    }, () => conclure());
+  }
+
+  document.getElementById("go").addEventListener("click", rejouer);
+  window.__rejouer = rejouer;   // pilotable depuis un script de capture
+  rejouer();
+</script>

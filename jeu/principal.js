@@ -2002,24 +2002,38 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // ----- LE FOU DU ROI ------------------------------------------------------
   //
-  // Une rencontre qui commence par une CONVERSATION, pas par un combat. Il propose
-  // son marché (500 🪙, puis 2 000, puis 10 000) ; on accepte ou on refuse.
-  //   • ACCEPTER  → il empoche et s'en va en riant. Au 3e paiement seulement, il
-  //                 récompense enfin la crédulité (XP + gemmes rares).
-  //   • REFUSER   → combat, mais UN SEUL tour pour l'abattre (fuiteApresToursHeros).
-  //                 Touché sans être tué, il file en volant 200 🪙 ; intact, il
-  //                 s'éclipse sans rien. Abattu, il lâche son trésor et ne revient plus.
-  // Une fois qu'il a récompensé, il ne propose plus rien : on passe direct au combat.
+  // Le COMBAT COMMENCE D'ABORD, comme n'importe quelle rencontre : on voit contre
+  // qui on se bat. Une seconde plus tard, le Fou coupe la bagarre pour proposer son
+  // marché (500 🪙, puis 2 000, puis 10 000) : le dialogue s'affiche PAR-DESSUS le
+  // combat, qui reste GELÉ — aucune action possible tant qu'on n'a pas répondu.
+  //   • ACCEPTER (et avoir la somme) → il empoche, le combat se termine sans coup
+  //     férir. Au 3e paiement seulement, il récompense la crédulité (XP + gemmes).
+  //   • REFUSER, ou NE PAS AVOIR LA SOMME → le combat reprend, avec UN SEUL tour
+  //     pour l'abattre (fuiteApresToursHeros). Touché sans être tué, il file en
+  //     volant 200 🪙 ; intact, il s'éclipse sans rien. Abattu, il lâche son trésor
+  //     et ne revient plus.
+  // Une fois qu'il a récompensé, il ne propose plus rien : il annonce sa rancune et
+  // le combat reprend — mais cette fois il reste, et il cogne à 60.
+  const DELAI_MARCHE_FOU = 1000; // ms de combat visible avant que le marché s'invite
+
   async function rencontrerFouDuRoi() {
     enPause = true;
     invite.hidden = true;
+    await lancerCombatDuFou();
+    combatEnCours?.setPause(true);   // gelé dès la 1re image : on regarde, on ne joue pas
+    await new Promise((r) => setTimeout(r, DELAI_MARCHE_FOU));
+    if (combatEnCours) ouvrirMarcheDuFou();
+  }
+
+  // Le marché, joué par-dessus le combat gelé.
+  function ouvrirMarcheDuFou() {
     const prix = prixFou(fou);
     if (!fouProposeMarche(fou)) {           // il a déjà donné son cadeau : plus de marché
       ouvrirDialogue({
         nom: t("fou.nom"),
         texte: [t("fou.rancune")],
-        choix: [{ texte: t("fou.refuser"), action: () => { combattreFouDuRoi(); } }],
-      }, () => {});
+        choix: [{ texte: t("fou.refuser"), action: () => {} }],
+      }, () => reprendreCombatDuFou());
       return;
     }
     ouvrirDialogue({
@@ -2027,19 +2041,31 @@ export async function demarrerJeu(donneesInitiales = null) {
       texte: [t("fou.offre1"), t("fou.offre2", { prix })],
       choix: [
         { texte: t("fou.accepter", { prix }), action: () => payerLeFou(prix) },
-        { texte: t("fou.refuser"), action: () => { combattreFouDuRoi(); } },
+        { texte: t("fou.refuser"), action: () => reprendreCombatDuFou() },
       ],
     }, () => {});
   }
 
-  // On accepte le marché : l'or part VRAIMENT. Sans la somme, il se moque et s'en va.
+  // Le marché a échoué (refus, ou bourse trop légère) : le combat gelé repart.
+  function reprendreCombatDuFou() {
+    if (!combatEnCours) return;
+    afficherMessage(t(fou.recompense ? "fou.duelRancune" : "fou.duel"));
+    combatEnCours.setPause(false);
+  }
+  // Le marché est conclu : il empoche et s'en va, il n'y a plus rien à combattre.
+  function finirMarcheDuFou() {
+    combatEnCours?.conclure("depart-monstre");
+  }
+
+  // On accepte le marché : l'or part VRAIMENT. Sans la somme, il n'attend pas —
+  // c'est exactement comme un refus, le combat reprend.
   function payerLeFou(prix) {
     if (inventaire.or < prix) {
       ouvrirDialogue({
         nom: t("fou.nom"),
         texte: [t("fou.pasAssez", { prix })],
         choix: [{ texte: t("pnj.magnar.partir"), action: () => {} }],
-      }, () => { enPause = false; });
+      }, () => reprendreCombatDuFou());
       return;
     }
     inventaire.or -= prix;
@@ -2051,7 +2077,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         nom: t("fou.nom"),
         texte: [t("fou.moque")],
         choix: [{ texte: t("pnj.magnar.partir"), action: () => {} }],
-      }, () => { enPause = false; });
+      }, () => finirMarcheDuFou());
       return;
     }
     // 3e paiement : le cadeau. XP tout de suite, ressources dans le sac (ce qui
@@ -2066,11 +2092,11 @@ export async function demarrerJeu(donneesInitiales = null) {
       nom: t("fou.nom"),
       texte: [t("fou.cadeau1"), t("fou.cadeau2"), t("fou.adieu")],
       choix: [{ texte: t("pnj.magnar.partir"), action: () => {} }],
-    }, () => { enPause = false; });
+    }, () => finirMarcheDuFou());
   }
 
-  // On refuse (ou il n'y a plus de marché) : le combat, avec sa règle du tour unique.
-  async function combattreFouDuRoi() {
+  // Le combat lui-même, avec sa règle du tour unique.
+  async function lancerCombatDuFou() {
     // Deux combats très différents selon le moment de l'histoire :
     //  • tant qu'il marchandait → il FUIT au 2e tour et n'a même pas le temps de
     //    frapper (attaque 0) : c'est une course contre la montre, pas une bagarre ;
@@ -2081,7 +2107,8 @@ export async function demarrerJeu(donneesInitiales = null) {
       ? { ...base, attaque: ATTAQUE_RANCUNE, fuiteApresToursHeros: 0 }
       : base;
     await flashCombat();
-    afficherMessage(t(rancune ? "fou.duelRancune" : "fou.duel"));
+    // Pas de message de duel ici : il n'a de sens qu'au moment où la bagarre
+    // DÉMARRE VRAIMENT, c'est-à-dire quand le marché a échoué (reprendreCombatDuFou).
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis: [def], maitrise,
       bonusRun: bonusCombatRun(runProfondeur),
@@ -2093,6 +2120,12 @@ export async function demarrerJeu(donneesInitiales = null) {
         if (ambiance) jouerMusique(ambiance); else arreterMusique();
         if (resultat === "defaite") {
           finirSurDefaite();
+          return;
+        }
+        if (resultat === "depart-monstre") {
+          // Marché conclu : il repart avec l'or, sans un coup échangé.
+          rencontres = creerRencontres(); // pas de re-rencontre immédiate
+          enPause = false;
           return;
         }
         if (resultat === "fuite-monstre") {

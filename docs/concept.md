@@ -1020,12 +1020,20 @@ Ce n'est pas un combat, c'est un **pari**. Il surgit à **n'importe quelle
 profondeur** (0,1 % par rencontre de mine — tirage dédié dans `declencherRencontre`,
 il n'est dans le pool d'aucune zone) et **propose un marché** avant toute chose.
 
+**Mise en scène.** Le **combat démarre d'abord**, comme n'importe quelle rencontre :
+on voit contre qui on se bat. Il reste **gelé une seconde** (aucune action possible,
+ni souris ni clavier), puis le Fou coupe la bagarre et son marché s'affiche
+**par-dessus le combat**. Tant qu'on n'a pas répondu, rien ne bouge.
+
 **Niveau 10 · 100 PV.** Tant qu'il marchande, **il ne frappe jamais** (attaque 0) —
 et pour cause : il s'enfuit avant même d'en avoir l'occasion. Le danger n'est pas
 ses coups, c'est ce qu'il vous coûte. **Une seule exception, la RANCUNE** (voir
 plus bas) : là il reste, et il frappe à **60 par attaque**.
 
-- **Accepter** → l'or part vraiment, il s'en va en riant, aucun combat.
+- **Accepter** (et avoir la somme) → l'or part vraiment, il s'en va en riant, et
+  le combat se conclut sans un coup échangé (résultat `"depart-monstre"`).
+- **Accepter sans avoir la somme** → il n'attend pas : c'est **exactement comme un
+  refus**, le combat reprend.
 - **Refuser** → combat, mais **UN SEUL tour** pour l'abattre (`fuiteApresToursHeros`) :
   100 PV à sortir d'un coup. Ensuite il s'échappe.
   - touché sans être tué → il **vole 200 🪙** en partant ;
@@ -1049,12 +1057,21 @@ c'est le seul vrai combat de toute son histoire, et il cogne à **60 par attaque
   Son butin garanti passe par `butinFixe`, qui court-circuite tout tirage.
 - **Déroulé** (dialogues, paiements, vol, récompense) : `principal.js`,
   section « LE FOU DU ROI ».
-- **Mécanique réutilisable** : `fuiteApresToursHeros` sur un monstre → il
-  s'échappe après N tours du héros, et le combat se termine sur le résultat
-  `"fuite-monstre"` (ni butin ni XP). `surFin` reçoit un 3e argument avec les
-  PV finaux de chaque ennemi, pour savoir si on l'avait entamé.
-- **Tester** : `outils/test-fou.html` (24 vérifications automatiques) ou le
-  Maître d'arène, qui rejoue la vraie rencontre.
+- **Mécaniques réutilisables** (utiles à toute future rencontre scénarisée) :
+  - `fuiteApresToursHeros` sur un monstre → il s'échappe après N tours du héros,
+    et le combat se termine sur le résultat `"fuite-monstre"` (ni butin ni XP).
+    `surFin` reçoit un 3e argument avec les PV finaux de chaque ennemi, pour
+    savoir si on l'avait entamé.
+  - `combat.setPause(true/false)` → **gèle / relance** un combat en cours. Rien ne
+    bouge et aucune entrée ne passe (clavier, cartes, boutons) : c'est ce qui permet
+    de jouer un dialogue par-dessus. Le voile du dialogue (z-index 20) recouvre
+    l'écran de combat (z-index 12), donc la souris lui revient naturellement.
+  - `combat.conclure(resultat)` → **termine** un combat de l'extérieur, sans qu'il
+    soit allé à son terme (ici `"depart-monstre"` : le monstre s'en va, pas de
+    butin, pas d'écran de défaite).
+- **Tester** : `outils/test-fou.html` (29 vérifications automatiques sur les règles),
+  `outils/test-fou-marche.html` (la **mise en scène** : combat gelé → marché →
+  reprise ou départ), ou le Maître d'arène, qui rejoue la vraie rencontre.
 
 ## Planches d'ARMURE en combat (set complet) — 27/07/2026
 
