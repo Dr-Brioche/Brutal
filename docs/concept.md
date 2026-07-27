@@ -1197,8 +1197,9 @@ c'est le seul vrai combat de toute son histoire, et il cogne à **60 par attaque
 
 Porter **toutes les pièces d'un set** change l'**illustration de combat** du nain :
 il apparaît vêtu de l'armure (et sa tête dans le dérouleur de tours suit).
-Sets équipés d'une planche à ce jour : **mailles** (Cotte du maître-forgeron) et
-**croisé** (Plastron du croisé). Table : `PLANCHES_SET` dans `jeu/ui/combat.js`.
+Sets équipés d'une planche à ce jour : **mailles** (Cotte du maître-forgeron),
+**croisé** (Plastron du croisé) et **onyx** (Plate d'onyx).
+Table : `PLANCHES_SET` dans `jeu/ui/combat.js`.
 
 Deux planches par set — pose **1 main** (`…-1.webp`) et pose **2 mains**
 (`…-2.webp`) — exactement comme les planches par défaut `nain-combat*.png`.
