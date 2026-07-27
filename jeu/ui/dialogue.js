@@ -61,6 +61,55 @@ export function ouvrirDialogue(dialogue, surFin) {
 
   elNom.textContent = dialogue.nom ?? "";
 
+  // ---- Menu contextuel d'un CHOIX (clic droit / [E]) -------------------------
+  // Même look que le menu d'un objet du sac. Un choix le déclare via `menuContexte`
+  // = [{ label, fn }]. Pilotable À LA SOURIS comme AU CLAVIER (↑↓, Entrée, Échap) :
+  // toute action du jeu doit avoir ses deux entrées.
+  const elMenuCtx = document.getElementById("dlg-menu");
+  let menuCtx = null; // { actions, sel } tant qu'il est ouvert
+
+  function fermerMenuCtx() {
+    menuCtx = null;
+    elMenuCtx.hidden = true;
+    elMenuCtx.replaceChildren();
+  }
+  function surlignerMenuCtx() {
+    [...elMenuCtx.children].forEach((b, i) => b.classList.toggle("inv-menu-btn--sel", i === menuCtx.sel));
+  }
+  // Valider une entrée du menu revient à VALIDER LE CHOIX avec cette action-là : on
+  // passe donc par `choisir`, qui ferme le dialogue puis appelle surFin (c'est lui
+  // qui rouvre le menu du marchand). Sans ça le dialogue resterait ouvert et figé.
+  function lancerMenuCtx(i) {
+    const { iChoix, actions } = menuCtx;
+    fermerMenuCtx();
+    choisir(iChoix, actions[i]?.fn);
+  }
+  // `x`/`y` en pixels écran ; sans eux (appel clavier) on se place sur la ligne visée.
+  function ouvrirMenuCtx(iChoix, x, y) {
+    const actions = choix[iChoix]?.menuContexte ?? [];
+    if (!actions.length) return;
+    cacherInfobulle();
+    menuCtx = { iChoix, actions, sel: 0 };
+    elMenuCtx.replaceChildren(...actions.map((a, i) => {
+      const b = document.createElement("button");
+      b.className = "inv-menu-btn";
+      b.textContent = a.label;
+      b.addEventListener("click", () => lancerMenuCtx(i));
+      b.addEventListener("mouseenter", () => { menuCtx.sel = i; surlignerMenuCtx(); });
+      return b;
+    }));
+    elMenuCtx.hidden = false;
+    if (x == null) { // ouverture au clavier : à droite de la ligne sélectionnée
+      const r = elChoix.children[iChoix]?.getBoundingClientRect();
+      x = r ? r.right - 40 : innerWidth / 2;
+      y = r ? r.top : innerHeight / 2;
+    }
+    const r = elMenuCtx.getBoundingClientRect(); // clampé à l'écran
+    elMenuCtx.style.left = Math.max(8, Math.min(x, innerWidth - r.width - 8)) + "px";
+    elMenuCtx.style.top = Math.max(8, Math.min(y, innerHeight - r.height - 8)) + "px";
+    surlignerMenuCtx();
+  }
+
   function rendre() {
     elTexte.textContent = pages.length ? pages[Math.min(page, pages.length - 1)] : "";
     elChoix.replaceChildren();
@@ -111,12 +160,13 @@ export function ouvrirDialogue(dialogue, surFin) {
           choisir(i);
         }
       });
-      // CLIC DROIT : action SECONDAIRE (ex. « acheter & équiper »). Directe (le clic
-      // droit est délibéré : pas de double-clic de confirmation). On ne montre le menu
-      // contextuel du navigateur dans aucun cas (preventDefault systématique en boutique).
+      // CLIC DROIT : ouvre le MENU CONTEXTUEL du choix (comme sur un objet du sac) —
+      // ex. chez le marchand : « acheter » ou « acheter et équiper ». On n'agit plus
+      // directement : un clic droit ne doit pas acheter tout seul.
+      // (preventDefault systématique : jamais le menu contextuel du navigateur.)
       el.addEventListener("contextmenu", (e) => {
         e.preventDefault();
-        if (c.actionSecondaire) choisir(i, c.actionSecondaire);
+        if (c.menuContexte?.length) { sel = i; rendre(); ouvrirMenuCtx(i, e.clientX, e.clientY); }
       });
       elChoix.append(el);
     });
@@ -126,8 +176,8 @@ export function ouvrirDialogue(dialogue, surFin) {
       : enAttenteGlobal
         ? t("dialogue.acheterEncore")
         : t("dialogue.choisir");
-    // Info-bulle du bas : ajoute « acheter & équiper » quand le choix sélectionné le propose.
-    const equipHint = choix[sel]?.actionSecondaire ? " · " + t("dialogue.acheterEquiper") : "";
+    // Info-bulle du bas : signale le menu (clic droit / [E]) quand le choix en a un.
+    const equipHint = choix[sel]?.menuContexte?.length ? " · " + t("dialogue.menuOptions") : "";
     elAide.textContent = (dialogue.surEchap ? `${aide} · ${t("dialogue.retour")}` : aide) + equipHint;
     majApercu(); // bulle du choix sélectionné (navigation clavier)
   }
@@ -144,12 +194,18 @@ export function ouvrirDialogue(dialogue, surFin) {
 
   // Clic sur le panneau → avancer le texte (aucun effet en mode choix,
   // où les options ont déjà leurs propres listeners).
-  function surClicDialogue() { if (!enChoix) avancer(); }
+  // Clic n'importe où dans le dialogue : ferme d'abord le menu contextuel s'il est
+  // ouvert (on ne valide rien d'autre au passage), comme n'importe quel menu.
+  function surClicDialogue() {
+    if (menuCtx) { fermerMenuCtx(); return; }
+    if (!enChoix) avancer();
+  }
 
   function fermerUI() {
     actif = false;
     rafraichirActif = null;
     fermerActif = null;
+    fermerMenuCtx();                  // jamais de menu orphelin à l'écran
     window.removeEventListener("keydown", surTouche, true);
     overlay.removeEventListener("click", surClicDialogue);
     cacherInfobulle();
@@ -165,7 +221,7 @@ export function ouvrirDialogue(dialogue, surFin) {
   };
 
   // Valide le choix `i` : on ferme, on exécute son action, puis surFin. `action`
-  // peut être forcée (ex. `actionSecondaire` = « acheter & équiper » au clic droit).
+  // peut être forcée — c'est ce que fait une entrée de `menuContexte` (clic droit).
   function choisir(i, action = choix[i]?.action) {
     fermerUI();
     if (action) action();
@@ -200,6 +256,16 @@ export function ouvrirDialogue(dialogue, surFin) {
     if (e.code !== "Escape" && document.querySelector(".inv-panneau.inv-panneau--focus")) return;
     e.preventDefault();
     e.stopPropagation();              // bloque menu pause / déplacement pendant le dialogue
+    // MENU CONTEXTUEL ouvert : il capte tout le clavier (↑↓ / Entrée / Échap) tant
+    // qu'on n'a pas choisi — sinon on validerait aussi la ligne du dialogue derrière.
+    if (menuCtx) {
+      const n = menuCtx.actions.length;
+      if (e.code === "Escape") fermerMenuCtx();
+      else if (e.code === "KeyW" || e.code === "ArrowUp") { menuCtx.sel = (menuCtx.sel - 1 + n) % n; surlignerMenuCtx(); }
+      else if (e.code === "KeyS" || e.code === "ArrowDown") { menuCtx.sel = (menuCtx.sel + 1) % n; surlignerMenuCtx(); }
+      else if (e.code === "Space" || e.code === "Enter") lancerMenuCtx(menuCtx.sel);
+      return;
+    }
     if (e.code === "Escape") {
       // Échap : si le dialogue propose un RETOUR (sous-menu marchand), on le
       // prépare AVANT la fermeture → surFin rouvre le menu parent au lieu de tout
@@ -211,9 +277,9 @@ export function ouvrirDialogue(dialogue, surFin) {
     else if (e.code === "Space" || e.code === "Enter") avancer();
     else if (enChoix && (e.code === "KeyW" || e.code === "ArrowUp")) { deplacer(-1); rendre(); }
     else if (enChoix && (e.code === "KeyS" || e.code === "ArrowDown")) { deplacer(1); rendre(); }
-    // [E] : action SECONDAIRE du choix sélectionné (ex. « acheter & équiper »), équivalent
-    // clavier du clic droit. Sans effet si le choix n'en propose pas.
-    else if (enChoix && e.code === "KeyE" && choix[sel]?.actionSecondaire) choisir(sel, choix[sel].actionSecondaire);
+    // [E] : ouvre le MENU du choix sélectionné (équivalent clavier du clic droit).
+    // Sans effet si le choix n'en propose pas.
+    else if (enChoix && e.code === "KeyE" && choix[sel]?.menuContexte?.length) ouvrirMenuCtx(sel);
     // Q/D… : simplement bloqués (aucune action)
   }
 

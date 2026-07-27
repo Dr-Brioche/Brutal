@@ -102,7 +102,7 @@ export const TEXTES = {
   "dialogue.acheterEncore": { fr: "Recliquer pour acheter · [Z/S] choisir", en: "Click again to buy · [Z/S] choose" },
   "dialogue.choisir":   { fr: "[Z/S] choisir · [Espace] valider", en: "[Z/S] choose · [Space] confirm" },
   "dialogue.retour":    { fr: "[Échap] retour", en: "[Esc] back" },
-  "dialogue.acheterEquiper": { fr: "[Clic droit / E] acheter & équiper", en: "[Right-click / E] buy & equip" },
+  "dialogue.menuOptions": { fr: "[Clic droit / E] options", en: "[Right-click / E] options" },
 
   // ---- Marchand / boutique ----
   "commun.quitter":     { fr: "Quitter", en: "Leave" },
@@ -113,6 +113,8 @@ export const TEXTES = {
   "marchand.titreVente": { fr: "Marchand de test — Vente", en: "Test Merchant — Sell" },
   "marchand.titreCat":  { fr: "Marchand de test — {cat}", en: "Test Merchant — {cat}" },
   "marchand.gratuit":   { fr: "{nom}  ·  gratuit", en: "{nom}  ·  free" },
+  "marchand.acheter":   { fr: "Acheter", en: "Buy" },
+  "marchand.acheterEquiper": { fr: "Acheter et équiper", en: "Buy and equip" },
   "marchand.vendreLigne": { fr: "Vendre {nom}{q}  ·  +{prix} 🪙", en: "Sell {nom}{q}  ·  +{prix} 🪙" },
   "marchand.toutVendreTitre": { fr: "Tout vendre dans ton sac ?", en: "Sell EVERYTHING in your bag?" },
   "marchand.toutVendreNon": { fr: "←  Non, je garde mes objets", en: "←  No, keep my items" },
