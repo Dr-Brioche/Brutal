@@ -189,5 +189,8 @@
   }
   document.getElementById("go").addEventListener("click", lancer);
   window.__lancerTest = lancer;   // pilotable depuis un script de capture
+  // Quel monstre la souris survole (pour vérifier depuis un script que le
+  // passage au premier plan vise bien celui qu'on croit).
+  window.__survol = () => enCours?.survol?.() ?? null;
   lancer();
 </script>

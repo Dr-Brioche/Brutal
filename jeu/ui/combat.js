@@ -1168,6 +1168,27 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     return -1;
   }
 
+  // SURVOL À LA SOURIS (hors ciblage) : le monstre pointé passe AU PREMIER PLAN,
+  // halo doré compris, avec sa barre de vie et son intention par-dessus tout le
+  // reste. Sert à LIRE une mêlée serrée sans avoir à sortir une carte.
+  let survolEnnemi = -1;
+  function surSurvolScene(ev) {
+    if (drag || enPause) { survolEnnemi = -1; return; }
+    const p = pointerVersScene(ev.clientX, ev.clientY);
+    survolEnnemi = ennemiSousPoint(p.x, p.y);
+  }
+  function surSortieScene() { survolEnnemi = -1; }
+  ctx.canvas.addEventListener("pointermove", surSurvolScene);
+  ctx.canvas.addEventListener("pointerleave", surSortieScene);
+  // L'unité survolée, si elle est toujours valable (elle a pu mourir depuis).
+  function uniteSurvolee() {
+    // Pendant qu'une carte est en main, c'est le CIBLAGE qui commande : deux halos
+    // dorés à l'écran ne diraient plus qui va être frappé.
+    if (drag || enPause) return null;
+    const u = survolEnnemi >= 0 ? ennemisUI[survolEnnemi] : null;
+    return u && u.e.pv > 0 && !u.partis && !u.mort.actif ? u : null;
+  }
+
   function debutDrag(i, el, ev) {
     if (enPause) return; // combat gelé (menu pause, marché du Fou) : la souris non plus ne joue pas
     if (combat.fini || !combat.tourJoueur || phaseCiblage) return;
@@ -1521,6 +1542,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     boutonContinuer.removeEventListener("click", fermer);
     window.removeEventListener("keydown", surTouche, true);
     window.removeEventListener("pointermove", surDragMove); // au cas où un drag traîne
+    ctx.canvas.removeEventListener("pointermove", surSurvolScene);
+    ctx.canvas.removeEventListener("pointerleave", surSortieScene);
     window.removeEventListener("pointerup", surDragUp);
     conteneurMain.removeEventListener("pointerleave", surSortieMain);
     ctx.canvas.style.cursor = ""; // au cas où on ferme pendant un ciblage souris
@@ -1720,18 +1743,27 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
 
     // SPRITES ennemis : du plus loin au plus proche (arrière-plan d'abord).
     // Chaque ennemi a sa propre échelle — on ne peut pas utiliser un transform global.
-    const ordreDessin = [...ennemisUI].sort((a, b) => a.ecran.sol - b.ecran.sol);
+    const ordreProfondeur = [...ennemisUI].sort((a, b) => a.ecran.sol - b.ecran.sol);
+    // Le monstre SURVOLÉ à la souris passe DEVANT tous les autres (dessiné en
+    // dernier) : c'est ce qui permet de lire un monstre coincé derrière un colosse.
+    const uSurvol = uniteSurvolee();
+    const ordreDessin = uSurvol
+      ? [...ordreProfondeur.filter((u) => u !== uSurvol), uSurvol]
+      : ordreProfondeur;
     // BARRES DE VIE : dessinées AVANT les sprites, donc DERRIÈRE eux. Sinon la barre
     // d'un monstre d'arrière-plan passait par-dessus le monstre de devant, qui est
     // pourtant plus proche — ça cassait la profondeur. Un bout de barre peut se
     // retrouver masqué : ce n'est pas grave, le chiffre des PV est au centre et reste
     // lisible. (L'intention et le tag NEXT, eux, restent AU-DESSUS : voir plus bas.)
-    dessinerBarresEnnemis(ordreDessin);
+    // Celle du monstre survolé est mise de côté : elle passera au-dessus de tout.
+    dessinerBarresEnnemis(ordreDessin.filter((u) => u !== uSurvol));
     for (const u of ordreDessin) {
       if (u.partis) continue;
-      // Halo jaune de CIBLAGE derrière le monstre survolé à la souris : il pulse
-      // doucement pour montrer quelle cible sera touchée (dessiné AVANT le sprite).
-      if (drag && drag.vise && u.e.pv > 0 && drag.cibleSurvol === ennemisUI.indexOf(u))
+      // Halo doré derrière le monstre : il pulse doucement. Il montre soit la cible
+      // que la carte en cours va frapper, soit — hors ciblage — le monstre survolé
+      // qu'on vient de faire passer au premier plan.
+      const cibleCarte = drag && drag.vise && drag.cibleSurvol === ennemisUI.indexOf(u);
+      if (u.e.pv > 0 && (cibleCarte || u === uSurvol))
         dessinerLueurCible(ctx, u, temps);
       const def = u.spr.anims[u.anim.nom] ?? u.spr.anims.idle;
       const frame = frameAnim(def, u.anim.t);
@@ -1933,8 +1965,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // AU-DESSUS : ce sont des informations de décision, il ne faut jamais les rater.
     // Hors du transform d'échelle : ecran.haut est déjà en espace écran, la
     // perspective est donc correcte pour l'avant comme pour l'arrière-plan.
+    // La BARRE du monstre survolé arrive ici, après tous les sprites : elle passe
+    // donc au premier plan avec lui (le reste des barres est resté derrière).
+    if (uSurvol) dessinerBarresEnnemis([uSurvol]);
     const prochainIdx = combat.fini ? -1 : prochainEnnemiIndex();
-    [...ennemisUI].sort((a, b) => a.ecran.sol - b.ecran.sol).forEach((u) => {
+    ordreDessin.forEach((u) => {
       if (u.e.pv <= 0 || u.mort.actif) return;
       if (u.e.stun <= 0) dessinerIntention(ctx, u.e.intention, u.ecran.cx, u.ecran.haut - 8);
       if (prochainIdx === ennemisUI.indexOf(u) && !u.partis)
@@ -1987,6 +2022,8 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // plus intercepté : les touches filent au dialogue. La souris, elle, est déjà
     // bloquée par le voile plein écran du dialogue (z-index 20 > combat 12).
     setPause: (p) => { enPause = p; },
+    // Lecture seule (pages de test) : quel monstre la souris survole, ou null.
+    survol: () => uniteSurvolee()?.e.def?.id ?? null,
     // CONCLURE le combat de l'extérieur, sans qu'il soit allé à son terme :
     // le Fou empoche l'or et s'en va, il n'y a plus rien à combattre.
     conclure: (resultat) => {
