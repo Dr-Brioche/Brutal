@@ -81,6 +81,23 @@ Brutal/
 
 (La structure interne de `jeu/` sera précisée avec le concept du jeu.)
 
+## Tester : LIRE `docs/tests.md` D'ABORD
+
+**Avant tout test visuel, ouvrir `docs/tests.md`.** Ce mémo existe parce qu'une
+session s'est perdue une vingtaine de tours à faire marcher le héros dans la
+ville à l'aveugle pour atteindre un PNJ.
+
+La règle : **on ne traverse pas le jeu pour vérifier un visuel.** Il y a des
+pages de test qui appellent directement le module concerné —
+`outils/test-armures.html` lance un combat avec l'armure et l'arme choisies dans
+deux menus déroulants. En créer une pour un autre écran est presque toujours
+plus rapide que de naviguer.
+
+Le mémo liste aussi les pièges déjà payés (canvas `hidden`, `<base href>` pour
+une page dans `outils/`, fond de combat tiré au hasard, captures non comparables
+d'une animation à l'autre…) et, si on doit vraiment jouer, les raccourcis :
+GOD MODE, objets gratuits chez le marchand, chemin vers le Maître d'arène.
+
 ## Points techniques à ne pas oublier
 
 - **Tout doit être jouable à la souris OU au clavier** : chaque action a ses
