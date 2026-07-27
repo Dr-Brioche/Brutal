@@ -18,7 +18,7 @@
 export const STATS_HEROS_BASE = {
   pv: 50,
   vitesseMarche: 160,
-  vitesseCombat: 6,
+  vitesseCombat: 100,
   chaleurDepart: 1,
   chaleurRecharge: 1,
   chaleurSeuil: 3,

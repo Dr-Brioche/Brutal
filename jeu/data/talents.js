@@ -43,8 +43,8 @@ export const TALENTS = {
   artisanat: {
     id: "artisanat", nom: "Nimble Smith", branche: "forge",
     x: 0, y: 1, cout: 1, rangMax: 3, requis: ["racine"],
-    effet: { agilite: 3 },
-    description: "Nimble hands: +3 Agility per rank (3 ranks). Agility quickens your strikes in combat AND slows the forge bar, making high-quality crafts easier.",
+    effet: { agilite: 30 },
+    description: "Nimble hands: +30 Agility per rank (3 ranks). Agility quickens your strikes in combat AND slows the forge bar, making high-quality crafts easier.",
   },
   // Talent de FARM : agrandit le rayon de vision (découverte du brouillard) dans les
   // mines → on repère les minerais et les passages de plus loin. 2 rangs, +1 case chacun.
@@ -94,7 +94,7 @@ export const TALENTS = {
   esprit1: { id: "esprit1", nom: "Quick Wit",    branche: "combat", x: 3, y: 1, cout: 1, requis: ["racine"], effet: { pioche: 1 } },
   corps2:  { id: "corps2",  nom: "Ironheart",    branche: "combat", x: 2, y: 2, cout: 1, requis: ["corps1"], effet: { pvMax: 15 } },
   corps3:  { id: "corps3",  nom: "Light Step",   branche: "combat", x: 3, y: 2, cout: 1, requis: ["corps1"], effet: { vitesse: 30 } },
-  agile1:  { id: "agile1",  nom: "Fleet Strikes", branche: "combat", x: 2, y: 3, cout: 1, requis: ["corps3"], effet: { agilite: 5 } },
+  agile1:  { id: "agile1",  nom: "Fleet Strikes", branche: "combat", x: 2, y: 3, cout: 1, requis: ["corps3"], effet: { agilite: 50 } },
   // Prospecteur des profondeurs : +1 CHOIX de butin de run à chaque étage de mine
   // (base 2 → jusqu'à 4 avec les 2 rangs). Cf. systems/profondeur.js.
   prospecteur: {

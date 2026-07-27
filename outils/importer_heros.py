@@ -40,6 +40,17 @@ FIN = "// <<FIN-HEROS-AUTO>>"
 CLES = ["pv", "vitesseMarche", "vitesseCombat", "chaleurDepart",
         "chaleurRecharge", "chaleurSeuil", "chaleurMax", "mainMax"]
 
+# L'Excel parle la langue de Brioche, le code garde ses noms. « Agilité » y est le
+# nom lisible de la vitesse d'initiative en combat. Comparaison sans accents ni casse.
+SYNONYMES = {"agilite": "vitesseCombat", "agilité": "vitesseCombat"}
+
+
+def normaliser(cle):
+    import unicodedata
+    sans = "".join(c for c in unicodedata.normalize("NFD", cle)
+                   if unicodedata.category(c) != "Mn").lower()
+    return SYNONYMES.get(sans, cle)
+
 
 def lire_stats(wb):
     if "Héros" not in wb.sheetnames:
@@ -49,7 +60,7 @@ def lire_stats(wb):
     for lg in ws.iter_rows(values_only=True):
         if not lg:
             continue
-        cle = str(lg[0]).strip() if lg[0] else ""
+        cle = normaliser(str(lg[0]).strip() if lg[0] else "")
         if cle not in CLES:
             continue  # titre / clé inconnue / ligne vide
         try:

@@ -44,21 +44,22 @@ ENN_JS = RACINE / "jeu" / "data" / "ennemis.js"
 DEBUT = "// <<MONSTRES-AUTO>>"
 FIN = "// <<FIN-MONSTRES-AUTO>>"
 
-ACTIONS_OK = {"attaque", "soigner", "haste-allie", "buff-allie", "bouclier-allie"}
+ACTIONS_OK = {"attaque", "soigner", "haste-allie", "buff-allie", "bouclier-allie", "renforts"}
 
-# Libellés LISIBLES (onglet « Monstres ») -> type d'action du moteur. Comparaison
-# insensible à la casse et aux accents (cf. sans_accents). On accepte aussi les types
-# bruts (soigner/haste-allie/attaque) pour rester rétro-compatible.
-LIBELLES = {
-    "soin": "soigner", "soigner": "soigner",
-    "hate allies": "haste-allie", "hate allie": "haste-allie",
-    "hate": "haste-allie", "haste": "haste-allie", "haste-allie": "haste-allie",
-    "buff allies": "buff-allie", "buff allie": "buff-allie", "banniere": "buff-allie",
-    "etendard": "buff-allie", "porte-etendard": "buff-allie", "buff-allie": "buff-allie",
-    "bouclier allies": "bouclier-allie", "bouclier allie": "bouclier-allie",
-    "bouclier": "bouclier-allie", "bouclier-allie": "bouclier-allie",
-    "attaque": "attaque", "attack": "attaque",
-}
+# RECONNAISSANCE DES ACTIONS. Brioche écrit en français courant, pas en code : on
+# cherche donc des MOTS-CLÉS dans la ligne plutôt qu'un libellé exact. L'ordre compte
+# (« bouclier alliés » avant « alliés »). Comparaison sans accents ni casse, fautes de
+# frappe courantes incluses (« fore » pour « force », « hate » pour « hâte »).
+MOTS_ACTION = [
+    (("bouclier", "shield"), "bouclier-allie"),
+    (("soin", "soigne", "heal"), "soigner"),
+    (("renfort", "reinforce"), "renforts"),
+    # Un buff qui donne À LA FOIS de la force et de la hâte = le porte-étendard
+    # (buff-allie fait déjà les deux : +hâte et +dégâts, cf. systems/combat.js).
+    (("force", "fore", "degat", "etendard", "banniere", "buff"), "buff-allie"),
+    (("hate", "haste", "celerite"), "haste-allie"),
+    (("attaque", "attack", "frappe"), "attaque"),
+]
 
 
 def sans_accents(s):
@@ -97,12 +98,19 @@ def lire_int(cellule, iid, ligne, quoi):
     return int(m.group())
 
 
-def lire_actions(cellule, iid, ligne):
-    """Parse les ACTIONS SPÉCIALES (une par ligne). Deux formats acceptés :
-       • LISIBLE (recommandé) : « Libellé valeur (chance%) »  ex. « Soin 10 (50%) »
-       • brut (ancien)        : « type:valeur:poids »          ex. « soigner:10:50 »
-    Le séparateur est le SAUT DE LIGNE (ou « | »). Une ligne non reconnue est ignorée
-    (note libre). Un libellé qui ressemble à une action mais inconnu lève une erreur."""
+def lire_actions(cellule, iid, ligne, attaqueBase=0):
+    """Parse les ACTIONS SPÉCIALES (une par ligne).
+
+    Une ligne est une ACTION si — et seulement si — elle porte une chance entre
+    parenthèses : « … (60%) ». Tout le reste est une note libre, ignorée.
+    Le TYPE vient d'un mot-clé (cf. MOTS_ACTION), la VALEUR est le premier nombre
+    de la ligne (hors pourcentage) ; sans nombre, on prend l'attaque de base du
+    monstre (« Attaque (30%) »).
+
+    ⚠ Une ligne qui porte un « (n%) » mais dont on ne reconnaît pas le type est une
+    ERREUR, pas une note. C'est ce silence-là qui avait fait disparaître le bouclier
+    du Gobelin défenseur et le buff du Porte-étendard sans que personne le voie.
+    """
     txt = str(cellule).strip() if cellule else ""
     if not txt:
         return []
@@ -111,28 +119,31 @@ def lire_actions(cellule, iid, ligne):
         ln = ln.strip()
         if not ln:
             continue
-        # Ancien format « type:valeur:poids ».
+        # Ancien format « type:valeur:poids » (toujours accepté).
         if ":" in ln and ln.split(":")[0].strip() in ACTIONS_OK:
             bouts = [b.strip() for b in ln.split(":")]
             if len(bouts) != 3:
                 raise SystemExit(f"« Monstres » ligne {ligne} ({iid}) : action « {ln} » mal formée.")
             typ, val, poids = bouts
-        else:
-            # Format lisible « Libellé valeur (chance%) ».
-            m = re.match(r"^(.*?)\s+(-?\d+)\s*\(\s*(\d+)\s*%?\s*\)\s*$", ln)
-            if not m:
-                continue  # ligne non structurée → note libre, ignorée
-            libelle = sans_accents(m.group(1).strip()).lower()
-            libelle = re.sub(r"\s+", " ", libelle)
-            typ = LIBELLES.get(libelle)
-            if not typ:
-                raise SystemExit(f"« Monstres » ligne {ligne} ({iid}) : libellé d'action inconnu "
-                                 f"« {m.group(1).strip()} » (attendus : Soin, Hâte alliés, Attaque).")
-            val, poids = m.group(2), m.group(3)
-        try:
-            val, poids = int(round(float(val))), int(round(float(poids)))
-        except ValueError:
-            raise SystemExit(f"« Monstres » ligne {ligne} ({iid}) : valeur/chance illisible dans « {ln} ».")
+            out.append((typ, int(round(float(val))), int(round(float(poids)))))
+            continue
+        # Format lisible : la CHANCE en fin de ligne, « (60%) ».
+        mp = re.search(r"\(\s*(\d+)\s*%\s*\)\s*$", ln)
+        if not mp:
+            continue  # pas de pourcentage → note libre
+        poids = int(mp.group(1))
+        avant = ln[:mp.start()]
+        plat = sans_accents(avant).lower()
+        typ = next((t for mots, t in MOTS_ACTION if any(m in plat for m in mots)), None)
+        if not typ:
+            raise SystemExit(
+                f"« Monstres » ligne {ligne} ({iid}) : action « {ln.strip()} » non comprise.\n"
+                f"  Elle porte une chance ({poids}%) mais aucun mot-clé connu. Attendus : "
+                f"bouclier, soin, renfort, force/étendard, hâte, attaque.")
+        mv = re.search(r"-?\d+", avant)
+        # Sans nombre : « Attaque (30%) » = l'attaque de base du monstre ; pour tout
+        # le reste (ex. « Renforts (10%) ») la valeur n'a pas de sens → 0.
+        val = int(mv.group()) if mv else (int(attaqueBase) if typ == "attaque" else 0)
         out.append((typ, val, poids))
     return out
 
@@ -162,7 +173,7 @@ def lire_monstres(wb):
         attaque, hits = lire_attaque(champ(5), iid, i)   # « 2x2 » → attaque 2, hits 2
         xp = lire_int(champ(6), iid, i, "xp")
         vitesse = lire_int(champ(7), iid, i, "vitesse")
-        actions = lire_actions(champ(8), iid, i)
+        actions = lire_actions(champ(8), iid, i, attaque)
         # Colonne J = « grand » : 1/oui/true → monstre GRAND (occupe 2 places, rare).
         gv = str(champ(9)).strip().lower() if champ(9) is not None else ""
         grand = gv in ("1", "oui", "true", "vrai", "x")

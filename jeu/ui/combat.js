@@ -23,6 +23,7 @@ import { cartesEquipees, slotsOccupes } from "../systems/inventaire.js";
 import { setsActifs, itemDef, comboArmeActif } from "../data/items.js";
 import { forceQualite } from "../data/recettes.js";
 import { bonusTalents } from "../systems/talents.js";
+import { STATS_HEROS_BASE } from "../data/heros_base.js"; // agilité de base (échelle des vitesses)
 import { incrementerMaitrise } from "../systems/maitrise.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 import { police } from "../core/texte.js"; // polices centrales (cf. core/texte.js)
@@ -2177,7 +2178,11 @@ function dessinerOmbreSol(ctx, u) {
 // surtout des RÉACTIONS, pas d'une boucle d'idle. (cf. Slay the Spire.)
 const DUREE_ATTAQUE_PROC = 0.5;  // s — durée du bond d'attaque (à vitesse « neutre »)
 const DUREE_TOUCHE_PROC = 0.35;  // s — durée du recul « coup reçu »
-const VIT_ANIM_REF = 10;         // vitesse d'initiative « neutre » → anim à ×1.0
+// Vitesse d'initiative « neutre » (anim à ×1.0) : c'est l'AGILITÉ DE BASE DU HÉROS,
+// lue dans l'Excel. Un monstre plus rapide que le nain s'anime plus vite, un plus lent
+// traîne. ⚠ La prendre du héros et non en dur : quand l'échelle d'agilité a été
+// recalée (6 → 100), un 10 en dur mettait TOUS les monstres au maximum de vitesse.
+const VIT_ANIM_REF = STATS_HEROS_BASE.vitesseCombat;
 
 // Illustration du HÉROS en combat. Rendu lisse + effets, comme les monstres. Repli
 // sur le sprite pixel tant qu'elle charge. (L'EXPLORATION garde le sprite pixel 4 sens.)
@@ -2552,6 +2557,15 @@ function dessinerIntention(ctx, intention, cx, y) {
     ctx.fillStyle = intention.charge > 0 ? "#ffb03a" : "#ff4d3a";
     ctx.textAlign = "center";
     ctx.fillText(`💣 ${intention.valeur}${meche}`, cx, y);
+    ctx.textAlign = "left";
+    return;
+  }
+  // RENFORTS (porte-étendard de siège) : il sonne du cor pour appeler du monde.
+  // Pas de valeur à afficher — c'est le nombre d'emplacements libres qui décide.
+  if (intention.type === "renforts") {
+    ctx.fillStyle = "#ffcf57";
+    ctx.textAlign = "center";
+    ctx.fillText("📯", cx, y);
     ctx.textAlign = "left";
     return;
   }

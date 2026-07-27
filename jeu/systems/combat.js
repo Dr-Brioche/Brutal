@@ -75,6 +75,10 @@ const CHALEUR_MAX = STATS_HEROS_BASE.chaleurMax;           // plafond absolu
 // Vitesse égale → on alterne 1:1 ; 2× plus rapide → 2 tours pour 1 de l'autre.
 const VITESSE_HEROS_BASE = STATS_HEROS_BASE.vitesseCombat; // vitesse de base du héros
 const SEUIL_INIT = 100;        // jauge d'initiative à remplir pour agir
+// Nombre maximum d'EMPLACEMENTS occupés sur le champ de bataille (un grand en prend 2).
+// Même plafond que la plus grosse taille de groupe tirée au spawn — au-delà, la scène
+// déborde. Sert aux RENFORTS appelés en plein combat (porte-étendard de siège).
+const MAX_ENNEMIS = 5;
 // Statuts de VITESSE (temporaires : ils tickent par tour comme le poison).
 // La VALEUR d'une carte = le NOMBRE DE TICKS ajoutés. Chaque tick de Hâte donne
 // +5% de vitesse ; chaque tour un tick s'écoule → plus de stacks = plus rapide.
@@ -1440,6 +1444,26 @@ export function agirEnnemi(combat, i) {
     for (const a of alliés) { a.haste += e.intention.valeur; a.bonusDegats += bonusDeg; }
     evt.haste_allie = alliés.length ? e.intention.valeur : 0;
     evt.buffDegats = alliés.length ? bonusDeg : 0;
+  } else if (e.intention?.type === "renforts") {
+    // PORTE-ÉTENDARD DE SIÈGE : il appelle du RENFORT. On remplit les emplacements
+    // libres du champ de bataille (jamais plus de MAX_ENNEMIS emplacements au total,
+    // grands compris) avec le monstre déclaré sur sa fiche (`renfortId`).
+    const renfort = ennemiParId(e.def.renfortId ?? "gobelin-de-siege");
+    const occupees = combat.ennemis
+      .filter(ennemiVivant)
+      .reduce((s, a) => s + (a.def?.grand ? 2 : 1), 0);
+    let libres = Math.max(0, MAX_ENNEMIS - occupees);
+    const venus = [];
+    while (renfort && libres >= (renfort.grand ? 2 : 1)) {
+      venus.push(creerEnnemiCombat(renfort));
+      libres -= renfort.grand ? 2 : 1;
+    }
+    if (venus.length) {
+      combat.ennemis.push(...venus);
+      // Même « pouls » que la dislocation de la tour : l'UI reconstruit la scène.
+      combat.splitPulse = (combat.splitPulse || 0) + 1;
+    }
+    evt.renforts = venus.length;
   } else if (e.intention?.type === "bouclier-allie") {
     // GOBELIN DÉFENSEUR (bouclier) : donne du BOUCLIER à tous ses alliés vivants (protège
     // l'attaquant → synergie tank + dégâts). Ne se protège pas lui-même (il a sa garde de départ).
