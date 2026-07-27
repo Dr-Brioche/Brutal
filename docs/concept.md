@@ -239,6 +239,12 @@ indication contraire* — une zone peut imposer sa propre courbe) :
 |---|---|---|---|---|---|
 | Chance | 30 % | 30 % | 20 % | 15 % | 5 % |
 
+> **Survoler un monstre à la souris** (hors ciblage) le fait passer **au premier
+> plan**, devant les autres, avec son **halo doré** (le même qu'au ciblage) et sa
+> barre de vie par-dessus tout. C'est la loupe du champ de bataille : on lit un
+> monstre coincé derrière un colosse sans avoir à sortir une carte. Dès qu'une
+> carte est en main, le ciblage reprend la main (un seul halo à l'écran).
+
 > **Le niveau d'un monstre n'est JAMAIS affiché en jeu** (27/07/2026). Il ne dit
 > rien d'utile au joueur — ce qu'il regarde, ce sont les PV et l'intention — et sa
 > pastille encombrait la scène. Le niveau reste une donnée à part entière : c'est
