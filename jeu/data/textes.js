@@ -249,7 +249,9 @@ export const TEXTES = {
   "butin.pleinTitre": { fr: "Ton sac est plein", en: "Your bag is full" },
   "butin.pleinMsg":   { fr: "{n} objet{s} ne rentre{nt} pas. Partir maintenant, c'est {les} perdre pour de bon.",
                         en: "{n} item{s} won't fit. Leaving now means losing {them} for good." },
-  "butin.pleinOui":   { fr: "Tant pis, on part", en: "Never mind, leave" },
+  // Formulé SANS nombre dans les deux langues (« en » en français, « it » pris comme
+  // masse en anglais) : le même libellé marche pour 1 objet comme pour 20.
+  "butin.pleinOui":   { fr: "J'en ai pas besoin", en: "I don't need it" },
   "butin.pleinNon":   { fr: "Faire de la place", en: "Make room" },
   "butin.or":         { fr: '<span class="icone-piece"></span> <b>+{or}</b> Or', en: '<span class="icone-piece"></span> <b>+{or}</b> Gold' },
 
