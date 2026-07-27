@@ -64,6 +64,36 @@ décisions de Brioche** : Brioche y règle les chiffres, Claude les applique dan
   « **est-ce dans l'Excel ?** » avant de clore. (Rappel écrit ici pour survivre à un
   effacement de conversation.)
 
+## Le jeu est BILINGUE (FR / EN) — À NE JAMAIS OUBLIER
+
+Le jeu existe en **français ET en anglais**, et les deux versions doivent rester
+**au même niveau en permanence**. Ce n'est pas une passe de traduction qu'on fait
+« à la fin » : c'est une contrainte de chaque tâche.
+
+- **RÈGLE ABSOLUE : toute modification future doit être intégrée dans les DEUX
+  langues, dans le même commit.** Ajouter un écran, un bouton, un monstre, un
+  objet, une carte, un dialogue, un message d'erreur… = écrire son texte **fr**
+  *et* **en** tout de suite. Une tâche livrée avec du texte dans une seule langue
+  est une tâche **non terminée**.
+- **Jamais de texte en dur** affiché au joueur dans le code. Les textes vivent dans :
+  - `jeu/data/textes.js` — textes d'**interface** (menus, boutons, HUD, messages) ;
+  - `jeu/data/textes_donnees.js` — textes de **contenu** (noms/descriptions d'objets,
+    cartes, talents, monstres, dialogues de PNJ, lore).
+  Chaque clé porte ses deux versions : `"combat.finTour": { fr: "…", en: "…" }`.
+- **Comment afficher** (cf. `jeu/systems/langue.js`) :
+  - en HTML : attribut `data-i18n="ma.cle"` (variantes `-title`, `-html`, `-ph`) ;
+  - en JS : `t("ma.cle")`, avec paramètres `t("ma.cle", { n: 3 })` pour les `{n}`.
+- **Les DONNÉES sont traduites par-dessus** (`jeu/systems/i18n_donnees.js`) : il
+  réécrit `.nom` / `.description` / `.texte` / `.lore` des objets, cartes, monstres…
+  et **mémorise l'anglais** dans `_nomEn` / `_descEn` / `_texteEn` / `_loreEn`.
+- **⚠ PIÈGE DÉJÀ PAYÉ — un fichier ne se retrouve JAMAIS par un nom traduit.**
+  Les illustrations sont nommées d'après le nom **anglais**. Construire un chemin
+  à partir de `.nom` fait disparaître tous les visuels dès qu'on passe en français.
+  → toujours partir de l'**`id`** ou de **`_nomEn`** (cf. `jeu/ui/carte.js`).
+- **Réflexe de fin de tâche** : basculer la langue et **relire son écran dans les
+  deux langues** (pas seulement vérifier que le texte existe : un libellé anglais
+  plus long peut déborder d'un bouton).
+
 ## Rangement des fichiers
 
 Le rangement doit rester lisible pour Brioche, qui doit pouvoir retrouver
