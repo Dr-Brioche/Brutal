@@ -112,10 +112,10 @@ const FILE_N = 5, FILE_TAILLE = 40, FILE_ESPACE = 8, FILE_Y = 12;
 // Portrait du héros dans la file des tours : on découpe la TÊTE dans l'illustration
 // de combat (images/heros/nain-combat.png) — même image que le héros affiché en
 // scène, donc plus cohérent que l'ancienne vignette pixel-art de la planche.
-// Découpage de la TÊTE dans l'illustration de combat, en FRACTIONS de la planche
-// (et non en pixels) : la même fenêtre marche pour la planche par défaut (140×210)
-// comme pour les planches d'armure, mieux définies. Valeurs = l'ancien cadre
-// {sx:72, sy:2, sw:60, sh:60} rapporté au 140×210 d'origine.
+// Découpage exprimé en FRACTIONS DU GABARIT (et non en pixels de l'image) : la
+// même fenêtre marche pour la planche par défaut (140×210) comme pour les planches
+// d'armure, plus définies ET parfois plus grandes que le gabarit (cf. `marge`).
+// Valeurs = l'ancien cadre {sx:72, sy:2, sw:60, sh:60} rapporté au 140×210 d'origine.
 const TETE_HEROS_COMBAT = { fx: 72 / 140, fy: 2 / 210, fw: 60 / 140, fh: 60 / 210 };
 // Repli : ancienne zone de tête dans la planche du nain (si l'illustration n'est
 // pas encore chargée au tout premier rendu).
@@ -1696,14 +1696,11 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
         // La tête suit la planche affichée (donc l'armure de set si elle est portée) :
         // le découpage est exprimé en FRACTIONS, pour marcher quelle que soit la
         // définition de la planche (défaut 210 px, planches d'armure 420 px).
-        const pretT = (im) => im && im.complete && im.naturalWidth;
-        const pl = (setPlanches && pretT(setPlanches.un)) ? setPlanches.un : imgHeroCombat;
+        const pretT = (p) => p && p.img.complete && p.img.naturalWidth;
+        const pl = (setPlanches && pretT(setPlanches.un)) ? setPlanches.un : PLANCHES_DEFAUT.un;
         if (pretT(pl)) {
-          planche = pl; lisse = true;
-          portrait = {
-            sx: TETE_HEROS_COMBAT.fx * pl.naturalWidth, sy: TETE_HEROS_COMBAT.fy * pl.naturalHeight,
-            sw: TETE_HEROS_COMBAT.fw * pl.naturalWidth, sh: TETE_HEROS_COMBAT.fh * pl.naturalHeight,
-          };
+          planche = pl.img; lisse = true;
+          portrait = fenetreTete(pl, "un");
         } else { planche = heros.plancheArmure; portrait = PORTRAIT_HEROS; }
       } else { const u = ennemisUI[a.i]; if (u) { planche = u.planche; portrait = u.e.def.portrait; teinte = u.e.def.teinte; } }
       dessinerCarreTete(ctx, x, FILE_Y, FILE_TAILLE, planche, portrait, k === 0, teinte, lisse);
@@ -1770,25 +1767,33 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const solHeros = HEROS.y + 64 * ECHELLE_HEROS; // ligne de sol (pieds)
     // Pose selon l'arme : poings tendus si arme à 2 mains, sinon mains vides.
     // Planche du set d'armure si elle est prête, sinon la planche par défaut de la pose.
-    const pret = (im) => im && im.complete && im.naturalWidth;
-    const planchesDef = { un: imgHeroCombat, deux: imgHeroCombat2Mains };
-    const pose = armeDeuxMains && pret(imgHeroCombat2Mains) ? "deux" : "un";
-    const imgHero = (setPlanches && pret(setPlanches[pose]))
-      ? setPlanches[pose] : planchesDef[pose];
+    const pret = (p) => p && p.img.complete && p.img.naturalWidth;
+    const pose = armeDeuxMains && pret(PLANCHES_DEFAUT.deux) ? "deux" : "un";
+    const plHero = (setPlanches && pret(setPlanches[pose]))
+      ? setPlanches[pose] : PLANCHES_DEFAUT[pose];
+    const imgHero = plHero.img;
     ctx.save();
     if (imgHero.complete && imgHero.naturalWidth) {
       // Héros = ILLUSTRATION. Pieds au sol, centré, rendu lisse.
       // Agrandi de 30 % (ECHELLE_HEROS_ILLU) ; les pieds restent posés sur solHeros.
-      const HH = 150 * ECHELLE_HEROS_ILLU, HW = HH * imgHero.naturalWidth / imgHero.naturalHeight;
+      // Le CADRE de référence est le GABARIT (pas l'image) : une planche d'armure
+      // peut être plus grande, elle déborde alors autour sans rien déplacer.
+      const gab = GABARIT_HEROS[pose], mrg = plHero.marge;
+      const HH = 150 * ECHELLE_HEROS_ILLU;
+      const kHero = HH / gab.h;              // px écran par px de gabarit
+      const HW = gab.l * kHero;
       const hxI = HEROS.x + 64 * ECHELLE_HEROS / 2 - HW / 2 + (animAttaque > 0 ? avance : 0) + trHeros;
       const hyI = solHeros - HH;
       const aX = hxI + HW / 2, aY = solHeros;
+      // Rectangle de l'IMAGE ENTIÈRE (gabarit + marges) : c'est lui qu'on dessine.
+      const illuX = hxI - mrg.g * kHero, illuY = hyI - mrg.h * kHero;
+      const illuL = (gab.l + mrg.g + mrg.d) * kHero, illuH = (gab.h + mrg.h) * kHero;
       // OMBRE au sol sous le nain (comme les monstres) : ovale calé sous ses pieds
       // réels. Dessinée AVANT la respiration → elle reste posée au sol (pas de secousse).
       const mHero = scanPieds(imgHero, imgHero.naturalWidth, imgHero.naturalHeight);
-      const hxBase = HEROS.x + 64 * ECHELLE_HEROS / 2 - HW / 2; // sans secousse/avance
-      const ombreCx = hxBase + (mHero ? mHero.cx / imgHero.naturalWidth : 0.5) * HW;
-      const ombreDemi = (mHero ? mHero.demi / imgHero.naturalWidth : 0.35) * HW;
+      const hxBase = HEROS.x + 64 * ECHELLE_HEROS / 2 - HW / 2 - mrg.g * kHero; // sans secousse/avance
+      const ombreCx = hxBase + (mHero ? mHero.cx / imgHero.naturalWidth : 0.5) * illuL;
+      const ombreDemi = (mHero ? mHero.demi / imgHero.naturalWidth : 0.35) * illuL;
       ombreOvale(ctx, ombreCx, solHeros - 1 - 4 / ECHELLE_AVANT, Math.max(ombreDemi * 1.5, HW * 0.42)); // remontée nette de 4px écran (comme les monstres)
       ctx.translate(aX, aY); ctx.scale(1 - 0.015 * brH, 1 + 0.025 * brH); ctx.translate(-aX, -aY);
       ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
@@ -1796,7 +1801,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       //    main arrière. 3) On REPOSE les POINGS (partie droite du sprite) par-dessus
       //    l'arme → les mains tiennent vraiment l'arme (doigts devant, la lame traverse
       //    la prise). Effet « calques » sans redessiner de bras à la main.
-      ctx.drawImage(imgHero, hxI, hyI, HW, HH);
+      ctx.drawImage(imgHero, illuX, illuY, illuL, illuH);
       if (skinArme && skinArme.img.complete && skinArme.img.naturalWidth) {
         const gX = hxI + skinArme.fx * HW, gY = hyI + skinArme.fy * HH;
         // Échelle de l'arme : rapportée à la hauteur de RÉFÉRENCE des planches, PAS à
@@ -1856,14 +1861,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
           ctx.rect(fracX, yTop, hxI + HW - fracX, hyI + HH - yTop);
         }
         ctx.clip();
-        ctx.drawImage(imgHero, hxI, hyI, HW, HH);
+        ctx.drawImage(imgHero, illuX, illuY, illuL, illuH);
         ctx.restore();
       }
       if (flashH > 0.05) {
         const ga = ctx.globalAlpha;
         ctx.globalAlpha = ga * flashH * 0.6;
         ctx.filter = "brightness(0) invert(1)";
-        ctx.drawImage(imgHero, hxI, hyI, HW, HH);
+        ctx.drawImage(imgHero, illuX, illuY, illuL, illuH);
         ctx.filter = "none"; ctx.globalAlpha = ga;
       }
     } else {
@@ -2141,30 +2146,61 @@ const VIT_ANIM_REF = 10;         // vitesse d'initiative « neutre » → anim �
 // sur le sprite pixel tant qu'elle charge. (L'EXPLORATION garde le sprite pixel 4 sens.)
 // Deux poses : MAINS VIDES (arme abstraite) et POINGS TENDUS (arme à DEUX MAINS —
 // on choisit celle-ci quand une arme 2 mains est équipée ; cf. armeDeuxMains).
-const imgHeroCombat = new Image();
-imgHeroCombat.src = "images/heros/nain-combat.png";
-const imgHeroCombat2Mains = new Image();
-imgHeroCombat2Mains.src = "images/heros/nain-combat-2mains.png";
+// (les deux planches par défaut sont déclarées plus bas, dans PLANCHES_DEFAUT :
+//  même modèle {img, marge} que les planches d'armure)
 
 // PLANCHES D'ARMURE (set complet) : porter TOUTES les pièces d'un set change
 // l'illustration de combat du nain. Une paire par set : [1 main, 2 mains] — même
 // découpage que les planches par défaut ci-dessus.
 //
-// ⚠ Chaque planche est CALÉE sur le gabarit de la planche par défaut de sa pose :
-// même RATIO largeur/hauteur (le jeu déduit la largeur dessinée HW du ratio, et
-// centre le nain dessus), PIEDS au bas de l'image (le bas = la ligne de sol), et
-// POING à la même fraction du cadre (c'est là que les skins d'arme posent la prise,
-// cf. fx/fy). Une planche mal calée décale l'arme hors de la main. Recalage fait
-// par outils/caler_planche_heros.py — le repasser pour toute nouvelle armure.
-function paireHeros(base) {
-  const un = new Image(); un.src = `images/heros/${base}-1.webp`;
-  const deux = new Image(); deux.src = `images/heros/${base}-2.webp`;
-  return { un, deux };
+// ⚠ Chaque planche est CALÉE sur le GABARIT de la planche par défaut de sa pose
+// (140×210 à une main, 170×210 à deux) : PIEDS au bas du gabarit (son bas = la
+// ligne de sol) et POING à la même fraction du cadre — c'est là que les skins
+// d'arme posent la prise (cf. fx/fy). Une planche mal calée décale l'arme hors
+// de la main. Calage fait par outils/caler_planche_heros.py.
+//
+// MARGES : une armure peut DÉBORDER du gabarit (un sac à dos plus large, un
+// heaume plus haut). On ne rogne JAMAIS l'illustration — l'image est plus grande
+// que le gabarit, et `marge` dit de combien (en px de gabarit, côté par côté).
+// Le jeu dessine alors l'image entière AUTOUR du gabarit : le personnage, lui,
+// ne bouge pas d'un pixel, et l'arme tombe toujours dans le poing. Les valeurs
+// sont celles imprimées par le script — les recopier telles quelles.
+const GABARIT_HEROS = { un: { l: 140, h: 210 }, deux: { l: 170, h: 210 } };
+function planche(src, marge = null) {
+  const img = new Image(); img.src = src;
+  return { img, marge: { g: 0, d: 0, h: 0, ...(marge ?? {}) } };
+}
+function paireHeros(base, margeUn, margeDeux) {
+  return {
+    un: planche(`images/heros/${base}-1.webp`, margeUn),
+    deux: planche(`images/heros/${base}-2.webp`, margeDeux),
+  };
 }
 const PLANCHES_SET = {
-  mail:   paireHeros("cotte-du-maitre-forgeron"),
-  croise: paireHeros("plastron-de-croise"),
+  mail:   paireHeros("cotte-du-maitre-forgeron", { g: 3, h: 1.5 }, { h: 0.5 }),
+  croise: paireHeros("plastron-de-croise", { g: 12.5 }, { g: 1.5, h: 2.5 }),
 };
+// Les planches par défaut suivent le même modèle, sans marge (elles SONT le gabarit).
+const PLANCHES_DEFAUT = {
+  un: planche("images/heros/nain-combat.png"),
+  deux: planche("images/heros/nain-combat-2mains.png"),
+};
+
+// Fenêtre de découpe de la TÊTE dans une planche, en pixels de CETTE image.
+// TETE_HEROS_COMBAT est donné en fractions du GABARIT : on le reporte donc sur
+// l'image réelle, marges comprises — sinon une planche débordante (sac à dos)
+// décalerait le portrait et on cadrerait à côté du visage.
+function fenetreTete(pl, pose) {
+  const gab = GABARIT_HEROS[pose], m = pl.marge;
+  const totalL = gab.l + m.g + m.d, totalH = gab.h + m.h;
+  const px = pl.img.naturalWidth / totalL, py = pl.img.naturalHeight / totalH;
+  return {
+    sx: (m.g + TETE_HEROS_COMBAT.fx * gab.l) * px,
+    sy: (m.h + TETE_HEROS_COMBAT.fy * gab.h) * py,
+    sw: TETE_HEROS_COMBAT.fw * gab.l * px,
+    sh: TETE_HEROS_COMBAT.fh * gab.h * py,
+  };
+}
 // Hauteur de planche sur laquelle les skins d'arme ont été réglés. Sert de RÉFÉRENCE
 // pour l'échelle de l'arme : sans ça, une planche en plus haute définition (les
 // planches d'armure sont en 420 px) rendrait l'arme minuscule, puisque l'échelle
