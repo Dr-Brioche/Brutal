@@ -262,6 +262,26 @@ légendaire, `+10` pour des bottes usées) se lisent enfin comme un pourcentage.
 - ⚠ **L'échelle sert aussi à l'ANIMATION** : `VIT_ANIM_REF` (`ui/combat.js`) est lu
   depuis l'agilité de base du héros. Ne jamais y remettre un nombre en dur — un `10`
   oublié mettait tous les monstres au maximum de vitesse d'animation.
+- ⚠ **… et à la FORGE** : l'agilité GAGNÉE (bottes + talents) ralentit la barre du
+  mini-jeu, à `AGILITE_RALENTI` par point (`systems/craft.js`). Ce pas suit l'échelle :
+  à +1 % par point, les premières bottes valaient déjà l'ancien bonus maximum et les
+  bottes d'onyx saturaient le plafond — toute la progression de cet axe disparaissait.
+- **Règle générale** : l'agilité de base ne se recopie JAMAIS en dur. Trois endroits
+  la lisaient (`systems/combat.js`, `ui/combat.js`, `ui/inventaire.js`) ; tous partent
+  maintenant de `STATS_HEROS_BASE.vitesseCombat`.
+
+**Ce que ça donne en combat** (mesuré sur 4 000 tours, nain sans bottes) :
+
+| adversaire | part des tours du nain | ses tours qui sont un doublon |
+|---|---|---|
+| Cave Goblin (90) | 52,6 % | 10 % |
+| Dire Hound (105) | 48,8 % | 0 % |
+| Goblin Skirmisher (125) | 44,5 % | 0 % |
+
+Le doublon occasionnel contre un monstre plus lent que soi n'est pas un bug : c'est
+l'ATB. Pour le supprimer complètement, il faudrait que le nain ne soit jamais plus
+rapide que le monstre le plus lent de l'étage (base 90 au lieu de 100, ou niveau 1
+remonté à 100 dans le tableau d'équilibrage).
 
 > **Le niveau d'un monstre n'est JAMAIS affiché en jeu** (27/07/2026). Il ne dit
 > rien d'utile au joueur — ce qu'il regarde, ce sont les PV et l'intention — et sa

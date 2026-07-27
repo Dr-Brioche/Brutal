@@ -28,6 +28,7 @@ import {
 } from "../systems/inventaire.js";
 import { dialogueActif } from "./dialogue.js";
 import { bonusTalents } from "../systems/talents.js";
+import { STATS_HEROS_BASE } from "../data/heros_base.js"; // agilité de base (Excel, onglet Héros)
 import { montrerInfobulle, montrerNoteSlotVide, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
 import { confirmationActive } from "./confirmation.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
@@ -588,7 +589,10 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const bt = bonusTalents(heros); // les CHIFFRES viennent de l'arbre (le stuff = cartes)
     const seuil = FORGE_SEUIL + (bt.chaleurSeuil || 0);
     const max = FORGE_MAX + (bt.chaleurMax || 0);
-    const agility = 10 + (bt.agilite || 0) + (heros.agiliteEquip || 0); // ATB base (10) + talents + bottes
+    // Agilité TOTALE = base du héros (Excel, onglet « Héros ») + talents + bottes.
+    // ⚠ La base se LIT, elle ne se recopie pas : un « 10 » en dur traînait ici depuis
+    // une ancienne échelle et affichait 10 à un nain qui en avait 100.
+    const agility = STATS_HEROS_BASE.vitesseCombat + (bt.agilite || 0) + (heros.agiliteEquip || 0);
     const moveSpeed = Math.round(100 * (1 + (heros.vitesseEquipPct || 0) / 100));
     const lignes = [
       [t("inv.statNiveau"),  `${heros.niveau}  (${heros.pointsTalent} pts)`],

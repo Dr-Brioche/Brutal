@@ -44,11 +44,17 @@ export const MJ_PERIODE = {
 };
 
 // L'AGILITÉ ralentit la barre du mini-jeu de forge : plus le nain est agile, plus
-// le curseur va lentement → plus facile d'attraper les bandes. +1 % de période par
-// point d'agilité, PLAFONNÉ à +50 % (atteint à 50 d'agilité). Le plafond garantit
+// le curseur va lentement → plus facile d'attraper les bandes. Le plafond garantit
 // qu'un LÉGENDAIRE reste dur à réussir même avec beaucoup d'agilité (base 480 ms →
 // 720 ms au max, toujours bien plus rapide qu'un commun). — décision Brioche.
-export const AGILITE_RALENTI = 0.01;       // +1 % de période par point d'agilité
+//
+// ⚠ Ne compte que l'agilité GAGNÉE (bottes + talents), pas la base du nain. Le pas
+// est de 0,1 % par point depuis que l'agilité est passée sur l'échelle 100 : à
+// +1 % par point, les toutes premières bottes (+10) valaient déjà l'ancien bonus
+// maximum, et la paire d'onyx (+200) saturait le plafond d'un coup — toute la
+// progression de cet axe disparaissait. Repères actuels : bottes usées (+10) →
+// +1 %, bottes d'onyx (+200) → +20 %, tout l'arbre de talents en plus → ~34 %.
+export const AGILITE_RALENTI = 0.001;      // +0,1 % de période par point d'agilité
 export const AGILITE_RALENTI_MAX = 0.50;   // plafond : +50 % de période
 
 // Facteur de ralentissement (0..0,50) apporté par une agilité donnée.
