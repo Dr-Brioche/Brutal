@@ -239,6 +239,12 @@ indication contraire* — une zone peut imposer sa propre courbe) :
 |---|---|---|---|---|---|
 | Chance | 30 % | 30 % | 20 % | 15 % | 5 % |
 
+> **Le niveau d'un monstre n'est JAMAIS affiché en jeu** (27/07/2026). Il ne dit
+> rien d'utile au joueur — ce qu'il regarde, ce sont les PV et l'intention — et sa
+> pastille encombrait la scène. Le niveau reste une donnée à part entière : c'est
+> lui qui classe les monstres par difficulté dans l'Excel et qui décide de leur
+> profondeur d'apparition.
+
 **Types tirés** : chaque emplacement est tiré **indépendamment**, **pondéré par
 NIVEAU** parmi les types éligibles de la zone. Dans une zone à fourchette (ex.
 lvl 1-3), les monstres **plus faibles sortent plus souvent** que les plus forts :
