@@ -862,6 +862,21 @@ const GRAND_BONUS_GROS = 3.0;  // poids du grand dans un gros groupe (favorisé)
 function tirerMonstrePondere(pool, niveauMin, grandFacteur = GRAND_RARETE, rng = Math.random) {
   const poids = pool.map((d) =>
     (1 / Math.pow(FACTEUR_NIVEAU, (d.niveau ?? 1) - niveauMin)) * (d.grand ? grandFacteur : 1));
+  return tirerPondere(pool, poids, rng);
+}
+
+// Tirage des COMPAGNONS du meneur. Ici la référence n'est plus le bas de la
+// fourchette mais le NIVEAU DU MENEUR, et l'écart compte DANS LES DEUX SENS :
+// un compagnon de niveau plus bas est possible (c'est ce qui donne la variété),
+// mais il reste d'autant plus rare qu'il est loin du meneur. Sans ça, autoriser
+// les niveaux inférieurs ferait des groupes de bestioles inoffensives à l'étage 8.
+function tirerCompagnon(pool, niveauMeneur, grandFacteur, rng = Math.random) {
+  const poids = pool.map((d) =>
+    (1 / Math.pow(FACTEUR_NIVEAU, Math.abs((d.niveau ?? 1) - niveauMeneur))) * (d.grand ? grandFacteur : 1));
+  return tirerPondere(pool, poids, rng);
+}
+
+function tirerPondere(pool, poids, rng) {
   let r = rng() * poids.reduce((s, w) => s + w, 0);
   for (let i = 0; i < pool.length; i++) { r -= poids[i]; if (r < 0) return pool[i]; }
   return pool[pool.length - 1];
@@ -922,33 +937,50 @@ export function filtrerNiveau(defs, niveauMobs) {
 }
 
 export function composerGroupe(monstreIds, opts = {}) {
-  let defs = (monstreIds ?? []).map(ennemiParId).filter(Boolean);
+  let tous = (monstreIds ?? []).map(ennemiParId).filter(Boolean);
   // Les monstres « spawnOnly » (équipage de la tour de siège) ne sortent JAMAIS d'un
   // pool normal : ils n'apparaissent qu'à la mort de la tour (cf. splitEnMort).
-  defs = defs.filter((d) => !d.spawnOnly);
-  if (defs.length === 0) return [];
-  // Restreint au niveau AFFICHÉ (cf. filtrerNiveau) : on ne rencontre que des monstres
-  // du bon niveau, ou — faute de contenu — du plus haut niveau disponible en dessous.
-  defs = filtrerNiveau(defs, opts.niveauMobs);
-  if (defs.length === 0) return [];
-  // On tire d'abord UN monstre « meneur » (pondéré par niveau). S'il est SOLO-UNIQUEMENT
-  // (tour de siège), la rencontre ne contient que LUI. Sinon il fixe le CLAN du groupe
-  // (homogène : pas de mélange blobs/gobelins/molosses).
-  const niveauMinPool = Math.min(...defs.map((d) => d.niveau ?? 1));
-  const meneur = tirerMonstrePondere(defs, niveauMinPool, GRAND_RARETE);
-  if (meneur.soloUniquement) return [meneur];
-  const clanChoisi = clanMonstre(meneur);
-  defs = defs.filter((d) => clanMonstre(d) === clanChoisi);
-  const melee = defs.filter((d) => d.affix !== "range");
-  const niveauMin = Math.min(...defs.map((d) => d.niveau ?? 1)); // réf. de la fourchette
-  const taille = tirerTaille(opts.distribution ?? DISTRIBUTION_GROUPE); // EN EMPLACEMENTS
-  // En groupe de 1-2 places : que du melee (règle range inchangée).
-  const poolBase = taille >= 3 ? defs : (melee.length ? melee : defs);
+  tous = tous.filter((d) => !d.spawnOnly);
+  if (tous.length === 0) return [];
+  // Pool « au bon niveau » pour l'étage (cf. filtrerNiveau) : c'est là-dedans qu'on
+  // choisit le MENEUR de la rencontre. Faute de contenu au bon niveau, filtrerNiveau
+  // se replie sur le plus haut niveau disponible en dessous.
+  const dansFourchette = filtrerNiveau(tous, opts.niveauMobs);
+  if (dansFourchette.length === 0) return [];
+
+  // TAILLE d'abord (en EMPLACEMENTS, 1 à 5) : elle décide de ce que le meneur a le
+  // droit d'être — un monstre `range` ne sort qu'à partir de 3 places, un GRAND en
+  // occupe 2. On la tire donc avant lui, même si à l'usage l'ordre ne se voit pas.
+  const taille = tirerTaille(opts.distribution ?? DISTRIBUTION_GROUPE);
   // GROS groupe (> 3 places) → on FAVORISE l'apparition d'un grand ennemi ; petit
   // groupe → malus habituel. (cf. GRAND_BONUS_GROS / GRAND_RARETE)
   const grandFacteur = taille > GROS_GROUPE ? GRAND_BONUS_GROS : GRAND_RARETE;
-  const groupe = [];
-  let libres = taille;
+  const eligible = (pool) => {
+    let p = taille >= 3 ? pool : pool.filter((d) => d.affix !== "range");
+    if (!p.length) p = pool;                            // zone 100 % range : on assume
+    const p2 = p.filter((d) => !d.grand || taille >= 2); // un grand veut 2 places
+    return p2.length ? p2 : p;
+  };
+  const poolMeneur = eligible(dansFourchette);
+  const niveauMinPool = Math.min(...poolMeneur.map((d) => d.niveau ?? 1));
+  const meneur = tirerMonstrePondere(poolMeneur, niveauMinPool, grandFacteur);
+  // SOLO-UNIQUEMENT (tour de siège, Fou du roi) : la rencontre ne contient que lui.
+  if (meneur.soloUniquement) return [meneur];
+
+  // COMPAGNONS : même CLAN que le meneur, et niveau AU PLUS celui du haut de la
+  // fourchette de l'étage — jamais au-dessus (le combat resterait jouable), mais
+  // EN DESSOUS c'est permis : c'est ce qui donne de la variété à la rencontre.
+  // (décision Brioche 27/07/2026)
+  const clanChoisi = clanMonstre(meneur);
+  const hautFourchette = Array.isArray(opts.niveauMobs)
+    ? opts.niveauMobs[1] : Math.max(...dansFourchette.map((d) => d.niveau ?? 1));
+  const defs = tous.filter((d) => clanMonstre(d) === clanChoisi
+    && (d.niveau ?? 1) <= Math.max(hautFourchette, meneur.niveau ?? 1));
+  const niveauMeneur = meneur.niveau ?? 1;
+  const poolBase = eligible(defs.length ? defs : [meneur]);
+  // Le meneur EST dans le groupe : c'est lui qu'on est venu rencontrer.
+  const groupe = [meneur];
+  let libres = taille - placesMonstre(meneur);
   while (libres > 0) {
     // Un grand n'est éligible que s'il reste ≥ 2 places.
     let pool = poolBase.filter((d) => !d.grand || libres >= 2);
@@ -956,15 +988,9 @@ export function composerGroupe(monstreIds, opts = {}) {
     if (groupe.some((g) => g.roiChampi)) pool = pool.filter((d) => !d.roiChampi);
     if (!pool.length) pool = poolBase.filter((d) => !d.grand); // dernière place : que du normal
     if (!pool.length) break; // (cas extrême zone 100 % grand + 1 place : on laisse la place vide)
-    const pick = tirerMonstrePondere(pool, niveauMin, grandFacteur);
+    const pick = tirerCompagnon(pool, niveauMeneur, grandFacteur);
     groupe.push(pick);
     libres -= placesMonstre(pick);
-  }
-  // Filet : si le pool n'est composé QUE de GRANDS et que la taille tirée était trop
-  // petite (1 place), la boucle sort à vide → on ferait une rencontre fantôme. On force
-  // alors UN monstre (un boss en solo) pour toujours avoir un vrai combat.
-  if (groupe.length === 0 && poolBase.length) {
-    groupe.push(tirerMonstrePondere(poolBase, niveauMin, grandFacteur));
   }
   // Tri stable melee d'abord, range à la fin (positionnement visuel du combat).
   groupe.sort((a, b) => (a.affix === "range" ? 1 : 0) - (b.affix === "range" ? 1 : 0));
