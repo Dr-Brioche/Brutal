@@ -953,22 +953,17 @@ export async function demarrerJeu(donneesInitiales = null) {
           // Achat à la souris = DOUBLE-CLIC (anti-mégarde) : 1er clic sélectionne,
           // 2e clic achète. Sauf l'onglet de test « Resources » (remplissage rapide).
           confirmClic: c.nom !== "Resources",
-          action: () => {
-            revenir();
-            // Un SAC s'ÉQUIPE d'office dans un slot de sac libre (il ne va pas DANS
-            // le sac : il EST le sac). Ça évite le blocage « sac plein » quand on
-            // achète un 2e sac pour justement AGRANDIR l'inventaire.
-            const slotSac = it.categorie === "sac" ? equiperNeuf(inventaire, it.id, heros) : null;
-            if (slotSac) afficherMessage(t("marchand.msgSacEquipe", { nom: it.nom }));
-            else if (ajouterObjet(inventaire, it.id)) afficherMessage(t("marchand.msgSacAjoute", { nom: it.nom }));
-            else afficherMessage(t("marchand.msgSacPlein"));
-            inventaireUI.rendre();
-          },
-          // CLIC DROIT (ou touche [E]) sur un objet ÉQUIPABLE : acheter ET équiper
-          // directement. Pour les consommables/ressources/trésors : pas d'option (null).
-          actionSecondaire: estEquipable(it.id)
-            ? () => { revenir(); acheterEtEquiper(it); }
-            : null,
+          action: () => { revenir(); acheterSimple(it); },
+          // CLIC DROIT (ou touche [E]) : petit MENU d'options, comme sur un objet du
+          // sac. Un clic droit n'achète donc jamais tout seul — il faut choisir.
+          // Pour un objet non équipable (consommable/ressource/trésor), une seule
+          // entrée : « acheter ».
+          menuContexte: [
+            { label: t("marchand.acheter"), fn: () => { revenir(); acheterSimple(it); } },
+            ...(estEquipable(it.id)
+              ? [{ label: t("marchand.acheterEquiper"), fn: () => { revenir(); acheterEtEquiper(it); } }]
+              : []),
+          ],
         });
       }
     }
@@ -979,6 +974,17 @@ export async function demarrerJeu(donneesInitiales = null) {
   // ACHETER & ÉQUIPER (clic droit / [E] chez le marchand). On équipe l'exemplaire
   // NEUF : si son slot est LIBRE, on l'y pose directement (marche même sac plein) ;
   // sinon on l'achète au sac puis on l'équipe (l'ancien repart au sac — échange).
+  // ACHETER (au sac). Un SAC, lui, s'ÉQUIPE d'office dans un emplacement de sac
+  // libre : il ne va pas DANS le sac, il EST le sac — sinon acheter un 2e sac pour
+  // agrandir l'inventaire serait bloqué par « sac plein ».
+  function acheterSimple(it) {
+    const slotSac = it.categorie === "sac" ? equiperNeuf(inventaire, it.id, heros) : null;
+    if (slotSac) afficherMessage(t("marchand.msgSacEquipe", { nom: it.nom }));
+    else if (ajouterObjet(inventaire, it.id)) afficherMessage(t("marchand.msgSacAjoute", { nom: it.nom }));
+    else afficherMessage(t("marchand.msgSacPlein"));
+    inventaireUI.rendre();
+  }
+
   function acheterEtEquiper(it) {
     const slotLibre = equiperNeuf(inventaire, it.id, heros);
     if (slotLibre) {
