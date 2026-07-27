@@ -62,9 +62,42 @@ function versOrigine(cxEcran) {
 // Au-delà de 3 monstres, on RESSERRE l'écart pour que 4-5 sprites tiennent dans
 // le cadre (640 px) sans déborder à droite. À 1-3 monstres, l'écart est inchangé.
 const ENNEMIS_LARGEUR = 205;        // largeur max occupée par le groupe (écran)
-function poserEnnemis(n) {
-  const espace = Math.min(ENNEMIS_ESPACE, ENNEMIS_LARGEUR / Math.max(1, n - 1));
-  const x0 = ENNEMIS_CX - ((n - 1) * espace) / 2;
+// BANDE utilisable par le groupe : à droite du héros, sans toucher le bord du
+// cadre. Aucun monstre ne doit JAMAIS être coupé par un bord.
+const ENNEMIS_BORD_G = 232, ENNEMIS_BORD_D = 632;
+const MARGE_GRAND = 8;              // air laissé autour d'un grand dans ses 2 places
+
+// Centres horizontaux des EMPLACEMENTS (un normal en occupe 1, un grand 2).
+//   `spans`     : nombre d'emplacements de chaque monstre, dans l'ordre ;
+//   `largeurs`  : largeur DESSINÉE de chaque monstre (sprite × son échelle).
+// L'écart entre emplacements résulte de trois contraintes, dans cet ordre :
+//   1. l'écart historique (78, resserré dès qu'il y a du monde) ;
+//   2. un GRAND doit TENIR dans ses 2 places — sinon deux colosses se chevauchent ;
+//   3. …mais le groupe doit rester ENTIÈREMENT visible : cette dernière l'emporte.
+// Enfin, si le groupe déborde malgré tout d'un côté, on le DÉCALE en bloc (le
+// centrage habituel sur ENNEMIS_CX est conservé tant que rien ne dépasse).
+function poserEnnemis(spans, largeurs) {
+  const n = spans.reduce((a, b) => a + b, 0);
+  const pas = Math.max(1, n - 1);
+  const dernier = spans.length - 1;
+  // Un monstre est centré sur SES places : les demi-places des extrémités ne
+  // comptent donc pas dans la portée entre le 1er et le dernier CENTRE.
+  const portee = Math.max(0, (n - 1) - (spans[0] - 1) / 2 - (spans[dernier] - 1) / 2);
+  const bords = (largeurs[0] + largeurs[dernier]) / 2;
+
+  const serre = Math.min(ENNEMIS_ESPACE, ENNEMIS_LARGEUR / pas);
+  const besoin = Math.max(0, ...spans.map((s, i) => (s > 1 ? (largeurs[i] + MARGE_GRAND) / s : 0)));
+  const plafond = portee > 0
+    ? Math.max(0, ENNEMIS_BORD_D - ENNEMIS_BORD_G - bords) / portee
+    : Infinity;
+  const espace = Math.min(Math.max(serre, besoin), plafond);
+
+  let x0 = ENNEMIS_CX - ((n - 1) * espace) / 2;
+  // Décalage en bloc si un bout dépasse (jamais les deux : `plafond` l'a évité).
+  const gauche = x0 + ((spans[0] - 1) / 2) * espace - largeurs[0] / 2;
+  const droite = x0 + ((n - 1) - (spans[dernier] - 1) / 2) * espace + largeurs[dernier] / 2;
+  if (droite > ENNEMIS_BORD_D) x0 -= droite - ENNEMIS_BORD_D;
+  else if (gauche < ENNEMIS_BORD_G) x0 += ENNEMIS_BORD_G - gauche;
   return Array.from({ length: n }, (_, i) => x0 + i * espace);
 }
 // Barre de vie sous chaque perso (unités SCÈNE, taille réelle, PV chiffrés dedans).
@@ -186,7 +219,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Rappelée après une DISLOCATION (Tour de siège → équipage) pour replacer la scène.
   function construireUnitesUI() {
     const spans = combat.ennemis.map((e) => (e.def.grand ? 2 : 1));
-    const placeCx = poserEnnemis(spans.reduce((a, b) => a + b, 0));
+    // Largeur RÉELLEMENT DESSINÉE de chaque monstre : c'est elle qui décide de
+    // l'écartement (occuper 2 places ne sert à rien si les places sont trop étroites).
+    const largeurs = combat.ennemis.map((e, i) => {
+      const enAvant = (i % 2 === 0) || !!e.def.grand;
+      const ech = (enAvant ? ECHELLE_AVANT : ECHELLE_ARRIERE) * (e.def.tailleRel ?? 1);
+      return e.def.sprite.caseL * ech;
+    });
+    const placeCx = poserEnnemis(spans, largeurs);
     let _place = 0;
     const cxs = spans.map((span) => {
       const c = (placeCx[_place] + placeCx[_place + span - 1]) / 2;

@@ -53,6 +53,7 @@
       <option value="1">1</option>
       <option value="4" selected>4 petits</option>
       <option value="gros">4 dont un géant (barres masquées)</option>
+      <option value="grands">2 grands (écartement)</option>
     </select>
   </label>
   <button id="go">Lancer le combat</button>
@@ -157,10 +158,17 @@
     // L'option « géant » met une tour de siège (tailleRel 2) au premier rang :
     // son sprite recouvre franchement les barres des monstres d'arrière-plan,
     // ce qui rend le test concluant (avec 4 petits, rien ne se chevauche).
+    // `window.__idsTest` (tableau d'ids) court-circuite le menu : pratique pour
+    // vérifier une composition précise depuis un script de capture.
     const choixMobs = document.getElementById("sel-mobs").value;
-    const ids = choixMobs === "gros"
-      ? ["gobelin-chaman", "molosse", "tour-de-siege-gobeline", "gobelin-vif"]
-      : ["gobelin", "gobelin-vif", "gobelin-chaman", "molosse"].slice(0, Number(choixMobs));
+    const ids = window.__idsTest
+      ?? (choixMobs === "gros"
+        ? ["gobelin-chaman", "molosse", "tour-de-siege-gobeline", "gobelin-vif"]
+        : choixMobs === "grands"
+          // Deux GRANDS monstres : chacun occupe 2 emplacements, ils doivent donc
+          // rester assez écartés pour ne pas se chevaucher.
+          ? ["armor-bear", "tour-de-siege-gobeline"]
+          : ["gobelin", "gobelin-vif", "gobelin-chaman", "molosse"].slice(0, Number(choixMobs)));
     const ennemis = ids.map(ennemiParId).filter(Boolean);
     dire(`set=${idSet} · arme=${arme || "aucune"} · slots=${JSON.stringify(inventaire.slots)}`);
     enCours = demarrerCombat({
