@@ -94,17 +94,20 @@ function premierePlaceTousOnglets(inv, l, h) {
   return null;
 }
 
-// Pose `n` exemplaires d'un item à la première place libre. Les items EMPILABLES
-// (ressources/minerais) complètent d'abord les piles existantes (< pileMax) avant
-// d'en créer une nouvelle. Renvoie true si tout est rangé, false si le sac est plein.
-export function ajouterObjet(inv, id, n = 1, champs = null) {
+// Range JUSQU'À `n` exemplaires d'un item et renvoie COMBIEN sont entrés (0 à n).
+// C'est la brique de base : elle ne perd rien et ne ment pas sur le résultat.
+//   • EMPILABLES (ressources, minerais) : on complète d'abord les piles existantes
+//     puis on en crée. La taille d'une pile vient du HÉROS (talent « Ore Hauler » :
+//     base 5, +5 par rang) — pas de l'item.
+//   • le reste : une case chacun.
+// Un rangement PARTIEL est un cas normal, pas une erreur : la fenêtre de butin
+// garde ce qui n'est pas entré, en attente qu'on fasse de la place.
+export function rangerObjets(inv, id, n = 1, champs = null) {
   const d = itemDef(id);
-  if (!d) return false;
+  if (!d || n <= 0) return 0;
+  let reste = n;
   if (d.empilable) {
-    // Taille de pile pilotée par le HÉROS (talent « Ore Hauler ») : base 5, +5/rang
-    // jusqu'à 30. (Le `pileMax` des items, hérité, n'est plus utilisé comme plafond.)
     const max = inv.pileMax ?? 5;
-    let reste = n;
     for (const o of inv.objets) {                 // compléter les piles existantes
       if (o.id !== id) continue;
       const place = max - (o.quantite ?? 1);
@@ -112,24 +115,33 @@ export function ajouterObjet(inv, id, n = 1, champs = null) {
         const add = Math.min(place, reste);
         o.quantite = (o.quantite ?? 1) + add;
         reste -= add;
-        if (reste <= 0) return true;
+        if (reste <= 0) return n;
       }
     }
     while (reste > 0) {                            // créer de nouvelles piles
       const pos = premierePlaceTousOnglets(inv, d.taille.l, d.taille.h);
-      if (!pos) return false;                      // tous les sacs pleins
+      if (!pos) break;                             // plus une case : on s'arrête là
       const add = Math.min(max, reste);
       inv.objets.push({ id, x: pos.x, y: pos.y, sac: pos.tab, quantite: add });
       reste -= add;
     }
-    return true;
+    return n - reste;
   }
-  const pos = premierePlaceTousOnglets(inv, d.taille.l, d.taille.h);
-  if (!pos) return false;
-  // `champs` : données d'INSTANCE en plus (ex. { qualite: "maitre" } pour une arme
-  // forgée). Ignoré pour les empilables. Les objets lootés n'en ont pas (= normale).
-  inv.objets.push({ id, x: pos.x, y: pos.y, sac: pos.tab, ...(champs || {}) });
-  return true;
+  while (reste > 0) {
+    const pos = premierePlaceTousOnglets(inv, d.taille.l, d.taille.h);
+    if (!pos) break;
+    // `champs` : données d'INSTANCE en plus (ex. { qualite: "maitre" } pour une arme
+    // forgée). Ignoré pour les empilables. Les objets lootés n'en ont pas (= normale).
+    inv.objets.push({ id, x: pos.x, y: pos.y, sac: pos.tab, ...(champs || {}) });
+    reste -= 1;
+  }
+  return n - reste;
+}
+
+// Même chose, en TOUT OU RIEN du point de vue de l'appelant : true si les `n`
+// exemplaires sont entrés. (Ce qui a pu entrer y reste — comportement historique.)
+export function ajouterObjet(inv, id, n = 1, champs = null) {
+  return rangerObjets(inv, id, n, champs) === n;
 }
 
 // Combien d'exemplaires de `id` dans le sac (somme des piles). Utile au craft.
