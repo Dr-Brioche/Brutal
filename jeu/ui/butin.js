@@ -108,10 +108,21 @@ export function installerButin() {
     if (restants <= 0) fermer(); // tout pris → la fenêtre se ferme seule
   }
 
+  // « Tout prendre » : on range le maximum, puis — s'il reste quelque chose parce que
+  // le sac déborde — on PRÉVIENT avant de le perdre. Valider = on part et le reste est
+  // perdu ; annuler = la fenêtre reste ouverte pour faire de la place et reprendre.
   function prendreTout() {
     if (!prendre) return;
     for (const el of [...liste.querySelectorAll(".butin-objet")]) ramasser(el);
-    if (restants <= 0) fermer();
+    if (restants <= 0) { fermer(); return; }
+    const p = restants > 1;
+    demanderConfirmation({
+      titre: t("butin.pleinTitre"),
+      message: t("butin.pleinMsg", { n: restants, s: p ? "s" : "", nt: p ? "nt" : "", les: p ? "les" : "le", them: p ? "them" : "it" }),
+      texteOui: t("butin.pleinOui"),
+      texteNon: t("butin.pleinNon"),
+      danger: true,
+    }, fermer);
   }
 
   // Ferme la fenêtre et applique l'or (une seule fois). Coupe l'animation d'XP

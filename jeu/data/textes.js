@@ -245,6 +245,12 @@ export const TEXTES = {
   "butin.laisserMsg": { fr: "{n} objet{s} perdu{s} pour de bon.", en: "{n} item{s} will be lost for good." },
   "butin.laisserOui": { fr: "Laisser", en: "Leave it" },
   "butin.laisserNon": { fr: "Continuer à ramasser", en: "Keep looting" },
+  // « Tout prendre » quand le sac déborde : on prévient AVANT de perdre le reste.
+  "butin.pleinTitre": { fr: "Ton sac est plein", en: "Your bag is full" },
+  "butin.pleinMsg":   { fr: "{n} objet{s} ne rentre{nt} pas. Partir maintenant, c'est {les} perdre pour de bon.",
+                        en: "{n} item{s} won't fit. Leaving now means losing {them} for good." },
+  "butin.pleinOui":   { fr: "Tant pis, on part", en: "Never mind, leave" },
+  "butin.pleinNon":   { fr: "Faire de la place", en: "Make room" },
   "butin.or":         { fr: '<span class="icone-piece"></span> <b>+{or}</b> Or', en: '<span class="icone-piece"></span> <b>+{or}</b> Gold' },
 
   // ---- Choix de faveur de profondeur ----
