@@ -48,6 +48,13 @@
       <option value="">— aucune —</option>
     </select>
   </label>
+  <label>Monstres
+    <select id="sel-mobs">
+      <option value="1">1</option>
+      <option value="4" selected>4 petits</option>
+      <option value="gros">4 dont un géant (barres masquées)</option>
+    </select>
+  </label>
   <button id="go">Lancer le combat</button>
   <span id="etat"></span>
 </div>
@@ -145,7 +152,16 @@
     if (arme) inventaire.slots.arme1 = arme;
     appliquerEquipement(heros, inventaire, planches);
 
-    const ennemis = [ennemiParId("gobelin")].filter(Boolean);
+    // Plusieurs monstres = le cas où les barres de vie se chevauchent : c'est là
+    // qu'on vérifie qu'une barre passe bien DERRIÈRE le monstre de devant.
+    // L'option « géant » met une tour de siège (tailleRel 2) au premier rang :
+    // son sprite recouvre franchement les barres des monstres d'arrière-plan,
+    // ce qui rend le test concluant (avec 4 petits, rien ne se chevauche).
+    const choixMobs = document.getElementById("sel-mobs").value;
+    const ids = choixMobs === "gros"
+      ? ["gobelin-chaman", "molosse", "tour-de-siege-gobeline", "gobelin-vif"]
+      : ["gobelin", "gobelin-vif", "gobelin-chaman", "molosse"].slice(0, Number(choixMobs));
+    const ennemis = ids.map(ennemiParId).filter(Boolean);
     dire(`set=${idSet} · arme=${arme || "aucune"} · slots=${JSON.stringify(inventaire.slots)}`);
     enCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis, maitrise: creerMaitrise(),
