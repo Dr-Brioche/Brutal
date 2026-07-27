@@ -57,7 +57,7 @@ import {
 import { installerEncheres, ouvrirEncheres, enchereActive } from "./ui/encheres.js";
 import { creerCoffre, etatCoffre, chargerCoffre } from "./systems/coffre.js";
 import {
-  CHANCE_FOU, VOL_FOU, CADEAU_FOU, creerFou, fouDisponible, fouProposeMarche,
+  CHANCE_FOU, VOL_FOU, CADEAU_FOU, ATTAQUE_RANCUNE, creerFou, fouDisponible, fouProposeMarche,
   prixFou, payerFou, tuerFou, etatFou, chargerFou,
 } from "./systems/fou.js";
 import { installerCoffre, coffreActif } from "./ui/coffre.js";
@@ -2065,9 +2065,17 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // On refuse (ou il n'y a plus de marché) : le combat, avec sa règle du tour unique.
   async function combattreFouDuRoi() {
-    const def = ennemiParId("fou-du-roi");
+    // Deux combats très différents selon le moment de l'histoire :
+    //  • tant qu'il marchandait → il FUIT au 2e tour et n'a même pas le temps de
+    //    frapper (attaque 0) : c'est une course contre la montre, pas une bagarre ;
+    //  • après le cadeau (la RANCUNE) → il reste, et il cogne à 60 par attaque.
+    const base = ennemiParId("fou-du-roi");
+    const rancune = fou.recompense;
+    const def = rancune
+      ? { ...base, attaque: ATTAQUE_RANCUNE, fuiteApresToursHeros: 0 }
+      : base;
     await flashCombat();
-    afficherMessage(t("fou.duel"));
+    afficherMessage(t(rancune ? "fou.duelRancune" : "fou.duel"));
     combatEnCours = demarrerCombat({
       ctx, heros, inventaire, planches, ennemis: [def], maitrise,
       bonusRun: bonusCombatRun(runProfondeur),

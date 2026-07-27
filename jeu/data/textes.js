@@ -616,6 +616,7 @@ export const TEXTES = {
   "fou.cadeauMsg":    { fr: "🃏 +{xp} XP et un trésor de fou !", en: "🃏 +{xp} XP and a fool's treasure!" },
   // Refus : un seul tour pour l'abattre
   "fou.duel":         { fr: "🃏 Un seul tour pour l'abattre !", en: "🃏 One turn to bring him down!" },
+  "fou.duelRancune":  { fr: "🃏 Cette fois, il ne fuit plus — et il frappe fort.", en: "🃏 This time he won't flee — and he hits hard." },
   "fou.fuiteVol":     { fr: "🃏 « Trop lent ! » — il file en emportant {vol} 🪙.", en: "🃏 “Too slow!” — he slips away with {vol} 🪙." },
   "fou.fuiteRien":    { fr: "🃏 « Quel ennui… » — le Fou du roi s'éclipse.", en: "🃏 “How dull…” — the King's Fool slips away." },
   "fou.tue":          { fr: "🃏 Le Fou du roi ne rira plus jamais.", en: "🃏 The King's Fool will never laugh again." },
