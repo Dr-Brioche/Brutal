@@ -17,6 +17,7 @@ partie. On ouvre une page de test qui appelle directement le module concerné.
 | Plusieurs monstres à l'écran (barres qui se chevauchent) | `outils/test-armures.html`, menu « Monstres » |
 | Les règles du Fou du roi (marché, butin, fuite) | `outils/test-fou.html` |
 | La mise en scène du Fou (combat gelé → marché → reprise) | `outils/test-fou-marche.html` |
+| Les 3 paiements du Fou et son cadeau | le Maître d'arène + God Mode (§3) |
 | Que le jeu démarre sans erreur | la sonde de démarrage (§3) |
 
 `outils/test-armures.html` : deux menus déroulants (armure / arme) + un bouton,
