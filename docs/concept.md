@@ -1159,6 +1159,10 @@ connu — réutilisable pour tout gain hors combat.
   attend dans la fenêtre** (la ligne affiche ce qui reste). On peut alors faire de la
   place dans l'inventaire — ouvert juste à côté — et reprendre, ou abandonner le reste
   en fermant. Rien n'est perdu en silence.
+- **« Tout prendre » PRÉVIENT avant de faire perdre quoi que ce soit** : s'il reste
+  des objets faute de place, une confirmation dit combien ne rentrent pas. *Faire de
+  la place* (choix par défaut) laisse la fenêtre ouverte ; *Tant pis, on part* ferme
+  et le reste est perdu. On ne quitte donc jamais un butin par accident.
 - Côté code : `rangerObjets(inv, id, n)` (`systems/inventaire.js`) range jusqu'à `n`
   exemplaires et renvoie **combien sont entrés**. `ajouterObjet` reste la version
   tout-ou-rien pour le reste du jeu.
