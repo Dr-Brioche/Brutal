@@ -37,6 +37,7 @@ Ensuite : déclarer la paire dans PLANCHES_SET (jeu/ui/combat.js).
 import argparse
 import sys
 from collections import deque
+from math import ceil
 
 import numpy as np
 from PIL import Image
@@ -118,7 +119,15 @@ def reperes(im):
 
 
 def caler(im, pose):
-    """Place le personnage dans le gabarit de la pose. Renvoie (image, échelle, débordements)."""
+    """Place le personnage dans le gabarit de la pose.
+
+    Renvoie (image, échelle, marges). Le personnage n'est JAMAIS rogné : si le
+    dessin déborde du gabarit (un sac à dos plus large, un heaume plus haut), la
+    planche est AGRANDIE d'autant et les MARGES ajoutées sont renvoyées, en px de
+    gabarit. Le jeu s'en sert pour dessiner l'image entière tout en gardant le
+    personnage exactement au même endroit (cf. PLANCHES_SET dans ui/combat.js).
+    Marge du BAS : jamais — le bas de l'image EST la ligne de sol.
+    """
     P = POSES[pose]
     Wc, Hc = P["gabarit"][0] * ZOOM, P["gabarit"][1] * ZOOM
     m = reperes(im)
@@ -131,17 +140,15 @@ def caler(im, pose):
     ty = Hc - (m["pieds"] + 1) * s
 
     red = im.resize((max(1, round(im.width * s)), max(1, round(im.height * s))), Image.LANCZOS)
-    out = Image.new("RGBA", (Wc, Hc), (0, 0, 0, 0))
-    out.alpha_composite(red, (round(tx), round(ty)))
-
-    deb = []
-    if tx + m["x0"] * s < -0.5:
-        deb.append(f"{abs(tx + m['x0'] * s):.0f} px à gauche")
-    if tx + m["x1"] * s > Wc + 0.5:
-        deb.append(f"{tx + m['x1'] * s - Wc:.0f} px à droite")
-    if ty + m["y0"] * s < -0.5:
-        deb.append(f"{abs(ty + m['y0'] * s):.0f} px en haut")
-    return out, s, deb
+    # Ce qui sort du gabarit devient une MARGE (px de sortie), jamais un rognage.
+    # Tolérance d'un demi-pixel : l'échelle n'est jamais RIGOUREUSEMENT ronde, et
+    # sans ça une planche par défaut se verrait attribuer une marge de 1 px fantôme.
+    mg = max(0, ceil(-(tx + m["x0"] * s) - 0.5))
+    md = max(0, ceil(tx + (m["x1"] + 1) * s - Wc - 0.5))
+    mh = max(0, ceil(-(ty + m["y0"] * s) - 0.5))
+    out = Image.new("RGBA", (Wc + mg + md, Hc + mh), (0, 0, 0, 0))
+    out.alpha_composite(red, (round(tx) + mg, round(ty) + mh))
+    return out, s, dict(g=mg / ZOOM, d=md / ZOOM, h=mh / ZOOM)
 
 
 def verifier():
@@ -149,13 +156,20 @@ def verifier():
     ok = True
     for pose, P in POSES.items():
         im = Image.open(P["defaut"]).convert("RGBA")
-        _, s, deb = caler(im, pose)
-        bon = abs(s - ZOOM) < 0.01 and not deb
+        _, s, mar = caler(im, pose)
+        bon = abs(s - ZOOM) < 0.01 and not any(mar.values())
         ok &= bon
-        print(f"  pose {pose} : échelle {s:.4f} (attendu {ZOOM})"
-              f"{'  débordement : ' + ', '.join(deb) if deb else ''}"
+        print(f"  pose {pose} : échelle {s:.4f} (attendu {ZOOM}), marges {fmt_marge(mar)}"
               f"   → {'OK' if bon else 'ÉCHEC'}")
     return ok
+
+
+def fmt_marge(mar):
+    """La marge telle qu'on la recopie dans PLANCHES_SET (jeu/ui/combat.js)."""
+    utile = {k: round(v, 1) for k, v in mar.items() if v}
+    if not utile:
+        return "aucune"
+    return "{ " + ", ".join(f"{k}: {v}" for k, v in utile.items()) + " }"
 
 
 def main():
@@ -177,13 +191,10 @@ def main():
         ap.error("il faut source, pose et -o (ou --verifier)")
 
     im = detourer(args.source)
-    out, s, deb = caler(im, args.pose)
+    out, s, mar = caler(im, args.pose)
     out.save(args.sortie, "WEBP", quality=92, method=6)
     print(f"{args.sortie} : {out.size[0]}×{out.size[1]}, échelle {s:.4f}")
-    if deb:
-        print("  ⚠ le dessin déborde du gabarit et sera rogné : " + ", ".join(deb))
-        print("    (le personnage est plus large que la planche par défaut à cet endroit ;")
-        print("     redessiner un peu plus serré si le rognage se voit en jeu)")
+    print(f"  marge à déclarer dans PLANCHES_SET : {fmt_marge(mar)}")
 
 
 if __name__ == "__main__":

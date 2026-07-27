@@ -1090,13 +1090,13 @@ Deux planches par set — pose **1 main** (`…-1.webp`) et pose **2 mains**
 (`…-2.webp`) — exactement comme les planches par défaut `nain-combat*.png`.
 
 **⚠ Le CALAGE des planches n'est pas optionnel.** `ui/combat.js` dessine le héros
-dans un cadre dont la HAUTEUR est fixe et la LARGEUR suit le ratio de l'image
-(le nain est centré dessus) ; le BAS de l'image est la ligne de SOL ; et le skin
-d'arme pose la prise à une **fraction (fx, fy) du cadre**. Une planche mal calée
-met donc l'arme à côté de la main. D'où trois règles :
-1. **même ratio** largeur/hauteur que la planche par défaut de la pose ;
-2. **pieds au bas** de l'image ;
-3. **poing à la même fraction** du cadre.
+dans un **gabarit** de taille fixe (140×210 à une main, 170×210 à deux) : le nain
+est centré dessus, le BAS du gabarit est la ligne de SOL, et le skin d'arme pose
+la prise à une **fraction (fx, fy) du gabarit**. Une planche mal calée met donc
+l'arme à côté de la main. D'où trois règles :
+1. **même gabarit** que la planche par défaut de la pose ;
+2. **pieds au bas** du gabarit ;
+3. **poing à la même fraction** du gabarit.
 
 C'est ce que fait `outils/caler_planche_heros.py` (détourage du fond vert +
 calage + export .webp ≈50 Ko). Les trois règles donnent trois équations pour
@@ -1107,8 +1107,14 @@ Les originaux fond vert restent dans `images/heros/sources-armures/`.
 **Pour voir le résultat sans jouer** : `outils/test-armures.html` lance un combat
 directement avec l'armure et l'arme choisies dans deux menus déroulants.
 
-Une planche plus large que le gabarit est **rognée** sur les bords (l'outil le
-signale) : c'est le cas du croisé 1 main, dont le sac à dos perd ~12 px à gauche.
+**Une illustration n'est JAMAIS rognée** (27/07/2026). Une armure peut déborder du
+gabarit — un sac à dos plus large, un heaume plus haut. Dans ce cas l'image est
+plus GRANDE que le gabarit, et la planche déclare de combien via `marge`
+(`{ g, d, h }`, en px de gabarit ; jamais de marge en bas, le bas EST le sol).
+Le jeu dessine alors l'image entière AUTOUR du gabarit : le personnage ne bouge
+pas d'un pixel et l'arme tombe toujours dans le poing. Le script calcule ces
+marges et imprime la ligne à recopier dans `PLANCHES_SET` — il n'y a rien à
+mesurer à la main. (Avant ça, le croisé 1 main perdait ~12 px de sac à gauche.)
 
 **Note technique** : l'échelle de l'arme se rapporte à `H_REF_PLANCHE_HEROS`
 (210 px, la hauteur des planches par défaut) et **non** à la hauteur native de la
