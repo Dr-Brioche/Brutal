@@ -251,12 +251,31 @@ indication contraire* — une zone peut imposer sa propre courbe) :
 > lui qui classe les monstres par difficulté dans l'Excel et qui décide de leur
 > profondeur d'apparition.
 
-**Types tirés** : chaque emplacement est tiré **indépendamment**, **pondéré par
-NIVEAU** parmi les types éligibles de la zone. Dans une zone à fourchette (ex.
-lvl 1-3), les monstres **plus faibles sortent plus souvent** que les plus forts :
-chaque niveau au-dessus du plus bas de la zone divise la fréquence par `FACTEUR_NIVEAU`
-(=2, `data/ennemis.js`). Ex. cave gobelins : les gobelins (niv 1) ~36 % chacun,
-l'ogre masqué (niv 3) ~9 %. Règle des affixes :
+**Types tirés — la rencontre part d'UN monstre** (revu le 27/07/2026). Une
+rencontre n'est plus un tas d'emplacements tirés chacun dans son coin : elle a
+un **meneur**, et le reste du groupe est sa **compagnie**.
+
+1. **Le meneur** est tiré dans la **fourchette de niveau de l'étage**
+   (`filtrerNiveau`), **pondéré par niveau** : les plus faibles de la fourchette
+   sortent plus souvent (chaque niveau au-dessus du plus bas divise la fréquence
+   par `FACTEUR_NIVEAU` = 2). Ex. cave gobelins : gobelins (niv 1) ~36 % chacun,
+   ogre masqué (niv 3) ~9 %. **Il fait toujours partie du groupe.**
+2. **La taille** (1 à 5 **emplacements**) suit la distribution habituelle
+   30/30/20/15/5. Elle est tirée avant le meneur, parce qu'elle décide de ce
+   qu'il a le droit d'être (un `range` demande 3 places, un grand en prend 2).
+3. **Les compagnons** sont de la **même famille** que le meneur (clan, voir
+   plus bas) et de niveau **au plus** le haut de la fourchette de l'étage — jamais
+   au-dessus, sinon l'étage deviendrait injouable. En revanche **en dessous, c'est
+   permis** : c'est ce qui donne de la variété (un gobelin niv 1 peut escorter un
+   orc niv 4). Plus un compagnon est loin du niveau du meneur — au-dessus comme
+   en dessous — plus il est rare (même facteur 2), sinon les groupes se
+   rempliraient de bestioles inoffensives.
+
+Les monstres à rencontre dédiée (**Lapin blanc**, **Fou du roi**, **Tour de
+siège**) ne passent pas par là : ils ont leur propre tirage, et `soloUniquement`
+garantit qu'ils viennent seuls.
+
+Règle des affixes :
 - **Groupe de 1-2** : uniquement des monstres **`melee`**.
 - **Groupe de 3+** : **tous** les types (melee **et** range), à chances égales →
   un même type peut sortir plusieurs fois, et le groupe peut même être **composé
