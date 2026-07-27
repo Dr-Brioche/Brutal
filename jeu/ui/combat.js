@@ -2221,6 +2221,7 @@ function paireHeros(base, margeUn, margeDeux) {
 const PLANCHES_SET = {
   mail:   paireHeros("cotte-du-maitre-forgeron", { g: 3, h: 1.5 }, { h: 0.5 }),
   croise: paireHeros("plastron-de-croise", { g: 12.5 }, { g: 1.5, h: 2.5 }),
+  onyx:   paireHeros("plate-onyx"), // tient pile dans le gabarit : aucune marge
 };
 // Les planches par défaut suivent le même modèle, sans marge (elles SONT le gabarit).
 const PLANCHES_DEFAUT = {
