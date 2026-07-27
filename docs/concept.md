@@ -245,6 +245,24 @@ indication contraire* — une zone peut imposer sa propre courbe) :
 > monstre coincé derrière un colosse sans avoir à sortir une carte. Dès qu'une
 > carte est en main, le ciblage reprend la main (un seul halo à l'écran).
 
+### L'AGILITÉ — échelle 100 (27/07/2026)
+
+L'agilité (= vitesse d'initiative en combat, ATB) est **centrée sur 100** : c'est
+l'agilité de base du nain (onglet `Héros` de l'Excel). Un monstre à 90 joue un peu
+moins souvent que lui, un monstre à 200 joue deux fois plus.
+
+**Pourquoi ce recalage.** Avant, la base du nain valait `6` et l'agilité des bottes
+s'y **ajoutait** : une paire à `+18` le faisait passer de 6 à 24, soit **4× la
+vitesse d'un gobelin** — il enchaînait plusieurs tours d'affilée et le combat
+perdait tout intérêt. Sur une base de 100, les mêmes bottes (`+200` pour la paire
+légendaire, `+10` pour des bottes usées) se lisent enfin comme un pourcentage.
+
+- **Fourchette de référence par niveau** : onglet `Lisez-moi` de l'Excel, tableau
+  « Équilibrage des monstres / niveau » (dégât par coup, vie, agilité, XP visés).
+- ⚠ **L'échelle sert aussi à l'ANIMATION** : `VIT_ANIM_REF` (`ui/combat.js`) est lu
+  depuis l'agilité de base du héros. Ne jamais y remettre un nombre en dur — un `10`
+  oublié mettait tous les monstres au maximum de vitesse d'animation.
+
 > **Le niveau d'un monstre n'est JAMAIS affiché en jeu** (27/07/2026). Il ne dit
 > rien d'utile au joueur — ce qu'il regarde, ce sont les PV et l'intention — et sa
 > pastille encombrait la scène. Le niveau reste une donnée à part entière : c'est

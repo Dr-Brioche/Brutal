@@ -436,7 +436,7 @@ export const TEXTES_DONNEES = {
   // l'effet seront traduites avec l'écran des talents). ----
   "talent.racine":    { fr: "Résolution du nain" },
   "talent.artisanat": { fr: "Forgeron agile" },
-  "talent.artisanat.desc": { fr: "Mains agiles : +3 Agilité par rang (3 rangs). L'Agilité accélère tes coups en combat ET ralentit la barre de forge, facilitant les crafts de haute qualité." },
+  "talent.artisanat.desc": { fr: "Mains agiles : +30 Agilité par rang (3 rangs). L'Agilité accélère tes coups en combat ET ralentit la barre de forge, facilitant les crafts de haute qualité." },
   "talent.visionMine": { fr: "Œil du mineur" },
   "talent.visionMine.desc": { fr: "Œil du mineur : +1 rayon de vision en mine par rang (2 rangs) — dévoile le brouillard de guerre plus loin autour de toi en explorant les profondeurs." },
   "talent.etageChance": { fr: "Foreur chanceux" },
