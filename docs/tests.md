@@ -43,18 +43,33 @@ Chromium est déjà installé : `executablePath: "/opt/pw-browsers/chromium"`.
 
 ---
 
-## 3. Sonde de démarrage (non-régression, à faire à chaque tâche)
+## 3. Démarrer la partie — par SÉLECTEUR, jamais par coordonnées
+
+**⚠ Le piège le plus coûteux.** Cliquer « Play » à des coordonnées en dur
+(`page.mouse.click(640, 603)`) ne marche que pour une taille de fenêtre précise :
+change la hauteur du `viewport` et le clic tombe à côté. Le jeu **ne démarre
+pas**, mais rien ne le signale — les touches suivantes ne font rien et on croit à
+un bug de navigation. Toujours viser les boutons :
 
 ```js
-const p = await b.newPage(); const js = [];
-p.on("pageerror", e => js.push(e.message));
-await p.goto("http://127.0.0.1:8900/index.html", { waitUntil: "networkidle" });
-await p.waitForTimeout(1500);
-await p.mouse.click(640, 603); await p.waitForTimeout(600);   // bouton Jouer
-await p.mouse.click(640, 603); await p.waitForTimeout(2500);  // lancer la partie
+await page.locator("#bouton-jouer").click({ timeout: 15000 });   // écran-titre
+await page.waitForTimeout(700);
+await page.locator("#demarrage-nouvelle").click({ timeout: 15000 }); // Nouvelle partie
+await page.waitForTimeout(2500);
+```
+(Ne pas grouper les deux en `"#a, #b"` + `.first()` : `.first()` prend le premier
+dans l'ORDRE DU DOM, donc le bouton déjà cliqué — le second clic est perdu.)
+
+Sonde de non-régression, à faire à chaque tâche :
+```js
+const js = []; page.on("pageerror", e => js.push(e.message));
+// … démarrage comme ci-dessus …
 console.log("PROBE_ERRORS=", JSON.stringify(js));
 ```
 `PROBE_ERRORS= []` → propre.
+
+**Pour vérifier que la partie a bien démarré** : `#ecran-titre` doit être masqué.
+Au moindre doute, faire une capture — l'écran-titre saute aux yeux.
 
 ---
 
@@ -104,11 +119,20 @@ Raccourcis utiles :
   quelques pressions sur ↑ suffisent. **Clic droit** sur un objet = acheter ET
   équiper d'un coup.
 - **Maître d'arène** (simulateur de combat) : colonne 21 / rangée 3, en haut à
-  gauche. Recette qui marche : ↑ longtemps (coller au mur), ← longtemps (coller
-  au mur), **↓ un cran**, puis → par petits pas jusqu'à ce que l'invite
-  apparaisse. ⚠ Le **commissaire-priseur** est dans la MÊME colonne (21/11),
-  plus bas : si l'invite s'affiche, vérifier le nom du dialogue avant de
-  conclure qu'on est au bon PNJ.
+  gauche. Recette VÉRIFIÉE (l'invite apparaît vers le 14e pas) :
+  ```js
+  await pas("ArrowUp", 8000);     // coller au mur du haut
+  await pas("ArrowLeft", 12000);  // coller au mur de gauche
+  await pas("ArrowDown", 220);    // UN cran plus bas (cf. la portée dy ci-dessous)
+  for (let i = 0; i < 40 && !trouve; i++) { await pas("ArrowRight", 120); trouve = await invite(); }
+  ```
+  Le simulateur permet aussi de tester **le Fou du roi** : le choisir dans la
+  liste rejoue sa vraie rencontre (marché → dialogue → combat d'un tour).
+  ⚠ Le **commissaire-priseur** est dans la MÊME colonne (21/11), plus bas : si
+  l'invite s'affiche, vérifier le nom du dialogue avant de conclure.
+- **Les dialogues s'affichent PAGE PAR PAGE** : les choix n'apparaissent qu'après
+  la dernière ligne de texte. Lire `#dialogue-choix` trop tôt renvoie une liste
+  vide — ce n'est pas un bug. Appuyer sur Espace jusqu'à ce que les choix soient là.
 
 **Portée de dialogue** (`jeu/entities/pnj.js`) : `|dx| < 50` **et `|dy| < 40`**.
 C'est le `dy` qui piège : collé au mur du haut, le héros est ~45 px trop haut

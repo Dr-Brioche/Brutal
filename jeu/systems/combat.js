@@ -1464,6 +1464,21 @@ export function agirEnnemi(combat, i) {
 // surchauffe, le poison/feu du héros tiquent, puis on pioche une main et on
 // prévoit les intentions. Le TOUT 1er tour ne recharge pas (forge froide).
 export function commencerTourHeros(combat) {
+  // MONSTRE FUYARD (`fuiteApresToursHeros`) : certains ennemis ne restent qu'un
+  // nombre limité de tours du héros, puis s'échappent. On compte les tours ICI —
+  // au moment où le héros reprend la main — et si le compte est dépassé alors que
+  // le fuyard est encore debout, le combat s'arrête sans vainqueur ("fuite-monstre").
+  // Côté principal.js, ce résultat ne donne ni butin ni XP : c'est une occasion ratée.
+  combat.toursHeros = (combat.toursHeros ?? 0) + 1;
+  const fuyard = combat.ennemis.find(
+    (e) => e.pv > 0 && (e.def?.fuiteApresToursHeros ?? 0) > 0
+      && combat.toursHeros > e.def.fuiteApresToursHeros,
+  );
+  if (fuyard) {
+    combat.fini = true;
+    combat.resultat = "fuite-monstre";
+    return;
+  }
   combat.tourSaute = false;
   combat.gelExplosionHeros = 0;
   if (combat.premierTourHeros) {

@@ -600,6 +600,28 @@ export const TEXTES = {
   "msg.aube":         { fr: "🌅 Le jour {n} se lève sur Brütàl.", en: "🌅 Day {n} dawns on Brütàl." },
   "msg.venteAuto":    { fr: "🔨 Ton {nom} a été vendu aux enchères pour {prix} 🪙 — récupère-le chez Magnar.", en: "🔨 Your {nom} sold at auction for {prix} 🪙 — collect from Magnar." },
 
+  // ---- Le Fou du roi (rencontre à tiroirs) ----
+  "fou.nom":          { fr: "Le Fou du roi", en: "The King's Fool" },
+  "fou.offre1":       { fr: "Ahah, salut ! Alors, comment se passe l'aventure ?", en: "Ahah, hello there! So — how goes the adventure?" },
+  "fou.offre2":       { fr: "Si tu veux un coup de main, donne-moi {prix} pièces, huhuhu…", en: "If you want a hand, give me {prix} coins, heehee…" },
+  "fou.accepter":     { fr: "💰  Accepter — donner {prix} 🪙", en: "💰  Accept — hand over {prix} 🪙" },
+  "fou.refuser":      { fr: "⚔  Refuser", en: "⚔  Refuse" },
+  "fou.pasAssez":     { fr: "Tu n'as même pas {prix} 🪙 à me donner ! Ahahah…", en: "You don't even have {prix} 🪙 to give me! Ahahah…" },
+  "fou.moque":        { fr: "Tu fais vraiment confiance à un fou ? Ahahhahahoohihihii…", en: "You really trust a fool? Ahahhahahoohihihii…" },
+  "fou.moqueMsg":     { fr: "🃏 Le Fou du roi disparaît avec tes {prix} 🪙.", en: "🃏 The King's Fool vanishes with your {prix} 🪙." },
+  // 3e paiement : il récompense enfin
+  "fou.cadeau1":      { fr: "Une telle crédulité mérite d'être récompensée !", en: "Such gullibility deserves a reward!" },
+  "fou.cadeau2":      { fr: "Voilà un cadeau, pour les fous comme moi !", en: "Here's a gift — for fools like me!" },
+  "fou.adieu":        { fr: "Notre prochaine rencontre sera moins plaisante.", en: "Our next meeting will be less pleasant." },
+  "fou.cadeauMsg":    { fr: "🃏 +{xp} XP et un trésor de fou !", en: "🃏 +{xp} XP and a fool's treasure!" },
+  // Refus : un seul tour pour l'abattre
+  "fou.duel":         { fr: "🃏 Un seul tour pour l'abattre !", en: "🃏 One turn to bring him down!" },
+  "fou.fuiteVol":     { fr: "🃏 « Trop lent ! » — il file en emportant {vol} 🪙.", en: "🃏 “Too slow!” — he slips away with {vol} 🪙." },
+  "fou.fuiteRien":    { fr: "🃏 « Quel ennui… » — le Fou du roi s'éclipse.", en: "🃏 “How dull…” — the King's Fool slips away." },
+  "fou.tue":          { fr: "🃏 Le Fou du roi ne rira plus jamais.", en: "🃏 The King's Fool will never laugh again." },
+  // Après la récompense : plus de marché
+  "fou.rancune":      { fr: "Je t'avais prévenu : cette fois, on ne rit plus.", en: "I did warn you — no more laughing this time." },
+
   // ---- Noms de zones (message d'entrée) ----
   "zone.Brütàl — the City":      { fr: "Brütàl — la Cité", en: "Brütàl — the City" },
   "zone.Eastern Under-tunnels":  { fr: "Souterrains de l'Est", en: "Eastern Under-tunnels" },

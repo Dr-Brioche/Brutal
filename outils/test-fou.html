@@ -1,0 +1,183 @@
+<!doctype html>
+<!--
+  ⚠ PAGE DE TEST (hors jeu) — À NE PAS EMBARQUER DANS L'EXPORT FINAL.
+
+  Vérifie LE FOU DU ROI sans jouer la partie :
+    A. les règles du marché (systems/fou.js) : 500 → 2 000 → 10 000, puis cadeau ;
+    B. son BUTIN GARANTI (data/ennemis.js) ;
+    C. la règle du TOUR UNIQUE en vrai combat : il s'échappe au 2e tour du héros,
+       et le résultat renvoyé permet de savoir si on l'avait touché (→ vol de 200 🪙).
+
+  Ouvrir : outils/test-fou.html (depuis un serveur local, comme le jeu).
+-->
+<meta charset="utf-8">
+<!-- cf. test-armures.html : le jeu construit ses chemins depuis la RACINE -->
+<base href="../">
+<title>Brütàl — test du Fou du roi</title>
+<style>
+  body { margin: 0; background: #14110d; color: #e8e0cc; font-family: ui-monospace, monospace; padding: 16px; }
+  h2 { color: #ffcf57; font-size: 15px; margin: 18px 0 6px; }
+  .ok   { color: #7edf82; }
+  .ko   { color: #ff7a6e; font-weight: bold; }
+  .info { color: #9aa0a6; }
+  #resume { font-size: 18px; margin: 10px 0 20px; }
+</style>
+
+<div id="resume">Test en cours…</div>
+<div id="sortie"></div>
+
+<script type="module">
+  import {
+    PRIX_FOU, VOL_FOU, CADEAU_FOU, creerFou, fouDisponible, fouProposeMarche,
+    prixFou, payerFou, tuerFou, etatFou, chargerFou,
+  } from "./jeu/systems/fou.js";
+  import { ennemiParId, tirerButin } from "./jeu/data/ennemis.js";
+  import { demarrerCombat } from "./jeu/ui/combat.js";
+  import { creerHeros } from "./jeu/entities/heros.js";
+  import { creerInventaire, appliquerEquipement } from "./jeu/systems/inventaire.js";
+  import { creerMaitrise } from "./jeu/systems/maitrise.js";
+  import { creerCombat, commencerTourHeros } from "./jeu/systems/combat.js";
+  import { RES } from "./jeu/core/texte.js";
+
+  const sortie = document.getElementById("sortie");
+  let total = 0, echecs = 0;
+  const titre = (s) => { const h = document.createElement("h2"); h.textContent = s; sortie.append(h); };
+  function verifier(nom, condition, detail = "") {
+    total++; if (!condition) echecs++;
+    const d = document.createElement("div");
+    d.className = condition ? "ok" : "ko";
+    d.textContent = `${condition ? "✓" : "✗"} ${nom}${detail ? "  — " + detail : ""}`;
+    sortie.append(d);
+  }
+  const noter = (s) => { const d = document.createElement("div"); d.className = "info"; d.textContent = "   " + s; sortie.append(d); };
+
+  // ── A. Les règles du marché ────────────────────────────────────────────────
+  titre("A. Le marché (systems/fou.js)");
+  const fou = creerFou();
+  verifier("il est disponible au départ", fouDisponible(fou));
+  verifier("1re demande = 500 🪙", prixFou(fou) === 500, `reçu ${prixFou(fou)}`);
+  verifier("1er paiement ne déclenche PAS le cadeau", payerFou(fou) === false);
+  verifier("2e demande = 2 000 🪙", prixFou(fou) === 2000, `reçu ${prixFou(fou)}`);
+  verifier("2e paiement ne déclenche PAS le cadeau", payerFou(fou) === false);
+  verifier("3e demande = 10 000 🪙", prixFou(fou) === 10000, `reçu ${prixFou(fou)}`);
+  verifier("3e paiement DÉCLENCHE le cadeau", payerFou(fou) === true);
+  verifier("il ne propose plus de marché après le cadeau", !fouProposeMarche(fou));
+  verifier("… mais il peut encore surgir (combat)", fouDisponible(fou));
+  const mort = creerFou(); tuerFou(mort);
+  verifier("une fois tué, il ne revient JAMAIS", !fouDisponible(mort));
+  // sauvegarde
+  const copie = creerFou(); chargerFou(copie, etatFou(fou));
+  verifier("l'état survit à la sauvegarde", copie.paiements === 3 && copie.recompense === true,
+    JSON.stringify(etatFou(fou)));
+  noter(`vol en fuite : ${VOL_FOU} 🪙 · cadeau : ${CADEAU_FOU.xp} XP + ` +
+        CADEAU_FOU.objets.map((o) => `${o.n}× ${o.id}`).join(", "));
+
+  // ── B. Le butin garanti ────────────────────────────────────────────────────
+  titre("B. Le butin garanti (aucun aléa)");
+  const def = ennemiParId("fou-du-roi");
+  verifier("la fiche du monstre existe", def && def.id === "fou-du-roi");
+  verifier("niveau 10 / 100 PV", def.niveau === 10 && def.pv === 100, `niv ${def.niveau}, ${def.pv} PV`);
+  verifier("un seul tour pour l'abattre", def.fuiteApresToursHeros === 1);
+  const attendu = { or: 5000, rubis: 10, emeraude: 10, saphir: 10, diamant: 10, onyx: 1, "pierre-solaire": 1 };
+  let stable = true, dernier = null;
+  for (let i = 0; i < 20; i++) {          // 20 tirages : le butin ne doit JAMAIS varier
+    const b = tirerButin(def);
+    const compte = { or: b.or };
+    for (const id of b.objets) compte[id] = (compte[id] ?? 0) + 1;
+    const s = JSON.stringify(compte);
+    if (dernier && s !== dernier) stable = false;
+    dernier = s;
+  }
+  verifier("le butin est identique sur 20 tirages", stable);
+  verifier("le butin est exactement celui promis", dernier === JSON.stringify(attendu), dernier);
+
+  // ── C. La règle du tour unique, en vrai combat ─────────────────────────────
+  titre("C. Le tour unique (vrai combat)");
+  const html = await (await fetch("./index.html")).text();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  for (const st of doc.querySelectorAll("style")) document.head.append(st.cloneNode(true));
+  const scene = document.createElement("div"); scene.style.display = "none"; document.body.append(scene);
+  for (const el of doc.body.children) { if (el.tagName !== "SCRIPT") scene.append(el.cloneNode(true)); }
+  const canvas = document.getElementById("jeu");
+  canvas.hidden = false; canvas.width = 960 * RES; canvas.height = 540 * RES;
+  const ctx = canvas.getContext("2d");
+
+  // Combat RÉEL contre le fou : on passe simplement les tours (bouton « End Turn »)
+  // sans jamais le frapper. Il doit s'échapper au 2e tour du héros.
+  // (Le cas « on le frappe » est couvert en D, au niveau du moteur : jouer une vraie
+  // carte demanderait un deck et un ciblage, sans rien prouver de plus.)
+  function combattreLeFouSansLeToucher() {
+    return new Promise((resolve) => {
+      const heros = creerHeros();
+      const inv = creerInventaire();
+      appliquerEquipement(heros, inv, new Map());
+      const c = demarrerCombat({
+        ctx, heros, inventaire: inv, planches: new Map(), ennemis: [ennemiParId("fou-du-roi")],
+        maitrise: creerMaitrise(), fond: null, surPause: () => {},
+        surFin: (resultat, defs, infos) => { clearInterval(minuteur); resolve({ resultat, infos }); },
+      });
+      let t = performance.now();
+      (function boucle(now) {
+        const dt = Math.min(0.05, (now - t) / 1000); t = now;
+        c.mettreAJour(dt);
+        requestAnimationFrame(boucle);
+      })(t);
+      const minuteur = setInterval(() => {
+        const btn = document.getElementById("combat-fin");
+        if (btn && !btn.disabled && !btn.hidden) btn.click();
+      }, 120);
+    });
+  }
+
+  const r1 = await Promise.race([
+    combattreLeFouSansLeToucher(),
+    new Promise((r) => setTimeout(() => r({ resultat: "TIMEOUT" }), 20000)),
+  ]);
+  verifier('sans le toucher : le combat finit en "fuite-monstre"',
+    r1.resultat === "fuite-monstre", `reçu "${r1.resultat}"`);
+  const lui = r1.infos?.ennemis?.find((e) => e.id === "fou-du-roi");
+  verifier("… et il est signalé INTACT (donc il ne vole rien)",
+    lui && lui.pv === lui.pvMax, lui ? `${lui.pv}/${lui.pvMax} PV` : "pas d'info");
+
+  // ── D. Les trois issues, au niveau du MOTEUR ───────────────────────────────
+  // Ici on pilote l'état directement : c'est le seul moyen d'éprouver le cas
+  // « touché mais pas tué » (qui déclenche le vol de 200 🪙) sans jouer de carte.
+  titre("D. Les trois issues du refus (moteur)");
+  const optsCombat = { pv: 999, pvMax: 999, cartes: [], slots: {} };
+
+  // D1 — on ne le touche pas : il file intact
+  {
+    const c = creerCombat([ennemiParId("fou-du-roi")], optsCombat);
+    commencerTourHeros(c);
+    verifier("tour 1 : le combat continue", !c.fini);
+    commencerTourHeros(c);
+    verifier('tour 2 : il s\'échappe ("fuite-monstre")', c.fini && c.resultat === "fuite-monstre",
+      `fini=${c.fini} resultat=${c.resultat}`);
+    verifier("… intact → aucun vol", c.ennemis[0].pv === c.ennemis[0].pvMax);
+  }
+  // D2 — touché mais pas tué : il file ET vole
+  {
+    const c = creerCombat([ennemiParId("fou-du-roi")], optsCombat);
+    commencerTourHeros(c);
+    c.ennemis[0].pv -= 40;              // on l'entame
+    commencerTourHeros(c);
+    verifier("touché : il s'échappe quand même", c.fini && c.resultat === "fuite-monstre");
+    verifier("… entamé → le vol se déclenche", c.ennemis[0].pv < c.ennemis[0].pvMax,
+      `${c.ennemis[0].pv}/${c.ennemis[0].pvMax} PV`);
+  }
+  // D3 — abattu dans le tour : la règle de fuite ne doit PAS s'appliquer à un mort
+  // (sinon on volerait la victoire au joueur au moment où il vient de le tuer).
+  {
+    const c = creerCombat([ennemiParId("fou-du-roi")], optsCombat);
+    commencerTourHeros(c);
+    c.ennemis[0].pv = 0;                // abattu pendant le tour 1
+    commencerTourHeros(c);
+    verifier("abattu : aucune fuite déclenchée", c.resultat !== "fuite-monstre",
+      `resultat=${c.resultat ?? "(aucun)"}`);
+  }
+
+  document.getElementById("resume").innerHTML = echecs === 0
+    ? `<span class="ok">TOUT PASSE — ${total} vérifications</span>`
+    : `<span class="ko">${echecs} ÉCHEC(S) sur ${total} vérifications</span>`;
+  window.__resultatTest = { total, echecs };
+</script>

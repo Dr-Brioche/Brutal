@@ -56,6 +56,10 @@ import {
 } from "./systems/encheres.js";
 import { installerEncheres, ouvrirEncheres, enchereActive } from "./ui/encheres.js";
 import { creerCoffre, etatCoffre, chargerCoffre } from "./systems/coffre.js";
+import {
+  CHANCE_FOU, VOL_FOU, CADEAU_FOU, creerFou, fouDisponible, fouProposeMarche,
+  prixFou, payerFou, tuerFou, etatFou, chargerFou,
+} from "./systems/fou.js";
 import { installerCoffre, coffreActif } from "./ui/coffre.js";
 import { creerBanque, etatBanque, chargerBanque } from "./systems/banque.js";
 import { installerBanque, banqueActif } from "./ui/banque.js";
@@ -161,6 +165,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   const temps = creerTemps();
   // La VENTE AUX ENCHÈRES du soir (ticket, dépôt, gains en attente).
   const encheres = creerEncheres();
+  // LE FOU DU ROI : combien de fois on a mordu à son marché, et s'il est mort.
+  const fou = creerFou();
   // Le LIVRE D'ARTISANAT : les recettes DÉCOUVERTES (parchemin lu ou objet forgé
   // par hasard). S'alimente tout seul ; consultable à la touche L.
   const bibliotheque = creerBibliotheque();
@@ -1022,6 +1028,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       batiments: etatBatiments(batiments),
       temps: etatTemps(temps),
       encheres: etatEncheres(encheres),
+      fou: etatFou(fou),
       bibliotheque: etatBibliotheque(bibliotheque),
       armeNom: armeEquipee(inventaire)?.nom ?? "Unarmed",
       armureNom: armureEquipee(inventaire).nom,
@@ -1068,6 +1075,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     if (donnees.batiments) chargerBatiments(batiments, donnees.batiments); // scierie & co
     if (donnees.temps) chargerTemps(temps, donnees.temps);                 // cycle jour/nuit
     if (donnees.encheres) chargerEncheres(encheres, donnees.encheres);     // ticket, dépôt, dus
+    if (donnees.fou) chargerFou(fou, donnees.fou);                         // marché du Fou du roi
     if (donnees.bibliotheque) chargerBibliotheque(bibliotheque, donnees.bibliotheque); // recettes apprises
     appliquerEquipement(heros, inventaire, planches);
     mettreAJourCamera(camera, heros, carte, VUE.l, VUE.h);
@@ -1324,6 +1332,9 @@ export async function demarrerJeu(donneesInitiales = null) {
   // Combat SIMULÉ (test) : mêmes rouages que declencherRencontre mais sans conséquence.
   // On utilise les fonds de combat de la CITÉ (on est en ville). À la fin : soin complet.
   async function lancerCombatTest(mobIds) {
+    // Le FOU DU ROI a un déroulé à lui (marché → dialogue → combat d'un tour) : on
+    // le rejoue tel quel, pour que l'arène serve aussi à TESTER cette rencontre.
+    if ((mobIds ?? []).includes("fou-du-roi")) { await rencontrerFouDuRoi(); return; }
     let ennemis = (mobIds ?? []).map(ennemiParId).filter(Boolean);
     // Sécurité : un monstre SOLO-UNIQUEMENT (Tour de siège) part TOUJOURS seul, même en test.
     const solo = ennemis.find((e) => e.soloUniquement);
@@ -1927,6 +1938,179 @@ export async function demarrerJeu(donneesInitiales = null) {
   }
 
   // Les rencontres : sur les tuiles de souterrain, un monstre invisible surgit.
+  // Butin de fin de combat : on CALCULE tout (or, XP, objets) sans l'appliquer, puis
+  // on l'affiche dans la fenêtre centrée ; le joueur ramasse (clic / Espace). Le monde
+  // reste figé (enPause) tant qu'il n'a pas fini. Partagé par toutes les victoires.
+  function ouvrirFenetreButin(defs) {
+    let or = 0, xp = 0;
+    const items = [];
+    for (const e of defs) {
+      const butin = tirerButin(e);
+      or += butin.or;
+      xp += e.xp || 0;
+      items.push(...butin.objets);
+    }
+    // L'XP est appliquée TOUT DE SUITE (le héros est à jour pour la suite) ; on
+    // mémorise l'état d'avant pour que la fenêtre REJOUE la montée animée (barre
+    // d'XP qui se remplit + éclats dorés au passage de niveau).
+    const xpAvant = heros.xp, niveauAvant = heros.niveau;
+    const niveaux = gagnerXp(heros, xp);
+    // On ouvre l'inventaire À CÔTÉ du butin (place restante + organisation).
+    document.body.classList.add("en-butin");
+    inventaireUI.ouvrir();
+    butinUI.ouvrir({ or, xp, items, xpAnim: { niveauDepart: niveauAvant, xpDepart: xpAvant, gain: xp } }, {
+      prendre: (id) => {
+        const ok = ajouterObjet(inventaire, id); // range l'objet, false si sac plein
+        if (ok) inventaireUI.rendre();            // l'objet apparaît tout de suite
+        return ok;
+      },
+      surFin: () => {
+        ajouterOr(inventaire, or); // l'XP, elle, a déjà été appliquée (montée animée)
+        if (niveaux > 0) afficherMessage(t("msg.niveauGagne", { niveau: heros.niveau, n: niveaux }));
+        document.body.classList.remove("en-butin");
+        inventaireUI.fermer();
+        enPause = false;
+      },
+    });
+  }
+
+  // LA MORT : on se réveille en ville, PRÈS DU FANATIQUE, qui nous soigne. La Mort
+  // prélève son tribut (½ XP en cours, ½ du sac au hasard, 30 % de l'or) → une CACHE
+  // de butin perdu qui pourra resurgir dans les profondeurs (systems/mort.js).
+  // L'équipement porté est épargné. Commun à tous les combats.
+  function finirSurDefaite() {
+    const cache = appliquerMort(mort, heros, inventaire);
+    finRunProfondeur({ vivant: false }); // buffs + or de run PERDUS
+    heros.pv = heros.pvMax;              // le Fanatique nous soigne (pour l'instant)
+    const bouts = [];
+    if (cache) {
+      if (cache.or > 0) bouts.push(`${cache.or} 🪙`);
+      if (cache.xp > 0) bouts.push(`${cache.xp} XP`);
+      if (cache.objets.length) bouts.push(`${cache.objets.length} ${t(cache.objets.length > 1 ? "mine.objN" : "mine.obj1")}`);
+    }
+    afficherMessage(cache && bouts.length
+      ? t("mine.mortCache", { bouts: bouts.join(", ") })
+      : t("mine.mortVide"));
+    allerVersZone("city", pointReveilFanatique()); // réveil près du Fanatique
+  }
+
+  // ----- LE FOU DU ROI ------------------------------------------------------
+  //
+  // Une rencontre qui commence par une CONVERSATION, pas par un combat. Il propose
+  // son marché (500 🪙, puis 2 000, puis 10 000) ; on accepte ou on refuse.
+  //   • ACCEPTER  → il empoche et s'en va en riant. Au 3e paiement seulement, il
+  //                 récompense enfin la crédulité (XP + gemmes rares).
+  //   • REFUSER   → combat, mais UN SEUL tour pour l'abattre (fuiteApresToursHeros).
+  //                 Touché sans être tué, il file en volant 200 🪙 ; intact, il
+  //                 s'éclipse sans rien. Abattu, il lâche son trésor et ne revient plus.
+  // Une fois qu'il a récompensé, il ne propose plus rien : on passe direct au combat.
+  async function rencontrerFouDuRoi() {
+    enPause = true;
+    invite.hidden = true;
+    const prix = prixFou(fou);
+    if (!fouProposeMarche(fou)) {           // il a déjà donné son cadeau : plus de marché
+      ouvrirDialogue({
+        nom: t("fou.nom"),
+        texte: [t("fou.rancune")],
+        choix: [{ texte: t("fou.refuser"), action: () => { combattreFouDuRoi(); } }],
+      }, () => {});
+      return;
+    }
+    ouvrirDialogue({
+      nom: t("fou.nom"),
+      texte: [t("fou.offre1"), t("fou.offre2", { prix })],
+      choix: [
+        { texte: t("fou.accepter", { prix }), action: () => payerLeFou(prix) },
+        { texte: t("fou.refuser"), action: () => { combattreFouDuRoi(); } },
+      ],
+    }, () => {});
+  }
+
+  // On accepte le marché : l'or part VRAIMENT. Sans la somme, il se moque et s'en va.
+  function payerLeFou(prix) {
+    if (inventaire.or < prix) {
+      ouvrirDialogue({
+        nom: t("fou.nom"),
+        texte: [t("fou.pasAssez", { prix })],
+        choix: [{ texte: t("pnj.magnar.partir"), action: () => {} }],
+      }, () => { enPause = false; });
+      return;
+    }
+    inventaire.or -= prix;
+    inventaireUI.rendre();
+    const cadeau = payerFou(fou); // true si c'était le 3e paiement → il récompense
+    if (!cadeau) {
+      afficherMessage(t("fou.moqueMsg", { prix }));
+      ouvrirDialogue({
+        nom: t("fou.nom"),
+        texte: [t("fou.moque")],
+        choix: [{ texte: t("pnj.magnar.partir"), action: () => {} }],
+      }, () => { enPause = false; });
+      return;
+    }
+    // 3e paiement : le cadeau. XP tout de suite, ressources dans le sac (ce qui
+    // rentre — le surplus est perdu, on prévient dans le message).
+    gagnerXp(heros, CADEAU_FOU.xp);
+    for (const o of CADEAU_FOU.objets) {
+      for (let i = 0; i < o.n; i++) ajouterObjet(inventaire, o.id);
+    }
+    inventaireUI.rendre();
+    afficherMessage(t("fou.cadeauMsg", { xp: CADEAU_FOU.xp }));
+    ouvrirDialogue({
+      nom: t("fou.nom"),
+      texte: [t("fou.cadeau1"), t("fou.cadeau2"), t("fou.adieu")],
+      choix: [{ texte: t("pnj.magnar.partir"), action: () => {} }],
+    }, () => { enPause = false; });
+  }
+
+  // On refuse (ou il n'y a plus de marché) : le combat, avec sa règle du tour unique.
+  async function combattreFouDuRoi() {
+    const def = ennemiParId("fou-du-roi");
+    await flashCombat();
+    afficherMessage(t("fou.duel"));
+    combatEnCours = demarrerCombat({
+      ctx, heros, inventaire, planches, ennemis: [def], maitrise,
+      bonusRun: bonusCombatRun(runProfondeur),
+      fond: fondCombat(zoneActuelle, zoneCourante),
+      surPause: () => menu.ouvrir({ sansSauvegarde: true }),
+      surFin: (resultat, ennemisFinaux, infos) => {
+        combatEnCours = null;
+        const ambiance = zoneCourante?.musique ?? null;
+        if (ambiance) jouerMusique(ambiance); else arreterMusique();
+        if (resultat === "defaite") {
+          finirSurDefaite();
+          return;
+        }
+        if (resultat === "fuite-monstre") {
+          // Il s'échappe. L'a-t-on entamé ? Alors il se paie sur la bête.
+          const lui = infos?.ennemis?.find((e) => e.id === "fou-du-roi");
+          const touche = lui && lui.pv < lui.pvMax;
+          if (touche) {
+            const vole = Math.min(VOL_FOU, inventaire.or);
+            inventaire.or -= vole;
+            inventaireUI.rendre();
+            afficherMessage(t("fou.fuiteVol", { vol: vole }));
+          } else {
+            afficherMessage(t("fou.fuiteRien"));
+          }
+          rencontres = creerRencontres(); // pas de re-rencontre immédiate
+          enPause = false;
+          return;
+        }
+        if (resultat === "fuite") {        // c'est le HÉROS qui a fui
+          rencontres = creerRencontres();
+          afficherMessage(t("msg.fui"));
+          enPause = false;
+          return;
+        }
+        // VICTOIRE : il ne reviendra plus, et son trésor est garanti (butinFixe).
+        tuerFou(fou);
+        afficherMessage(t("fou.tue"));
+        ouvrirFenetreButin(ennemisFinaux ?? [def]);
+      },
+    });
+  }
+
   // Flash façon FF9, puis bascule sur l'écran de combat.
   async function declencherRencontre() {
     // Le groupe est composé à partir des monstres de la ZONE courante : taille
@@ -1934,6 +2118,13 @@ export async function demarrerJeu(donneesInitiales = null) {
     // zone n'a aucun monstre déclaré, pas de combat.
     // Tirage prioritaire du Lapin blanc (rencontre dédiée, jamais mélangée). Dans une
     // CAVERNE DE CHANCE, sa probabilité est TRIPLÉE (on y croise le lapin bien plus souvent).
+    // LE FOU DU ROI passe AVANT tout le reste : il peut surgir à n'importe quelle
+    // profondeur (aucun plancher, contrairement au lapin et à la tour), tant qu'il
+    // est en vie. Sa rencontre a son propre déroulé (marché, puis éventuel combat).
+    if (zoneCourante?.estMine && fouDisponible(fou) && Math.random() < CHANCE_FOU) {
+      await rencontrerFouDuRoi();
+      return;
+    }
     const chanceLapin = LAPIN_CHANCE * (zoneCourante?.luck ? 3 : 1);
     const lapin = zoneCourante?.estMine && (zoneCourante.niveau ?? 1) >= LAPIN_PROF_MIN
       && Math.random() < chanceLapin;
@@ -1958,23 +2149,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       surFin: (resultat, ennemisFinaux) => {
         combatEnCours = null;
         if (resultat === "defaite") {
-          // LA MORT : on se réveille en ville, PRÈS DU FANATIQUE, qui nous soigne.
-          // La Mort prélève son tribut (½ XP en cours, ½ du sac au hasard, 30% de
-          // l'or) → une CACHE de butin perdu qui pourra resurgir dans les
-          // profondeurs (systems/mort.js). L'équipement porté est épargné.
-          const cache = appliquerMort(mort, heros, inventaire);
-          finRunProfondeur({ vivant: false }); // buffs + or de run PERDUS
-          heros.pv = heros.pvMax;              // le Fanatique nous soigne (pour l'instant)
-          const bouts = [];
-          if (cache) {
-            if (cache.or > 0) bouts.push(`${cache.or} 🪙`);
-            if (cache.xp > 0) bouts.push(`${cache.xp} XP`);
-            if (cache.objets.length) bouts.push(`${cache.objets.length} ${t(cache.objets.length > 1 ? "mine.objN" : "mine.obj1")}`);
-          }
-          afficherMessage(cache && bouts.length
-            ? t("mine.mortCache", { bouts: bouts.join(", ") })
-            : t("mine.mortVide"));
-          allerVersZone("city", pointReveilFanatique()); // réveil près du Fanatique
+          finirSurDefaite();
         } else if (resultat === "fuite") {
           // Fuite réussie : retour à l'exploration, AUCUNE récompense (ni or, ni XP,
           // ni butin). On restaure l'ambiance de la zone et on rafraîchit la période
@@ -1989,41 +2164,10 @@ export async function demarrerJeu(donneesInitiales = null) {
           // l'ambiance d'exploration de la zone (silence si elle n'en a pas).
           const ambiance = zoneCourante?.musique ?? null;
           if (ambiance) jouerMusique(ambiance); else arreterMusique();
-          // Victoire : on calcule le butin (sans l'appliquer) et on l'affiche dans
-          // une fenêtre centrée. Le joueur le récupère (clic / Espace). Le monde
-          // reste figé (enPause) tant qu'il n'a pas récupéré.
-          let or = 0, xp = 0;
-          const items = [];
+          // Victoire : butin + XP dans la fenêtre centrée (cf. ouvrirFenetreButin).
           // Butin/XP calculés sur les définitions FINALES (après évolutions — ex. le
           // Lapin blanc arrivé au stade 3 lâche le gros or + la chance de Ring of Luck).
-          for (const e of (ennemisFinaux ?? ennemis)) {
-            const butin = tirerButin(e);
-            or += butin.or;
-            xp += e.xp || 0;
-            items.push(...butin.objets);
-          }
-          // L'XP est appliquée TOUT DE SUITE (le héros est à jour pour la suite) ;
-          // on mémorise l'état d'avant pour que la fenêtre REJOUE la montée animée
-          // (barre d'XP qui se remplit + éclats dorés au passage de niveau).
-          const xpAvant = heros.xp, niveauAvant = heros.niveau;
-          const niveaux = gagnerXp(heros, xp);
-          // On ouvre l'inventaire À CÔTÉ du butin (place restante + organisation).
-          document.body.classList.add("en-butin");
-          inventaireUI.ouvrir();
-          butinUI.ouvrir({ or, xp, items, xpAnim: { niveauDepart: niveauAvant, xpDepart: xpAvant, gain: xp } }, {
-            prendre: (id) => {
-              const ok = ajouterObjet(inventaire, id); // range l'objet, false si sac plein
-              if (ok) inventaireUI.rendre();            // l'objet apparaît tout de suite
-              return ok;
-            },
-            surFin: () => {
-              ajouterOr(inventaire, or); // l'XP, elle, a déjà été appliquée (montée animée)
-              if (niveaux > 0) afficherMessage(t("msg.niveauGagne", { niveau: heros.niveau, n: niveaux }));
-              document.body.classList.remove("en-butin");
-              inventaireUI.fermer();
-              enPause = false;
-            },
-          });
+          ouvrirFenetreButin(ennemisFinaux ?? ennemis);
         }
       },
     });

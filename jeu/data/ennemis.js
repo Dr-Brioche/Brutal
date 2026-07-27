@@ -62,6 +62,7 @@ const STATS_MONSTRES = {
   "gobelin-blinde": { nom: "Armored Goblin", niveau: 6, famille: "gobelin", pv: 10, attaque: 10, xp: 40, vitesse: 6, actions: [], grand: true },
   "gobelin-sans-blindage1": { nom: "Mace Goblin", niveau: 5, famille: "gobelin", pv: 34, attaque: 14, xp: 18, vitesse: 10, actions: [] },
   "gobelin-sans-blindage2": { nom: "Shield Goblin", niveau: 5, famille: "gobelin", pv: 40, attaque: 4, xp: 18, vitesse: 8, actions: [{ type: "bouclier-allie", valeur: 8, poids: 100 }] },
+  "fou-du-roi": { nom: "The King's Fool", niveau: 10, famille: "fou", pv: 100, attaque: 0, xp: 200, vitesse: 14, actions: [] },
 };
 // <<FIN-MONSTRES-AUTO>>
 
@@ -760,6 +761,39 @@ export const ENNEMIS = [
     butin: { objets: [] },
   },
 
+  // --- LE FOU DU ROI : rencontre-ÉNIGME (27/07/2026). Ce n'est pas un combat, c'est
+  // un PARI. Il surgit à N'IMPORTE QUELLE profondeur (0,1 % — tirage dédié dans
+  // principal.js, il n'est dans le pool d'aucune zone) et propose un marché contre de
+  // l'or. Refuser laisse UN SEUL tour pour l'abattre (`fuiteApresToursHeros`) : 100 PV
+  // à sortir d'un coup, sinon il file — en volant 200 🪙 si on l'a touché.
+  // Tout le déroulé (dialogues, paiements, vol, récompense) vit dans
+  // systems/fou.js + principal.js ; ici, seulement la fiche du monstre.
+  {
+    id: "fou-du-roi",
+    nom: "The King's Fool",
+    niveau: 10,
+    famille: "fou",
+    pv: 100,
+    attaque: 0,            // il ne frappe JAMAIS : c'est un filou, pas un combattant
+    xp: 200,
+    vitesse: 14,           // très vif : il joue avant le héros et file le premier
+    affix: "melee",
+    soloUniquement: true,  // jamais en groupe
+    fuiteApresToursHeros: 1, // le héros n'a QU'UN tour avant qu'il ne s'échappe
+    planche: "images/ennemis/fou-du-roi.webp",
+    portrait: { sx: 70, sy: 5, sw: 92, sh: 92 },
+    sprite: { caseL: 210, caseH: 250, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    // Butin GARANTI (pas de tirage) : c'est la récompense du pari gagné.
+    butinFixe: {
+      or: 5000,
+      objets: [
+        { id: "rubis", n: 10 }, { id: "emeraude", n: 10 }, { id: "saphir", n: 10 },
+        { id: "diamant", n: 10 }, { id: "onyx", n: 1 }, { id: "pierre-solaire", n: 1 },
+      ],
+    },
+    butin: { objets: [] },
+  },
+
 ];
 
 // Applique les stats de l'Excel (onglet « Monstres ») PAR-DESSUS les valeurs de
@@ -780,6 +814,15 @@ export function ennemiParId(id) {
 //   • or     = table PAR NIVEAU (data/butin.js).
 //   • objets = ressources PAR FAMILLE (butin.js) + drops SPÉCIFIQUES du mob.
 export function tirerButin(ennemi) {
+  // BUTIN GARANTI (`butinFixe`) : aucun tirage, ni or de niveau, ni drop de famille.
+  // Sert aux rencontres-récompense (le Fou du roi) où le lot est le contrat.
+  if (ennemi.butinFixe) {
+    const objets = [];
+    for (const o of ennemi.butinFixe.objets ?? []) {
+      for (let i = 0; i < (o.n ?? 1); i++) objets.push(o.id);
+    }
+    return { or: ennemi.butinFixe.or ?? 0, objets };
+  }
   const or = tirerOr(ennemi.niveau);
   const objets = tirerButinFamille(ennemi.famille);
   for (const o of ennemi.butin?.objets ?? []) {
