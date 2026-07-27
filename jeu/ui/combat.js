@@ -76,7 +76,11 @@ const FILE_N = 5, FILE_TAILLE = 40, FILE_ESPACE = 8, FILE_Y = 12;
 // Portrait du héros dans la file des tours : on découpe la TÊTE dans l'illustration
 // de combat (images/heros/nain-combat.png) — même image que le héros affiché en
 // scène, donc plus cohérent que l'ancienne vignette pixel-art de la planche.
-const TETE_HEROS_COMBAT = { sx: 72, sy: 2, sw: 60, sh: 60 };
+// Découpage de la TÊTE dans l'illustration de combat, en FRACTIONS de la planche
+// (et non en pixels) : la même fenêtre marche pour la planche par défaut (140×210)
+// comme pour les planches d'armure, mieux définies. Valeurs = l'ancien cadre
+// {sx:72, sy:2, sw:60, sh:60} rapporté au 140×210 d'origine.
+const TETE_HEROS_COMBAT = { fx: 72 / 140, fy: 2 / 210, fw: 60 / 140, fh: 60 / 210 };
 // Repli : ancienne zone de tête dans la planche du nain (si l'illustration n'est
 // pas encore chargée au tout premier rendu).
 const PORTRAIT_HEROS = { sx: 17, sy: 4, sw: 30, sh: 30 };
@@ -96,6 +100,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   const itemsEquipes = Object.values(inventaire.slots ?? {}).filter(Boolean).map(itemDef).filter(Boolean);
   // Arme à DEUX MAINS équipée ? → choisit l'illustration « poings tendus » du héros.
   const armeDeuxMains = itemDef(inventaire.slots?.arme1)?.mains === 2;
+  // SET D'ARMURE COMPLET → planche d'illustration dédiée (le nain porte l'armure).
+  // On prend le premier set actif qui a des planches ; sinon les planches par défaut.
+  const setPlanches = setsActifs(inventaire.slots)
+    .map((s) => PLANCHES_SET[s.id]).find(Boolean) ?? null;
   // Skin d'arme à poser dans les mains. Une arme SANS skin dédié retombe sur le skin
   // PAR DÉFAUT de sa posture (épée 1 main / masse 2 mains). Sans arme équipée → aucun skin.
   const arme1Equipee = inventaire.slots?.arme1;
@@ -1600,8 +1608,17 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       if (a.id === "heros") {
         // Tête découpée dans l'illustration de combat (lissée : c'est une image, pas
         // du pixel-art). Repli sur l'ancienne planche tant qu'elle n'est pas chargée.
-        if (imgHeroCombat.complete && imgHeroCombat.naturalWidth) {
-          planche = imgHeroCombat; portrait = TETE_HEROS_COMBAT; lisse = true;
+        // La tête suit la planche affichée (donc l'armure de set si elle est portée) :
+        // le découpage est exprimé en FRACTIONS, pour marcher quelle que soit la
+        // définition de la planche (défaut 210 px, planches d'armure 420 px).
+        const pretT = (im) => im && im.complete && im.naturalWidth;
+        const pl = (setPlanches && pretT(setPlanches.un)) ? setPlanches.un : imgHeroCombat;
+        if (pretT(pl)) {
+          planche = pl; lisse = true;
+          portrait = {
+            sx: TETE_HEROS_COMBAT.fx * pl.naturalWidth, sy: TETE_HEROS_COMBAT.fy * pl.naturalHeight,
+            sw: TETE_HEROS_COMBAT.fw * pl.naturalWidth, sh: TETE_HEROS_COMBAT.fh * pl.naturalHeight,
+          };
         } else { planche = heros.plancheArmure; portrait = PORTRAIT_HEROS; }
       } else { const u = ennemisUI[a.i]; if (u) { planche = u.planche; portrait = u.e.def.portrait; teinte = u.e.def.teinte; } }
       dessinerCarreTete(ctx, x, FILE_Y, FILE_TAILLE, planche, portrait, k === 0, teinte, lisse);
@@ -1661,8 +1678,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     const flashH = Math.min(1, secousseHeros / 0.3);
     const solHeros = HEROS.y + 64 * ECHELLE_HEROS; // ligne de sol (pieds)
     // Pose selon l'arme : poings tendus si arme à 2 mains, sinon mains vides.
-    const imgHero = (armeDeuxMains && imgHeroCombat2Mains.complete && imgHeroCombat2Mains.naturalWidth)
-      ? imgHeroCombat2Mains : imgHeroCombat;
+    // Planche du set d'armure si elle est prête, sinon la planche par défaut de la pose.
+    const pret = (im) => im && im.complete && im.naturalWidth;
+    const planchesDef = { un: imgHeroCombat, deux: imgHeroCombat2Mains };
+    const pose = armeDeuxMains && pret(imgHeroCombat2Mains) ? "deux" : "un";
+    const imgHero = (setPlanches && pret(setPlanches[pose]))
+      ? setPlanches[pose] : planchesDef[pose];
     ctx.save();
     if (imgHero.complete && imgHero.naturalWidth) {
       // Héros = ILLUSTRATION. Pieds au sol, centré, rendu lisse.
@@ -1687,7 +1708,10 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       ctx.drawImage(imgHero, hxI, hyI, HW, HH);
       if (skinArme && skinArme.img.complete && skinArme.img.naturalWidth) {
         const gX = hxI + skinArme.fx * HW, gY = hyI + skinArme.fy * HH;
-        const sArme = skinArme.echelle * HH / imgHero.naturalHeight;
+        // Échelle de l'arme : rapportée à la hauteur de RÉFÉRENCE des planches, PAS à
+        // la hauteur native de celle affichée — sinon une planche mieux définie
+        // (armures : 420 px) rapetisserait l'arme d'autant.
+        const sArme = skinArme.echelle * HH / H_REF_PLANCHE_HEROS;
         // HALO doré (épée de lumière) DERRIÈRE l'arme, en additif + léger pouls lumineux.
         if (skinArme.halo && skinArme.halo.complete && skinArme.halo.naturalWidth) {
           const pouls = 0.42 + 0.16 * Math.sin(temps * 3.0); // léger scintillement (l'illu brille déjà)
@@ -2053,6 +2077,31 @@ const imgHeroCombat = new Image();
 imgHeroCombat.src = "images/heros/nain-combat.png";
 const imgHeroCombat2Mains = new Image();
 imgHeroCombat2Mains.src = "images/heros/nain-combat-2mains.png";
+
+// PLANCHES D'ARMURE (set complet) : porter TOUTES les pièces d'un set change
+// l'illustration de combat du nain. Une paire par set : [1 main, 2 mains] — même
+// découpage que les planches par défaut ci-dessus.
+//
+// ⚠ Chaque planche est CALÉE sur le gabarit de la planche par défaut de sa pose :
+// même RATIO largeur/hauteur (le jeu déduit la largeur dessinée HW du ratio, et
+// centre le nain dessus), PIEDS au bas de l'image (le bas = la ligne de sol), et
+// POING à la même fraction du cadre (c'est là que les skins d'arme posent la prise,
+// cf. fx/fy). Une planche mal calée décale l'arme hors de la main. Recalage fait
+// par outils/caler_planche_heros.py — le repasser pour toute nouvelle armure.
+function paireHeros(base) {
+  const un = new Image(); un.src = `images/heros/${base}-1.webp`;
+  const deux = new Image(); deux.src = `images/heros/${base}-2.webp`;
+  return { un, deux };
+}
+const PLANCHES_SET = {
+  mail:   paireHeros("cotte-du-maitre-forgeron"),
+  croise: paireHeros("plastron-de-croise"),
+};
+// Hauteur de planche sur laquelle les skins d'arme ont été réglés. Sert de RÉFÉRENCE
+// pour l'échelle de l'arme : sans ça, une planche en plus haute définition (les
+// planches d'armure sont en 420 px) rendrait l'arme minuscule, puisque l'échelle
+// était divisée par la hauteur NATIVE de l'illustration du nain.
+const H_REF_PLANCHE_HEROS = 210;
 
 // NETTETÉ DES ARMES ─────────────────────────────────────────────────────────
 // Les illustrations d'armes sont en HAUTE définition (~1400 px) mais affichées

@@ -1,0 +1,169 @@
+<!doctype html>
+<!--
+  ⚠ PAGE DE TEST (hors jeu) — À NE PAS EMBARQUER DANS L'EXPORT FINAL.
+
+  Lance DIRECTEMENT un combat avec l'armure et l'arme choisies, sans avoir à
+  jouer la partie (pas de ville à traverser, pas de PNJ à trouver). Sert à
+  vérifier d'un coup d'œil que :
+    - la planche du SET s'affiche quand toutes ses pièces sont équipées ;
+    - l'ARME tombe bien dans le poing (les planches d'armure sont calées sur le
+      gabarit des planches par défaut : même ratio, pieds au sol, poing à la
+      même fraction du cadre).
+
+  Ouvrir : outils/test-armures.html (depuis un serveur local, comme le jeu).
+-->
+<meta charset="utf-8">
+<!-- Le jeu construit ses chemins d'images en RELATIF depuis la racine du dépôt
+     ("images/…"). Cette page vit dans outils/ : sans cette <base>, tout irait
+     chercher outils/images/… et l'écran resterait vide. Du coup, tous les
+     chemins ci-dessous (imports compris) s'écrivent DEPUIS LA RACINE. -->
+<base href="../">
+<title>Brütàl — test des armures de set</title>
+<style>
+  body { margin: 0; background: #14110d; color: #e8e0cc; font-family: system-ui, sans-serif; }
+  #barre { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 10px 14px;
+           background: #1e1a14; border-bottom: 1px solid #3a3227; }
+  label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+  select, button { font: inherit; padding: 4px 8px; background: #2a241b; color: #e8e0cc;
+                   border: 1px solid #52463433; border-radius: 6px; }
+  button { cursor: pointer; background: #6b5426; }
+  #etat { font-size: 12px; opacity: .8; margin-left: auto; }
+</style>
+
+<div id="barre">
+  <label>Armure
+    <select id="sel-set">
+      <option value="aucun">— aucune (planche par défaut) —</option>
+      <option value="mail">Set de mailles (Forgemaster)</option>
+      <option value="croise" selected>Set du croisé</option>
+    </select>
+  </label>
+  <label>Arme
+    <select id="sel-arme">
+      <option value="epee-sacree">Épée sacrée (1 main, skin dédié)</option>
+      <option value="epee-courte">Épée courte (1 main, skin par défaut)</option>
+      <option value="epee-large">Claymore (2 mains, skin dédié)</option>
+      <option value="hache-de-guerre">Hache de guerre (2 mains, skin dédié)</option>
+      <option value="marteau-guerre">Marteau de guerre (2 mains, skin par défaut)</option>
+      <option value="">— aucune —</option>
+    </select>
+  </label>
+  <button id="go">Lancer le combat</button>
+  <span id="etat"></span>
+</div>
+
+<!-- Le combat réutilise EXACTEMENT le DOM du jeu : on recopie ici les éléments
+     dont ui/combat.js a besoin. Ils sont injectés depuis index.html au chargement. -->
+<div id="scene"></div>
+
+<script type="module">
+  import { demarrerCombat } from "./jeu/ui/combat.js";
+  import { creerHeros } from "./jeu/entities/heros.js";
+  import { creerInventaire, appliquerEquipement } from "./jeu/systems/inventaire.js";
+  import { creerMaitrise } from "./jeu/systems/maitrise.js";
+  import { ENNEMIS, ennemiParId } from "./jeu/data/ennemis.js";
+  import { ITEMS, SETS } from "./jeu/data/items.js";
+  import { installerLangueDonnees } from "./jeu/systems/i18n_donnees.js";
+  import { appliquerTextesDOM } from "./jeu/systems/langue.js";
+  import { RES } from "./jeu/core/texte.js";
+
+  // Résolution logique du jeu (VUE dans principal.js, non exportée). ui/combat.js
+  // pose ensuite son propre repère 640×360 à partir de la taille du canvas.
+  const VUE = { l: 960, h: 540 };
+  // Fond FIXE (et non tiré au hasard comme en jeu) : deux captures successives
+  // restent ainsi comparables pixel à pixel.
+  const FOND_FIXE = "images/fonds/brutal/brutal-1.jpg";
+
+  const etat = document.getElementById("etat");
+  const dire = (m) => { etat.textContent = m; };
+
+  // --- 1) Récupère le DOM du jeu (canvas, HUD de combat, styles) depuis index.html
+  const html = await (await fetch("./index.html")).text();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  for (const st of doc.querySelectorAll("style")) document.head.append(st.cloneNode(true));
+  const scene = document.getElementById("scene");
+  // le conteneur de jeu porte le canvas + tous les panneaux d'interface
+  for (const el of doc.body.children) {
+    if (el.tagName === "SCRIPT") continue;
+    scene.append(el.cloneNode(true));
+  }
+  // Écrans qui recouvriraient la scène : on les retire (on ne veut que le combat).
+  for (const id of ["ecran-titre", "dbgr-btn", "dbgr-overlay", "barre-menu", "tactile"]) {
+    document.getElementById(id)?.remove();
+  }
+  // Dans index.html le canvas et le cadre portent `hidden` : c'est le démarrage du
+  // jeu qui les révèle. Ici on court-circuite ce démarrage, donc on les révèle nous-mêmes.
+  document.getElementById("jeu").hidden = false;
+  document.getElementById("cadre-jeu").hidden = false;
+  appliquerTextesDOM();
+  installerLangueDonnees();
+
+  // --- 2) Charge les planches (mêmes chemins que principal.js)
+  const chargerImage = (src) => new Promise((res) => {
+    const i = new Image(); i.onload = () => res(i); i.onerror = () => res(i); i.src = src;
+  });
+  const aPlanche = [...Object.values(ITEMS), ...ENNEMIS].filter((o) => o.planche);
+  const chemins = [...new Set(aPlanche.map((o) => o.planche))];
+  const images = await Promise.all(chemins.map((c) => chargerImage(c)));
+  const planches = new Map(chemins.map((c, i) => [c, images[i]]));
+
+  const canvas = document.getElementById("jeu");
+  const ctx = canvas.getContext("2d");
+  // Même mise à l'échelle que le jeu (cf. ajusterEchelle dans principal.js) :
+  // résolution logique 16:9 rendue à RES×, puis étirée en CSS.
+  function ajusterEchelle() {
+    canvas.width = VUE.l * RES; canvas.height = VUE.h * RES;
+    const zoneL = Math.min(innerWidth, (innerHeight - 50) * 16 / 9);
+    canvas.style.width = Math.round(zoneL) + "px";
+    canvas.style.height = Math.round(zoneL * 9 / 16) + "px";
+    ctx.imageSmoothingEnabled = false;
+  }
+  addEventListener("resize", ajusterEchelle);
+  ajusterEchelle();
+
+  // --- 3) Lance un combat avec l'équipement demandé
+  let enCours = null;
+  let boucleId = 0;      // identifiant de la boucle de rendu en cours
+  function lancer() {
+    boucleId++;          // invalide la boucle précédente (sinon plusieurs combats
+                         // peindraient le MÊME canvas et on ne saurait plus lequel
+                         // on regarde)
+    enCours = null;
+    const heros = creerHeros();
+    const inventaire = creerInventaire();
+    const idSet = document.getElementById("sel-set").value;
+    const arme = document.getElementById("sel-arme").value;
+
+    inventaire.slots = inventaire.slots || {};
+    if (idSet !== "aucun") {
+      // équipe les 3 pièces du set dans leurs emplacements
+      for (const id of SETS[idSet].pieces) {
+        const cat = ITEMS[id].categorie;   // armure | gant | botte
+        inventaire.slots[cat === "armure" ? "armure" : cat] = id;
+      }
+    }
+    if (arme) inventaire.slots.arme1 = arme;
+    appliquerEquipement(heros, inventaire, planches);
+
+    const ennemis = [ennemiParId("gobelin")].filter(Boolean);
+    dire(`set=${idSet} · arme=${arme || "aucune"} · slots=${JSON.stringify(inventaire.slots)}`);
+    enCours = demarrerCombat({
+      ctx, heros, inventaire, planches, ennemis, maitrise: creerMaitrise(),
+      fond: FOND_FIXE,   // fond FIXE : deux rendus restent comparables
+      surPause: () => {}, surFin: () => { enCours = null; },
+    });
+    // boucle de rendu (le jeu a la sienne ; ici on en fait une minimale).
+    // `mien` fige l'identifiant : une boucle périmée s'arrête d'elle-même.
+    const mien = boucleId;
+    let t = performance.now();
+    (function boucle(now) {
+      if (mien !== boucleId) return;              // un nouveau combat a pris la main
+      const dt = Math.min(0.05, (now - t) / 1000); t = now;
+      if (enCours) { enCours.mettreAJour(dt); enCours.dessiner?.(); }
+      requestAnimationFrame(boucle);
+    })(t);
+  }
+  document.getElementById("go").addEventListener("click", lancer);
+  window.__lancerTest = lancer;   // pilotable depuis un script de capture
+  lancer();
+</script>
