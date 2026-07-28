@@ -60,9 +60,15 @@ décisions de Brioche** : Brioche y règle les chiffres, Claude les applique dan
   régénèrent des blocs balisés du code (`<<...-AUTO>>`) : l'Excel prime sur ces chiffres.
   L'**art et la technique** (sprites, planches, `attaqueHits`, évolutions…) restent dans
   le code, pas dans l'Excel.
+- **VÉRIFIER, ne pas croire** : `python3 outils/auditer_excel.py` relit **tout** le
+  classeur et le compare au **contenu réel du jeu** (il fait importer `jeu/data/*.js`
+  par node — donc zéro devinette). Il ne modifie rien, il liste : noms qui divergent,
+  prix manquants, cartes/objets/monstres présents d'un seul côté, colonne `AOE` qui
+  ment, lignes et colonnes fantômes. **Il doit afficher « 0 erreur » avant tout
+  commit qui touche l'Excel ou une donnée de `jeu/data/`.**
 - **Réflexe** : à chaque tâche touchant un chiffre d'équilibrage, se demander
-  « **est-ce dans l'Excel ?** » avant de clore. (Rappel écrit ici pour survivre à un
-  effacement de conversation.)
+  « **est-ce dans l'Excel ?** » avant de clore, puis lancer l'audit. (Rappel écrit ici
+  pour survivre à un effacement de conversation.)
 
 ## Le jeu est BILINGUE (FR / EN) — À NE JAMAIS OUBLIER
 

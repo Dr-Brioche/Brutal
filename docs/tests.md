@@ -34,6 +34,24 @@ depuis un script ce qui, en jeu, ne se voit qu'à l'absence de réaction.
 **Ajouter une page de test** pour un autre écran suit le même patron (voir §5) :
 c'est presque toujours plus rapide que de naviguer.
 
+### Les CHIFFRES se testent sans navigateur
+
+Pour l'équilibrage, pas besoin d'ouvrir le jeu :
+
+```bash
+python3 outils/auditer_excel.py     # doit finir sur « 0 erreur »
+```
+
+Il relit les 13 onglets du classeur et les compare au **contenu réel du jeu**
+(node importe `jeu/data/*.js`, donc c'est la vraie donnée, pas une regex).
+Il attrape ce que l'œil ne voit pas : un nom changé d'un seul côté, un objet
+sans prix, une carte présente dans le code mais absente du classeur, une
+colonne `AOE` qui ment, une fusion vide qui traîne 11 colonnes fantômes.
+
+Il ne modifie rien. Après avoir corrigé, relancer les `outils/importer_*.py`
+concernés puis l'audit : **c'est le contrôle de fin de tâche dès qu'un chiffre
+d'équilibrage bouge.**
+
 ---
 
 ## 2. Serveur + navigateur

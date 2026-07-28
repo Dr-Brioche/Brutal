@@ -20,8 +20,12 @@ Le script réécrit UNIQUEMENT le bloc balisé de jeu/data/profondeur.js :
 
 Onglet « Profondeurs » (en-tête ligne 6, données ensuite) :
     A = id · B = Nom · C = Effet · D = Icône (hex) · E = Normale · F = Rare · G = Épique
-Effets reconnus (ils doivent matcher les champs du run, cf. systems/profondeur.js) :
-    force · gold · celerite · armure · porte (garantit une porte de descente)
+Effets reconnus (ils doivent matcher ce que sait faire systems/profondeur.js) :
+    force · gold · celerite · agilite · armure · soin
+    porte (garantit une porte de descente)
+    pop-monstre · chance-minerais (agissent sur la GÉNÉRATION de l'étage suivant)
+Une case de valeur peut porter « / » : le loot n'existe pas à cette rareté-là
+(traduit par `null` dans le code).
 Onglet « Profondeurs-chances » :
     A = rarete (normale|rare|epique) · B = chance en %  (doit sommer à 100)
 """
@@ -43,7 +47,11 @@ PROF_JS = RACINE / "jeu" / "data" / "profondeur.js"
 DEBUT = "// <<PROFONDEUR-AUTO>>"
 FIN = "// <<FIN-PROFONDEUR-AUTO>>"
 
-EFFETS_OK = {"force", "gold", "celerite", "armure", "porte"}
+EFFETS_OK = {"force", "gold", "celerite", "agilite", "armure", "soin", "porte",
+             "pop-monstre", "chance-minerais"}
+# Loots qui n'agissent pas sur le héros mais sur la GÉNÉRATION de l'étage suivant :
+# ils méritent un commentaire dans le fichier produit, sinon on les cherche.
+EFFETS_GENERATION = {"pop-monstre", "chance-minerais"}
 RARETES = ("normale", "rare", "epique")
 
 
@@ -67,10 +75,20 @@ def lire_loots(wb):
             raise SystemExit(f"« Profondeurs » ligne {i} : effet inconnu « {effet} » pour « {iid} » "
                              f"(attendus : {', '.join(sorted(EFFETS_OK))}).")
         icone = str(lg[3]).strip() if len(lg) > 3 and lg[3] else "#888888"
-        try:
-            vals = [int(round(float(lg[4 + k]))) for k in range(3)]  # E, F, G
-        except (TypeError, ValueError, IndexError):
-            raise SystemExit(f"« Profondeurs » ligne {i} : valeurs Normale/Rare/Épique illisibles pour « {iid} ».")
+        vals = []
+        for k in range(3):  # colonnes E, F, G
+            brut = str(lg[4 + k]).strip() if len(lg) > 4 + k and lg[4 + k] is not None else ""
+            if brut in ("/", "—", "-", ""):
+                vals.append(None)   # loot indisponible à cette rareté
+                continue
+            try:
+                vals.append(int(round(float(brut))))
+            except ValueError:
+                raise SystemExit(f"« Profondeurs » ligne {i} : valeur « {brut} » illisible pour « {iid} » "
+                                 f"({RARETES[k]}). Mettre un nombre, ou « / » si le loot n'existe pas "
+                                 "à cette rareté.")
+        if all(v is None for v in vals):
+            raise SystemExit(f"« Profondeurs » ligne {i} : « {iid} » n'a de valeur à AUCUNE rareté.")
         loots.append((iid, nom, effet, icone, vals))
     if not loots:
         raise SystemExit("Aucun loot trouvé dans l'onglet « Profondeurs ».")
@@ -103,10 +121,16 @@ def lire_chances(wb):
 
 def bloc_js(loots, chances):
     lignes = ["export const LOOTS_PROFONDEUR = ["]
+    commente = False
     for iid, nom, effet, icone, vals in loots:
+        if effet in EFFETS_GENERATION and not commente:
+            commente = True
+            lignes.append("  // Butins qui influencent la GÉNÉRATION de l'étage suivant (choisis AVANT")
+            lignes.append("  // de descendre). `null` à une rareté = indisponible à cette rareté (« / »).")
+        v = ", ".join(f"{r}: {'null' if x is None else x}" for r, x in zip(RARETES, vals))
         lignes.append(
             f'  {{ id: "{iid}", nom: "{nom}", effet: "{effet}", icone: "{icone}", '
-            f'valeurs: {{ normale: {vals[0]}, rare: {vals[1]}, epique: {vals[2]} }} }},'
+            f'valeurs: {{ {v} }} }},'
         )
     lignes.append("];")
     lignes.append("")
