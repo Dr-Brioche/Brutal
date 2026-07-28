@@ -312,6 +312,11 @@ export function equiper(inv, objet, heros, slotForce = null) {
 export function equiperNeuf(inv, id, heros) {
   const d = itemDef(id);
   if (!d) return null;
+  // MÊME VERROU que `equiper` : une arme à deux mains demande le talent. Sans ce
+  // test, le clic droit « acheter & équiper » du marchand la posait d'office dans
+  // une main principale libre, talent ou pas. En renvoyant null on retombe sur le
+  // chemin normal (achat au sac puis `equiper`), qui refuse ET dit pourquoi.
+  if (d.mains === 2 && !((heros?.talents?.deuxMains ?? 0) > 0)) return null;
   const slot = slotCible(inv, id, heros);
   if (!slot || inv.slots[slot]) return null; // slot occupé → pas d'auto-équipement
   inv.qualites ??= {};
