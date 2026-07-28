@@ -55,7 +55,7 @@
   import { installerInventaire } from "./jeu/ui/inventaire.js";
   import { installerTalents } from "./jeu/ui/talents.js";
   import { creerHeros } from "./jeu/entities/heros.js";
-  import { creerInventaire, appliquerEquipement } from "./jeu/systems/inventaire.js";
+  import { creerInventaire, appliquerEquipement, ajouterObjet } from "./jeu/systems/inventaire.js";
   import { appliquerTalents } from "./jeu/systems/talents.js";
   import { appliquerTextesDOM, definirLangue } from "./jeu/systems/langue.js";
   import { installerLangueDonnees } from "./jeu/systems/i18n_donnees.js";
@@ -95,6 +95,12 @@
     appliquerTalents(heros);
 
     const inventaire = creerInventaire();
+    // Quelques objets d'EMPREINTES DIFFÉRENTES (1×1, 1×2, 2×2…) : c'est là qu'un
+    // mauvais pas de grille se voit — les gros objets se décalent en premier.
+    for (const id of ["epee-courte", "hache-de-guerre", "potion-soin", "fer", "charbon",
+                      "bouclier-bois", "anneau-force", "cotte-mailles"]) {
+      ajouterObjet(inventaire, id, 1);
+    }
     const bottes = document.getElementById("sel-bottes").value;
     if (bottes) inventaire.slots.botte = bottes;
     appliquerEquipement(heros, inventaire, new Map());
