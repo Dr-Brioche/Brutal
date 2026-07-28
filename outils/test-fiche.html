@@ -45,6 +45,7 @@
     <select id="sel-langue"><option value="fr">Français</option><option value="en">English</option></select>
   </label>
   <button id="go">Ouvrir la fiche</button>
+  <button id="go-arbre">Ouvrir l'arbre de talents</button>
   <span id="etat"></span>
 </div>
 
@@ -52,6 +53,7 @@
 
 <script type="module">
   import { installerInventaire } from "./jeu/ui/inventaire.js";
+  import { installerTalents } from "./jeu/ui/talents.js";
   import { creerHeros } from "./jeu/entities/heros.js";
   import { creerInventaire, appliquerEquipement } from "./jeu/systems/inventaire.js";
   import { appliquerTalents } from "./jeu/systems/talents.js";
@@ -107,7 +109,21 @@
     // divergent, c'est la fiche qui ment (c'est tout l'intérêt de la page).
     etat.textContent = `attendu : agilité = 100 + ${heros.agiliteTalent ?? 0} talents + ${heros.agiliteEquip ?? 0} équip.`;
   }
+  // L'ARBRE DE TALENTS, avec des points à dépenser : sert à relire les
+  // prérequis (qui débloque quoi) sans avoir à monter un personnage en jeu.
+  let arbre = null;
+  function ouvrirArbre() {
+    ui?.fermer(); arbre?.fermer();
+    const heros = creerHeros();
+    heros.niveau = 30; heros.pointsTalent = 30; heros.talents = {};
+    appliquerTalents(heros);
+    arbre = installerTalents({ heros, surChangement: () => {}, surFermer: () => {}, surAction: () => {} });
+    arbre.ouvrir();
+    etat.textContent = "arbre de talents — 30 points à dépenser";
+  }
   document.getElementById("go").addEventListener("click", ouvrir);
-  window.__ouvrirFiche = ouvrir;   // pilotable depuis un script de capture
+  document.getElementById("go-arbre").addEventListener("click", ouvrirArbre);
+  window.__ouvrirFiche = ouvrir;   // pilotables depuis un script de capture
+  window.__ouvrirArbre = ouvrirArbre;
   ouvrir();
 </script>

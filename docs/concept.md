@@ -1614,14 +1614,20 @@ devient exponentielle — chaque level up est un vrai événement.
 
 | ID | Nom | Prérequis | Effet |
 |---|---|---|---|
-| `maitrise1` | **Ancestral Mastery** | forge4 + agile1 | Jouer une carte 200 fois = la maîtriser ; **3 emplacements** pour ajouter des maîtrisées au deck |
+| `ambidextrie` | **Ambidexterity** | corps3 (*Light Step*) | Équiper **deux armes à 1 main** simultanément (main + main off) ; les cartes des deux armes s'ajoutent au deck |
+| `deuxMains` | **Giant's Grip** | ambidextrie | Équiper les **armes à deux mains** (haches/épées massives) ; sans ce talent elles sont **trop lourdes** pour être portées |
+| `maitrise1` | **Ancestral Mastery** | forge4 + ambidextrie | Jouer une carte 200 fois = la maîtriser ; **3 emplacements** pour ajouter des maîtrisées au deck |
 | `maitrise2` | **Ancestral Legacy** | maitrise1 | **+2 emplacements** de Maîtrise (5 au total) ; coût 2 |
-| `ambidextrie` | **Ambidexterity** | agile1 | Équiper **deux armes à 1 main** simultanément (main + main off) ; les cartes des deux armes s'ajoutent au deck |
-| `deuxMains` | **Giant's Grip** | agile1 | Équiper les **armes à deux mains** (haches/épées massives) ; sans ce talent elles sont **trop lourdes** pour être portées |
 
-> Les deux styles d'arme avancés — **Giant's Grip** (2 mains) et **Ambidexterity**
-> (dual-wield) — partent du **même nœud** *Fleet Strikes* (`agile1`) : c'est un
-> **choix d'orientation** au combat, pas dispo au tout début de la partie.
+> **L'Ambidextrie ouvre la fourche des armes avancées** (révisé 28/07/2026).
+> C'est elle qui suit *Light Step*, et tout le reste de la branche part d'elle —
+> **Giant's Grip**, la **Maîtrise**, et aussi *Fleet Strikes*.
+>
+> *Fleet Strikes* (`agile1`, +50 d'agilité, coût 1) était **avant** le petit nœud
+> d'entrée qui menait aux légendaires : 4 points suffisaient à l'avoir. Il est
+> maintenant **derrière** l'Ambidextrie, donc à **7 points** dont un légendaire.
+> Raison : l'agilité décide de l'ordre des tours — c'est la stat qui, poussée
+> trop tôt, fait enchaîner les tours et casse le combat. Elle se mérite.
 
 ### Règles de la Maîtrise des Ancêtres
 
