@@ -17,6 +17,7 @@ partie. On ouvre une page de test qui appelle directement le module concerné.
 | Plusieurs monstres à l'écran (barres qui se chevauchent) | `outils/test-armures.html`, menu « Monstres » |
 | Les règles du Fou du roi (marché, butin, fuite) | `outils/test-fou.html` |
 | La mise en scène du Fou (combat gelé → marché → reprise) | `outils/test-fou-marche.html` |
+| La fiche de personnage (stats et leur détail) | `outils/test-fiche.html` |
 | Les 3 paiements du Fou et son cadeau | le Maître d'arène + God Mode (§3) |
 | Que le jeu démarre sans erreur | la sonde de démarrage (§3) |
 
@@ -24,6 +25,11 @@ partie. On ouvre une page de test qui appelle directement le module concerné.
 et le combat démarre. Elle appelle le **vrai** `demarrerCombat()` — donc ce
 qu'elle montre est ce que le jeu montre. Elle expose `window.__lancerTest()`
 pour être pilotée depuis un script Playwright.
+
+`outils/test-fiche.html` : ouvre la fiche de personnage avec les bottes et les
+talents choisis dans deux menus, plus un sélecteur de langue. Elle affiche à
+droite le compte ATTENDU, calculé à part du code de la fiche : si les deux
+divergent, c'est la fiche qui ment. Expose `window.__ouvrirFiche()`.
 
 `outils/test-fou-marche.html` : rejoue la rencontre du Fou (combat gelé une
 seconde, puis son marché par-dessus). Deux menus : l'or du héros (pour tester le

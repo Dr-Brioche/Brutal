@@ -594,20 +594,39 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     // une ancienne échelle et affichait 10 à un nain qui en avait 100.
     const agility = STATS_HEROS_BASE.vitesseCombat + (bt.agilite || 0) + (heros.agiliteEquip || 0);
     const moveSpeed = Math.round(100 * (1 + (heros.vitesseEquipPct || 0) / 100));
+    // D'OÙ VIENT LE CHIFFRE : une stat vaut « base + talents + équipement », et
+    // seul le total était affiché — impossible de retrouver son compte (250
+    // d'agilité avec des bottes à +100, c'est le talent Fleet Strikes qui pose
+    // les 50 manquants). On écrit donc le détail sous la ligne, dès qu'il y a
+    // au moins un bonus. `detail` = [[valeur, d'où ça vient], …].
     const lignes = [
       [t("inv.statNiveau"),  `${heros.niveau}  (${heros.pointsTalent} pts)`],
-      [t("inv.statPvMax"),   heros.pvMax],
-      [t("inv.statAgilite"), agility],
+      [t("inv.statPvMax"),   heros.pvMax,
+        [[STATS_HEROS_BASE.pv, "inv.srcBase"], [bt.pvMax || 0, "inv.srcTalents"]]],
+      [t("inv.statAgilite"), agility,
+        [[STATS_HEROS_BASE.vitesseCombat, "inv.srcBase"], [bt.agilite || 0, "inv.srcTalents"],
+         [heros.agiliteEquip || 0, "inv.srcEquipement"]]],
       [t("inv.statVitesse"), moveSpeed],
       [t("inv.statChaleur"), `${seuil} / ${max}`],
-      [t("inv.statCartes"),  BASE_PIOCHE + (bt.pioche || 0)],
+      [t("inv.statCartes"),  BASE_PIOCHE + (bt.pioche || 0),
+        [[BASE_PIOCHE, "inv.srcBase"], [bt.pioche || 0, "inv.srcTalents"]]],
     ];
-    elStats.replaceChildren(...lignes.map(([nom, val]) => {
+    const elements = [];
+    for (const [nom, val, detail] of lignes) {
       const l = document.createElement("div");
       l.className = "inv-stat";
       l.innerHTML = `<span>${nom}</span><b>${val}</b>`;
-      return l;
-    }));
+      elements.push(l);
+      // Détail seulement s'il y a VRAIMENT quelque chose à décomposer : sinon on
+      // écrirait « 4 base » sous un 4, du bruit pur.
+      const parts = (detail ?? []).filter(([v]) => v > 0);
+      if (parts.length < 2) continue;
+      const d = document.createElement("div");
+      d.className = "inv-stat-detail";
+      d.textContent = parts.map(([v, cle]) => `${v} ${t(cle)}`).join(" + ");
+      elements.push(d);
+    }
+    elStats.replaceChildren(...elements);
 
     const seuilXp = xpPourNiveau(heros.niveau);
     const pct = seuilXp > 0 ? Math.max(0, Math.min(100, heros.xp / seuilXp * 100)) : 0;
