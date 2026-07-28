@@ -18,6 +18,7 @@ partie. On ouvre une page de test qui appelle directement le module concerné.
 | Les règles du Fou du roi (marché, butin, fuite) | `outils/test-fou.html` |
 | La mise en scène du Fou (combat gelé → marché → reprise) | `outils/test-fou-marche.html` |
 | La fiche de personnage (stats et leur détail) | `outils/test-fiche.html` |
+| Le rendu d'une carte (écussons, texte, illustration) | `outils/apercu-cartes.py` |
 | Les 3 paiements du Fou et son cadeau | le Maître d'arène + God Mode (§3) |
 | Que le jeu démarre sans erreur | la sonde de démarrage (§3) |
 
@@ -25,6 +26,14 @@ partie. On ouvre une page de test qui appelle directement le module concerné.
 et le combat démarre. Elle appelle le **vrai** `demarrerCombat()` — donc ce
 qu'elle montre est ce que le jeu montre. Elle expose `window.__lancerTest()`
 pour être pilotée depuis un script Playwright.
+
+`outils/apercu-cartes.py` : capture des cartes du VRAI catalogue, avec le vrai
+CSS. Sans argument, il sort un échantillon qui couvre tous les cas d'écusson.
+
+```bash
+python3 outils/apercu-cartes.py /tmp/cartes.png --langue fr
+python3 outils/apercu-cartes.py /tmp/cartes.png --langue en frappe,boule-de-feu
+```
 
 `outils/test-fiche.html` : ouvre la fiche de personnage avec les bottes et les
 talents choisis dans deux menus, plus un sélecteur de langue. Elle affiche à

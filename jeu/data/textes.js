@@ -75,6 +75,17 @@ export const TEXTES = {
   "barre.menu":      { fr: "Menu", en: "Menu" },
   "barre.menuTitre": { fr: "Menu (Échap)", en: "Menu (Esc)" },
 
+  // ---- Écussons de carte (coins bas) : portée + AOE ----
+  // Volontairement TRÈS courts : ils tiennent dans une pastille de la taille
+  // d'un chiffre. L'infobulle (title) porte l'explication complète.
+  "carte.badgeAoe":       { fr: "tous",  en: "all" },
+  "carte.badgeCac":       { fr: "cac",   en: "melee" },
+  "carte.badgeRange":     { fr: "dist",  en: "range" },
+  "carte.badgeCacAide":   { fr: "Corps à corps : ta Force s'ajoute aux dégâts.",
+                            en: "Melee: your Strength is added to the damage." },
+  "carte.badgeRangeAide": { fr: "À distance : ta Force ne s'applique PAS.",
+                            en: "Ranged: your Strength does NOT apply." },
+
   // ---- Combat ----
   "combat.finTour":   { fr: "Fin du tour", en: "End Turn" },
   "combat.fuite":     { fr: "Fuir", en: "Flee" },

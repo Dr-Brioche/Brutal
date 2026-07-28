@@ -958,6 +958,23 @@ Principe (validé 19/06/2026) :
   distance (`portee: "range"` sur la carte — ex. *Poison Dart, Ice Shard, Fireball,
   Arcane Bolt, Drain…*). Énorme avec le **multi-hit de mêlée** (*Double Strike*,
   *Flurry* : +Force par coup). Sources : *Flex, Power Strike, Empower, Bloodrage*.
+
+  **La carte le DIT (28/07/2026)** : un écusson en bas à GAUCHE annonce la portée —
+  **`cac`** (rouge, la Force s'ajoute) ou **`dist`** (bleu, elle ne s'applique pas).
+  Il ne s'affiche que sur les cartes qui infligent des **dégâts directs** : sur un
+  bouclier, un soin ou un poison pur, la Force n'a rien à dire. En face, en bas à
+  DROITE, l'écusson **`tous`** signale une carte qui frappe tout le monde (AOE).
+  L'écusson lit la **même fonction** que le moteur (`porteeCarte` / `carteFrappe`
+  dans `systems/combat.js`) : il ne peut donc pas mentir. La portée d'une carte se
+  règle dans l'Excel, onglet `Cartes`, colonne **Portée**.
+
+  ⚠ **Corrigé au passage** : *Poison Dance* (Croc de basilic) et *Drink Blood*
+  (Plate de sang) sont des attaques de MÊLÉE mais calculaient leurs dégâts sans la
+  Force — deux exceptions muettes. Elles la prennent maintenant comme les autres.
+  À surveiller : *Poison Dance* frappe **3 fois tous les ennemis**, donc la Force
+  y compte **9 fois** (convention du moteur : +Force **par coup**, comme *Double
+  Strike*). C'est cohérent, mais ça en fait la carte qui profite le plus d'un
+  build Force — un chiffre à relire dans l'onglet `Cartes`.
 - **Stone Fist** (`pierre-vers-degats`) — inflige des **dégâts = ta Pierre actuelle**
   (sans la consommer) : transforme un build bloc (*Mail*, armures) en attaque
   (« Body Slam »). Sources : *Stone Fist, Earthshatter, Stonetread/Stone Hammer*.

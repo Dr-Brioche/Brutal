@@ -526,12 +526,41 @@ function soinnerHeros(combat, n) {
   combat.pvHeros = Math.min(combat.pvHerosMax, combat.pvHeros + n);
 }
 
+// La FORCE que la carte en cours d'application ajoute à chacun de ses dégâts.
+// Règle : la Force est un bonus de BRAS — elle ne pousse que les coups de MÊLÉE,
+// jamais un sort ou un tir (`portee: "range"`). C'est cette règle que l'écusson
+// « cac » / « range » annonce sur la carte (cf. ui/carte.js) : les deux doivent
+// donc lire la MÊME chose, d'où cette fonction unique.
+function forceDeLaCarte(combat) {
+  return (combat._porteeCarteCourante ?? "melee") === "melee" ? forceTotal(combat) : 0;
+}
+
+// La carte inflige-t-elle des dégâts DIRECTS ? (≠ poison, feu, saignement, qui
+// tombent plus tard et n'ont jamais rien à voir avec la Force.) Sert à l'écusson
+// de portée : sur une carte qui ne frappe pas, la Force n'a aucun sens à afficher.
+const EFFETS_FRAPPE = new Set([
+  "degats", "degats-execution", "degats-par-jugement", "degats-si-gel",
+  "degats-si-faible", "degats-si-force", "pierre-vers-degats",
+  "danse-poison", "boire-le-sang", "degats-soin-cible", "gel-cascade",
+  "explosion-poison", "cleave-adjacent", "eclaboussure",
+]);
+
+// Vrai si la carte frappe (donc si la question « la Force s'applique-t-elle ? »
+// se pose). Exporté pour que l'interface pose l'écusson sur les MÊMES cartes que
+// celles où le moteur calcule la Force.
+export function carteFrappe(carte) {
+  return (carte?.effets ?? []).some((e) => EFFETS_FRAPPE.has(e.type));
+}
+
+// « melee » ou « range ». La Force ne s'ajoute qu'en mêlée.
+export function porteeCarte(carte) {
+  return carte?.portee === "range" ? "range" : "melee";
+}
+
 // Applique un effet de carte : les effets offensifs touchent `ennemi` (la cible),
 // les défensifs touchent le héros.
 function appliquerEffet(combat, effet, ennemi) {
-  // Force : s'applique uniquement aux coups de mêlée (portee "melee" par défaut).
-  const portee = combat._porteeCarteCourante ?? "melee";
-  const forceApp = portee === "melee" ? forceTotal(combat) : 0;
+  const forceApp = forceDeLaCarte(combat);
   if (effet.type === "degats") {
     if (ennemi) blesser(ennemi, effet.valeur + forceApp);
   } else if (effet.type === "degats-execution") {
@@ -1037,6 +1066,11 @@ function ennemisAdjacents(combat, ennemi) {
 // Chaleur) sont calculés UNE fois, sinon le 1er ennemi viderait la ressource.
 function resoudreAOE(combat, carte) {
   const vivants = combat.ennemis.filter(ennemiVivant);
+  // Ces deux cartes-ci frappent en appelant `blesser` directement (leur combo
+  // demande de compter les morts / le poison d'avant). Elles doivent donc
+  // ajouter la Force ELLES-MÊMES : sans ça, deux attaques de mêlée identiques
+  // sur le papier réagissaient différemment à la Force, sans que rien ne le dise.
+  const forceApp = forceDeLaCarte(combat);
   for (const effet of carte.effets) {
     if (effet.type === "rejet-chaleur") {
       // Trempe OFFENSIVE : convertit toute la Chaleur en brûlure (×valeur) sur
@@ -1054,7 +1088,7 @@ function resoudreAOE(combat, carte) {
       for (let h = 0; h < effet.hits; h++) {
         for (const e of vivants) {
           if (!ennemiVivant(e)) continue;
-          blesser(e, effet.degats);
+          blesser(e, effet.degats + forceApp);
           e.poison += dejaPoison.get(e) ? basePoison * 2 : basePoison;
         }
       }
@@ -1091,7 +1125,7 @@ function resoudreAOE(combat, carte) {
       let morts = 0;
       for (const e of vivants) {
         const avant = e.pv;
-        blesser(e, effet.degats);
+        blesser(e, effet.degats + forceApp);
         e.sang += effet.sang;
         if (avant > 0 && e.pv <= 0) morts++;
       }

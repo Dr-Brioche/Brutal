@@ -13,6 +13,17 @@
 // n'existe pas, la fenêtre reste un aplat sombre (pas d'erreur visible).
 //
 // `el` est l'élément de carte déjà créé (un <button> en combat, un <div> ailleurs).
+//
+// ÉCUSSONS (coins bas) : trois pastilles qui répondent d'un coup d'œil aux
+// questions qu'on se pose une carte en main —
+//   « all »          (bas-droite) : elle frappe TOUS les ennemis, pas de ciblage ;
+//   « cac » / « range » (bas-gauche) : la Force s'ajoute-t-elle à ses dégâts ?
+// La Force est un bonus de BRAS : elle pousse les coups de mêlée, jamais les
+// sorts ni les tirs. Sans l'écusson, rien ne le disait — on voyait juste la
+// stat « ne pas fonctionner » sur certaines cartes.
+
+import { carteFrappe, porteeCarte } from "../systems/combat.js";
+import { t } from "../systems/langue.js";
 
 const CADRE_PAR_TYPE = {
   attaque: "images/cartes/cadre-attaque.png",
@@ -156,7 +167,19 @@ export function garnirCarte(el, carte) {
   if (carte.aoe) {
     const tous = document.createElement("span");
     tous.className = "carte-aoe";
-    tous.textContent = "all";
+    tous.textContent = t("carte.badgeAoe");
     el.append(tous);
+  }
+
+  // Couche 7 : écusson de PORTÉE en bas à gauche — seulement sur les cartes qui
+  // FRAPPENT (sur un bouclier ou un soin, la Force n'a rien à dire). C'est la
+  // même règle que celle appliquée par le moteur, lue au même endroit.
+  if (carteFrappe(carte)) {
+    const melee = porteeCarte(carte) === "melee";
+    const p = document.createElement("span");
+    p.className = "carte-portee " + (melee ? "carte-portee--cac" : "carte-portee--range");
+    p.textContent = t(melee ? "carte.badgeCac" : "carte.badgeRange");
+    p.title = t(melee ? "carte.badgeCacAide" : "carte.badgeRangeAide");
+    el.append(p);
   }
 }
