@@ -1729,7 +1729,14 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
           planche = pl.img; lisse = true;
           portrait = fenetreTete(pl, "un");
         } else { planche = heros.plancheArmure; portrait = PORTRAIT_HEROS; }
-      } else { const u = ennemisUI[a.i]; if (u) { planche = u.planche; portrait = u.e.def.portrait; teinte = u.e.def.teinte; } }
+      } else {
+        // Monstres : même traitement que le héros. Leurs planches sont des
+        // ILLUSTRATIONS détourées (pas du pixel-art) — on les lisse donc aussi.
+        // Sans ça, une tête de 62 px agrandie dans un carré de 120 px sortait en
+        // gros blocs, alors que le héros, lui, était lissé : d'où l'écart visible.
+        const u = ennemisUI[a.i];
+        if (u) { planche = u.planche; portrait = u.e.def.portrait; teinte = u.e.def.teinte; lisse = true; }
+      }
       dessinerCarreTete(ctx, x, FILE_Y, FILE_TAILLE, planche, portrait, k === 0, teinte, lisse);
       x += FILE_TAILLE + FILE_ESPACE;
     });
