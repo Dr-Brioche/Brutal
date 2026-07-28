@@ -1197,10 +1197,24 @@ c'est le seul vrai combat de toute son histoire, et il cogne à **60 par attaque
 
 Porter **toutes les pièces d'un set** change l'**illustration de combat** du nain :
 il apparaît vêtu de l'armure (et sa tête dans le dérouleur de tours suit).
-Sets équipés d'une planche : **mailles**, **croisé**, **onyx**, **sang** et
-**barbare**. **Il en manque une : le set de l'ÂGE DE PIERRE** (`stoneAge`) — son
-porteur retombe sur la planche par défaut, sans erreur mais sans armure.
-Table : `PLANCHES_SET` dans `jeu/ui/combat.js` ; tout nouveau set doit y être ajouté.
+Sets équipés d'une planche : **mailles**, **croisé**, **onyx**, **sang**,
+**barbare** et **béni par Dunïr**. **Il en manque une : le set de l'ÂGE DE PIERRE**
+(`stoneAge`) — son porteur retombe sur la planche par défaut, sans erreur mais sans
+armure. Table : `PLANCHES_SET` (`jeu/ui/combat.js`) ; tout nouveau set doit y être ajouté.
+
+### LE JUGEMENT (⚖) — mécanique du set béni par Dunïr (27/07/2026)
+
+Le seul statut du jeu qui ne s'écoule **jamais** et qui n'inflige **aucun dégât** par
+lui-même : il rend chaque blessure subie par l'ennemi plus lourde de 1 par pile
+(toute source confondue). Posé par les cartes du set (`jugement`, `jugement-tous`),
+lu dans `blesser()` (`systems/combat.js`).
+
+Ce qui le rend intéressant, c'est le **report** : à la mort d'un ennemi jugé, tout son
+Jugement passe **aux survivants** (déclencheur `ennemiTue`, effet `reporter-jugement`).
+On investit sur une cible, on l'exécute, et la salle hérite de la sentence — le dernier
+ennemi debout porte le jugement de tous les morts avant lui. **L'ordre dans lequel on
+tue devient une décision** : achever le condamné transmet le plus gros verdict.
+C'est l'inverse d'un poison qu'on répartit — ici la sentence se concentre.
 
 Deux planches par set — pose **1 main** (`…-1.webp`) et pose **2 mains**
 (`…-2.webp`) — exactement comme les planches par défaut `nain-combat*.png`.
