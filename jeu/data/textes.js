@@ -215,7 +215,7 @@ export const TEXTES = {
   "forge.forger":     { fr: "⚒ Forger", en: "⚒ Forge" },
   "forge.livre":      { fr: "📖 Livre d'artisanat", en: "📖 Craft Book" },
   "forge.livreTitre": { fr: "Ouvrir le Livre d'artisanat (L)", en: "Open the Craft Book (L)" },
-  "forge.aide":       { fr: "Souris : clique la palette puis les cases · Clavier : [Tab] zone (recherche · palette · table · boutons) · [flèches] naviguer · [Espace] valider · [1-9] ressource · [C]/[V] charbon/bois · [F] Forger · [B] livre · [Échap] Quitter", en: "Mouse: click the palette then the cells · Keyboard: [Tab] area (search · palette · table · buttons) · [arrows] navigate · [Space] confirm · [1-9] resource · [C]/[V] coal/wood · [F] Forge · [B] book · [Esc] Leave" },
+  "forge.aide":       { fr: "Souris : glisse une ressource sur la table, ou clique-la puis clique les cases · Clavier : [Tab] zone (recherche · palette · table · boutons) · [flèches] naviguer · [Espace] valider · [1-9] ressource · [C]/[V] charbon/bois · [F] Forger · [B] livre · [Échap] Quitter", en: "Mouse: drag a resource onto the table, or click it then click the cells · Keyboard: [Tab] area (search · palette · table · buttons) · [arrows] navigate · [Space] confirm · [1-9] resource · [C]/[V] coal/wood · [F] Forge · [B] book · [Esc] Leave" },
   "forge.mjTitre":    { fr: "Frappe le métal !", en: "Strike the metal!" },
   "forge.mjAide":     { fr: "[Espace] ou clic : frappe ! · [Échap] annule", en: "[Space] or click: strike! · [Esc] cancel" },
   "forge.mjSacPlein": { fr: "Sac plein ! Fais de la place — rien n'est perdu.", en: "Bag full! Make room — nothing is lost." },

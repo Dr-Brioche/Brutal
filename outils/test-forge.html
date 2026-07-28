@@ -1,0 +1,78 @@
+<!doctype html>
+<!--
+  ⚠ PAGE DE TEST (hors jeu) — À NE PAS EMBARQUER DANS L'EXPORT FINAL.
+
+  Ouvre DIRECTEMENT la FORGE avec un sac plein de ressources, sans traverser la
+  ville pour trouver Grimbrück. Sert à vérifier la manipulation des ressources :
+  glisser-déposer depuis la palette, tas qui suit le curseur, quantité qui fond.
+
+  Ouvrir : outils/test-forge.html (depuis un serveur local, comme le jeu).
+-->
+<meta charset="utf-8">
+<base href="../">
+<title>Brütàl — test de la forge</title>
+<style>
+  body { margin: 0; background: #14110d; color: #e8e0cc; font-family: system-ui, sans-serif; }
+  #barre { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 10px 14px;
+           background: #1e1a14; border-bottom: 1px solid #3a3227; }
+  label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+  select, button { font: inherit; padding: 4px 8px; background: #2a241b; color: #e8e0cc;
+                   border: 1px solid #52463433; border-radius: 6px; }
+  button { cursor: pointer; background: #6b5426; }
+  #etat { font-size: 12px; opacity: .8; margin-left: auto; font-family: ui-monospace, monospace; }
+</style>
+
+<div id="barre">
+  <label>Langue
+    <select id="sel-langue"><option value="fr">Français</option><option value="en">English</option></select>
+  </label>
+  <button id="go">Ouvrir la forge</button>
+  <span id="etat"></span>
+</div>
+
+<div id="scene"></div>
+
+<script type="module">
+  import { installerForge, ouvrirForge } from "./jeu/ui/forge.js";
+  import { creerHeros } from "./jeu/entities/heros.js";
+  import { creerInventaire, ajouterObjet } from "./jeu/systems/inventaire.js";
+  import { appliquerTextesDOM, definirLangue } from "./jeu/systems/langue.js";
+  import { installerLangueDonnees } from "./jeu/systems/i18n_donnees.js";
+
+  const etat = document.getElementById("etat");
+
+  const html = await (await fetch("./index.html")).text();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  for (const st of doc.querySelectorAll("style")) document.head.append(st.cloneNode(true));
+  const scene = document.getElementById("scene");
+  for (const el of doc.body.children) {
+    if (el.tagName === "SCRIPT") continue;
+    scene.append(el.cloneNode(true));
+  }
+  for (const id of ["ecran-titre", "dbgr-btn", "dbgr-overlay", "barre-menu", "tactile", "cadre-jeu"]) {
+    document.getElementById(id)?.remove();
+  }
+
+  let inv = null;
+  function ouvrir() {
+    definirLangue(document.getElementById("sel-langue").value);
+    appliquerTextesDOM();
+    installerLangueDonnees();
+
+    const heros = creerHeros();
+    inv = creerInventaire();
+    inv.pileMax = 30;   // de grosses piles : on voit la quantité fondre
+    // De quoi forger n'importe quoi, et surtout de quoi tester la manipulation.
+    for (const [id, n] of [["fer", 20], ["bois", 20], ["charbon", 20], ["cuivre", 12],
+                           ["pierre-taillee", 12], ["argent", 8], ["titane", 6]]) {
+      ajouterObjet(inv, id, n);
+    }
+    installerForge();
+    ouvrirForge(inv, heros, () => {});
+    etat.textContent = "forge ouverte — glisse une ressource de la palette vers la table";
+  }
+  document.getElementById("go").addEventListener("click", ouvrir);
+  window.__ouvrirForge = ouvrir;
+  window.__inv = () => inv;
+  ouvrir();
+</script>
