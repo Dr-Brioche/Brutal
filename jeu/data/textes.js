@@ -187,6 +187,10 @@ export const TEXTES = {
   "inv.statVitesse":  { fr: "Vitesse dépl.", en: "Move Speed" },
   "inv.statChaleur":  { fr: "Chaleur", en: "Forge Heat" },
   "inv.statCartes":   { fr: "Cartes/tour", en: "Cards/turn" },
+  // D'où vient chaque stat (ligne de détail sous le total, cf. ui/inventaire.js).
+  "inv.srcBase":        { fr: "de base",     en: "base" },
+  "inv.srcTalents":     { fr: "talents",     en: "talents" },
+  "inv.srcEquipement":  { fr: "équipement",  en: "gear" },
 
   // ---- Forge ----
   "forge.titre":      { fr: "La Forge de Ferran", en: "Ferran's Forge" },
