@@ -1185,6 +1185,22 @@
       font-size: calc(var(--carte-l, 150px) * 0.06);
       box-shadow: 0 0.05em 0.16em rgba(0, 0, 0, 0.7);
     }
+    /* Écusson de PORTÉE (bas-GAUCHE, en face du « all ») : dit si la Force
+       s'ajoute aux dégâts. Rouge = corps à corps (elle compte), bleu = à
+       distance (elle ne compte pas). Même gabarit que l'écusson AOE. */
+    .combat-carte--cadre .carte-portee {
+      position: absolute; left: 6.5%; bottom: 5.5%; z-index: 4;
+      display: flex; align-items: center; justify-content: center;
+      min-width: 1.8em; height: 1.5em; padding: 0 0.45em;
+      border: 0.11em solid; border-radius: 0.75em;
+      font-weight: 800; letter-spacing: 0.04em;
+      font-size: calc(var(--carte-l, 150px) * 0.06);
+      box-shadow: 0 0.05em 0.16em rgba(0, 0, 0, 0.7);
+    }
+    /* Corps à corps : la teinte de la Force (même orangé que la pierre de force). */
+    .combat-carte--cadre .carte-portee--cac   { background: #2a0f08; border-color: #ff7a4d; color: #ffb391; }
+    /* À distance : bleu froid — « le bras ne sert à rien ici ». */
+    .combat-carte--cadre .carte-portee--range { background: #08182a; border-color: #5fb0e8; color: #a8d8ff; }
     .combat-carte--cadre .carte-texte--moyen { font-size: calc(var(--carte-l, 150px) * 0.05); }
     .combat-carte--cadre .carte-texte--petit { font-size: calc(var(--carte-l, 150px) * 0.043); }
     /* 5. Coût : chiffre clair centré dans le médaillon en haut à gauche. */
