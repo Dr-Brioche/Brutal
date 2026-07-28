@@ -15,6 +15,7 @@ import { ITEMS, couleurRarete, bonusPassifs } from "../data/items.js";
 import { t } from "../systems/langue.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
 import { animerGainXp } from "./gainXp.js";
+import { arreterSon } from "../core/sons.js";
 
 export function installerButin() {
   const overlay = document.getElementById("butin");
@@ -39,6 +40,7 @@ export function installerButin() {
   let restants = 0;     // objets pas encore pris
   let pret = false;     // l'animation d'XP est finie → boutons/Espace/Échap actifs
   let anim = null;      // contrôleur de l'animation d'XP en cours (cf. gainXp.js)
+  let cascade = null;   // minuteur de l'apparition des lignes une par une
   let ouvertLe = 0;     // horodatage d'ouverture (sert au verrou anti-zap)
 
   function ligneInfo(html) {
@@ -133,6 +135,10 @@ export function installerButin() {
     surFin = null;
     prendre = null;
     if (anim) { anim.arreter(); anim = null; }
+    if (cascade) { clearTimeout(cascade); cascade = null; }
+    // Le jingle de victoire s'arrête AVEC la fenêtre : il durait plus longtemps
+    // qu'elle et continuait par-dessus la musique d'exploration.
+    arreterSon("victoire");
     overlay.hidden = true;
     window.removeEventListener("keydown", surTouche, true);
     cb();
@@ -155,17 +161,51 @@ export function installerButin() {
 
   // Fin de l'animation d'XP : on révèle les boutons (Espace/Échap deviennent
   // actifs). Ignoré si la fenêtre a déjà été fermée entre-temps.
-  function reveler() {
-    if (overlay.hidden) return;
+  // Les lignes de butin TOMBENT UNE PAR UNE, comme une liste qui se remplit sous
+  // les yeux : d'un bloc, on ne voit pas ce qu'on a gagné, on voit juste « du
+  // butin ». Un clic (ou une touche) fait tout apparaître d'un coup — la même
+  // porte de sortie que pour la montée d'XP, pour ne pas imposer l'attente.
+  const DELAI_LIGNE = 130;  // ms entre deux lignes
+
+  function lancerCascade() {
+    const lignes = [...liste.children];
+    lignes.forEach((l) => l.classList.add("butin-ligne--attend"));
+    let i = 0;
+    const suivante = () => {
+      if (i >= lignes.length) { cascade = null; siPret(); return; }
+      lignes[i].classList.remove("butin-ligne--attend");
+      lignes[i].classList.add("butin-ligne--arrive");
+      i++;
+      cascade = setTimeout(suivante, DELAI_LIGNE);
+    };
+    cascade = setTimeout(suivante, DELAI_LIGNE);
+  }
+
+  function finirCascade() {
+    if (cascade) { clearTimeout(cascade); cascade = null; }
+    for (const l of liste.children) {
+      l.classList.remove("butin-ligne--attend");
+      l.classList.add("butin-ligne--arrive");
+    }
+    siPret();
+  }
+
+  // Les boutons n'apparaissent que quand TOUT est posé : la barre d'XP a fini de
+  // monter ET toutes les lignes sont tombées.
+  function siPret() {
+    if (overlay.hidden || anim || cascade) return;
     pret = true;
     boutons.hidden = false;
     aide.hidden = false;
   }
 
+  function reveler() { siPret(); }
+
   // Tant que l'animation n'est pas finie, un geste la « zappe » (le verrou
   // anti-accident est géré par gainXp.js via l'horodatage d'ouverture).
   function zapper() {
     if (anim) anim.zapper(ouvertLe);
+    finirCascade();   // même geste, même effet : tout s'affiche d'un coup
   }
 
   function surTouche(e) {
@@ -237,7 +277,8 @@ export function installerButin() {
 
       const etat = xpAnim || { niveauDepart: 1, xpDepart: 0, gain: 0 };
       anim = animerGainXp(xpRefs, etat);
-      anim.promesse.then(() => { anim = null; reveler(); });
+      anim.promesse.then(() => { anim = null; siPret(); });
+      lancerCascade();
 
       window.addEventListener("keydown", surTouche, true);
     },
