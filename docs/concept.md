@@ -1209,12 +1209,17 @@ lui-même : il rend chaque blessure subie par l'ennemi plus lourde de 1 par pile
 (toute source confondue). Posé par les cartes du set (`jugement`, `jugement-tous`),
 lu dans `blesser()` (`systems/combat.js`).
 
-Ce qui le rend intéressant, c'est le **report** : à la mort d'un ennemi jugé, tout son
-Jugement passe **aux survivants** (déclencheur `ennemiTue`, effet `reporter-jugement`).
-On investit sur une cible, on l'exécute, et la salle hérite de la sentence — le dernier
-ennemi debout porte le jugement de tous les morts avant lui. **L'ordre dans lequel on
-tue devient une décision** : achever le condamné transmet le plus gros verdict.
-C'est l'inverse d'un poison qu'on répartit — ici la sentence se concentre.
+Ce qui le rend intéressant, c'est la **dispersion** : à la mort d'un ennemi jugé, son
+Jugement **se répartit AU HASARD entre les survivants** (déclencheur `ennemiTue`, effet
+`reporter-jugement`). Le **total est conservé**, le partage est tiré point par point :
+7 Jugement sur deux survivants donnent le plus souvent 4/3, parfois 5/2, rarement 6/1
+ou 7/0. On sait donc que la sentence retombera — jamais sur qui.
+
+**L'ordre dans lequel on tue devient une décision** : achever le plus condamné remet le
+plus gros verdict en circulation. Mais contrairement à un poison qu'on répartit soi-même,
+ici c'est Dunïr qui choisit : on prépare le terrain, on ne contrôle pas le verdict.
+(Décision Brioche 27/07/2026 — la première version donnait le jugement ENTIER à chaque
+survivant, ce qui était bien plus fort et sans surprise.)
 
 Deux planches par set — pose **1 main** (`…-1.webp`) et pose **2 mains**
 (`…-2.webp`) — exactement comme les planches par défaut `nain-combat*.png`.

@@ -213,7 +213,7 @@ export const TEXTES_DONNEES = {
   // ---- Set BÉNI PAR DUNÏR (set + pièces + cartes) ----
   "set.dunir":           { fr: "Bénédiction de Dunïr" },
   "set.dunir.bonus1":    { fr: "Au début du combat, chaque ennemi prend 2 Jugement." },
-  "set.dunir.bonus2":    { fr: "Quand un ennemi jugé meurt, tout son Jugement passe à chaque ennemi encore debout." },
+  "set.dunir.bonus2":    { fr: "Quand un ennemi jugé meurt, son Jugement se disperse au hasard entre les ennemis encore debout." },
   "item.plastron-dunir":  { fr: "Plastron béni de Dunïr" },
   "item.gantelets-dunir": { fr: "Gantelets bénis de Dunïr" },
   "item.solerets-dunir":  { fr: "Solerets bénis de Dunïr" },

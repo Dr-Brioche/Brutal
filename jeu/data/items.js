@@ -963,10 +963,11 @@ export const SETS = {
     },
   },
   // Set béni par Dunïr : build JUGEMENT (épique). Deux bonus qui se répondent — un
-  // socle qui amorce la mécanique, et le REPORT qui la fait boule de neige. Kill
-  // order devient une vraie décision : abattre le condamné transmet sa sentence à
-  // tous les autres, donc le dernier ennemi debout porte le jugement de tous les
-  // morts avant lui. — demandé par Brioche 27/07/2026.
+  // socle qui amorce la mécanique, et la DISPERSION qui la fait circuler. À la mort
+  // d'un condamné, son jugement se répartit AU HASARD entre les survivants (total
+  // conservé) : on sait que la sentence retombera, jamais sur qui. L'ordre dans
+  // lequel on tue reste une décision, mais le résultat garde sa part de surprise.
+  // — demandé par Brioche 27/07/2026.
   dunir: {
     id: "dunir",
     nom: "Dunir's Blessing",
@@ -979,7 +980,7 @@ export const SETS = {
       },
       {
         declencheur: "ennemiTue",
-        texte: "When a judged enemy dies, its whole Judgement passes to every enemy still standing.",
+        texte: "When a judged enemy dies, its Judgement scatters at random among the enemies still standing.",
         effets: [{ type: "reporter-jugement" }],
       },
     ],

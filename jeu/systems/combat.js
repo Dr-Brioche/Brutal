@@ -931,10 +931,17 @@ function compterEnnemisTues(combat) {
       for (const ef of p.effets) {
         if (ef.type === "force") combat.forcePerm += ef.valeur;
         else if (ef.type === "reporter-jugement" && e.jugement > 0) {
-          // Set béni par Dunïr : le verdict d'un condamné RETOMBE ENTIER sur tous
-          // les survivants. C'est ce qui fait boule de neige — le dernier ennemi
-          // debout porte le jugement de tous ceux qui sont tombés avant lui.
-          for (const a of combat.ennemis) if (a !== e && a.pv > 0) a.jugement += e.jugement;
+          // Set béni par Dunïr : le verdict d'un condamné SE DISPERSE sur les
+          // survivants. Le TOTAL est conservé mais le partage est tiré au sort, point
+          // par point : 7 Jugement sur deux survivants peuvent donner 4/3, 5/2, 6/1…
+          // On ne sait donc jamais à l'avance qui héritera le plus — la sentence
+          // retombe, mais Dunïr choisit sur qui.
+          const survivants = combat.ennemis.filter((a) => a !== e && a.pv > 0);
+          if (survivants.length) {
+            for (let n = e.jugement; n > 0; n--) {
+              survivants[Math.floor(Math.random() * survivants.length)].jugement += 1;
+            }
+          }
         }
       }
     }
