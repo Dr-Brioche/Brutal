@@ -198,6 +198,8 @@ export const TEXTES = {
   "inv.statVitesse":  { fr: "Vitesse dépl.", en: "Move Speed" },
   "inv.statChaleur":  { fr: "Chaleur", en: "Forge Heat" },
   "inv.statCartes":   { fr: "Cartes/tour", en: "Cards/turn" },
+  "inv.statEfficacite":    { fr: "Efficacité", en: "Efficiency" },
+  "inv.statVitesseMinage": { fr: "Vit. minage", en: "Mining Speed" },
   // D'où vient chaque stat (ligne de détail sous le total, cf. ui/inventaire.js).
   "inv.srcBase":        { fr: "de base",     en: "base" },
   "inv.srcTalents":     { fr: "talents",     en: "talents" },

@@ -616,6 +616,13 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       [t("inv.statCartes"),  BASE_PIOCHE + (bt.pioche || 0),
         [[BASE_PIOCHE, "inv.srcBase"], [bt.pioche || 0, "inv.srcTalents"]]],
     ];
+    // MINAGE : n'a de sens qu'avec une pioche équipée. On montre ce qu'elle
+    // rapporte (efficacité) et à quelle vitesse elle creuse — les deux stats qui
+    // font choisir une pioche plutôt qu'une autre.
+    if (inventaire.slots?.outil) {
+      lignes.push([t("inv.statEfficacite"), `${heros.efficacite || 0} %`]);
+      lignes.push([t("inv.statVitesseMinage"), `${heros.vitesseMinage || 100} %`]);
+    }
     elStats.replaceChildren(...lignes.map(([nom, val, detail]) => {
       const l = document.createElement("div");
       l.className = "inv-stat";

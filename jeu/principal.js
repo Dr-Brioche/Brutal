@@ -75,6 +75,7 @@ import {
   creerRunProfondeur, tirerChoix, appliquerLoot, etageSuivant,
   bonusCombatRun, runActif, resumeRun,
 } from "./systems/profondeur.js";
+import { minerauxParCoup } from "./systems/minage.js";
 import { installerChoixProfondeur, ouvrirChoixProfondeur } from "./ui/profondeur.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
@@ -176,7 +177,8 @@ export async function demarrerJeu(donneesInitiales = null) {
   // La bulle d'info lit l'équipement courant pour colorer les pièces d'un set.
   definirSourceEquipement(() => inventaire.slots);
   inventaire.slots.armure = "tenue-de-voyageur"; // habits de base (corps)
-  inventaire.slots.outil = "pioche-basique";     // pioche de base : permet de miner
+  inventaire.slots.outil = "vieille-pioche";      // la pioche du débutant : lente, sans bonus,
+                                                 // et limitée au commun + uncommon (cf. systems/minage.js)
   // On démarre VRAIMENT sans arme (sac vide) : il faut looter/forger sa 1re arme.
   // En attendant, le deck de base (Tap + Brace) sert de filet (cf. cartesDeBase).
   appliquerEquipement(heros, inventaire, planches);
@@ -1101,7 +1103,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   });
 
   appliquerEtat(donneesInitiales); // reprise choisie au démarrage (sinon null = neuf)
-  if (!inventaire.slots.outil) inventaire.slots.outil = "pioche-basique"; // garantit une pioche (test)
+  if (!inventaire.slots.outil) inventaire.slots.outil = "vieille-pioche"; // garantit une pioche (test)
   majHudInfo(); // état initial du HUD (caché en ville)
 
   // L'inventaire (touche B) : équiper/déséquiper réapplique le skin + le HUD.
@@ -1857,16 +1859,16 @@ export async function demarrerJeu(donneesInitiales = null) {
       minage = null;
       return;
     }
-    // Bonus selon la rareté : chance d'obtenir un minerai supplémentaire par coup.
-    const BONUS_RARETE = { commun: 0.10, uncommon: 0.15, rare: 0.20, epic: 0.25, legendaire: 0.35 };
-    const chancebonus = BONUS_RARETE[itemDef(v.type)?.rarete] ?? 0.10;
+    // COMBIEN de minerai tombe : uniquement l'EFFICACITÉ du héros (sa pioche,
+    // son bonus de forge, ses bijoux). Cf. systems/minage.js. À 0 d'efficacité on
+    // repart avec exactement 1 minerai — l'ancien « bonus par rareté » (10 à 35 %
+    // offerts à tout le monde) et le doublement de l'Anneau de chance ont fusionné
+    // dans cette stat unique, pour que la pioche soit ce qui décide du rendement.
     let qty = 1;
-    if (Math.random() < chancebonus && ajouterObjet(inventaire, v.type, 1)) qty++;
-    // « Ring of Luck » : chance (heros.minageDoubleChance) de DOUBLER le butin de ce
-    // coup — on tente d'ajouter autant de minerai qu'on vient d'en obtenir.
-    if ((heros.minageDoubleChance || 0) > 0 && Math.random() < heros.minageDoubleChance
-        && ajouterObjet(inventaire, v.type, qty)) {
-      qty *= 2;
+    const vise = minerauxParCoup(heros.efficacite || 0);
+    for (let k = 1; k < vise; k++) {
+      if (!ajouterObjet(inventaire, v.type, 1)) break; // sac plein : on s'arrête là
+      qty++;
     }
     v.coups--;
     if (v.coups <= 0) {                      // filon épuisé → il disparaît

@@ -39,6 +39,18 @@ export function forceQualite(rarete, qualite) {
   return FORCE_QUALITE[rarete]?.[qualite] ?? 0;
 }
 
+// BONUS D'EFFICACITÉ pour une PIOCHE (décision Brioche 28/07/2026). Sur une arme,
+// réussir le mini-jeu donne de la FORCE ; sur un outil, la Force ne sert à rien —
+// c'est l'EFFICACITÉ (minerai supplémentaire par coup) qui est récompensée.
+// Valeurs PLATES, indépendantes de la rareté : c'est le geste du forgeron qu'on
+// paie, pas le matériau.
+export const EFFICACITE_QUALITE = { artisan: 10, maitre: 20, exceptionnel: 50 };
+
+// Bonus d'efficacité d'une pioche forgée (0 si lootée / qualité normale).
+export function efficaciteQualite(qualite) {
+  return EFFICACITE_QUALITE[qualite] ?? 0;
+}
+
 // CARBURANT DE FORGE (décision Brioche 09/07/2026) : pour forger, il faut NOURRIR
 // le feu avec du CHARBON et/ou du BOIS dans une case auxiliaire. Le besoin monte
 // avec la RARETÉ de l'objet. Exprimé en unités de CHARBON (ÉDITABLE ici).
@@ -1144,6 +1156,60 @@ export const RECETTES = [
       "AA",
     ],
     legende: { T: "titane", A: "argent" },
+  },
+  {
+    resultat: "vieille-pioche",
+    forme: [
+      "SSS",
+      ".W.",
+      ".W.",
+    ],
+    legende: { S: "pierre-taillee", W: "bois" },
+  },
+  {
+    resultat: "pioche-fer",
+    forme: [
+      "FFF",
+      "WW.",
+      ".W.",
+    ],
+    legende: { F: "fer", W: "bois" },
+  },
+  {
+    resultat: "pioche-fer-renforcee",
+    forme: [
+      "FFF",
+      "KWK",
+      ".W.",
+    ],
+    legende: { F: "fer", K: "charbon", W: "bois" },
+  },
+  {
+    resultat: "pioche-titane",
+    forme: [
+      "TTT",
+      "AWA",
+      ".B.",
+    ],
+    legende: { T: "titane", A: "argent", W: "bois", B: "bois-sombre" },
+  },
+  {
+    resultat: "pioche-diamant",
+    forme: [
+      "DDD",
+      "TNT",
+      ".N.",
+    ],
+    legende: { D: "diamant", T: "titane", N: "bois-enchante" },
+  },
+  {
+    resultat: "pioche-onyx",
+    forme: [
+      "XXX",
+      "INI",
+      ".N.",
+    ],
+    legende: { X: "onyx", I: "mithril", N: "bois-enchante" },
   },
 ];
 // <<FIN-RECETTES-AUTO>>
