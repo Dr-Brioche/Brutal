@@ -222,6 +222,7 @@ export const TEXTES = {
   "forge.mjRate":     { fr: "Raté ! Métal gâché — composants perdus.", en: "Missed! Metal wasted — components lost." },
   "forge.resultat":   { fr: "{nom} — {qualite}{bonus} !", en: "{nom} — {qualite}{bonus}!" },
   "forge.bonusForce": { fr: " (+{force} Force)", en: " (+{force} Force)" },
+  "forge.bonusEfficacite": { fr: " · +{eff} d'efficacité de minage", en: " · +{eff} Mining Efficiency" },
   "forge.agiliteInfo": { fr: "⚡ Agilité {agilite} — barre de forge {pct} % plus lente (qualité plus facile à réussir)", en: "⚡ Agility {agilite} — forge bar {pct}% slower (easier to land quality)" },
   "forge.agiliteZero": { fr: "⚡ Agilité 0 — augmente l'Agilité (équipement ou talent Forgeron agile) pour ralentir la barre", en: "⚡ Agility 0 — raise Agility (gear or Nimble Smith talent) to slow the forge bar" },
   "forge.charbonBtn": { fr: "🪨 Charbon <b>{charge}</b><small>{dispo} restant</small>", en: "🪨 Coal <b>{charge}</b><small>{dispo} left</small>" },
@@ -552,6 +553,8 @@ export const TEXTES = {
   "inv.sacPlein":     { fr: "Sac plein !", en: "Inventory full!" },
 
   // ---- HUD de mine : titres de zone, niveau, minerais ----
+  "mine.tropDur":     { fr: "⛏ Le {minerai} est trop dur pour ta {pioche} — il te faut une meilleure pioche.",
+                        en: "⛏ {minerai} is too hard for your {pioche} — you need a better pickaxe." },
   "mine.luckTitre":   { fr: "🍀 Caverne de chance", en: "🍀 Lucky Cavern" },
   "mine.luckTip":     { fr: "Des filons partout et presque aucun monstre — le jackpot du mineur.", en: "Ore veins everywhere and almost no monsters — a miner's jackpot." },
   "mine.cristalTitre": { fr: "💎 Mine de cristal", en: "💎 Crystal Mine" },

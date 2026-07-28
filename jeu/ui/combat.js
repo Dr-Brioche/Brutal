@@ -162,7 +162,12 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
   // Force de QUALITÉ de forge : chaque équipement FORGÉ ajoute la Force de sa
   // qualité, MODULÉE par la rareté de l'objet (cf. FORCE_QUALITE) — un épique
   // Master rapporte bien plus qu'un commun. Les loots = normale (0).
+  // ⚠ On saute le slot « outil » : une PIOCHE bien forgée donne de l'EFFICACITÉ de
+  // minage, pas de la Force au combat (cf. ui/forge.js). Sans cette exclusion, une
+  // pioche épique Exceptionnelle offrait 10 de Force à un nain qui ne s'en sert
+  // jamais pour taper.
   const forceQualiteTotale = Object.entries(inventaire.qualites ?? {})
+    .filter(([slot]) => slot !== "outil")
     .reduce((s, [slot, q]) => s + forceQualite(itemDef(inventaire.slots?.[slot])?.rarete, q), 0);
   // Pierre permanente par tour : passif des armures lourdes (Blood/Crusader/Mail/Onyx)
   // et du Siege Maul. +N Pierre au début de CHAQUE tour, tant que l'item est équipé.
