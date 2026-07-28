@@ -632,10 +632,20 @@ export const ENNEMIS = [
     grand: true,      // occupe 2 places
     soloUniquement: true, // n'apparaît JAMAIS en groupe (même dans l'arène de test)
     splitEnMort: ["gobelin-kaboom", "gobelin-de-siege", "gobelin-de-siege", "gobelin-de-siege", "gobelin-de-siege-etandart"],
-    tailleRel: 2, // ENGIN DE SIÈGE : ×2 — un boss imposant (2× plus grand que sa taille de base)
+    // ENGIN DE SIÈGE — RÉGLÉ LE 28/07/2026, deux corrections d'un coup :
+    //  · RÉDUIT D'1/5 (il montait dans la file des tours et poussait ses propres
+    //    infos par-dessus) : la hauteur affichée passe de 180 à 144 px logiques ;
+    //  · PLUS NET : sa planche a été ré-échantillonnée ×2 (253×250 → 506×500).
+    //    Avant, un sprite de 250 px était étiré sur 540 px d'écran — un grossissement
+    //    de 2,16× quand tous les autres monstres tournent autour de 1×, d'où LUI SEUL
+    //    en gros pixels. Avec la planche doublée, la même taille à l'écran devient une
+    //    RÉDUCTION (0,86×) : le navigateur n'agrandit plus, il resserre.
+    // Taille à l'écran = caseH × 0,36 (échelle scène) × tailleRel. Doubler la planche
+    // impose donc de diviser tailleRel par 2 pour ne pas doubler le monstre.
+    tailleRel: 0.8,
     planche: "images/ennemis/tour-de-siege-gobeline.png",
-    portrait: { sx: 54, sy: 15, sw: 120, sh: 120 },
-    sprite: { caseL: 253, caseH: 250, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    portrait: { sx: 108, sy: 30, sw: 240, sh: 240 },
+    sprite: { caseL: 506, caseH: 500, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
     butin: { objets: [] },
   },
   {
