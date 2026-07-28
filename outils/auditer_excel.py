@@ -63,6 +63,7 @@ const sortie = {
   items: Object.fromEntries(Object.entries(ITEMS).map(([k, v]) => [k, {
     nom: v.nom, categorie: v.categorie, rarete: v.rarete,
     cartes: v.cartes ?? [], empilable: !!v.empilable,
+    vitesseMinage: v.vitesseMinage ?? null, efficacite: v.efficacite ?? null,
   }])),
   cartes: Object.fromEntries(Object.entries(CARTES).map(([k, v]) => [k, {
     nom: v.nom, cout: v.cout, type: v.type, portee: v.portee ?? "melee",
@@ -660,6 +661,36 @@ def auditer_heros(wb, code, rap):
             rap.erreur(O, None, f"stat de héros ABSENTE du classeur : {k}")
 
 
+def auditer_pioches(wb, code, rap):
+    """Onglet « Pioches » : A id · B Nom · C Rareté · D Vitesse minage · E Efficacité.
+    Les trois chiffres doivent coller au code (bloc PIOCHES-AUTO d'items.js), sinon
+    c'est que l'import n'a pas été relancé après une modification du classeur."""
+    ws = wb["Pioches"]
+    O = "Pioches"
+    vus = set()
+    for i, ligne in enumerate(ws.iter_rows(values_only=True), start=1):
+        pid = txt(ligne[0] if ligne else None)
+        if not pid or pid == "id" or pid not in code["items"]:
+            continue
+        vus.add(pid)
+        it = code["items"][pid]
+        if it["categorie"] != "outil":
+            rap.erreur(O, i, f"{pid} : ce n'est pas un outil dans le code (catégorie « {it['categorie']} »)")
+        if txt(ligne[1]) != it["nom"]:
+            rap.erreur(O, i, f"{pid} : nom « {txt(ligne[1])} » ≠ code « {it['nom']} »")
+        if txt(ligne[2]) != it["rarete"]:
+            rap.erreur(O, i, f"{pid} : rareté « {txt(ligne[2])} » ≠ code « {it['rarete']} »")
+        for col, cle, nom in ((3, "vitesseMinage", "vitesse de minage"), (4, "efficacite", "efficacité")):
+            v = nombre(ligne[col])
+            if v is None:
+                rap.erreur(O, i, f"{pid} : {nom} illisible")
+            elif v != it[cle]:
+                rap.erreur(O, i, f"{pid} : {nom} {v} ≠ code {it[cle]} (import à relancer ?)")
+    for k, it in code["items"].items():
+        if it["categorie"] == "outil" and k not in vus:
+            rap.erreur(O, None, f"pioche ABSENTE du classeur : {k} ({it['nom']})")
+
+
 def auditer_general(wb, rap):
     """Onglet « Général » : A Domaine · B Réglage · C Valeur · D Explication ·
     E Où (fichier). Le fichier cité doit exister — sinon Brioche cherche dans
@@ -695,7 +726,7 @@ def main():
     wb = load_workbook(CLASSEUR)
     rap = Rapport()
 
-    attendus = ["Lisez-moi", "Cartes", "Items", "Sets", "Effets", "Valeurs", "Ressources",
+    attendus = ["Lisez-moi", "Cartes", "Items", "Pioches", "Sets", "Effets", "Valeurs", "Ressources",
                 "Recettes", "Profondeurs", "Profondeurs-chances", "Monstres", "Héros", "Général"]
     for t in attendus:
         if t not in wb.sheetnames:
@@ -715,6 +746,7 @@ def main():
     auditer_profondeurs(wb, code, rap)
     auditer_monstres(wb, code, rap)
     auditer_heros(wb, code, rap)
+    auditer_pioches(wb, code, rap)
     auditer_general(wb, rap)
 
     print(f"Audit de {CLASSEUR.relative_to(RACINE)}")
