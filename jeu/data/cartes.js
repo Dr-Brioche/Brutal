@@ -861,6 +861,42 @@ export const CARTES = {
   "taillade": { id: "taillade", nom: "Slash", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 7 damage.", effets: [{ type: "degats", valeur: 7 }] },
   // Heavy Blow : gros coup unique, un peu plus cher.
+  // ---- SET DU BARBARE (rare) : la FORCE BRUTE ---------------------------------
+  // Aucune finesse, aucun statut : on empile de la Force et on frappe de plus en
+  // plus fort. Le set récompense les MORTS (+5 Force par ennemi abattu), donc ces
+  // cartes cherchent à tuer vite plutôt qu'à installer un poison ou un saignement.
+  // ⚠ PREMIER JET — chiffres à réviser par Brioche (barème rare : 6 cartes/pièce,
+  // ~12 dégâts par Chaleur, ~9 armure par Chaleur).
+  "cri-de-guerre": { id: "cri-de-guerre", nom: "War Cry", cout: 1, type: "buff", nouveau: true,
+    texte: "Gain 4 Strength.", effets: [{ type: "force", valeur: 4 }] },
+  // Beast Hide : la seule défense du barbare — pas de bouclier, du cuir et du muscle.
+  "peau-de-fauve": { id: "peau-de-fauve", nom: "Beast Hide", cout: 1, type: "defense", nouveau: true,
+    texte: "Gain 9 Stone.", effets: [{ type: "pierre", valeur: 9 }] },
+  // Reckless Charge : on encaisse pour frapper plus fort — les PV perdus ignorent
+  // la Pierre (auto-degats), c'est un vrai sacrifice.
+  "charge-brutale": { id: "charge-brutale", nom: "Reckless Charge", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 10 damage. Lose 3 HP.",
+    effets: [{ type: "degats", valeur: 10 }, { type: "auto-degats", valeur: 3 }] },
+  // Titan Blow : le finisher du build. Doublé une fois la Force empilée — c'est là
+  // que le bonus de set (+5 Force par mort) paie.
+  "frappe-titanesque": { id: "frappe-titanesque", nom: "Titan Blow", cout: 3, type: "attaque", nouveau: true,
+    texte: "Deal 14 damage. Doubled if your Strength is 15 or more.",
+    effets: [{ type: "degats-si-force", valeur: 14, seuil: 15 }] },
+  "coup-de-massue": { id: "coup-de-massue", nom: "Maul Swing", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal 12 damage.", effets: [{ type: "degats", valeur: 12 }] },
+  // Whirlwind : frappe les trois d'un coup — le moyen de déclencher plusieurs morts
+  // dans le même tour, donc plusieurs paliers de Force.
+  "moulinet": { id: "moulinet", nom: "Whirlwind", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal 8 damage. Both neighbours take 8.",
+    effets: [{ type: "degats", valeur: 8 }, { type: "cleave-adjacent", valeur: 8 }] },
+  // Bloodlust : achever paie DOUBLE (la récompense de la carte + celle du set).
+  "curee": { id: "curee", nom: "Bloodlust", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 6 damage. If the target dies, gain 5 Strength and heal 5 HP.",
+    effets: [{ type: "degats", valeur: 6 }, { type: "recompense-mort", force: 5, soin: 5 }] },
+  "pietinement": { id: "pietinement", nom: "Stomp", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 7 damage. Gain 2 Strength.",
+    effets: [{ type: "degats", valeur: 7 }, { type: "force", valeur: 2 }] },
+
   "coup-lourd": { id: "coup-lourd", nom: "Heavy Blow", cout: 2, type: "attaque", nouveau: true,
     texte: "Deal 12 damage.", effets: [{ type: "degats", valeur: 12 }] },
   // Double Strike : deux petits coups (synergie avec la Force : +Force À CHAQUE coup).

@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { ENNEMIS } from "../data/ennemis.js";
-import { ITEMS, RARETES } from "../data/items.js";
+import { ITEMS, RARETES, SETS, bonusSet } from "../data/items.js";
 import { CARTES } from "../data/cartes.js";
 import { TALENTS, BRANCHES } from "../data/talents.js";
 import { QUALITES } from "../data/recettes.js";
@@ -52,6 +52,16 @@ function traduireEntree(obj, prefixe, id) {
 }
 
 export function appliquerLangueDonnees() {
+  // SETS d'armure : leur NOM et le texte de CHACUN de leurs bonus (un set peut en
+  // cumuler plusieurs, cf. bonusSet). Ils n'étaient pas traduits du tout : en
+  // français, l'infobulle d'une pièce annonçait encore son bonus en anglais.
+  for (const id in SETS) {
+    traduireEntree(SETS[id], "set", id);
+    bonusSet(SETS[id]).forEach((b, i) => {
+      if (b._texteEn === undefined) b._texteEn = b.texte;
+      b.texte = tr(`set.${id}.bonus${i + 1}`, b._texteEn);
+    });
+  }
   for (const e of ENNEMIS) traduireEntree(e, "mob", e.id);
   for (const id in ITEMS) traduireEntree(ITEMS[id], "item", id);
   for (const id in CARTES) traduireEntree(CARTES[id], "carte", id);

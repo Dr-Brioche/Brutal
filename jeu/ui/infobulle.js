@@ -7,7 +7,7 @@
 // peut la placer SOUS LA SOURIS (montrerInfobulle) ou À CÔTÉ D'UN ÉLÉMENT
 // (montrerInfobulleEl) — ce dernier sert à la navigation au CLAVIER.
 
-import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES, setDeItem, comboArmeActif } from "../data/items.js";
+import { itemDef, couleurRarete, statsLisibles, categorieLisible, RARETES, setDeItem, texteBonusSet, comboArmeActif } from "../data/items.js";
 import { CARTES } from "../data/cartes.js";
 import { QUALITES, forceQualite } from "../data/recettes.js";
 import { cartesSuppleanceSlot } from "../systems/combat.js";
@@ -73,7 +73,7 @@ function blocSet(id) {
 
   const bonus = document.createElement("div");
   bonus.className = "inv-tip-set-bonus";
-  bonus.textContent = (complet ? "" : t("tip.setComplet")) + (set.bonus?.texte ?? "");
+  bonus.textContent = (complet ? "" : t("tip.setComplet")) + texteBonusSet(set);
   bloc.append(bonus);
 
   return bloc;

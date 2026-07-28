@@ -498,6 +498,34 @@ export const ITEMS = {
     taille: { l: 2, h: 1 }, icone: "#7a1320",
     cartes: ["ouvrir-les-veines", "ouvrir-les-veines", "contagion", "contagion", "absorption-de-sang"],
   },
+  // ---- Set du BARBARE : build FORCE BRUTE rare -------------------------------
+  // Pas de statut, pas de finesse : on empile de la Force et on frappe. Le bonus de
+  // set récompense les MORTS, donc l'équipement pousse à tuer vite (Whirlwind pour
+  // faire tomber plusieurs ennemis d'un coup, Bloodlust pour achever).
+  // ⚠ PREMIER JET — à réviser par Brioche.
+  // Barbarian Harness (torse) : 2× Beast Hide + 2× War Cry + 1× Reckless Charge +
+  // 1× Titan Blow. Armure de départ 15 (léger : le barbare encaisse mal).
+  "plastron-barbare": {
+    id: "plastron-barbare", nom: "Barbarian Harness", categorie: "armure", rarete: "rare",
+    taille: { l: 2, h: 2 }, icone: "#8a5a2a",
+    planche: "images/heros/nain.png",
+    armureDepart: 15,
+    cartes: ["peau-de-fauve", "peau-de-fauve", "cri-de-guerre", "cri-de-guerre", "charge-brutale", "frappe-titanesque"],
+  },
+  // Barbarian Bracers (gants) : 2× Maul Swing + 2× Whirlwind + 2× Bloodlust.
+  "brassards-barbare": {
+    id: "brassards-barbare", nom: "Barbarian Bracers", categorie: "gant", rarete: "rare",
+    taille: { l: 2, h: 1 }, icone: "#8a5a2a",
+    cartes: ["coup-de-massue", "coup-de-massue", "moulinet", "moulinet", "curee", "curee"],
+  },
+  // Barbarian Boots (bottes) : 2× Stomp + 2× Reckless Charge + 1× War Cry + 1× Boost.
+  "bottes-barbare": {
+    id: "bottes-barbare", nom: "Barbarian Boots", categorie: "botte", rarete: "rare",
+    taille: { l: 2, h: 1 }, icone: "#8a5a2a",
+    agilite: 100, vitesseDeplPct: 20,
+    cartes: ["pietinement", "pietinement", "charge-brutale", "charge-brutale", "cri-de-guerre", "boost"],
+  },
+
   // Blood Greaves (bottes) : 1× Blood Slide + 2× Blood Rush + 1× Quicken + 1× Boost.
   // Bonus passif : +20% célérité, +5 move speed.
   "bottes-sang": {
@@ -845,10 +873,17 @@ export function rareteAuMoins(id, seuilCle) {
 // règles normales — c'est ce qui rend la complétion d'un set désirable.
 //
 // Champs d'un bonus :
-//   declencheur : quel événement l'active. Pour l'instant :
-//                 "frappeMelee" = quand le héros encaisse une attaque de mêlée.
-//   effets      : effets appliqués au déclenchement (même vocabulaire que les
-//                 cartes). Pour "frappeMelee", la cible est l'ATTAQUANT.
+//   declencheur : quel événement l'active :
+//                 "frappeMelee"     = le héros encaisse une attaque de mêlée
+//                                     (la cible des effets est l'ATTAQUANT) ;
+//                 "debutCombat"     = une seule fois, avant le 1er tour ;
+//                 "saignementCombo" / "paliersPierre" = cf. sets Sang / Stone Age ;
+//                 "ennemiTue"       = à CHAQUE ennemi qui tombe (set Barbare).
+//   effets      : effets appliqués au déclenchement (même vocabulaire que les cartes).
+//
+// `bonus` peut être UN objet ou une LISTE — un set peut en cumuler plusieurs (le
+// Barbare : un constant au début du combat, un par ennemi tué). Passer par les
+// helpers bonusSet() / texteBonusSet() plus bas plutôt que de lire `.bonus` en dur.
 export const SETS = {
   onyx: {
     id: "onyx",
@@ -899,6 +934,27 @@ export const SETS = {
       effets: [{ type: "soin", ratio: 0.5 }],
     },
   },
+  // Set du Barbare : build FORCE BRUTE. Deux bonus qui se répondent — un socle
+  // constant, et une récompense qui grandit à chaque ennemi abattu. La Force gagnée
+  // vaut pour TOUT le combat mais repart à zéro au combat suivant : c'est une boule
+  // de neige qui ne dure qu'une bataille. — demandé par Brioche 27/07/2026.
+  barbare: {
+    id: "barbare",
+    nom: "Barbarian Set",
+    pieces: ["plastron-barbare", "brassards-barbare", "bottes-barbare"], // torse + gants + bottes
+    bonus: [
+      {
+        declencheur: "debutCombat",
+        texte: "+5 Strength for the whole fight.",
+        effets: [{ type: "force", valeur: 5 }],
+      },
+      {
+        declencheur: "ennemiTue",
+        texte: "Each enemy slain grants +5 more Strength, until the end of the fight.",
+        effets: [{ type: "force", valeur: 5 }],
+      },
+    ],
+  },
   // Set Stone Age : build « pierre ». Le bonus récompense d'empiler les cartes
   // pierre — à chaque palier de 10 cartes pierre jouées, tout le monde est figé.
   stoneAge: {
@@ -918,6 +974,17 @@ export const SETS = {
 export function setsActifs(slots) {
   const equipes = new Set(Object.values(slots || {}).filter(Boolean));
   return Object.values(SETS).filter((s) => s.pieces.every((id) => equipes.has(id)));
+}
+
+// Les bonus d'un set, TOUJOURS sous forme de liste (un set peut en cumuler
+// plusieurs). Évite d'avoir à savoir, ailleurs, si `bonus` est un objet ou un tableau.
+export function bonusSet(set) {
+  const b = set?.bonus;
+  return !b ? [] : (Array.isArray(b) ? b : [b]);
+}
+// Le texte à MONTRER au joueur pour un set (tous ses bonus à la suite).
+export function texteBonusSet(set) {
+  return bonusSet(set).map((b) => b.texte).filter(Boolean).join(" ");
 }
 
 // Combo d'arme ACTIF (Force permanente au combat) selon les deux mains équipées.

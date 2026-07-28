@@ -254,13 +254,17 @@ export function creerCombat(ennemisDefs, opts = {}) {
     // Passifs (bonus de set d'armure) déclenchés sur événement — cf. agirEnnemi.
     passifs,
   };
-  // Passifs « début de combat » (set Mail : Pierre par ennemi rencontré). Appliqués
-  // une fois, par-dessus l'armure de départ, avant le tout 1er tour.
+  // Passifs « début de combat » (set Mail : Pierre par ennemi rencontré ; set
+  // Barbare : Force constante). Appliqués une fois, par-dessus l'armure de départ,
+  // avant le tout 1er tour.
   for (const p of passifs) {
     if (p.declencheur !== "debutCombat") continue;
     for (const ef of p.effets) {
       if (ef.type === "pierre") {
         combat.pierre += ef.parEnnemi ? ef.valeur * combat.ennemis.length : ef.valeur;
+      } else if (ef.type === "force") {
+        // Force PERMANENTE (pas la temporaire qui s'écoule) : elle tient tout le combat.
+        combat.forcePerm += ef.valeur;
       }
     }
   }
@@ -892,12 +896,32 @@ function majForceChampignons(combat) {
   }
 }
 
+// PASSIF « ennemiTue » (set du Barbare) : chaque ennemi qui TOMBE renforce le héros
+// pour le reste du combat. Compté ici, donc quelle que soit la cause de la mort —
+// une carte, un poison, un saignement ou une brûlure. On marque l'ennemi pour ne
+// jamais le compter deux fois, et on passe APRÈS évolutions et dislocations : un
+// Lapin blanc qui évolue n'est pas mort, une Tour qui se disloque non plus.
+function compterEnnemisTues(combat) {
+  const gains = combat.passifs.filter((p) => p.declencheur === "ennemiTue");
+  if (!gains.length) return;
+  for (const e of combat.ennemis) {
+    if (e.pv > 0 || e.tueCompte) continue;
+    e.tueCompte = true;
+    for (const p of gains) {
+      for (const ef of p.effets) {
+        if (ef.type === "force") combat.forcePerm += ef.valeur;
+      }
+    }
+  }
+}
+
 function verifierFin(combat) {
   // Avant de déclarer la victoire : les ennemis « à évolution » (Lapin blanc) se
   // transforment au lieu de mourir ; ceux « à dislocation » (Tour de siège) libèrent
   // leur équipage. Le combat continue tant que l'un ou l'autre a lieu.
   evoluerEnnemis(combat);
   resoudreSplits(combat);
+  compterEnnemisTues(combat);  // récompense de mort (set Barbare) — après les deux ci-dessus
   majForceChampignons(combat); // une mort/évolution/dislocation change le compte des champignons
   if (combat.ennemis.every((e) => e.pv <= 0)) {
     combat.fini = true;
