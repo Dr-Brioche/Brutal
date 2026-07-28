@@ -17,7 +17,8 @@
 //            ressources (par famille) :
 //     objets : [{ id, chance }] — `chance` (0..1) = rareté du drop (ex. une bague)
 
-import { tirerOr, tirerButinFamille } from "./butin.js";
+import { tirerOr, tirerButinFamille, tirerRecette } from "./butin.js";
+import { ITEMS } from "./items.js";
 
 // ⚠ STATS ÉDITABLES DANS L'EXCEL — docs/BRUTAL-items-et-cartes.xlsx, onglet
 // « Monstres ». Le bloc ci-dessous est RÉGÉNÉRÉ par outils/importer_monstres.py :
@@ -94,10 +95,9 @@ export const ENNEMIS = [
       },
     },
     butin: {
-      objets: [
-        { id: "pioche-de-mineur", chance: 0.45 }, // assez courant
-        { id: "bague-de-sang", chance: 0.08 },    // rare (donne la carte Bloodletting)
-      ],
+      // Plus d'équipement générique (28/07/2026) : un monstre ordinaire ne lâche
+      // que de l'or, sa ressource de famille, et parfois une RECETTE.
+      objets: [],
     },
   },
   // Gobelin véloce : fragile mais TRÈS rapide → il peut jouer 2× contre un héros
@@ -133,9 +133,9 @@ export const ENNEMIS = [
       },
     },
     butin: {
-      objets: [
-        { id: "bottes-vives", chance: 0.10 }, // rare (donne la carte Quicken)
-      ],
+      // Plus d'équipement générique (28/07/2026) : un monstre ordinaire ne lâche
+      // que de l'or, sa ressource de famille, et parfois une RECETTE.
+      objets: [],
     },
   },
   // Gobelin chaman rouge : healer/caster. Affix "range" → toujours à l'arrière.
@@ -203,9 +203,9 @@ export const ENNEMIS = [
       },
     },
     butin: {
-      objets: [
-        { id: "anneau-force", chance: 0.12 }, // rare : sa massue a de la poigne (Power Ring)
-      ],
+      // Plus d'équipement générique (28/07/2026) : un monstre ordinaire ne lâche
+      // que de l'or, sa ressource de famille, et parfois une RECETTE.
+      objets: [],
     },
   },
 
@@ -839,10 +839,30 @@ export function tirerButin(ennemi) {
   }
   const or = tirerOr(ennemi.niveau);
   const objets = tirerButinFamille(ennemi.famille);
+  // RECETTE (rare) : la seule chose « d'équipement » qu'un monstre lâche encore.
+  // Sa rareté dépend du niveau du monstre — cf. RECETTES_PAR_NIVEAU.
+  const recette = tirerRecette(ennemi.niveau, parcheminsParRarete());
+  if (recette) objets.push(recette);
+  // Drops SPÉCIFIQUES au mob : réservés aux rencontres uniques (l'anneau du Lapin
+  // blanc). Les monstres ordinaires n'en ont plus — on ne veut pas noyer le joueur
+  // sous de l'équipement qu'il revendra sans le regarder.
   for (const o of ennemi.butin?.objets ?? []) {
     if (Math.random() < o.chance) objets.push(o.id);
   }
   return { or, objets };
+}
+
+// Les parchemins de recette, groupés par rareté. Calculé UNE fois : le catalogue
+// ne bouge pas en cours de partie.
+let _parchemins = null;
+function parcheminsParRarete() {
+  if (_parchemins) return _parchemins;
+  _parchemins = {};
+  for (const [id, d] of Object.entries(ITEMS)) {
+    if (d.categorie !== "parchemin") continue;
+    (_parchemins[d.rarete] ??= []).push(id);
+  }
+  return _parchemins;
 }
 
 // ----- Composition d'un groupe de rencontre -------------------------------

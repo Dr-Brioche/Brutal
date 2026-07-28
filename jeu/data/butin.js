@@ -74,6 +74,64 @@ export const BUTIN_FAMILLE = {
   ],
 };
 
+// ----- 3) RECETTES LÂCHÉES PAR LES MONSTRES ----------------------------------
+//
+// DÉCISION BRIOCHE 28/07/2026 : un monstre ne lâche PLUS d'objets tout faits —
+// seulement des RECETTES (parchemins), et rarement. Être noyé sous de
+// l'équipement inutile ne sert à rien ; une recette, elle, se garde et se forge
+// quand on a les matériaux.
+//
+// La rareté de la recette dépend du NIVEAU du monstre. Un gobelin de niveau 1 ne
+// lâchera jamais mieux que du commun ; il faut descendre profond pour espérer du
+// rare. Les recettes ÉPIQUES et LÉGENDAIRES ne tombent d'aucun monstre : elles
+// sont réservées aux boss et aux futures quêtes.
+//
+// `chance` = [au premier niveau du palier, au dernier] — la probabilité MONTE
+// avec le niveau à l'intérieur d'un palier. `poids` = tirage pondéré entre les
+// raretés possibles (2 contre 1 = deux fois plus souvent).
+export const RECETTES_PAR_NIVEAU = [
+  { jusquA: 5,  chance: [0.02, 0.05], poids: { commun: 1 } },
+  { jusquA: 10, chance: [0.05, 0.09], poids: { commun: 2, uncommon: 1 } },
+  { jusquA: 99, chance: [0.09, 0.14], poids: { uncommon: 2, rare: 1 } },
+];
+
+// Le palier d'un niveau + la chance interpolée à l'intérieur de ce palier.
+function palierRecette(niveau) {
+  const n = Math.max(1, Math.round(niveau || 1));
+  let bas = 1;
+  for (const p of RECETTES_PAR_NIVEAU) {
+    if (n <= p.jusquA) {
+      const haut = Math.min(p.jusquA, 20);        // au-delà de 20 on plafonne
+      const t = haut > bas ? (Math.min(n, haut) - bas) / (haut - bas) : 1;
+      const [c0, c1] = p.chance;
+      return { chance: c0 + (c1 - c0) * t, poids: p.poids };
+    }
+    bas = p.jusquA + 1;
+  }
+  return null;
+}
+
+// Tire UNE recette pour un monstre de ce niveau, ou null (le cas le plus fréquent).
+// `catalogue` = la liste des parchemins disponibles, groupés par rareté ; elle est
+// passée par ennemis.js pour éviter que butin.js dépende de tout le catalogue.
+export function tirerRecette(niveau, parchemins, rng = Math.random) {
+  const p = palierRecette(niveau);
+  if (!p || rng() >= p.chance) return null;
+  // Tirage pondéré de la RARETÉ, en ignorant celles dont on n'a aucun parchemin.
+  const choix = Object.entries(p.poids).filter(([r]) => (parchemins[r] ?? []).length);
+  const total = choix.reduce((s, [, w]) => s + w, 0);
+  if (!total) return null;
+  let tirage = rng() * total;
+  for (const [rarete, poids] of choix) {
+    tirage -= poids;
+    if (tirage < 0) {
+      const liste = parchemins[rarete];
+      return liste[Math.floor(rng() * liste.length)];
+    }
+  }
+  return null;
+}
+
 // Tire le butin d'objets/ressources d'une famille : renvoie une liste d'ids
 // (un id répété = plusieurs exemplaires, comme pour une pile).
 export function tirerButinFamille(famille, rng = Math.random) {

@@ -27,6 +27,7 @@ reste au moins une erreur (pratique pour l'enchaîner à un autre outil).
 """
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -588,6 +589,11 @@ def auditer_monstres(wb, code, rap):
     for i, ligne in enumerate(ws.iter_rows(min_row=3, values_only=True), start=3):
         mid = txt(ligne[0])
         if not mid or est_section(ligne):
+            continue
+        # Sous le tableau vit le BARÈME DES RECETTES (des lignes de texte). Un id de
+        # monstre est en minuscules-tirets : tout le reste n'est pas une ligne de
+        # monstre, et n'a pas à être signalé comme « monstre inconnu ».
+        if not re.fullmatch(r"[a-z0-9-]+", mid):
             continue
         if mid in vus:
             rap.erreur(O, i, f"{mid} : id en double (déjà ligne {vus[mid]})")
