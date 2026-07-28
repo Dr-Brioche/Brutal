@@ -15,7 +15,7 @@
 // API alignée sur le combat : ouvrirForge(inv, surFermer) / fermerForge() / forgeActive().
 
 import { itemDef, couleurRarete } from "../data/items.js";
-import { QUALITES, forceQualite, carburantRequis, valeurCarburant } from "../data/recettes.js";
+import { QUALITES, forceQualite, efficaciteQualite, carburantRequis, valeurCarburant } from "../data/recettes.js";
 import { t } from "../systems/langue.js";
 import {
   trouverRecette, ingredientsPoses,
@@ -473,8 +473,15 @@ function resoudreCraft(marqueur) {
   if (qualite) {
     if (ajouterObjet(inv, recetteCourante.resultat, 1, { qualite })) {
       const q = QUALITES[qualite];
-      const force = forceQualite(d.rarete, qualite);
-      elMJTitre.textContent = t("forge.resultat", { nom: d.nom, qualite: q.nom, bonus: force > 0 ? t("forge.bonusForce", { force }) : "" });
+      // Le bonus dépend de CE QU'ON FORGE : sur une arme ou une armure c'est de la
+      // FORCE, sur une PIOCHE c'est de l'EFFICACITÉ — la Force ne sert à rien à un
+      // outil. Même geste, récompense adaptée.
+      const estOutil = d.categorie === "outil";
+      const gain = estOutil ? efficaciteQualite(qualite) : forceQualite(d.rarete, qualite);
+      const bonus = gain > 0
+        ? t(estOutil ? "forge.bonusEfficacite" : "forge.bonusForce", estOutil ? { eff: gain } : { force: gain })
+        : "";
+      elMJTitre.textContent = t("forge.resultat", { nom: d.nom, qualite: q.nom, bonus });
       // Forger un objet « par hasard » APPREND sa recette (livre d'artisanat).
       if (surDecouverteActif) surDecouverteActif(recetteCourante.resultat);
     } else {

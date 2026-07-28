@@ -75,7 +75,7 @@ import {
   creerRunProfondeur, tirerChoix, appliquerLoot, etageSuivant,
   bonusCombatRun, runActif, resumeRun,
 } from "./systems/profondeur.js";
-import { minerauxParCoup } from "./systems/minage.js";
+import { minerauxParCoup, peutMiner, dureeCoup } from "./systems/minage.js";
 import { installerChoixProfondeur, ouvrirChoixProfondeur } from "./ui/profondeur.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
 import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
@@ -1842,10 +1842,29 @@ export async function demarrerJeu(donneesInitiales = null) {
     }
     return best;
   }
+  // Durée de RÉFÉRENCE d'un coup de pioche, avant la dureté du minerai et la
+  // vitesse de l'outil (onglet « Général » de l'Excel).
+  const DUREE_COUP_BASE = 0.55;
+
   function commencerMinage(v) {
-    const outilDef = itemDef(inventaire.slots.outil?.id);
-    const vitesse = outilDef?.minage ?? 1;
-    minage = { veine: v, t: 0, duree: 0.55 / vitesse }; // plus rapide avec une meilleure pioche
+    // VERROU DE RARETÉ : une pioche ne casse que sa rareté et une au-dessus. On
+    // refuse AVANT de lancer l'animation, avec un message qui dit quoi forger —
+    // sinon on frappe dans le vide sans comprendre.
+    const pioche = inventaire.slots.outil;
+    if (!peutMiner(pioche, v.type)) {
+      afficherMessage(t("mine.tropDur", {
+        minerai: itemDef(v.type)?.nom ?? v.type,
+        pioche: itemDef(pioche)?.nom ?? "—",
+      }));
+      return;
+    }
+    // ⚠ `slots.outil` est un ID (une chaîne), pas un objet : le `?.id` qui traînait
+    // ici valait undefined, donc la vitesse de la pioche n'était JAMAIS lue et tout
+    // le monde minait à la vitesse de repli. Corrigé le 28/07/2026.
+    minage = {
+      veine: v, t: 0,
+      duree: dureeCoup(DUREE_COUP_BASE, v.type, heros.vitesseMinage),
+    };
     jouerSonPierre();
   }
   function avancerMinage(dt) {
