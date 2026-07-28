@@ -1197,10 +1197,10 @@ c'est le seul vrai combat de toute son histoire, et il cogne à **60 par attaque
 
 Porter **toutes les pièces d'un set** change l'**illustration de combat** du nain :
 il apparaît vêtu de l'armure (et sa tête dans le dérouleur de tours suit).
-Sets équipés d'une planche : **mailles**, **croisé**, **onyx**, **sang**,
-**barbare** et **béni par Dunïr**. **Il en manque une : le set de l'ÂGE DE PIERRE**
-(`stoneAge`) — son porteur retombe sur la planche par défaut, sans erreur mais sans
-armure. Table : `PLANCHES_SET` (`jeu/ui/combat.js`) ; tout nouveau set doit y être ajouté.
+**Les SEPT sets du jeu ont leur planche** : mailles, croisé, onyx, sang, barbare,
+béni par Dunïr et âge de pierre. Table : `PLANCHES_SET` (`jeu/ui/combat.js`).
+⚠ Tout NOUVEAU set devra y être ajouté : sans entrée, son porteur retombe sur la
+planche par défaut — sans erreur, mais sans armure à l'écran.
 
 ### LE JUGEMENT (⚖) — mécanique du set béni par Dunïr (27/07/2026)
 
