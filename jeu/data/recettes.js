@@ -86,10 +86,74 @@ export function multQualite(qualite) {
 // relancer le script. (La SOURCE, c'est le classeur.)
 export const RECETTES = [
   {
+    resultat: "baton",
+    forme: [
+      "W",
+      "W",
+      "W",
+      "W",
+    ],
+    legende: { W: "bois" },
+  },
+  {
+    resultat: "couperet",
+    forme: [
+      "FF",
+      "FF",
+      ".W",
+    ],
+    legende: { F: "fer", W: "bois" },
+  },
+  {
+    resultat: "couteau-dentele",
+    forme: [
+      "FC",
+      "CF",
+      ".W",
+    ],
+    legende: { F: "fer", C: "cuivre", W: "bois" },
+  },
+  {
+    resultat: "couteau-serpent",
+    forme: [
+      ".F",
+      "F.",
+      "W.",
+    ],
+    legende: { F: "fer", W: "bois" },
+  },
+  {
+    resultat: "dague-rouillee",
+    forme: [
+      "F",
+      "F",
+      "W",
+    ],
+    legende: { F: "fer", W: "bois" },
+  },
+  {
     resultat: "epee-courte",
     forme: [
       ".F.",
       "CFC",
+      ".W.",
+    ],
+    legende: { F: "fer", C: "cuivre", W: "bois" },
+  },
+  {
+    resultat: "epee-entrainement",
+    forme: [
+      ".W.",
+      "CWC",
+      ".W.",
+    ],
+    legende: { W: "bois", C: "cuivre" },
+  },
+  {
+    resultat: "fourche",
+    forme: [
+      "FCF",
+      ".F.",
       ".W.",
     ],
     legende: { F: "fer", C: "cuivre", W: "bois" },
@@ -104,12 +168,12 @@ export const RECETTES = [
     legende: { W: "bois" },
   },
   {
-    resultat: "lance",
+    resultat: "hache-rouillee",
     forme: [
-      "F",
-      "W",
-      "W",
-      "W",
+      "FF",
+      "FF",
+      ".W",
+      ".W",
     ],
     legende: { F: "fer", W: "bois" },
   },
@@ -123,6 +187,16 @@ export const RECETTES = [
     legende: { F: "fer", W: "bois" },
   },
   {
+    resultat: "lance",
+    forme: [
+      "F",
+      "W",
+      "W",
+      "W",
+    ],
+    legende: { F: "fer", W: "bois" },
+  },
+  {
     resultat: "masse",
     forme: [
       "SFS",
@@ -132,95 +206,12 @@ export const RECETTES = [
     legende: { S: "pierre-taillee", F: "fer", W: "bois" },
   },
   {
-    resultat: "dague-rouillee",
-    forme: [
-      "F",
-      "F",
-      "W",
-    ],
-    legende: { F: "fer", W: "bois" },
-  },
-  {
-    resultat: "couteau-serpent",
-    forme: [
-      ".F",
-      "F.",
-      "W.",
-    ],
-    legende: { F: "fer", W: "bois" },
-  },
-  {
     resultat: "pic-de-glace",
     forme: [
       "FCF",
       ".W.",
     ],
     legende: { F: "fer", C: "cuivre", W: "bois" },
-  },
-  {
-    resultat: "torche",
-    forme: [
-      "K",
-      "W",
-      "W",
-    ],
-    legende: { K: "charbon", W: "bois" },
-  },
-  {
-    resultat: "couteau-dentele",
-    forme: [
-      "FC",
-      "CF",
-      ".W",
-    ],
-    legende: { F: "fer", C: "cuivre", W: "bois" },
-  },
-  {
-    resultat: "couperet",
-    forme: [
-      "FF",
-      "FF",
-      ".W",
-    ],
-    legende: { F: "fer", W: "bois" },
-  },
-  {
-    resultat: "epee-entrainement",
-    forme: [
-      ".W.",
-      "CWC",
-      ".W.",
-    ],
-    legende: { W: "bois", C: "cuivre" },
-  },
-  {
-    resultat: "baton",
-    forme: [
-      "W",
-      "W",
-      "W",
-      "W",
-    ],
-    legende: { W: "bois" },
-  },
-  {
-    resultat: "fourche",
-    forme: [
-      "FCF",
-      ".F.",
-      ".W.",
-    ],
-    legende: { F: "fer", C: "cuivre", W: "bois" },
-  },
-  {
-    resultat: "hache-rouillee",
-    forme: [
-      "FF",
-      "FF",
-      ".W",
-      ".W",
-    ],
-    legende: { F: "fer", W: "bois" },
   },
   {
     resultat: "pioche-de-mineur",
@@ -232,6 +223,112 @@ export const RECETTES = [
     legende: { F: "fer", W: "bois" },
   },
   {
+    resultat: "torche",
+    forme: [
+      "K",
+      "W",
+      "W",
+    ],
+    legende: { K: "charbon", W: "bois" },
+  },
+  {
+    resultat: "baguette-cristal",
+    forme: [
+      "OY",
+      ".A",
+      ".B",
+    ],
+    legende: { O: "or", Y: "amethyste", A: "argent", B: "bois-sombre" },
+  },
+  {
+    resultat: "dague-venin",
+    forme: [
+      "E",
+      "A",
+      "A",
+      "B",
+    ],
+    legende: { E: "emeraude", A: "argent", B: "bois-sombre" },
+  },
+  {
+    resultat: "dagues-jumelles",
+    forme: [
+      "A.A",
+      "A.A",
+      "B.B",
+    ],
+    legende: { A: "argent", B: "bois-sombre" },
+  },
+  {
+    resultat: "epee-sacree",
+    forme: [
+      ".O.",
+      "AOA",
+      ".O.",
+      ".B.",
+    ],
+    legende: { O: "or", A: "argent", B: "bois-sombre" },
+  },
+  {
+    resultat: "fleau-cloute",
+    forme: [
+      "SA",
+      "AS",
+      ".B",
+      ".B",
+    ],
+    legende: { S: "pierre-taillee", A: "argent", B: "bois-sombre" },
+  },
+  {
+    resultat: "hache-berserk",
+    forme: [
+      "AAR",
+      "AA.",
+      ".B.",
+      ".B.",
+    ],
+    legende: { A: "argent", R: "rubis", B: "bois-sombre" },
+  },
+  {
+    resultat: "hache-faucheuse",
+    forme: [
+      "RAA",
+      ".AA",
+      ".B.",
+    ],
+    legende: { R: "rubis", A: "argent", B: "bois-sombre" },
+  },
+  {
+    resultat: "lame-bourreau",
+    forme: [
+      ".Y.",
+      "AAA",
+      ".A.",
+      ".B.",
+    ],
+    legende: { Y: "amethyste", A: "argent", B: "bois-sombre" },
+  },
+  {
+    resultat: "lame-de-braise",
+    forme: [
+      "R.R",
+      ".A.",
+      ".A.",
+      ".B.",
+    ],
+    legende: { R: "rubis", A: "argent", B: "bois-sombre" },
+  },
+  {
+    resultat: "lame-de-givre",
+    forme: [
+      ".L.",
+      ".A.",
+      "OAO",
+      ".B.",
+    ],
+    legende: { L: "lapis", A: "argent", O: "or", B: "bois-sombre" },
+  },
+  {
     resultat: "marteau-de-forge",
     forme: [
       "AKA",
@@ -239,6 +336,43 @@ export const RECETTES = [
       ".B.",
     ],
     legende: { A: "argent", K: "charbon", B: "bois-sombre" },
+  },
+  {
+    resultat: "marteau-de-pierre",
+    forme: [
+      "SAS",
+      "SSS",
+      ".B.",
+    ],
+    legende: { S: "pierre-taillee", A: "argent", B: "bois-sombre" },
+  },
+  {
+    resultat: "marteau-guerre",
+    forme: [
+      "SAS",
+      "AAA",
+      ".B.",
+    ],
+    legende: { S: "pierre-taillee", A: "argent", B: "bois-sombre" },
+  },
+  {
+    resultat: "croc-de-basilic",
+    forme: [
+      ".E",
+      "ME",
+      ".M",
+      ".A",
+    ],
+    legende: { E: "emeraude", M: "malachite", A: "argent" },
+  },
+  {
+    resultat: "marteau-de-lave",
+    forme: [
+      "KRK",
+      "RIR",
+      ".N.",
+    ],
+    legende: { K: "charbon", R: "rubis", I: "mithril", N: "bois-enchante" },
   },
   {
     resultat: "epee-large",
@@ -263,131 +397,6 @@ export const RECETTES = [
     legende: { A: "argent", L: "lapis", B: "bois-sombre" },
   },
   {
-    resultat: "dague-venin",
-    forme: [
-      "E",
-      "A",
-      "A",
-      "B",
-    ],
-    legende: { E: "emeraude", A: "argent", B: "bois-sombre" },
-  },
-  {
-    resultat: "lame-de-givre",
-    forme: [
-      ".L.",
-      ".A.",
-      "OAO",
-      ".B.",
-    ],
-    legende: { L: "lapis", A: "argent", O: "or", B: "bois-sombre" },
-  },
-  {
-    resultat: "lame-de-braise",
-    forme: [
-      "R.R",
-      ".A.",
-      ".A.",
-      ".B.",
-    ],
-    legende: { R: "rubis", A: "argent", B: "bois-sombre" },
-  },
-  {
-    resultat: "hache-faucheuse",
-    forme: [
-      "RAA",
-      ".AA",
-      ".B.",
-    ],
-    legende: { R: "rubis", A: "argent", B: "bois-sombre" },
-  },
-  {
-    resultat: "hache-berserk",
-    forme: [
-      "AAR",
-      "AA.",
-      ".B.",
-      ".B.",
-    ],
-    legende: { A: "argent", R: "rubis", B: "bois-sombre" },
-  },
-  {
-    resultat: "marteau-guerre",
-    forme: [
-      "SAS",
-      "AAA",
-      ".B.",
-    ],
-    legende: { S: "pierre-taillee", A: "argent", B: "bois-sombre" },
-  },
-  {
-    resultat: "dagues-jumelles",
-    forme: [
-      "A.A",
-      "A.A",
-      "B.B",
-    ],
-    legende: { A: "argent", B: "bois-sombre" },
-  },
-  {
-    resultat: "lame-bourreau",
-    forme: [
-      ".Y.",
-      "AAA",
-      ".A.",
-      ".B.",
-    ],
-    legende: { Y: "amethyste", A: "argent", B: "bois-sombre" },
-  },
-  {
-    resultat: "baguette-cristal",
-    forme: [
-      "OY",
-      ".A",
-      ".B",
-    ],
-    legende: { O: "or", Y: "amethyste", A: "argent", B: "bois-sombre" },
-  },
-  {
-    resultat: "fleau-cloute",
-    forme: [
-      "SA",
-      "AS",
-      ".B",
-      ".B",
-    ],
-    legende: { S: "pierre-taillee", A: "argent", B: "bois-sombre" },
-  },
-  {
-    resultat: "marteau-de-pierre",
-    forme: [
-      "SAS",
-      "SSS",
-      ".B.",
-    ],
-    legende: { S: "pierre-taillee", A: "argent", B: "bois-sombre" },
-  },
-  {
-    resultat: "epee-sacree",
-    forme: [
-      ".O.",
-      "AOA",
-      ".O.",
-      ".B.",
-    ],
-    legende: { O: "or", A: "argent", B: "bois-sombre" },
-  },
-  {
-    resultat: "croc-de-basilic",
-    forme: [
-      ".E",
-      "ME",
-      ".M",
-      ".A",
-    ],
-    legende: { E: "emeraude", M: "malachite", A: "argent" },
-  },
-  {
     resultat: "hache-de-guerre",
     forme: [
       ".TT",
@@ -407,15 +416,6 @@ export const RECETTES = [
       ".N.",
     ],
     legende: { T: "titane", S: "pierre-taillee", N: "bois-enchante" },
-  },
-  {
-    resultat: "marteau-de-lave",
-    forme: [
-      "KRK",
-      "RIR",
-      ".N.",
-    ],
-    legende: { K: "charbon", R: "rubis", I: "mithril", N: "bois-enchante" },
   },
   {
     resultat: "epee-onyx",
@@ -440,28 +440,115 @@ export const RECETTES = [
     legende: { X: "onyx", R: "rubis", I: "mithril", N: "bois-enchante" },
   },
   {
+    resultat: "bouclier-bois",
+    forme: [
+      "WW",
+      "FF",
+      "WW",
+    ],
+    legende: { W: "bois", F: "fer" },
+  },
+  {
+    resultat: "fanal",
+    forme: [
+      "K",
+      "F",
+      "W",
+    ],
+    legende: { K: "charbon", F: "fer", W: "bois" },
+  },
+  {
+    resultat: "grimoire",
+    forme: [
+      "WW",
+      "WL",
+    ],
+    legende: { W: "bois", L: "lapis" },
+  },
+  {
+    resultat: "grimoire-soin",
+    forme: [
+      "WW",
+      "MW",
+    ],
+    legende: { W: "bois", M: "malachite" },
+  },
+  {
+    resultat: "sceptre-apprenti",
+    forme: [
+      "C",
+      "W",
+      "W",
+    ],
+    legende: { C: "cuivre", W: "bois" },
+  },
+  {
+    resultat: "targe",
+    forme: [
+      "CF",
+      "FC",
+    ],
+    legende: { C: "cuivre", F: "fer" },
+  },
+  {
+    resultat: "bouclier-protecteur",
+    forme: [
+      "LA",
+      "AA",
+      "AL",
+    ],
+    legende: { L: "lapis", A: "argent" },
+  },
+  {
+    resultat: "bouclier-renforce",
+    forme: [
+      "FF",
+      "AA",
+      "FF",
+    ],
+    legende: { F: "fer", A: "argent" },
+  },
+  {
+    resultat: "grimoire-flammes",
+    forme: [
+      "BR",
+      "RB",
+    ],
+    legende: { B: "bois-sombre", R: "rubis" },
+  },
+  {
+    resultat: "grimoire-puissance",
+    forme: [
+      "YB",
+      "BY",
+    ],
+    legende: { Y: "amethyste", B: "bois-sombre" },
+  },
+  {
+    resultat: "sceptre-commandement",
+    forme: [
+      "O",
+      "A",
+      "A",
+    ],
+    legende: { O: "or", A: "argent" },
+  },
+  {
+    resultat: "bouclier-tour",
+    forme: [
+      "TT",
+      "TT",
+      "AA",
+    ],
+    legende: { T: "titane", A: "argent" },
+  },
+  {
     resultat: "armure-cuir",
     forme: [
       "HFH",
       "HHH",
     ],
     legende: { H: "cuir", F: "fer" },
-  },
-  {
-    resultat: "gilet-rembourre",
-    forme: [
-      "HHH",
-      "HHH",
-    ],
-    legende: { H: "cuir" },
-  },
-  {
-    resultat: "cotte-mailles",
-    forme: [
-      "FFF",
-      "FFF",
-    ],
-    legende: { F: "fer" },
   },
   {
     resultat: "armure-peau",
@@ -472,21 +559,28 @@ export const RECETTES = [
     legende: { H: "cuir", F: "fer" },
   },
   {
+    resultat: "cotte-mailles",
+    forme: [
+      "FFF",
+      "FFF",
+    ],
+    legende: { F: "fer" },
+  },
+  {
+    resultat: "gilet-rembourre",
+    forme: [
+      "HHH",
+      "HHH",
+    ],
+    legende: { H: "cuir" },
+  },
+  {
     resultat: "tenue-de-voyageur",
     forme: [
       "CHC",
       "HHH",
     ],
     legende: { C: "cuivre", H: "cuir" },
-  },
-  {
-    resultat: "plaque-de-fer",
-    forme: [
-      "FFF",
-      "FAF",
-      "FFF",
-    ],
-    legende: { F: "fer", A: "argent" },
   },
   {
     resultat: "armure-cloutee",
@@ -498,6 +592,14 @@ export const RECETTES = [
     legende: { S: "pierre-taillee", F: "fer" },
   },
   {
+    resultat: "armure-stone-age",
+    forme: [
+      "SSS",
+      "SAS",
+    ],
+    legende: { S: "pierre-taillee", A: "argent" },
+  },
+  {
     resultat: "peau-berserk",
     forme: [
       "RJR",
@@ -506,12 +608,33 @@ export const RECETTES = [
     legende: { R: "rubis", J: "cuir-epais", A: "argent" },
   },
   {
-    resultat: "armure-stone-age",
+    resultat: "plaque-de-fer",
     forme: [
-      "SSS",
-      "SAS",
+      "FFF",
+      "FAF",
+      "FFF",
     ],
-    legende: { S: "pierre-taillee", A: "argent" },
+    legende: { F: "fer", A: "argent" },
+  },
+  {
+    resultat: "maille-de-forge",
+    forme: [
+      "TKT",
+      "KOK",
+      "TKT",
+    ],
+    legende: { T: "titane", K: "charbon", O: "or" },
+  },
+  {
+    resultat: "plastron-barbare",
+    forme: [
+      "J...J",
+      "JQQQJ",
+      "JQTQJ",
+      ".JQJ.",
+      "..T..",
+    ],
+    legende: { J: "cuir-epais", Q: "cuir-etrange", T: "titane" },
   },
   {
     resultat: "plate-croise",
@@ -532,35 +655,6 @@ export const RECETTES = [
     legende: { R: "rubis", T: "titane" },
   },
   {
-    resultat: "maille-de-forge",
-    forme: [
-      "TKT",
-      "KOK",
-      "TKT",
-    ],
-    legende: { T: "titane", K: "charbon", O: "or" },
-  },
-  {
-    resultat: "plate-onyx",
-    forme: [
-      "XIX",
-      "IXI",
-      "XIX",
-    ],
-    legende: { X: "onyx", I: "mithril" },
-  },
-  {
-    resultat: "plastron-barbare",
-    forme: [
-      "J...J",
-      "JQQQJ",
-      "JQTQJ",
-      ".JQJ.",
-      "..T..",
-    ],
-    legende: { J: "cuir-epais", Q: "cuir-etrange", T: "titane" },
-  },
-  {
     resultat: "plastron-dunir",
     forme: [
       "U...U",
@@ -572,17 +666,156 @@ export const RECETTES = [
     legende: { U: "pierre-solaire", O: "or" },
   },
   {
-    resultat: "bottes-usees",
+    resultat: "plate-onyx",
     forme: [
+      "XIX",
+      "IXI",
+      "XIX",
+    ],
+    legende: { X: "onyx", I: "mithril" },
+  },
+  {
+    resultat: "gants-cloutes",
+    forme: [
+      "FF",
+      "K.",
+    ],
+    legende: { F: "fer", K: "charbon" },
+  },
+  {
+    resultat: "gants-cuir",
+    forme: [
+      "FH",
+      ".H",
+    ],
+    legende: { F: "fer", H: "cuir" },
+  },
+  {
+    resultat: "gants-de-mineur",
+    forme: [
+      "FF",
+      ".H",
+    ],
+    legende: { F: "fer", H: "cuir" },
+  },
+  {
+    resultat: "gants-tissu",
+    forme: [
+      "HH",
+      ".H",
+    ],
+    legende: { H: "cuir" },
+  },
+  {
+    resultat: "gants-travail",
+    forme: [
+      "HF",
+      "F.",
+    ],
+    legende: { H: "cuir", F: "fer" },
+  },
+  {
+    resultat: "gantelets",
+    forme: [
+      "AF",
+      "FF",
+    ],
+    legende: { A: "argent", F: "fer" },
+  },
+  {
+    resultat: "gants-chance",
+    forme: [
+      "OA",
+      ".A",
+    ],
+    legende: { O: "or", A: "argent" },
+  },
+  {
+    resultat: "gants-stone-age",
+    forme: [
+      "SS",
+      "SS",
+    ],
+    legende: { S: "pierre-taillee" },
+  },
+  {
+    resultat: "gants-venin",
+    forme: [
+      "EA",
+      "A.",
+    ],
+    legende: { E: "emeraude", A: "argent" },
+  },
+  {
+    resultat: "gants-voleur",
+    forme: [
+      "AA",
+      "A.",
+    ],
+    legende: { A: "argent" },
+  },
+  {
+    resultat: "brassards-barbare",
+    forme: [
+      "J.T.J",
+      "JT.TJ",
+      ".J.J.",
+    ],
+    legende: { J: "cuir-epais", T: "titane" },
+  },
+  {
+    resultat: "gants-croise",
+    forme: [
+      "OT",
+      "TT",
+    ],
+    legende: { O: "or", T: "titane" },
+  },
+  {
+    resultat: "gants-de-maille",
+    forme: [
+      "TT",
+      "A.",
+    ],
+    legende: { T: "titane", A: "argent" },
+  },
+  {
+    resultat: "gants-sang",
+    forme: [
+      "RT",
+      "TT",
+    ],
+    legende: { R: "rubis", T: "titane" },
+  },
+  {
+    resultat: "gantelets-dunir",
+    forme: [
+      "U.O.U",
+      "UOIOU",
+      ".U.U.",
+    ],
+    legende: { U: "pierre-solaire", O: "or", I: "mithril" },
+  },
+  {
+    resultat: "gants-onyx",
+    forme: [
+      "XX",
+      "I.",
+    ],
+    legende: { X: "onyx", I: "mithril" },
+  },
+  {
+    resultat: "bottes-cuir",
+    forme: [
+      "H.",
       "H.",
       "HH",
     ],
     legende: { H: "cuir" },
   },
   {
-    resultat: "bottes-cuir",
+    resultat: "bottes-usees",
     forme: [
-      "H.",
       "H.",
       "HH",
     ],
@@ -604,12 +837,12 @@ export const RECETTES = [
     legende: { H: "cuir" },
   },
   {
-    resultat: "bottes-rapides",
+    resultat: "bottes-braise",
     forme: [
-      "E.",
-      "AA",
+      "R.",
+      "AK",
     ],
-    legende: { E: "emeraude", A: "argent" },
+    legende: { R: "rubis", A: "argent", K: "charbon" },
   },
   {
     resultat: "bottes-pierre",
@@ -620,12 +853,12 @@ export const RECETTES = [
     legende: { S: "pierre-taillee", A: "argent" },
   },
   {
-    resultat: "bottes-braise",
+    resultat: "bottes-rapides",
     forme: [
-      "R.",
-      "AK",
+      "E.",
+      "AA",
     ],
-    legende: { R: "rubis", A: "argent", K: "charbon" },
+    legende: { E: "emeraude", A: "argent" },
   },
   {
     resultat: "bottes-stone-age",
@@ -644,13 +877,13 @@ export const RECETTES = [
     legende: { A: "argent", E: "emeraude" },
   },
   {
-    resultat: "bottes-de-maille",
+    resultat: "bottes-barbare",
     forme: [
-      "TT",
-      "T.",
-      "A.",
+      "J...J",
+      "JQ.QJ",
+      "TQQQT",
     ],
-    legende: { T: "titane", A: "argent" },
+    legende: { J: "cuir-epais", Q: "cuir-etrange", T: "titane" },
   },
   {
     resultat: "bottes-croise",
@@ -660,6 +893,15 @@ export const RECETTES = [
       "T.",
     ],
     legende: { O: "or", T: "titane" },
+  },
+  {
+    resultat: "bottes-de-maille",
+    forme: [
+      "TT",
+      "T.",
+      "A.",
+    ],
+    legende: { T: "titane", A: "argent" },
   },
   {
     resultat: "bottes-sang",
@@ -680,15 +922,6 @@ export const RECETTES = [
     legende: { X: "onyx", I: "mithril" },
   },
   {
-    resultat: "bottes-barbare",
-    forme: [
-      "J...J",
-      "JQ.QJ",
-      "TQQQT",
-    ],
-    legende: { J: "cuir-epais", Q: "cuir-etrange", T: "titane" },
-  },
-  {
     resultat: "solerets-dunir",
     forme: [
       "U...U",
@@ -698,274 +931,12 @@ export const RECETTES = [
     legende: { U: "pierre-solaire", O: "or", I: "mithril" },
   },
   {
-    resultat: "gants-tissu",
+    resultat: "charme-os",
     forme: [
-      "HH",
-      ".H",
-    ],
-    legende: { H: "cuir" },
-  },
-  {
-    resultat: "gants-travail",
-    forme: [
-      "HF",
-      "F.",
-    ],
-    legende: { H: "cuir", F: "fer" },
-  },
-  {
-    resultat: "gants-cuir",
-    forme: [
-      "FH",
-      ".H",
-    ],
-    legende: { F: "fer", H: "cuir" },
-  },
-  {
-    resultat: "gants-cloutes",
-    forme: [
-      "FF",
+      "CC",
       "K.",
     ],
-    legende: { F: "fer", K: "charbon" },
-  },
-  {
-    resultat: "gants-de-mineur",
-    forme: [
-      "FF",
-      ".H",
-    ],
-    legende: { F: "fer", H: "cuir" },
-  },
-  {
-    resultat: "gants-voleur",
-    forme: [
-      "AA",
-      "A.",
-    ],
-    legende: { A: "argent" },
-  },
-  {
-    resultat: "gantelets",
-    forme: [
-      "AF",
-      "FF",
-    ],
-    legende: { A: "argent", F: "fer" },
-  },
-  {
-    resultat: "gants-venin",
-    forme: [
-      "EA",
-      "A.",
-    ],
-    legende: { E: "emeraude", A: "argent" },
-  },
-  {
-    resultat: "gants-stone-age",
-    forme: [
-      "SS",
-      "SS",
-    ],
-    legende: { S: "pierre-taillee" },
-  },
-  {
-    resultat: "gants-chance",
-    forme: [
-      "OA",
-      ".A",
-    ],
-    legende: { O: "or", A: "argent" },
-  },
-  {
-    resultat: "gants-de-maille",
-    forme: [
-      "TT",
-      "A.",
-    ],
-    legende: { T: "titane", A: "argent" },
-  },
-  {
-    resultat: "gants-croise",
-    forme: [
-      "OT",
-      "TT",
-    ],
-    legende: { O: "or", T: "titane" },
-  },
-  {
-    resultat: "gants-sang",
-    forme: [
-      "RT",
-      "TT",
-    ],
-    legende: { R: "rubis", T: "titane" },
-  },
-  {
-    resultat: "gants-onyx",
-    forme: [
-      "XX",
-      "I.",
-    ],
-    legende: { X: "onyx", I: "mithril" },
-  },
-  {
-    resultat: "brassards-barbare",
-    forme: [
-      "J.T.J",
-      "JT.TJ",
-      ".J.J.",
-    ],
-    legende: { J: "cuir-epais", T: "titane" },
-  },
-  {
-    resultat: "gantelets-dunir",
-    forme: [
-      "U.O.U",
-      "UOIOU",
-      ".U.U.",
-    ],
-    legende: { U: "pierre-solaire", O: "or", I: "mithril" },
-  },
-  {
-    resultat: "anneau-etincelle",
-    forme: [
-      "CL",
-    ],
-    legende: { C: "cuivre", L: "lapis" },
-  },
-  {
-    resultat: "anneau-venin",
-    forme: [
-      "EC",
-    ],
-    legende: { E: "emeraude", C: "cuivre" },
-  },
-  {
-    resultat: "anneau-braise",
-    forme: [
-      "C",
-      "R",
-    ],
-    legende: { C: "cuivre", R: "rubis" },
-  },
-  {
-    resultat: "anneau-frimas",
-    forme: [
-      "L",
-      "C",
-    ],
-    legende: { L: "lapis", C: "cuivre" },
-  },
-  {
-    resultat: "anneau-saignant",
-    forme: [
-      "RC",
-    ],
-    legende: { R: "rubis", C: "cuivre" },
-  },
-  {
-    resultat: "anneau-force",
-    forme: [
-      "CF",
-    ],
-    legende: { C: "cuivre", F: "fer" },
-  },
-  {
-    resultat: "anneau-pierre",
-    forme: [
-      "SC",
-    ],
-    legende: { S: "pierre-taillee", C: "cuivre" },
-  },
-  {
-    resultat: "anneau-agile",
-    forme: [
-      "C",
-      "E",
-    ],
-    legende: { C: "cuivre", E: "emeraude" },
-  },
-  {
-    resultat: "anneau-vigueur",
-    forme: [
-      "MC",
-    ],
-    legende: { M: "malachite", C: "cuivre" },
-  },
-  {
-    resultat: "anneau-de-fer",
-    forme: [
-      "FA",
-      "A.",
-    ],
-    legende: { F: "fer", A: "argent" },
-  },
-  {
-    resultat: "bague-de-sang",
-    forme: [
-      "RA",
-      "A.",
-    ],
-    legende: { R: "rubis", A: "argent" },
-  },
-  {
-    resultat: "anneau-de-givre",
-    forme: [
-      "A",
-      "L",
-      "A",
-    ],
-    legende: { A: "argent", L: "lapis" },
-  },
-  {
-    resultat: "anneau-toxique",
-    forme: [
-      "A",
-      "E",
-      "A",
-    ],
-    legende: { A: "argent", E: "emeraude" },
-  },
-  {
-    resultat: "anneau-puissance",
-    forme: [
-      "TA",
-      "A.",
-    ],
-    legende: { T: "titane", A: "argent" },
-  },
-  {
-    resultat: "sceau-givre",
-    forme: [
-      "AL",
-      ".A",
-    ],
-    legende: { A: "argent", L: "lapis" },
-  },
-  {
-    resultat: "anneau-soif-sang",
-    forme: [
-      "AR",
-      ".A",
-    ],
-    legende: { A: "argent", R: "rubis" },
-  },
-  {
-    resultat: "anneau-forge",
-    forme: [
-      "OA",
-      "K.",
-    ],
-    legende: { O: "or", A: "argent", K: "charbon" },
-  },
-  {
-    resultat: "anneau-de-givre-parfait",
-    forme: [
-      "LO",
-      "OL",
-    ],
-    legende: { L: "lapis", O: "or" },
+    legende: { C: "cuivre", K: "charbon" },
   },
   {
     resultat: "collier-cuivre",
@@ -974,22 +945,6 @@ export const RECETTES = [
       ".L.",
     ],
     legende: { C: "cuivre", L: "lapis" },
-  },
-  {
-    resultat: "pendentif-quartz",
-    forme: [
-      "CC",
-      ".S",
-    ],
-    legende: { C: "cuivre", S: "pierre-taillee" },
-  },
-  {
-    resultat: "charme-os",
-    forme: [
-      "CC",
-      "K.",
-    ],
-    legende: { C: "cuivre", K: "charbon" },
   },
   {
     resultat: "pendentif-chaud",
@@ -1001,19 +956,19 @@ export const RECETTES = [
     legende: { C: "cuivre", R: "rubis" },
   },
   {
+    resultat: "pendentif-quartz",
+    forme: [
+      "CC",
+      ".S",
+    ],
+    legende: { C: "cuivre", S: "pierre-taillee" },
+  },
+  {
     resultat: "porte-bonheur",
     forme: [
       "COC",
     ],
     legende: { C: "cuivre", O: "or" },
-  },
-  {
-    resultat: "pendentif-energie",
-    forme: [
-      "AAA",
-      ".L.",
-    ],
-    legende: { A: "argent", L: "lapis" },
   },
   {
     resultat: "collier-concentration",
@@ -1024,6 +979,21 @@ export const RECETTES = [
     legende: { A: "argent", Y: "amethyste" },
   },
   {
+    resultat: "collier-de-saphir",
+    forme: [
+      "APA",
+    ],
+    legende: { A: "argent", P: "saphir" },
+  },
+  {
+    resultat: "pendentif-energie",
+    forme: [
+      "AAA",
+      ".L.",
+    ],
+    legende: { A: "argent", L: "lapis" },
+  },
+  {
     resultat: "pendentif-vampire",
     forme: [
       "A",
@@ -1031,13 +1001,6 @@ export const RECETTES = [
       "A",
     ],
     legende: { A: "argent", R: "rubis" },
-  },
-  {
-    resultat: "collier-de-saphir",
-    forme: [
-      "APA",
-    ],
-    legende: { A: "argent", P: "saphir" },
   },
   {
     resultat: "collier-de-saphir-fin",
@@ -1055,116 +1018,144 @@ export const RECETTES = [
     legende: { P: "saphir", D: "diamant" },
   },
   {
-    resultat: "bouclier-bois",
+    resultat: "anneau-agile",
     forme: [
-      "WW",
-      "FF",
-      "WW",
+      "C",
+      "E",
     ],
-    legende: { W: "bois", F: "fer" },
+    legende: { C: "cuivre", E: "emeraude" },
   },
   {
-    resultat: "targe",
+    resultat: "anneau-braise",
+    forme: [
+      "C",
+      "R",
+    ],
+    legende: { C: "cuivre", R: "rubis" },
+  },
+  {
+    resultat: "anneau-etincelle",
+    forme: [
+      "CL",
+    ],
+    legende: { C: "cuivre", L: "lapis" },
+  },
+  {
+    resultat: "anneau-force",
     forme: [
       "CF",
-      "FC",
     ],
     legende: { C: "cuivre", F: "fer" },
   },
   {
-    resultat: "grimoire",
+    resultat: "anneau-frimas",
     forme: [
-      "WW",
-      "WL",
-    ],
-    legende: { W: "bois", L: "lapis" },
-  },
-  {
-    resultat: "fanal",
-    forme: [
-      "K",
-      "F",
-      "W",
-    ],
-    legende: { K: "charbon", F: "fer", W: "bois" },
-  },
-  {
-    resultat: "sceptre-apprenti",
-    forme: [
+      "L",
       "C",
-      "W",
-      "W",
     ],
-    legende: { C: "cuivre", W: "bois" },
+    legende: { L: "lapis", C: "cuivre" },
   },
   {
-    resultat: "grimoire-soin",
+    resultat: "anneau-pierre",
     forme: [
-      "WW",
-      "MW",
+      "SC",
     ],
-    legende: { W: "bois", M: "malachite" },
+    legende: { S: "pierre-taillee", C: "cuivre" },
   },
   {
-    resultat: "bouclier-renforce",
+    resultat: "anneau-saignant",
     forme: [
-      "FF",
-      "AA",
-      "FF",
+      "RC",
+    ],
+    legende: { R: "rubis", C: "cuivre" },
+  },
+  {
+    resultat: "anneau-venin",
+    forme: [
+      "EC",
+    ],
+    legende: { E: "emeraude", C: "cuivre" },
+  },
+  {
+    resultat: "anneau-vigueur",
+    forme: [
+      "MC",
+    ],
+    legende: { M: "malachite", C: "cuivre" },
+  },
+  {
+    resultat: "anneau-de-fer",
+    forme: [
+      "FA",
+      "A.",
     ],
     legende: { F: "fer", A: "argent" },
   },
   {
-    resultat: "grimoire-flammes",
+    resultat: "anneau-de-givre",
     forme: [
-      "BR",
-      "RB",
-    ],
-    legende: { B: "bois-sombre", R: "rubis" },
-  },
-  {
-    resultat: "sceptre-commandement",
-    forme: [
-      "O",
       "A",
+      "L",
       "A",
     ],
-    legende: { O: "or", A: "argent" },
+    legende: { A: "argent", L: "lapis" },
   },
   {
-    resultat: "bouclier-protecteur",
+    resultat: "anneau-forge",
     forme: [
-      "LA",
-      "AA",
-      "AL",
+      "OA",
+      "K.",
     ],
-    legende: { L: "lapis", A: "argent" },
+    legende: { O: "or", A: "argent", K: "charbon" },
   },
   {
-    resultat: "grimoire-puissance",
+    resultat: "anneau-puissance",
     forme: [
-      "YB",
-      "BY",
-    ],
-    legende: { Y: "amethyste", B: "bois-sombre" },
-  },
-  {
-    resultat: "bouclier-tour",
-    forme: [
-      "TT",
-      "TT",
-      "AA",
+      "TA",
+      "A.",
     ],
     legende: { T: "titane", A: "argent" },
   },
   {
-    resultat: "vieille-pioche",
+    resultat: "anneau-soif-sang",
     forme: [
-      "SSS",
-      ".W.",
-      ".W.",
+      "AR",
+      ".A",
     ],
-    legende: { S: "pierre-taillee", W: "bois" },
+    legende: { A: "argent", R: "rubis" },
+  },
+  {
+    resultat: "anneau-toxique",
+    forme: [
+      "A",
+      "E",
+      "A",
+    ],
+    legende: { A: "argent", E: "emeraude" },
+  },
+  {
+    resultat: "bague-de-sang",
+    forme: [
+      "RA",
+      "A.",
+    ],
+    legende: { R: "rubis", A: "argent" },
+  },
+  {
+    resultat: "sceau-givre",
+    forme: [
+      "AL",
+      ".A",
+    ],
+    legende: { A: "argent", L: "lapis" },
+  },
+  {
+    resultat: "anneau-de-givre-parfait",
+    forme: [
+      "LO",
+      "OL",
+    ],
+    legende: { L: "lapis", O: "or" },
   },
   {
     resultat: "pioche-fer",
@@ -1174,6 +1165,15 @@ export const RECETTES = [
       ".W.",
     ],
     legende: { F: "fer", W: "bois" },
+  },
+  {
+    resultat: "vieille-pioche",
+    forme: [
+      "SSS",
+      ".W.",
+      ".W.",
+    ],
+    legende: { S: "pierre-taillee", W: "bois" },
   },
   {
     resultat: "pioche-fer-renforcee",
