@@ -7,6 +7,7 @@
 // - or     : la monnaie.
 
 import { itemDef, SLOT_PAR_CATEGORIE, prixVente } from "../data/items.js";
+import { efficaciteQualite } from "../data/recettes.js";
 
 const COLS = 6;          // largeur du sac
 const RANGS_BASE = 4;    // hauteur de base (petite : s'agrandit avec un sac)
@@ -453,9 +454,23 @@ export function appliquerEquipement(heros, inv, planches) {
   heros.vitesseEquipPct = ids.reduce((s, id) => s + (itemDef(id)?.vitesseDeplPct || 0), 0);
   // Agilité (vitesse d'attaque en combat) donnée par les items (bottes surtout).
   heros.agiliteEquip = ids.reduce((s, id) => s + (itemDef(id)?.agilite || 0), 0);
-  // « Ring of Luck » (et futurs items) : chance de DOUBLER le butin d'un coup de
-  // minage. On cumule les passifs `minageDouble` des items équipés (plafonné à 1 = 100%).
-  heros.minageDoubleChance = Math.min(1, ids.reduce((s, id) => s + (itemDef(id)?.minageDouble || 0), 0));
+  // EFFICACITÉ (minage) : le % de minerai supplémentaire par coup. Vient surtout
+  // de la PIOCHE équipée — plus le bonus de qualité gagné à sa forge, mémorisé
+  // par exemplaire dans inv.qualites — et de quelques bijoux (Anneau de chance).
+  // 100 = un 2e minerai garanti. Cf. systems/minage.js pour la règle complète.
+  heros.efficacite = ids.reduce((s, id) => s + (itemDef(id)?.efficacite || 0), 0)
+    + bonusEfficaciteQualite(inv);
+  // VITESSE DE MINAGE : en % (100 = référence). Portée par la pioche. Sans pioche
+  // équipée on garde 100 pour ne pas diviser par zéro — mais sans pioche on ne
+  // mine rien du tout (cf. peutMiner).
+  heros.vitesseMinage = ids.reduce((s, id) => s + (itemDef(id)?.vitesseMinage || 0), 0) || 100;
+}
+
+// Efficacité gagnée à la FORGE : forger une pioche et réussir le mini-jeu ajoute
+// un bonus à CET exemplaire (barème dans data/recettes.js). La qualité est
+// mémorisée par slot dans `inv.qualites` — ici, celle du slot « outil ».
+function bonusEfficaciteQualite(inv) {
+  return efficaciteQualite(inv.qualites?.outil);
 }
 
 // ---- Sauvegarde ----------------------------------------------------------

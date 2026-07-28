@@ -160,12 +160,50 @@ export const ITEMS = {
     planche: "images/armes/pioche.png", degats: 3, mains: 1,
     cartes: ["coup-de-pioche", "coup-de-pioche", "frappe", "frappe", "frappe"],
   },
-  // ---- Outils (slot "outil") : pas de cartes, ils servent HORS combat ----
-  // Pioche de base : permet de MINER les veines des mines (cf. docs/mines.md).
-  "pioche-basique": {
-    id: "pioche-basique", nom: "Basic Pickaxe", categorie: "outil", rarete: "commun",
+  // ---- PIOCHES (slot "outil") : pas de cartes, elles servent HORS combat -----
+  // Une pioche a DEUX stats propres et UNE limite (cf. systems/minage.js) :
+  //   · vitesseMinage : en % (100 = référence). Plus c'est haut, plus la barre de
+  //     minage va vite. Un minerai rare résiste plus longtemps : c'est là que ça
+  //     se sent.
+  //   · efficacite    : en %. Chance de minerai SUPPLÉMENTAIRE par coup.
+  //     0 = exactement 1 minerai · 100 = un 2e garanti · 150 = un 2e garanti et
+  //     50 % d'en avoir un 3e. Forger la pioche en ajoute (cf. EFFICACITE_QUALITE).
+  //   · la RARETÉ de la pioche décide de ce qu'elle peut casser : sa rareté et
+  //     UNE au-dessus. Une pioche commune s'arrête donc à l'uncommon ; il faut du
+  //     uncommon pour toucher au rare, etc. C'est ce qui fait monter en gamme.
+  // (L'ancienne « Basic Pickaxe » qui minait tout a été supprimée le 28/07/2026 :
+  // elle court-circuitait toute cette progression.)
+  "vieille-pioche": {
+    id: "vieille-pioche", nom: "Old Pickaxe", categorie: "outil", rarete: "commun",
+    taille: { l: 1, h: 2 }, icone: "#8a8378",
+    vitesseMinage: 80, efficacite: 0,   // l'outil du débutant : lent, et jamais de bonus
+  },
+  "pioche-fer": {
+    id: "pioche-fer", nom: "Iron Pickaxe", categorie: "outil", rarete: "commun",
     taille: { l: 1, h: 2 }, icone: "#9aa0a6",
-    minage: 1, // rendement de minage (1 minerai/coup ; de meilleurs outils plus tard)
+    vitesseMinage: 100, efficacite: 10,
+  },
+  "pioche-fer-renforcee": {
+    id: "pioche-fer-renforcee", nom: "Reinforced Iron Pickaxe", categorie: "outil", rarete: "uncommon",
+    taille: { l: 1, h: 2 }, icone: "#7fae7a",
+    vitesseMinage: 125, efficacite: 30,
+  },
+  "pioche-titane": {
+    id: "pioche-titane", nom: "Titanium Pickaxe", categorie: "outil", rarete: "rare",
+    taille: { l: 1, h: 2 }, icone: "#6aa6d8",
+    vitesseMinage: 155, efficacite: 60,
+  },
+  // Les deux ÉPIQUES ne sont pas un simple doublon : le diamant creuse plus vite,
+  // l'onyx ramène plus. On choisit son style de mineur plutôt qu'on subit un ordre.
+  "pioche-diamant": {
+    id: "pioche-diamant", nom: "Diamond Pickaxe", categorie: "outil", rarete: "epique",
+    taille: { l: 1, h: 2 }, icone: "#9fe3ec",
+    vitesseMinage: 210, efficacite: 90,
+  },
+  "pioche-onyx": {
+    id: "pioche-onyx", nom: "Onyx Pickaxe", categorie: "outil", rarete: "epique",
+    taille: { l: 1, h: 2 }, icone: "#7a4fa0",
+    vitesseMinage: 175, efficacite: 130,
   },
   // ---- Ressources (minerais) : objets de sac, EMPILABLES (pile 10), NON équipables.
   // Se rangent/déplacent comme tout objet ; aucun slot d'équipement.
@@ -706,12 +744,13 @@ export const ITEMS = {
     taille: { l: 1, h: 1 }, icone: "#b0434a", cartes: ["soif-de-sang", "entaille"] },
   "anneau-forge": { id: "anneau-forge", nom: "Forge Ring", categorie: "bague", rarete: "uncommon", nouveau: true,
     taille: { l: 1, h: 1 }, icone: "#d96a1e", cartes: ["surcharge", "etincelle"] },
-  // Ring of Luck : butin RARE du Lapin blanc (stade 3). Passif : 50% de chance de
-  // DOUBLER le butin d'un coup de minage dans les souterrains (cf. minageDouble,
-  // agrégé dans appliquerEquipement → heros.minageDoubleChance). Les cartes seront
+  // Ring of Luck : butin RARE du Lapin blanc (stade 3). Passif : +50 d'EFFICACITÉ
+  // de minage — soit 50 % de chance d'un minerai supplémentaire à chaque coup.
+  // (Auparavant `minageDouble: 0.5`, un mécanisme à part ; tout passe désormais
+  // par la stat unique `efficacite` — cf. systems/minage.js.) Les cartes seront
   // ajoutées par Brioche plus tard (d'où `cartes: []`).
   "ring-of-luck": { id: "ring-of-luck", nom: "Ring of Luck", categorie: "bague", rarete: "rare", nouveau: true,
-    taille: { l: 1, h: 1 }, icone: "#e8c54f", minageDouble: 0.5, cartes: [] },
+    taille: { l: 1, h: 1 }, icone: "#e8c54f", efficacite: 50, cartes: [] },
 
   // ---- Colliers : COMMONS (5) + UNCOMMONS (3) --------------------------------
   "collier-cuivre": { id: "collier-cuivre", nom: "Copper Amulet", categorie: "collier", rarete: "commun", nouveau: true,
@@ -1088,7 +1127,8 @@ export function bonusPassifs(id) {
   if (d.pierreParTour) l.push(`+${d.pierreParTour} Stone each turn`);
   if (d.agilite) l.push(`+${d.agilite} Agility`);
   if (d.vitesseDeplPct) l.push(`+${d.vitesseDeplPct}% Move Speed`);
-  if (d.minageDouble) l.push(`${Math.round(d.minageDouble * 100)}% chance to double mined ore`);
+  if (d.efficacite) l.push(`+${d.efficacite}% Mining Efficiency`);
+  if (d.vitesseMinage) l.push(`${d.vitesseMinage}% Mining Speed`);
   if (d.passifPropre) l.push(d.passifPropre.texte);
   return l;
 }
