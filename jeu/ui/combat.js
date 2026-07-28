@@ -2227,6 +2227,7 @@ const PLANCHES_SET = {
   onyx:   paireHeros("plate-onyx"), // tient pile dans le gabarit : aucune marge
   sang:   paireHeros("plate-sang", { d: 1.5 }, { h: 7.5 }),
   barbare: paireHeros("plastron-barbare", { g: 3.5, h: 8.5 }, { d: 0.5, h: 14 }),
+  dunir:  paireHeros("plastron-dunir", { d: 0.5 }),
 };
 // Les planches par défaut suivent le même modèle, sans marge (elles SONT le gabarit).
 const PLANCHES_DEFAUT = {
