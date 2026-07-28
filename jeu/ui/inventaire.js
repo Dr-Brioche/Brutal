@@ -30,11 +30,16 @@ import { dialogueActif } from "./dialogue.js";
 import { bonusTalents } from "../systems/talents.js";
 import { STATS_HEROS_BASE } from "../data/heros_base.js"; // agilité de base (Excel, onglet Héros)
 import { montrerInfobulle, montrerNoteSlotVide, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
+import { tailleCaseInventaire } from "../core/style.js";
 import { confirmationActive } from "./confirmation.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 import { afficherMessage, montrerToast } from "./effets.js";
 
-const CASE = 34;            // taille d'une case du sac (doit matcher le fond CSS)
+// Taille d'une case du sac, LUE dans le CSS (`--case-inv` dans index.html) : le
+// quadrillage est dessiné par un dégradé CSS, les positions sont calculées ici.
+// Les deux DOIVENT tomber pile ; en lisant la même variable, ils ne peuvent plus
+// diverger (avant, le chiffre était recopié ici, dans le coffre et dans le CSS).
+const CASE = tailleCaseInventaire();
 const ECHELLE_HERO = 2;     // 64×64 → 128 dans la fiche
 
 const COL_GAUCHE = ["armure", "collier", "gant", "botte", "outil", "sac", "sac2"];

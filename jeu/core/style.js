@@ -26,3 +26,13 @@ export function cheminArrondi(ctx, x, y, w, h, r = RAYON) {
   ctx.arcTo(x, y, x + w, y, rr);
   ctx.closePath();
 }
+
+// Pas de la GRILLE du sac (inventaire et coffre), en pixels. La valeur vit dans
+// le CSS (`--case-inv`, index.html) parce que c'est LUI qui dessine le
+// quadrillage ; le JS, lui, s'en sert pour placer les objets dedans. Les lire
+// au même endroit garantit qu'ils ne peuvent plus se décaler l'un de l'autre.
+// Repli à 38 si la variable manque (page de test sans le CSS du jeu).
+export function tailleCaseInventaire() {
+  const v = getComputedStyle(document.documentElement).getPropertyValue("--case-inv");
+  return parseInt(v, 10) || 38;
+}

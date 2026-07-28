@@ -9,8 +9,15 @@ import { t } from "../systems/langue.js";
 import { etatNoeud, debloquer, activerOuBasculer } from "../systems/talents.js";
 import { xpPourNiveau } from "../systems/progression.js";
 
-const COL_W = 92, ROW_H = 60, NODE = 40; // pas de la grille + taille d'un nœud
-// (ROW_H resserré depuis l'ajout d'une 7e rangée en commerce → tient sans scroll)
+// Pas de la grille + taille d'un nœud. ÉLARGI (28/07/2026) : à 92 px de colonne,
+// l'arbre faisait 552 px de large pour un panneau de 540 → il fallait le faire
+// DÉFILER horizontalement pour voir la branche commerce. Le panneau est passé à
+// 820 px, ce qui laisse la place de respirer : colonnes plus larges, rangées plus
+// hautes, nœuds plus gros (donc plus faciles à viser à la souris).
+// Largeur de l'arbre = 6 colonnes × COL_W ; hauteur = 7 rangées × ROW_H + en-tête.
+// Si tu montes ces valeurs, vérifie que l'arbre tient encore dans .tal-panneau
+// (index.html) — sinon la barre de défilement revient.
+const COL_W = 118, ROW_H = 72, NODE = 46;
 const HEADER_H = 30;                      // bande d'en-têtes des branches (en haut)
 
 // Une petite icône selon le 1er effet du nœud.

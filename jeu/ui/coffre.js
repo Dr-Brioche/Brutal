@@ -17,8 +17,10 @@ import { rangsInventaire, colsInventaire, nbSacs, objetSousCase, peutPlacerA, de
 import { transfererObjet, coffreCols, coffreRangs } from "../systems/coffre.js";
 import { montrerToast } from "./effets.js";
 import { montrerInfobulle, suivreInfobulle, cacherInfobulle } from "./infobulle.js";
+import { tailleCaseInventaire } from "../core/style.js";
 
-const CASE = 34;      // même taille de case que l'inventaire (doit matcher le fond CSS)
+// Même pas de grille que l'inventaire, lu dans le CSS (cf. core/style.js).
+const CASE = tailleCaseInventaire();
 const SEUIL_DRAG = 5; // px de mouvement avant de passer du « clic » au « glisser »
 
 let actif = false;

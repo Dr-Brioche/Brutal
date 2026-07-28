@@ -49,6 +49,12 @@
       /* Marge intérieure du cadre (les barres dorées) : l'ouverture utile. */
       --ouv-x: calc(var(--zl) * 0.05 + 8px);
       --ouv-y: calc(var(--zh) * 0.06 + 8px);
+      /* PAS DE LA GRILLE du sac (inventaire ET coffre). SOURCE UNIQUE : le
+         quadrillage dessiné en CSS et le calcul des positions en JS lisent tous
+         les deux CETTE valeur. Avant, le 34 était recopié à trois endroits avec
+         un commentaire « doit matcher le fond CSS » — une promesse, pas une
+         garantie : en changer un seul décalait les objets d'une case. */
+      --case-inv: 38px;
     }
     /* ICÔNE DE MONNAIE (3 pièces carrées, trou au milieu) : utiliser CET élément
        partout où l'or est affiché EN HTML, à la place de l'emoji 🪙 littéral —
@@ -1707,8 +1713,9 @@
     }
     .coffre-panneau {
       max-width: 94vw;
-      max-height: calc(var(--zh) - 2 * var(--ouv-y));
-      overflow: auto;
+      /* Pas de max-height : le coffre partage la grille de l'inventaire, donc il
+         a grandi avec elle. On le laisse se RÉDUIRE (--echelle-ui) plutôt que
+         défiler — cf. .inv-panneau. */
       padding: 16px 18px 18px;
       background: #14121a;
       border: 1px solid #3b2030;
@@ -1812,9 +1819,12 @@
     .banque-btn:focus-visible { outline: 2px solid #ffcf57; outline-offset: 1px; }
     .banque-btn:disabled { opacity: 0.35; cursor: default; }
     .inv-panneau {
-      width: min(420px, 94vw);
-      max-height: calc(var(--zh) - 2 * var(--ouv-y));
-      overflow: auto;
+      width: min(600px, 94vw);
+      /* PAS de max-height : c'est `panneau-ui` (--echelle-ui) qui fait tenir la
+         fenêtre dans le cadre, en la RÉDUISANT. Un plafond de hauteur bloquait ce
+         mécanisme — la fenêtre restait grande et c'est le CONTENU qui défilait,
+         donc on ne voyait plus le sac sur un petit écran. Réduire vaut mieux que
+         faire défiler : tout reste visible d'un coup d'œil. */
       padding: 16px 18px 18px;
       background: #14121a;
       border: 1px solid #3b2030;
@@ -1843,7 +1853,7 @@
     .inv-soustitre { margin: 14px 0 8px; font-size: 0.72rem; letter-spacing: 0.1em;
       text-transform: uppercase; color: #8b8f98; }
     /* Onglets de sac (au-dessus de la grille) : un onglet par sac équipé. */
-    .inv-onglets { display: flex; gap: 4px; margin: 14px 0 8px; }
+    .inv-onglets { display: flex; justify-content: center; gap: 4px; margin: 14px 0 8px; }
     .inv-onglet {
       font-family: inherit; font-size: 0.72rem; letter-spacing: 0.1em;
       text-transform: uppercase; color: #8b8f98; cursor: pointer;
@@ -1857,8 +1867,8 @@
     }
 
     /* La fiche : slots à gauche · héros au centre · slots à droite */
-    .inv-perso { display: flex; justify-content: center; align-items: flex-start; gap: 12px; margin-top: 12px; }
-    .inv-colonne { display: flex; flex-direction: column; gap: 8px; }
+    .inv-perso { display: flex; justify-content: center; align-items: flex-start; gap: 26px; margin-top: 16px; }
+    .inv-colonne { display: flex; flex-direction: column; gap: 10px; }
     .inv-centre { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 0 0 auto; }
     #inv-hero {
       background: radial-gradient(circle at 50% 40%, #211c2a, #0c0a12);
@@ -1869,7 +1879,7 @@
 
     .inv-slot {
       position: relative;
-      width: 46px; height: 46px;
+      width: 52px; height: 52px;
       display: flex; align-items: center; justify-content: center; text-align: center;
       background: #1d1b25; border: 1px dashed #3a3744; border-radius: 6px;
       font-size: 0.56rem; color: #6b7280; padding: 2px;
@@ -1967,7 +1977,7 @@
       background-image:
         linear-gradient(#2c2a36 1px, transparent 1px),
         linear-gradient(90deg, #2c2a36 1px, transparent 1px);
-      background-size: 34px 34px;
+      background-size: var(--case-inv) var(--case-inv);
       border: 1px solid #2c2a36;
     }
 
@@ -2138,7 +2148,7 @@
       z-index: 16;
     }
     .tal-panneau {
-      width: min(540px, 94vw); max-height: calc(var(--zh) - 2 * var(--ouv-y)); overflow: auto;
+      width: min(820px, 94vw);   /* pas de max-height : cf. .inv-panneau */
       padding: 16px 18px 18px;
       background: #14121a; border: 1px solid #3b2030; border-radius: 14px;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
