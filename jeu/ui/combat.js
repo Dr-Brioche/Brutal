@@ -20,7 +20,7 @@ import {
   appliquerResultatAleatoire, fuirCombat, GEL_EXPLOSION,
 } from "../systems/combat.js";
 import { cartesEquipees, slotsOccupes } from "../systems/inventaire.js";
-import { setsActifs, itemDef, comboArmeActif } from "../data/items.js";
+import { setsActifs, bonusSet, texteBonusSet, itemDef, comboArmeActif } from "../data/items.js";
 import { forceQualite } from "../data/recettes.js";
 import { bonusTalents } from "../systems/talents.js";
 import { STATS_HEROS_BASE } from "../data/heros_base.js"; // agilité de base (échelle des vitesses)
@@ -195,7 +195,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       pioche:   (bt.pioche   ?? 0) + (toutesBagues ? 1 : 0),
       infinityGauntlet: toutesBagues,
     },
-    passifs: [...setsActifs(inventaire.slots).map((s) => s.bonus), ...passifsItems],
+    passifs: [...setsActifs(inventaire.slots).flatMap(bonusSet), ...passifsItems],
   });
 
   // Héros : coin haut-gauche du sprite (pieds sur le sol) + repère écran.
@@ -574,7 +574,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
       const el = document.createElement("div");
       el.className = "combat-perm-buff combat-perm-buff--set";
       el.textContent = `✦ ${s.nom}`;
-      el.dataset.tooltip = s.bonus.texte;
+      el.dataset.tooltip = texteBonusSet(s);
       elPermBuff.append(el);
     }
     if (combat.forcePerm > 0) {
