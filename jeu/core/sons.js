@@ -83,13 +83,30 @@ function modele(nom) {
   return audio;
 }
 
+// Dernier exemplaire joué de chaque son, pour pouvoir l'INTERROMPRE. Sans ça,
+// `jouerSon` clonait puis oubliait : le jingle de victoire continuait tout seul
+// après la fermeture de la fenêtre de butin, par-dessus la musique d'après.
+const enCours = new Map();
+
 export function jouerSon(nom, opts = {}) {
   const base = modele(nom);
-  if (!base) return;
+  if (!base) return null;
   const audio = base.cloneNode();
   audio.volume = clamp(opts.volume ?? volBruitages);
+  enCours.set(nom, audio);
+  audio.addEventListener("ended", () => { if (enCours.get(nom) === audio) enCours.delete(nom); });
   const p = audio.play();
   if (p?.catch) p.catch(() => {});
+  return audio;
+}
+
+// Coupe NET le son `nom` s'il joue encore (jingle de victoire à la fermeture du
+// butin, par exemple). Sans effet s'il est déjà fini.
+export function arreterSon(nom) {
+  const a = enCours.get(nom);
+  if (!a) return;
+  try { a.pause(); a.currentTime = 0; } catch { /* déjà libéré */ }
+  enCours.delete(nom);
 }
 
 export function reglerVolumeBruitages(v) {

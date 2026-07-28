@@ -2248,6 +2248,20 @@
       background: #1d1b25; border: 1px solid #2c2a36; border-radius: 8px;
     }
     .butin-ligne b { color: #ffcf57; }
+    /* Apparition EN CASCADE : chaque ligne est posée avec un temps de retard sur
+       la précédente (cf. ui/butin.js). « --attend » la garde invisible et sans
+       hauteur pour que la liste pousse au fur et à mesure ; « --arrive » la fait
+       tomber à sa place. Un clic zappe tout et les révèle d'un coup. */
+    .butin-ligne--attend { opacity: 0; transform: translateY(-6px) scale(0.97); pointer-events: none; }
+    .butin-ligne--arrive { animation: butin-pop 0.22s ease-out both; }
+    @keyframes butin-pop {
+      from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+      60%  { opacity: 1; transform: translateY(1px) scale(1.02); }
+      to   { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .butin-ligne--arrive { animation: none; }
+    }
     .butin-info { cursor: default; }                       /* XP / or : non cliquables */
     .butin-objet { width: 100%; font: inherit; color: #e5e7eb; text-align: left; cursor: pointer; }
     .butin-objet:hover { background: #2a2735; border-color: #b07be0; }
