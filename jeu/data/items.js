@@ -23,6 +23,24 @@
 // « Valeurs »), régénérée dans data/valeurs.js par outils/importer_valeurs.py.
 // Cf. valeurEstimee() / prixVente() plus bas.
 import { VALEUR_OBJET, VALEUR_RESSOURCE } from "./valeurs.js";
+
+// ⚠ STATS DES PIOCHES ÉDITABLES DANS L'EXCEL — docs/BRUTAL-items-et-cartes.xlsx,
+// onglet « Pioches ». Le bloc ci-dessous est RÉGÉNÉRÉ par outils/importer_pioches.py :
+// ne pas l'éditer à la main. Il REMPLACE (source de vérité) la rareté, la vitesse de
+// minage et l'efficacité écrites plus bas dans ITEMS. Le reste (taille, icône,
+// catégorie) reste dans le code : c'est de l'art et de la technique, pas de
+// l'équilibrage.
+// <<PIOCHES-AUTO>>
+const STATS_PIOCHES = {
+  "vieille-pioche": { rarete: "commun", vitesseMinage: 80, efficacite: 0 },
+  "pioche-fer": { rarete: "commun", vitesseMinage: 100, efficacite: 10 },
+  "pioche-fer-renforcee": { rarete: "uncommon", vitesseMinage: 125, efficacite: 30 },
+  "pioche-titane": { rarete: "rare", vitesseMinage: 155, efficacite: 60 },
+  "pioche-diamant": { rarete: "epique", vitesseMinage: 210, efficacite: 90 },
+  "pioche-onyx": { rarete: "epique", vitesseMinage: 175, efficacite: 130 },
+};
+// <<FIN-PIOCHES-AUTO>>
+
 import { multQualite, RECETTES } from "./recettes.js";
 
 // Raretés, du plus commun au plus précieux. `rang` = ordre (sert à comparer
@@ -868,6 +886,13 @@ for (const r of RECETTES) {
     valeur,
     valeurVente: Math.max(1, Math.round(valeur * 0.4)),
   };
+}
+
+// Les chiffres d'équilibrage des pioches viennent de l'Excel (bloc AUTO ci-dessus).
+if (typeof STATS_PIOCHES !== "undefined") {
+  for (const [id, stats] of Object.entries(STATS_PIOCHES)) {
+    if (ITEMS[id]) Object.assign(ITEMS[id], stats);
+  }
 }
 
 export function itemDef(id) {
