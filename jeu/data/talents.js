@@ -94,7 +94,6 @@ export const TALENTS = {
   esprit1: { id: "esprit1", nom: "Quick Wit",    branche: "combat", x: 3, y: 1, cout: 1, requis: ["racine"], effet: { pioche: 1 } },
   corps2:  { id: "corps2",  nom: "Ironheart",    branche: "combat", x: 2, y: 2, cout: 1, requis: ["corps1"], effet: { pvMax: 15 } },
   corps3:  { id: "corps3",  nom: "Light Step",   branche: "combat", x: 3, y: 2, cout: 1, requis: ["corps1"], effet: { vitesse: 30 } },
-  agile1:  { id: "agile1",  nom: "Fleet Strikes", branche: "combat", x: 2, y: 3, cout: 1, requis: ["corps3"], effet: { agilite: 50 } },
   // Prospecteur des profondeurs : +1 CHOIX de butin de run à chaque étage de mine
   // (base 2 → jusqu'à 4 avec les 2 rangs). Cf. systems/profondeur.js.
   prospecteur: {
@@ -112,22 +111,32 @@ export const TALENTS = {
     description: "Instinct of the deep: +10% chance per rank (up to +30%) to find a passage to the next floor down.",
   },
 
-  // Légendaires combat (armes avancées) — forkent depuis Fleet Strikes.
-  deuxMains: {
-    id: "deuxMains", nom: "Giant's Grip", branche: "combat",
-    x: 2, y: 4, cout: 3, requis: ["agile1"], legendaire: true,
-    effet: { deuxMains: 1 },
-    description: "Wield massive two-handed weapons (greataxes, greatswords) — too heavy to equip without it.",
-  },
+  // Légendaires combat (armes avancées). L'AMBIDEXTRIE ouvre la fourche : c'est
+  // elle qui suit Light Step, et tout le reste de la branche part d'elle —
+  // y compris Fleet Strikes, qui n'est plus un petit talent d'entrée mais une
+  // récompense d'après-légendaire (cf. plus bas).
   ambidextrie: {
     id: "ambidextrie", nom: "Ambidexterity", branche: "combat",
-    x: 3, y: 4, cout: 3, requis: ["agile1"], legendaire: true,
+    x: 2, y: 3, cout: 3, requis: ["corps3"], legendaire: true,
     effet: { ambidextrie: 1 },
     description: "Wield a one-handed weapon in each hand — both weapons' cards are added to your deck.",
   },
+  // Frappe rapide : +50 d'agilité, DERRIÈRE l'Ambidextrie. Placée là exprès —
+  // l'agilité est la stat qui fait rejouer des tours, elle ne doit pas
+  // s'attraper en début d'arbre pour 1 point.
+  agile1: {
+    id: "agile1", nom: "Fleet Strikes", branche: "combat",
+    x: 3, y: 4, cout: 1, requis: ["ambidextrie"], effet: { agilite: 50 },
+  },
+  deuxMains: {
+    id: "deuxMains", nom: "Giant's Grip", branche: "combat",
+    x: 2, y: 4, cout: 3, requis: ["ambidextrie"], legendaire: true,
+    effet: { deuxMains: 1 },
+    description: "Wield massive two-handed weapons (greataxes, greatswords) — too heavy to equip without it.",
+  },
   maitrise1: {
     id: "maitrise1", nom: "Ancestral Mastery", branche: "combat",
-    x: 2, y: 5, cout: 3, requis: ["forge4", "agile1"], legendaire: true,
+    x: 2, y: 5, cout: 3, requis: ["forge4", "ambidextrie"], legendaire: true,
     effet: { maitrise: 1, slots: 3 },
     description: "Unlock Ancestral Mastery — master cards by playing them 200 times, then add up to 3 to your deck permanently.",
   },
