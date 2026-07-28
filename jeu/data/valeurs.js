@@ -109,6 +109,7 @@ export const VALEUR_OBJET = {
   "plate-croise": 10000,
   "maille-de-forge": 8100,
   "anneau-de-givre-parfait": 8300,
+  "ring-of-luck": 11000,
   "bottes-sang": 10000,
   "bottes-croise": 9900,
   "bottes-de-maille": 8900,
@@ -130,6 +131,12 @@ export const VALEUR_OBJET = {
   "gants-onyx": 82000,
   "sac-sans-fond": 94000,
   "sac-maitre-mineur": 290000,
+  "plastron-barbare": 10400,
+  "brassards-barbare": 9800,
+  "bottes-barbare": 10100,
+  "plastron-dunir": 83000,
+  "gantelets-dunir": 79000,
+  "solerets-dunir": 80500,
 };
 
 // Valeur de BASE (prix marché) des RESSOURCES — onglet « Ressources ».
