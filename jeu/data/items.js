@@ -498,6 +498,34 @@ export const ITEMS = {
     taille: { l: 2, h: 1 }, icone: "#7a1320",
     cartes: ["ouvrir-les-veines", "ouvrir-les-veines", "contagion", "contagion", "absorption-de-sang"],
   },
+  // ---- Set BÉNI PAR DUNÏR : build JUGEMENT épique ----------------------------
+  // Une armure d'or forgée à la pierre solaire. Sa mécanique propre est le JUGEMENT
+  // (⚖, cf. data/cartes.js) : on condamne une cible, on l'exécute, et le bonus de
+  // set reporte sa sentence sur tous les survivants. ⚠ PREMIER JET — à réviser.
+  // Dunir's Blessed Plate (torse) : 2× Gilded Guard + 2× Hand of Dunir +
+  // 1× Seal of Dunir + 1× Verdict + 1× Judgement. Armure 40, +6 Pierre/tour.
+  "plastron-dunir": {
+    id: "plastron-dunir", nom: "Dunir's Blessed Plate", categorie: "armure", rarete: "epique",
+    taille: { l: 2, h: 2 }, icone: "#f0c860",
+    planche: "images/heros/nain.png",
+    armureDepart: 40,
+    pierreParTour: 6, // passif : +6 Pierre au début de chaque tour
+    cartes: ["garde-doree", "garde-doree", "main-de-dunir", "main-de-dunir", "sceau-de-dunir", "verdict", "jugement"],
+  },
+  // Dunir's Blessed Gauntlets (gants) : le bras armé du jugement.
+  "gantelets-dunir": {
+    id: "gantelets-dunir", nom: "Dunir's Blessed Gauntlets", categorie: "gant", rarete: "epique",
+    taille: { l: 2, h: 1 }, icone: "#f0c860",
+    cartes: ["jugement", "jugement", "marteau-de-lumiere", "marteau-de-lumiere", "sentence", "sentence", "martel-du-ciel"],
+  },
+  // Dunir's Blessed Sabatons (bottes) : la lumière qui avance.
+  "solerets-dunir": {
+    id: "solerets-dunir", nom: "Dunir's Blessed Sabatons", categorie: "botte", rarete: "epique",
+    taille: { l: 2, h: 1 }, icone: "#f0c860",
+    agilite: 160, vitesseDeplPct: 30,
+    cartes: ["aube-doree", "aube-doree", "jugement", "jugement", "marteau-de-lumiere", "garde-doree", "boost"],
+  },
+
   // ---- Set du BARBARE : build FORCE BRUTE rare -------------------------------
   // Pas de statut, pas de finesse : on empile de la Force et on frappe. Le bonus de
   // set récompense les MORTS, donc l'équipement pousse à tuer vite (Whirlwind pour
@@ -933,6 +961,28 @@ export const SETS = {
       texte: "When a Bleed combo deals bonus damage, heal the hero for half of that amount.",
       effets: [{ type: "soin", ratio: 0.5 }],
     },
+  },
+  // Set béni par Dunïr : build JUGEMENT (épique). Deux bonus qui se répondent — un
+  // socle qui amorce la mécanique, et le REPORT qui la fait boule de neige. Kill
+  // order devient une vraie décision : abattre le condamné transmet sa sentence à
+  // tous les autres, donc le dernier ennemi debout porte le jugement de tous les
+  // morts avant lui. — demandé par Brioche 27/07/2026.
+  dunir: {
+    id: "dunir",
+    nom: "Dunir's Blessing",
+    pieces: ["plastron-dunir", "gantelets-dunir", "solerets-dunir"], // torse + gants + bottes
+    bonus: [
+      {
+        declencheur: "debutCombat",
+        texte: "At the start of combat, every enemy takes 2 Judgement.",
+        effets: [{ type: "jugement", valeur: 2 }],
+      },
+      {
+        declencheur: "ennemiTue",
+        texte: "When a judged enemy dies, its whole Judgement passes to every enemy still standing.",
+        effets: [{ type: "reporter-jugement" }],
+      },
+    ],
   },
   // Set du Barbare : build FORCE BRUTE. Deux bonus qui se répondent — un socle
   // constant, et une récompense qui grandit à chaque ennemi abattu. La Force gagnée

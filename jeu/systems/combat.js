@@ -172,6 +172,10 @@ function creerEnnemiCombat(def) {
     charge: def.explose ? (def.delaiExplosion ?? 2) : 0, // mèche du Gobelin Kaboom
     evolue: 0,                     // pouls d'évolution/split vu par l'UI
     poison: 0, feu: 0, sang: 0,    // statuts (dégâts dans le temps)
+    // JUGEMENT (set béni par Dunïr) : ne fait AUCUN dégât par lui-même et ne
+    // s'écoule JAMAIS. Tant qu'il est là, chaque blessure subie par cet ennemi
+    // est augmentée d'autant. Le verdict s'alourdit, il ne se dissipe pas.
+    jugement: 0,
     feuDeCarte: false,             // true = feu posé par une carte ce tour : propagera à la FIN du tour du héros
     stun: 0,                       // étourdissement : nb de SES tours encore sautés
     confusion: 0,                  // « Confusion » (éblouissement) : nb de SES tours où il frappe une cible AU HASARD
@@ -265,6 +269,9 @@ export function creerCombat(ennemisDefs, opts = {}) {
       } else if (ef.type === "force") {
         // Force PERMANENTE (pas la temporaire qui s'écoule) : elle tient tout le combat.
         combat.forcePerm += ef.valeur;
+      } else if (ef.type === "jugement") {
+        // Set béni par Dunïr : la salle entière entre en jugement dès la 1re image.
+        for (const e of combat.ennemis) e.jugement += ef.valeur;
       }
     }
   }
@@ -495,6 +502,9 @@ function declencherPaliersPierre(combat, paliers) {
 // pour que l'UI puisse afficher l'overkill réel, puis réduit les PV (≥ 0).
 function blesser(e, n) {
   if (n <= 0) return;
+  // JUGEMENT : sous le regard de Dunïr, chaque blessure pèse plus lourd. S'applique
+  // à TOUTE source (coup, poison, feu, saignement) — le jugement ne fait pas le tri.
+  if (e.jugement > 0) n += e.jugement;
   e.dernierDegats += n;
   // BOUCLIER ennemi (Gobelin blindé & Cie) : absorbe les dégâts avant les PV, comme la
   // Pierre du héros. Le reste (s'il y en a) entame les PV.
@@ -530,6 +540,16 @@ function appliquerEffet(combat, effet, ennemi) {
       const base = effet.valeur + forceApp;
       blesser(ennemi, aMalus(ennemi) ? base * 2 : base);
     }
+  } else if (effet.type === "jugement") {
+    // Pose `valeur` piles de Jugement sur la cible (cf. blesser).
+    if (ennemi) ennemi.jugement += effet.valeur;
+  } else if (effet.type === "jugement-tous") {
+    // Sceau de Dunïr : la sentence tombe sur TOUT LE MONDE d'un coup.
+    for (const a of combat.ennemis) if (ennemiVivant(a)) a.jugement += effet.valeur;
+  } else if (effet.type === "degats-par-jugement") {
+    // Sentence : les dégâts sont le POIDS du verdict — `valeur` par pile de Jugement
+    // déjà posée. (L'amplification de blesser s'y ajoute ensuite : juger paie deux fois.)
+    if (ennemi) blesser(ennemi, effet.valeur * ennemi.jugement + forceApp);
   } else if (effet.type === "degats-si-gel") {
     // Shatter : dégâts de base + bonus si la cible est GELÉE (récompense le frost).
     if (ennemi) blesser(ennemi, effet.valeur + forceApp + (ennemi.gel > 0 ? effet.bonus : 0));
@@ -910,6 +930,12 @@ function compterEnnemisTues(combat) {
     for (const p of gains) {
       for (const ef of p.effets) {
         if (ef.type === "force") combat.forcePerm += ef.valeur;
+        else if (ef.type === "reporter-jugement" && e.jugement > 0) {
+          // Set béni par Dunïr : le verdict d'un condamné RETOMBE ENTIER sur tous
+          // les survivants. C'est ce qui fait boule de neige — le dernier ennemi
+          // debout porte le jugement de tous ceux qui sont tombés avant lui.
+          for (const a of combat.ennemis) if (a !== e && a.pv > 0) a.jugement += e.jugement;
+        }
       }
     }
   }

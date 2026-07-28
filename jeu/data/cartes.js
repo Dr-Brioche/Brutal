@@ -861,6 +861,46 @@ export const CARTES = {
   "taillade": { id: "taillade", nom: "Slash", cout: 1, type: "attaque", nouveau: true,
     texte: "Deal 7 damage.", effets: [{ type: "degats", valeur: 7 }] },
   // Heavy Blow : gros coup unique, un peu plus cher.
+  // ---- SET BÉNI PAR DUNÏR (épique) : le JUGEMENT ------------------------------
+  // Mécanique propre au set : le JUGEMENT (⚖). Une pile posée sur un ennemi ne fait
+  // AUCUN dégât et ne s'écoule JAMAIS — elle rend simplement chaque blessure qu'il
+  // subit plus lourde de 1 par pile. Le bonus de set, lui, REPORTE le jugement d'un
+  // condamné sur tous les survivants quand il tombe : on investit sur une cible, on
+  // l'exécute, et toute la salle hérite de la sentence.
+  // ⚠ PREMIER JET — chiffres à réviser (barème épique : 7 cartes/pièce, ~17 dégâts
+  // par Chaleur, ~14 armure par Chaleur).
+  "jugement": { id: "jugement", nom: "Judgement", cout: 1, type: "attaque", nouveau: true,
+    texte: "Deal 6 damage. Apply 3 Judgement.",
+    effets: [{ type: "degats", valeur: 6 }, { type: "jugement", valeur: 3 }] },
+  // Seal of Dunïr : la sentence tombe sur tout le monde — prépare les reports en chaîne.
+  "sceau-de-dunir": { id: "sceau-de-dunir", nom: "Seal of Dunir", cout: 2, type: "buff", nouveau: true,
+    texte: "Apply 2 Judgement to ALL enemies.",
+    effets: [{ type: "jugement-tous", valeur: 2 }] },
+  "marteau-de-lumiere": { id: "marteau-de-lumiere", nom: "Hammer of Light", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal 17 damage.", effets: [{ type: "degats", valeur: 17 }] },
+  // Verdict : le gros investissement — peu de dégâts, beaucoup de jugement.
+  "verdict": { id: "verdict", nom: "Verdict", cout: 3, type: "attaque", nouveau: true,
+    texte: "Deal 10 damage. Apply 5 Judgement.",
+    effets: [{ type: "degats", valeur: 10 }, { type: "jugement", valeur: 5 }] },
+  // Sentence : encaisse le verdict. 3 dégâts par pile — et l'amplification du
+  // Jugement s'y ajoute encore, donc juger paie deux fois.
+  "sentence": { id: "sentence", nom: "Sentence", cout: 2, type: "attaque", nouveau: true,
+    texte: "Deal 3 damage per Judgement on the target.",
+    effets: [{ type: "degats-par-jugement", valeur: 3 }] },
+  "garde-doree": { id: "garde-doree", nom: "Gilded Guard", cout: 1, type: "defense", nouveau: true,
+    texte: "Gain 14 Stone.", effets: [{ type: "pierre", valeur: 14 }] },
+  "main-de-dunir": { id: "main-de-dunir", nom: "Hand of Dunir", cout: 2, type: "defense", nouveau: true,
+    texte: "Gain 12 Stone. Heal 6 HP.",
+    effets: [{ type: "pierre", valeur: 12 }, { type: "soin-heros", valeur: 6 }] },
+  "aube-doree": { id: "aube-doree", nom: "Golden Dawn", cout: 1, type: "buff", nouveau: true,
+    texte: "Gain 3 Haste. Apply 1 Judgement to ALL enemies.",
+    effets: [{ type: "celerite", valeur: 3 }, { type: "jugement-tous", valeur: 1 }] },
+  // Skyfall Hammer : frappe les trois d'un coup — le moyen de faire tomber plusieurs
+  // condamnés dans le même tour, donc d'enchaîner plusieurs reports de jugement.
+  "martel-du-ciel": { id: "martel-du-ciel", nom: "Skyfall Hammer", cout: 3, type: "attaque", nouveau: true,
+    texte: "Deal 12 damage. Both neighbours take 12.",
+    effets: [{ type: "degats", valeur: 12 }, { type: "cleave-adjacent", valeur: 12 }] },
+
   // ---- SET DU BARBARE (rare) : la FORCE BRUTE ---------------------------------
   // Aucune finesse, aucun statut : on empile de la Force et on frappe de plus en
   // plus fort. Le set récompense les MORTS (+5 Force par ennemi abattu), donc ces
