@@ -1693,6 +1693,9 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     // Gel (−30% vitesse) ; à 8 stacks la glace va se briser au prochain tour → 💥 télégraphe.
     if (e.gel > 0) l.push({ texte: e.gel >= GEL_EXPLOSION ? `❄💥${e.gel}` : `❄${e.gel}`, couleur: "#9fdfff", nature: "malus" });
     if (e.confusion > 0) l.push({ texte: `✨${e.confusion}`, couleur: "#ffe9a8", nature: "malus" }); // Confusion (frappe au hasard)
+    // JUGEMENT (set béni par Dunïr) : +N à CHAQUE blessure subie. Ne s'écoule pas,
+    // d'où la balance plutôt qu'un compte à rebours.
+    if (e.jugement > 0) l.push({ texte: `⚖${e.jugement}`, couleur: "#ffd76a", nature: "malus" });
     return l;
   }
 

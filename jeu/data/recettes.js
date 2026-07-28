@@ -543,6 +543,38 @@ export const RECETTES = [
     ],
     legende: { T: "titane", C: "charbon", G: "or" },
   },
+  // ---- Set BÉNI PAR DUNÏR (épique) : forgé à la PIERRE SOLAIRE et à l'or.
+  // La pierre solaire ne se trouve qu'à partir de la profondeur 10 : c'est ce qui
+  // place ce set en fin de progression.
+  {
+    resultat: "plastron-dunir",
+    forme: [
+      "S...S",
+      "SOOOS",
+      "SOSOS",
+      ".SOS.",
+      "..S..",
+    ],
+    legende: { S: "pierre-solaire", O: "or" },
+  },
+  {
+    resultat: "gantelets-dunir",
+    forme: [
+      "S.O.S",
+      "SOMOS",
+      ".S.S.",
+    ],
+    legende: { S: "pierre-solaire", O: "or", M: "mithril" },
+  },
+  {
+    resultat: "solerets-dunir",
+    forme: [
+      "S...S",
+      "SO.OS",
+      "MOOOM",
+    ],
+    legende: { S: "pierre-solaire", O: "or", M: "mithril" },
+  },
   {
     resultat: "plate-onyx",
     forme: [
