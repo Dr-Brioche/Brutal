@@ -87,9 +87,12 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
     Stone** (+agilité de combat), **Armure de départ**, **Or à la sortie** (versé si on
     sort vivant) ;
   - **ponctuels** : **Ruby Dust** (soin immédiat) ;
-  - **agissant à la génération de l'étage** : **Depth Portal** (passage `>` garanti),
-    **Lucky Stone** (+% de minerais), **Wave of Calm** (aucun monstre sur l'étage — **épique
-    uniquement**).
+  - **agissant à la génération de l'étage** : **Depth Portal** (passage `>` garanti —
+    **rare uniquement**), **Lucky Stone** (+% de minerais), **Wave of Calm** (aucun
+    monstre sur l'étage — **épique uniquement**).
+
+  Les valeurs par rareté vivent dans l'onglet **`Profondeurs`** du classeur ; une case
+  **`/`** signifie « ce butin n'existe pas à cette rareté-là » (le tirage relance).
 
   Le talent **Deep Prospector** monte à 3-4 choix.
   **→ Design complet + journal d'avancement : [`docs/mines.md`](mines.md).**
