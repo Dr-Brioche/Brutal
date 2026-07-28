@@ -19,6 +19,7 @@ partie. On ouvre une page de test qui appelle directement le module concerné.
 | La mise en scène du Fou (combat gelé → marché → reprise) | `outils/test-fou-marche.html` |
 | La fiche de personnage (stats et leur détail) | `outils/test-fiche.html` |
 | Le rendu d'une carte (écussons, texte, illustration) | `outils/apercu-cartes.py` |
+| La forge (glisser-déposer des ressources) | `outils/test-forge.html` |
 | Les 3 paiements du Fou et son cadeau | le Maître d'arène + God Mode (§3) |
 | Que le jeu démarre sans erreur | la sonde de démarrage (§3) |
 
@@ -34,6 +35,10 @@ CSS. Sans argument, il sort un échantillon qui couvre tous les cas d'écusson.
 python3 outils/apercu-cartes.py /tmp/cartes.png --langue fr
 python3 outils/apercu-cartes.py /tmp/cartes.png --langue en frappe,boule-de-feu
 ```
+
+`outils/test-forge.html` : ouvre la forge avec un sac plein de ressources, sans
+traverser la ville pour trouver Grimbrück. Sert à vérifier la manipulation :
+glisser depuis la palette, tas qui suit le curseur, quantité qui fond.
 
 `outils/test-fiche.html` : ouvre la fiche de personnage avec les bottes et les
 talents choisis dans deux menus, plus un sélecteur de langue. Elle affiche à

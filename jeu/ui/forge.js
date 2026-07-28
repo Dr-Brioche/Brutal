@@ -45,6 +45,14 @@ let inv = null;
 let heros = null;         // pour lire le rang du talent « Master Craftsman »
 let grille = [];          // 5×5 d'ids de ressource (ou null)
 let ressourceSel = null;  // id de la ressource « en main » (clic pour poser)
+// FANTÔME : le tas qu'on tient, avec sa quantité, collé au curseur. Sans lui, la
+// sélection n'était qu'un liseré doré sur une tuile de la palette — on posait
+// « à l'aveugle » sans voir ce qu'on tenait ni combien il en restait.
+let fantome = null;
+// GLISSER : suivi du geste depuis la palette. `aBouge` distingue le GLISSER du
+// simple CLIC — les deux doivent marcher, et ne pas se déclencher l'un l'autre.
+let drag = { actif: false, aBouge: false, x: 0, y: 0 };
+const SEUIL_DRAG = 5; // px de mouvement avant de considérer que c'est un glisser
 let recetteCourante = null;
 // Navigation CLAVIER : la forge est découpée en ZONES ; Tab passe de l'une à
 // l'autre, les flèches se déplacent DANS la zone, Espace/Entrée valide.
@@ -94,6 +102,26 @@ export function installerForge() {
   elFeuBois = document.getElementById("forge-feu-bois");
   elFeuVider = document.getElementById("forge-feu-vider");
   boutonFermer.addEventListener("click", fermerForge);
+  // Le tas suit le curseur tant qu'on tient quelque chose (glissé OU sélectionné).
+  window.addEventListener("pointermove", (ev) => {
+    if (!fantome) return;
+    if (drag.actif && Math.hypot(ev.clientX - drag.x, ev.clientY - drag.y) > SEUIL_DRAG) {
+      drag.aBouge = true;
+    }
+    bougerFantome(ev);
+  });
+  // Fin d'un GLISSER : si on lâche sur une case, on y pose. Un simple clic (sans
+  // mouvement) ne pose rien ici — le tas reste en main et c'est le clic sur la
+  // case qui posera, comme avant.
+  window.addEventListener("pointerup", (ev) => {
+    if (!drag.actif) return;
+    const glisse = drag.aBouge;
+    drag.actif = false;
+    if (!glisse || !ressourceSel) return;
+    const pos = caseSous(ev.clientX, ev.clientY);
+    if (pos) cliquerCase(pos.r, pos.c);
+    drag.aBouge = false;
+  });
   elForger.addEventListener("click", forger);
   elMiniJeu.addEventListener("click", () => { if (miniActif) validerFrappe(); });
   elLivreBtn.addEventListener("click", ouvrirLivrePick);
@@ -169,6 +197,7 @@ function cliquerCase(r, c) {
       grille[r][c] = ressourceSel;
     }
   }
+  majFantome();   // le tas fond d'une unité (et disparaît quand il est vide)
   rafraichir();
 }
 
@@ -198,7 +227,49 @@ function viderCarburant() {
 
 function choisirRessource(id) {
   ressourceSel = ressourceSel === id ? null : id; // re-cliquer désélectionne
+  majFantome();
   rafraichir();
+}
+
+// Combien il reste de `id` à poser (possédé − déjà réservé sur la table et au feu).
+function restantDe(id) {
+  return compterRessource(inv, id) - posesTotal(id);
+}
+
+// Crée / met à jour / retire le tas qui suit le curseur. Il porte la MÊME pastille
+// que la palette et la quantité RESTANTE : on voit le tas fondre à chaque pose.
+function majFantome() {
+  const reste = ressourceSel ? restantDe(ressourceSel) : 0;
+  if (!ressourceSel || reste <= 0) {
+    if (ressourceSel && reste <= 0) ressourceSel = null; // stock épuisé : on lâche
+    fantome?.remove();
+    fantome = null;
+    return;
+  }
+  const d = itemDef(ressourceSel);
+  if (!fantome) {
+    fantome = document.createElement("div");
+    fantome.className = "forge-fantome";
+    fantome.innerHTML = '<span class="forge-pastille"></span><span class="forge-fantome-qte"></span>';
+    document.body.append(fantome);
+  }
+  pastilleFond(fantome.querySelector(".forge-pastille"), d);
+  fantome.querySelector(".forge-fantome-qte").textContent = `×${reste}`;
+}
+
+function bougerFantome(ev) {
+  if (!fantome) return;
+  fantome.style.left = ev.clientX + "px";
+  fantome.style.top = ev.clientY + "px";
+}
+
+// La case de la table sous un point de l'écran, ou null.
+function caseSous(x, y) {
+  const el = document.elementFromPoint(x, y);
+  const cell = el?.closest?.(".forge-case");
+  if (!cell || cell.parentElement !== elTable) return null;
+  const i = [...elTable.children].indexOf(cell);
+  return i < 0 ? null : { r: Math.floor(i / TAILLE), c: i % TAILLE };
 }
 
 // Fond d'une pastille : vraie IMAGE (ressource détourée) si dispo, sinon la couleur.
@@ -242,7 +313,21 @@ function rafraichir() {
       `<span class="forge-palette-qte">${restant}</span>` +
       (i < 9 ? `<span class="forge-palette-touche">${i + 1}</span>` : "");
     tuile.querySelector(".forge-palette-nom").textContent = d.nom;
-    tuile.addEventListener("click", () => choisirRessource(id));
+    // DEUX gestes pour la même chose :
+    //  · CLIC simple → on « prend » le tas, il suit le curseur, on clique une case ;
+    //  · GLISSER → on l'amène directement sur une case et on lâche.
+    // `pointerdown` amorce les deux ; c'est le mouvement qui les départage.
+    tuile.addEventListener("pointerdown", (ev) => {
+      if (miniActif || ev.button !== 0) return;
+      ev.preventDefault();
+      if (ressourceSel !== id) choisirRessource(id);   // prendre (sans re-basculer)
+      drag = { actif: true, aBouge: false, x: ev.clientX, y: ev.clientY };
+      bougerFantome(ev);
+    });
+    // Reclic sur la MÊME tuile alors qu'on la tenait déjà : on repose le tas.
+    tuile.addEventListener("click", () => {
+      if (!drag.aBouge && ressourceSel === id && !fantome) choisirRessource(id);
+    });
     elPalette.appendChild(tuile);
   });
 
@@ -623,6 +708,10 @@ function surTouche(e) {
 }
 
 export function fermerForge() {
+  // On ne laisse pas un tas orphelin collé à l'écran après la fermeture.
+  ressourceSel = null;
+  fantome?.remove(); fantome = null;
+  drag = { actif: false, aBouge: false, x: 0, y: 0 };
   if (!actif) return;
   actif = false;
   miniActif = false;

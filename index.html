@@ -657,6 +657,20 @@
       outline-offset: 0.15cqw;
       box-shadow: 0 0 1.2cqw rgba(255,207,87,0.55);
     }
+    /* LE TAS QUI SUIT LE CURSEUR (forge) : ce qu'on tient, et combien il en reste.
+       `pointer-events: none` — sinon il s'interpose entre le curseur et la case
+       visée, et `elementFromPoint` ne verrait que lui. */
+    .forge-fantome {
+      position: fixed; z-index: 60; transform: translate(-50%, -50%);
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 9px 5px 6px;
+      background: rgba(24, 18, 12, 0.92); border: 2px solid #ffcf57;
+      border-radius: var(--rayon);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .6);
+      pointer-events: none;
+    }
+    .forge-fantome .forge-pastille { width: 26px; height: 26px; border-radius: 5px; }
+    .forge-fantome-qte { color: #ffcf57; font-weight: 800; font-family: ui-monospace, monospace; font-size: 0.85rem; }
     .forge-pastille { width: 3cqw; height: 3cqw; border-radius: 0.5cqw; border: 0.15cqw solid #000; flex-shrink: 0; }
     .forge-palette-nom { flex: 1; font-size: 1.5cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .forge-palette-qte { font-size: 1.6cqw; font-weight: 800; font-family: ui-monospace, monospace; }
