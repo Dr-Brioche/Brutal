@@ -1173,11 +1173,16 @@
       -webkit-text-stroke: 0.07em #000; /* garde le contour noir → reste lisible */
       paint-order: stroke fill;
     }
+    /* Écart des DEUX écussons au bord de la carte — la même valeur à gauche et à
+       droite, pour qu'ils restent symétriques. Reculés vers le centre (6.5 % →
+       18 %) : dans les coins, ils masquaient les heaumes gravés du cadre. Un seul
+       chiffre à toucher pour les rapprocher ou les écarter tous les deux. */
+    .combat-carte--cadre { --ecusson-bord: 18%; }
     /* Écusson « all » (bas-droite) : carte qui frappe TOUS les ennemis (AOE). Même
        forme que la pastille de niveau des monstres, mais fond noir / bord & texte
        blancs. Taille relative à la carte → net à toutes les échelles. */
     .combat-carte--cadre .carte-aoe {
-      position: absolute; right: 6.5%; bottom: 5.5%; z-index: 4;
+      position: absolute; right: var(--ecusson-bord); bottom: 5.5%; z-index: 4;
       display: flex; align-items: center; justify-content: center;
       min-width: 1.8em; height: 1.5em; padding: 0 0.45em;
       background: #0b0b0b; border: 0.11em solid #fff; border-radius: 0.75em;
@@ -1189,7 +1194,7 @@
        s'ajoute aux dégâts. Rouge = corps à corps (elle compte), bleu = à
        distance (elle ne compte pas). Même gabarit que l'écusson AOE. */
     .combat-carte--cadre .carte-portee {
-      position: absolute; left: 6.5%; bottom: 5.5%; z-index: 4;
+      position: absolute; left: var(--ecusson-bord); bottom: 5.5%; z-index: 4;
       display: flex; align-items: center; justify-content: center;
       min-width: 1.8em; height: 1.5em; padding: 0 0.45em;
       border: 0.11em solid; border-radius: 0.75em;
