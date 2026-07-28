@@ -611,22 +611,20 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       [t("inv.statCartes"),  BASE_PIOCHE + (bt.pioche || 0),
         [[BASE_PIOCHE, "inv.srcBase"], [bt.pioche || 0, "inv.srcTalents"]]],
     ];
-    const elements = [];
-    for (const [nom, val, detail] of lignes) {
+    elStats.replaceChildren(...lignes.map(([nom, val, detail]) => {
       const l = document.createElement("div");
       l.className = "inv-stat";
       l.innerHTML = `<span>${nom}</span><b>${val}</b>`;
-      elements.push(l);
-      // Détail seulement s'il y a VRAIMENT quelque chose à décomposer : sinon on
-      // écrirait « 4 base » sous un 4, du bruit pur.
+      // Le détail n'apparaît qu'AU SURVOL (data-tooltip, même mécanique que les
+      // bonus du gantelet plus haut) : la fiche reste épurée, l'explication est
+      // là quand on la cherche. Seulement s'il y a vraiment à décomposer — un
+      // « 4 de base » sous un 4 ne servirait à rien.
       const parts = (detail ?? []).filter(([v]) => v > 0);
-      if (parts.length < 2) continue;
-      const d = document.createElement("div");
-      d.className = "inv-stat-detail";
-      d.textContent = parts.map(([v, cle]) => `${v} ${t(cle)}`).join(" + ");
-      elements.push(d);
-    }
-    elStats.replaceChildren(...elements);
+      if (parts.length >= 2) {
+        l.dataset.tooltip = parts.map(([v, cle]) => `${v} ${t(cle)}`).join("\n+ ");
+      }
+      return l;
+    }));
 
     const seuilXp = xpPourNiveau(heros.niveau);
     const pct = seuilXp > 0 ? Math.max(0, Math.min(100, heros.xp / seuilXp * 100)) : 0;
