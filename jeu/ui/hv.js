@@ -13,7 +13,7 @@
 // API alignée sur la forge : installerHV() / ouvrirHV(inv, marche, surFermer) /
 // fermerHV() / hvActive() — plus phraseCourtier(marche) pour le dialogue.
 
-import { itemDef, couleurRarete, prixVente } from "../data/items.js";
+import { itemDef, couleurRarete, prixVente, RARETES } from "../data/items.js";
 import { QUALITES } from "../data/recettes.js";
 import {
   RESSOURCES_MARCHE, prixRessource, tendanceRessource, prixBaseRessource, variation30min,
@@ -97,15 +97,29 @@ export function ouvrirHV(inventaire, marcheJeu, surFermer = null) {
   window.addEventListener("keydown", surTouche, true);
 }
 
-// Ordre d'affichage des ressources selon le tri choisi. Le tri par défaut
-// respecte RESSOURCES_MARCHE (du plus commun au plus rare) ; les deux autres
-// trient par le MOMENTUM récent (30 min) — pour repérer d'un coup d'œil ce qui
-// grimpe (vendre) ou s'effondre (acheter).
+// Ordre d'affichage des ressources selon le tri choisi.
+//  · « defaut » : l'ordre de RESSOURCES_MARCHE — par FAMILLE (les minerais, puis
+//    les bois, puis les cuirs), chacune de la moins chère à la plus chère ;
+//  · « rarete » : par RARETÉ, la plus précieuse en tête. Utile parce que l'ordre
+//    par défaut sépare les familles : un bois enchanté (rare) se retrouve loin
+//    d'un rubis (rare aussi). Là, tous les paliers sont regroupés ;
+//  · « hausse » / « baisse » : par MOMENTUM récent (30 min) — ce qui grimpe
+//    (vendre) ou s'effondre (acheter).
 function listeAffichee() {
   if (triMode === "defaut") return RESSOURCES_MARCHE;
+  if (triMode === "rarete") {
+    return [...RESSOURCES_MARCHE].sort((a, b) =>
+      rangRarete(b) - rangRarete(a) || prixBaseRessource(b) - prixBaseRessource(a));
+  }
   const parVariationDesc = [...RESSOURCES_MARCHE]
     .sort((a, b) => variation30min(marche, b) - variation30min(marche, a));
   return triMode === "hausse" ? parVariationDesc : parVariationDesc.reverse();
+}
+
+// Rang de rareté d'une ressource (0 = commun … 4 = légendaire). Passe par RARETES
+// plutôt que par une liste écrite ici : ajouter une ressource ne demande rien.
+function rangRarete(id) {
+  return RARETES[itemDef(id)?.rarete]?.rang ?? 0;
 }
 
 // Message furtif dans la barre d'aide (« pas assez d'or », « sac plein »…).
@@ -180,6 +194,15 @@ function rendre() {
       `<span class="hv-prix">${prix} <span class="icone-piece"></span></span>` +
       `<span class="hv-possede">${t("hv.possede",{n: possede})}</span>`;
     ligne.querySelector(".hv-nom").textContent = d.nom;
+    // NOM AU SURVOL, sur toute la ligne : la colonne du nom se resserre quand la
+    // fenêtre rétrécit (les prix et les boutons, eux, ne bougent pas), et un nom
+    // long finit en « Malac… ». L'infobulle donne le nom entier plus sa rareté —
+    // et la pastille prend la couleur de rareté, pour la lire sans survoler.
+    ligne.title = t("hv.titreRessource", {
+      nom: d.nom, rarete: RARETES[d.rarete]?.nom ?? d.rarete,
+    });
+    const pastille = ligne.querySelector(".hv-pastille");
+    if (pastille) pastille.style.borderColor = couleurRarete(id);
     const btnA = document.createElement("button");
     btnA.className = "hv-btn";
     btnA.textContent = t("hv.acheterBtn");

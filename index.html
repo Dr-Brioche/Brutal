@@ -838,7 +838,7 @@
       display: flex; gap: 2cqw; padding: 1.2cqw 3.6cqw 0;
     }
     /* Colonne gauche : barre de tri (fixe) + la liste des ressources (défile). */
-    .hv-colonne-gauche { flex: 1.35; min-width: 0; display: flex; flex-direction: column; min-height: 0; gap: 0.5cqw; }
+    .hv-colonne-gauche { flex: 1.75; min-width: 0; display: flex; flex-direction: column; min-height: 0; gap: 0.5cqw; }
     .hv-tri { display: flex; gap: 0.5cqw; flex-shrink: 0; }
     .hv-tri-btn {
       padding: 0.4cqw 0.9cqw; font-size: 1.3cqw; font-weight: 700; color: #a8b0c6;
@@ -862,7 +862,20 @@
     .hv-ligne.sel { border-color: #ffcf57; background: rgba(40,44,62,0.8); }
     .hv-ligne--evt { box-shadow: 0 0 1.2cqw rgba(255,170,60,0.35); }
     .hv-pastille { width: 2.4cqw; height: 2.4cqw; border-radius: 0.45cqw; border: 0.14cqw solid #000; flex-shrink: 0; }
-    .hv-nom { flex: 1; min-width: 0; font-size: 1.6cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Le NOM garde une largeur PLANCHER. Avec `min-width: 0` il était la seule
+       colonne élastique de la ligne : en français, « Acheter »/« Vendre » prennent
+       80 px de plus que « Buy »/« Sell », et toute la différence était prise sur le
+       nom — il tombait à 30 px, soit UNE LETTRE. Le bug ne se voyait donc qu'en
+       français. Les deux colonnes de variation, elles, peuvent se resserrer : ce
+       sont les infos les moins vitales de la ligne. */
+    .hv-nom { flex: 1 1 auto; min-width: 6ch; font-size: 1.6cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Ordre de sacrifice quand la ligne est serrée : d'abord les deux colonnes de
+       variation (info de confort), jamais le prix ni les boutons — un bouton coupé
+       est plus dur à cliquer, et c'est ce qui arrivait avec les prix à 5 chiffres. */
+    .hv-tendance, .hv-var30 { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hv-prix, .hv-ligne .hv-btn { flex-shrink: 0; }
+    /* « à toi : 0 » ne doit pas se casser en deux lignes : ça décale toute la ligne. */
+    .hv-possede { white-space: nowrap; }
     .hv-prix { font-size: 1.7cqw; font-weight: 800; color: #ffcf57; font-family: ui-monospace, monospace; }
     .hv-tendance {
       flex: 0 0 auto; min-width: 5.6cqw; text-align: right; white-space: nowrap;
@@ -2968,6 +2981,7 @@
             <button class="hv-tri-btn hv-tri-btn--actif" data-tri="defaut" data-i18n="hv.triDefaut">Default</button>
             <button class="hv-tri-btn" data-tri="hausse" data-i18n="hv.triHausse">📈 Top gainers (30m)</button>
             <button class="hv-tri-btn" data-tri="baisse" data-i18n="hv.triBaisse">📉 Top losers (30m)</button>
+            <button class="hv-tri-btn" data-tri="rarete" data-i18n="hv.triRarete">💎 By rarity</button>
           </div>
           <div class="hv-ressources" id="hv-ressources"></div>
         </div>
