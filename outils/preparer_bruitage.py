@@ -68,6 +68,20 @@ DEBIT = "128k"
 
 EXCLUS = {"victoire.mp3"}
 
+# FENÊTRES FORCÉES — les prises où la détection automatique se trompe.
+#
+# Elle réussit sur 41 des 43 prises. Pour les deux autres, aucun réglage de
+# seuil ne marche : le resserrer assez pour les corriger décapite les sons à
+# montée progressive (une carte qu'on tire commence tout doucement). Plutôt que
+# de tordre les réglages jusqu'à casser ailleurs, on écrit la fenêtre à la main.
+# Toujours avec la RAISON : sans elle, personne ne saura pourquoi ce chiffre.
+FENETRES_FORCEES = {
+    # 600 ms de ronflement à -25 dB (manipulation) avant le vrai impact à 1440 ms.
+    "coup-armure-2.mp3": (1425, 1700),
+    # La prise contient DEUX clics (1200 ms et 1360 ms) : on garde le premier.
+    "clic-1.mp3": (1190, 1320),
+}
+
 # Les noms de sons que le JEU sait jouer (doit rester aligné sur VARIANTES dans
 # jeu/core/sons.js). Sert à repérer un fichier mal nommé : sans ce contrôle, un
 # `hero-touche-1.mp3` déposé à la place de `heros-touche-1.mp3` est simplement
@@ -216,6 +230,10 @@ def isoler(src):
         return None
     debut, fin, env, i = trouver_evenement(x)
     _, n = enveloppe(x)
+    forcee = FENETRES_FORCEES.get(src.name)
+    if forcee:
+        debut = max(0, int(forcee[0] * ECHANT / 1000))
+        fin = min(x.size, int(forcee[1] * ECHANT / 1000))
     autre = rapport_hors_evenement(env, n, debut, fin, env[i])
 
     tronque = ""
@@ -226,7 +244,8 @@ def isoler(src):
     decoupe = (f"atrim=start={debut / ECHANT:.4f}:end={fin / ECHANT:.4f},asetpts=N/SR/TB,"
                f"highpass=f={HIGHPASS_HZ}")
     return {"son": decoder_filtre(src, decoupe), "avant": avant, "autre": autre,
-            "tronque": tronque, "decoupe": decoupe, "duree_s": (fin - debut) / ECHANT}
+            "tronque": tronque + (" 🔧 fenêtre forcée" if forcee else ""),
+            "decoupe": decoupe, "duree_s": (fin - debut) / ECHANT}
 
 
 def encoder(x, sortie):
@@ -313,10 +332,14 @@ def traiter(chemin):
 
     debut, fin, env, i = trouver_evenement(x)
     _, n = enveloppe(x)
+    forcee = FENETRES_FORCEES.get(src.name)
+    if forcee:
+        debut = max(0, int(forcee[0] * ECHANT / 1000))
+        fin = min(x.size, int(forcee[1] * ECHANT / 1000))
     autre = rapport_hors_evenement(env, n, debut, fin, env[i])
 
     duree_s = (fin - debut) / ECHANT
-    tronque = ""
+    tronque = " 🔧 fenêtre forcée" if forcee else ""
     if duree_s * 1000 > DUREE_MAX_MS:
         fin = debut + int(DUREE_MAX_MS * ECHANT / 1000)
         duree_s = (fin - debut) / ECHANT
