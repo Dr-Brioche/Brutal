@@ -87,6 +87,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   const elOnglets = document.getElementById("inv-onglets");
   const elOr = document.getElementById("inv-or");
   const elPv = document.getElementById("inv-pv");
+  const elPvFill = document.getElementById("inv-pv-fill");
   const elMenu = document.getElementById("inv-menu");
   const canvasHero = document.getElementById("inv-hero");
   const elAide = overlay.querySelector(".inv-aide");
@@ -102,16 +103,37 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   // ONGLET de sac affiché (0 = sac principal, 1 = 2e sac). Chaque sac est une
   // grille séparée → on n'en montre qu'UNE à la fois (jamais trop large).
   let ongletActif = 0;
+  // La barre d'onglets contient les SACS, puis un onglet STATS (29/07/2026). Les
+  // stats étaient tassées sous le héros ; elles ont maintenant toute la largeur
+  // du sac pour elles. `ongletActif === STATS` = on affiche les stats à la place
+  // de la grille. C'est un indice à part plutôt qu'un booléen : les onglets sont
+  // une seule liste, au clavier comme à la souris.
+  const STATS = "stats";
+  const enStats = () => ongletActif === STATS;
+  // Les onglets, dans l'ordre : un par sac, puis « Stats ».
+  const listeOnglets = () => [...Array(nbSacs(inventaire)).keys(), STATS];
 
-  // Change d'onglet (clampé au nb de sacs). Si on TIENT un objet, il reste en main :
-  // le poser dans le nouvel onglet l'y déplace (déplacement inter-onglets).
+  // Change d'onglet. Si on TIENT un objet, il reste en main : le poser dans le
+  // nouvel onglet l'y déplace (déplacement inter-onglets).
   function setOnglet(t) {
-    const nb = nbSacs(inventaire);
-    ongletActif = Math.max(0, Math.min(nb - 1, t));
+    ongletActif = listeOnglets().includes(t) ? t : 0;
     cursorX = 0; cursorY = 0;
     rendre();
-    if (tenu) { const c = calculerCible(cursorX, cursorY); cibleX = c.x; cibleY = c.y; ghostVersCase(cibleX, cibleY); }
+    if (tenu && !enStats()) { const c = calculerCible(cursorX, cursorY); cibleX = c.x; cibleY = c.y; ghostVersCase(cibleX, cibleY); }
   }
+
+  // Onglet suivant / précédent (cycle sur toute la liste, stats comprises).
+  function decalerOnglet(pas) {
+    const l = listeOnglets();
+    const i = Math.max(0, l.indexOf(ongletActif));
+    setOnglet(l[(i + pas + l.length) % l.length]);
+  }
+
+  // Le sac AFFICHÉ : en vue stats, on garde le dernier sac consulté pour que
+  // revenir aux onglets de sac ne perde pas sa place, et pour que tout le code de
+  // grille (placement, curseur…) continue de parler d'un numéro de sac valide.
+  let dernierSac = 0;
+  const sacAffiche = () => (enStats() ? dernierSac : ongletActif);
 
   // ---- Prendre / poser ------------------------------------------------------
 
@@ -123,8 +145,8 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   // Coin haut-gauche de pose, clampé à la grille (à partir d'une case d'ancrage).
   function calculerCible(ancreX, ancreY) {
     const d = itemDef(tenu.objet.id);
-    const rangs = rangsInventaire(inventaire, ongletActif);
-    const cols = colsInventaire(inventaire, ongletActif);
+    const rangs = rangsInventaire(inventaire, sacAffiche());
+    const cols = colsInventaire(inventaire, sacAffiche());
     return {
       x: Math.max(0, Math.min(cols - d.taille.l, ancreX - tenu.offX)),
       y: Math.max(0, Math.min(rangs - d.taille.h, ancreY - tenu.offY)),
@@ -173,7 +195,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     refCible.style.top = cibleY * CASE + "px";
     refCible.style.width = d.taille.l * CASE + "px";
     refCible.style.height = d.taille.h * CASE + "px";
-    const ok = peutPlacerA(inventaire, tenu.objet, cibleX, cibleY, ongletActif);
+    const ok = peutPlacerA(inventaire, tenu.objet, cibleX, cibleY, sacAffiche());
     refCible.classList.toggle("inv-cible--ok", ok);
     refCible.classList.toggle("inv-cible--non", !ok);
   }
@@ -200,7 +222,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   function poserA(x, y) {
     if (!tenu) return;
-    if (deplacerObjet(inventaire, tenu.objet, x, y, ongletActif)) { lacher(); rendre(); }
+    if (deplacerObjet(inventaire, tenu.objet, x, y, sacAffiche())) { lacher(); rendre(); }
     // Place occupée : on garde l'objet en main (le joueur retente ailleurs).
   }
 
@@ -237,7 +259,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   elGrille.addEventListener("pointerdown", (ev) => {
     if (ev.button !== 0 || confirmationActive() || tenu) return;
     const c = caseDepuisClient(ev.clientX, ev.clientY);
-    const o = objetSousCase(inventaire, c.x, c.y, ongletActif);
+    const o = objetSousCase(inventaire, c.x, c.y, sacAffiche());
     if (!o) return;
     ev.preventDefault(); // pas de sélection de texte pendant le drag
     soulever(o, c.x - o.x, c.y - o.y);
@@ -256,7 +278,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const slotCell = el && el.closest ? el.closest(".inv-slot") : null;
     if (slotCell && slotCell.dataset.slot) { equiperTenu(slotCell.dataset.slot); return; }
     if (el && el.closest && el.closest("#inv-grille")) {
-      if (deplacerObjet(inventaire, tenu.objet, cibleX, cibleY, ongletActif)) { lacher(); rendre(); }
+      if (deplacerObjet(inventaire, tenu.objet, cibleX, cibleY, sacAffiche())) { lacher(); rendre(); }
       else { annulerTenu(); } // case occupée → l'objet retourne à sa place
       return;
     }
@@ -390,16 +412,21 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
     // Changer d'ONGLET de sac au clavier (A/E = onglet précédent/suivant), quand
     // il y a un 2e sac. Marche aussi en tenant un objet (pour le poser dans l'autre sac).
-    if ((e.code === "KeyE" || e.code === "BracketRight") && nbSacs(inventaire) > 1) {
+    // (Il y a TOUJOURS au moins deux onglets depuis l'ajout de « Stats » : le
+    // raccourci n'est donc plus conditionné à la présence d'un 2e sac.)
+    if (e.code === "KeyE" || e.code === "BracketRight") {
       e.preventDefault(); if (enBoutique) e.stopImmediatePropagation();
-      setOnglet((ongletActif + 1) % nbSacs(inventaire));
+      decalerOnglet(1);
       return;
     }
-    if (e.code === "BracketLeft" && nbSacs(inventaire) > 1) {
+    if (e.code === "BracketLeft") {
       e.preventDefault(); if (enBoutique) e.stopImmediatePropagation();
-      setOnglet((ongletActif - 1 + nbSacs(inventaire)) % nbSacs(inventaire));
+      decalerOnglet(-1);
       return;
     }
+    // En vue STATS il n'y a pas de grille : le curseur, la prise d'objet et le
+    // menu contextuel n'ont plus de sens. On laisse passer le reste (Échap, B…).
+    if (enStats()) return;
 
     // Déplacement du curseur case par case (WASD + ZQSD + flèches).
     const ddx = { ArrowLeft: -1, ArrowRight: 1, KeyA: -1, KeyD: 1, KeyQ: -1 };
@@ -407,8 +434,8 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     if (e.code in ddx || e.code in ddy) {
       e.preventDefault();
       if (enBoutique) e.stopImmediatePropagation();
-      const rangs = rangsInventaire(inventaire, ongletActif);
-      cursorX = Math.max(0, Math.min(colsInventaire(inventaire, ongletActif) - 1, cursorX + (ddx[e.code] || 0)));
+      const rangs = rangsInventaire(inventaire, sacAffiche());
+      cursorX = Math.max(0, Math.min(colsInventaire(inventaire, sacAffiche()) - 1, cursorX + (ddx[e.code] || 0)));
       cursorY = Math.max(0, Math.min(rangs - 1, cursorY + (ddy[e.code] || 0)));
       cursorVisible = true;
       if (tenu) { const c = calculerCible(cursorX, cursorY); cibleX = c.x; cibleY = c.y; }
@@ -425,7 +452,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
         const c = calculerCible(cursorX, cursorY);
         poserA(c.x, c.y);
       } else {
-        const o = objetSousCase(inventaire, cursorX, cursorY, ongletActif);
+        const o = objetSousCase(inventaire, cursorX, cursorY, sacAffiche());
         if (o) { soulever(o, cursorX - o.x, cursorY - o.y); ghostVersCase(cibleX, cibleY); }
       }
       return;
@@ -435,7 +462,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     if (e.code === "KeyX") {
       e.preventDefault();
       if (enBoutique) e.stopImmediatePropagation();
-      const o = tenu ? tenu.objet : objetSousCase(inventaire, cursorX, cursorY, ongletActif);
+      const o = tenu ? tenu.objet : objetSousCase(inventaire, cursorX, cursorY, sacAffiche());
       if (o) {
         if (tenu) lacher();
         ouvrirContexteCase(cursorX, cursorY, menuSac(o));
@@ -453,7 +480,9 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
         ? t("inv.aideVendreSlot")
         : t("inv.aideCaseSlot");
     } else if (!enBoutique) {
-      const bagHint = nbSacs(inventaire) > 1 ? t("inv.aideSwitchBag") : "";
+      // [E] change d'ONGLET — et il y a toujours au moins « Sac » + « Stats »,
+      // donc l'astuce est utile même sans 2e sac.
+      const bagHint = t("inv.aideSwitchBag");
       elAide.textContent = (cursorVisible
         ? t("inv.aideClavier")
         : t("inv.aideSouris")) + bagHint + t("inv.aideClose");
@@ -646,18 +675,18 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   function rendreGrille() {
     elGrille.replaceChildren();
-    const rangs = rangsInventaire(inventaire, ongletActif);
-    const cols  = colsInventaire(inventaire, ongletActif);
+    const rangs = rangsInventaire(inventaire, sacAffiche());
+    const cols  = colsInventaire(inventaire, sacAffiche());
     elGrille.style.width  = cols  * CASE + "px";
     elGrille.style.height = rangs * CASE + "px";
 
     // Item sous le curseur clavier (null si case vide ou pas de curseur).
     const objetSousCurseur = (cursorVisible && !tenu)
-      ? objetSousCase(inventaire, cursorX, cursorY, ongletActif)
+      ? objetSousCase(inventaire, cursorX, cursorY, sacAffiche())
       : null;
 
     for (const o of inventaire.objets) {
-      if ((o.sac ?? 0) !== ongletActif) continue; // seulement les objets de l'onglet affiché
+      if ((o.sac ?? 0) !== sacAffiche()) continue; // seulement les objets de l'onglet affiché
       const d = itemDef(o.id);
       const ic = iconeItem(o.id, o.qualite);
       if (tenu && o === tenu.objet) ic.classList.add("inv-item--tenu"); // grisé (en main)
@@ -699,10 +728,19 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   }
 
   function rendre() {
+    if (!enStats()) dernierSac = ongletActif;   // mémorise le sac avant d'aller aux stats
     clamperCurseur();
     if (!tenu) cacherInfobulle(); // une icône survolée peut disparaître (équip/déséquip)
     elOr.textContent = inventaire.or;
+    // La VIE : chiffres + barre rouge sous le héros.
     elPv.textContent = `${heros.pv}/${heros.pvMax}`;
+    if (elPvFill) {
+      const pct = heros.pvMax > 0 ? Math.max(0, Math.min(100, heros.pv / heros.pvMax * 100)) : 0;
+      elPvFill.style.width = pct + "%";
+    }
+    // Sac OU stats : jamais les deux (ils occupent la même place).
+    elGrille.hidden = enStats();
+    elStats.hidden = !enStats();
     rendreColonne(elGauche, COL_GAUCHE);
     rendreBagues();
     rendreColonne(elArmes, SLOTS_ARME);
@@ -714,9 +752,12 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   }
 
   function clamperCurseur() {
-    if (ongletActif >= nbSacs(inventaire)) ongletActif = 0; // 2e sac retiré → retour onglet 1
-    const rangs = rangsInventaire(inventaire, ongletActif);
-    cursorX = Math.max(0, Math.min(colsInventaire(inventaire, ongletActif) - 1, cursorX));
+    // 2e sac retiré alors qu'on le regardait → retour au sac principal. Le test
+    // ne vaut que pour les onglets de SAC : « stats » n'est pas un numéro.
+    if (typeof ongletActif === "number" && ongletActif >= nbSacs(inventaire)) ongletActif = 0;
+    if (dernierSac >= nbSacs(inventaire)) dernierSac = 0;
+    const rangs = rangsInventaire(inventaire, sacAffiche());
+    cursorX = Math.max(0, Math.min(colsInventaire(inventaire, sacAffiche()) - 1, cursorX));
     cursorY = Math.max(0, Math.min(rangs - 1, cursorY));
   }
 
@@ -726,15 +767,17 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function rendreOnglets() {
     if (!elOnglets) return;
     const nb = nbSacs(inventaire);
-    const noms = ["Bag", "Bag 2"];
-    const boutons = [];
-    for (let t = 0; t < nb; t++) {
+    const boutons = listeOnglets().map((id) => {
       const b = document.createElement("button");
-      b.className = "inv-onglet" + (t === ongletActif ? " inv-onglet--actif" : "");
-      b.textContent = nb > 1 ? noms[t] : "Bag";
-      b.addEventListener("click", () => setOnglet(t));
-      boutons.push(b);
-    }
+      b.className = "inv-onglet" + (id === ongletActif ? " inv-onglet--actif" : "");
+      // ⚠ Les libellés étaient ÉCRITS EN DUR en anglais ici — ils restaient donc
+      // « Bag » même en français. Ils passent par les textes comme le reste.
+      b.textContent = id === STATS ? t("inv.ongletStats")
+                    : nb > 1 ? t(id === 0 ? "inv.slot.sac" : "inv.slot.sac2")
+                    : t("inv.slot.sac");
+      b.addEventListener("click", () => setOnglet(id));
+      return b;
+    });
     elOnglets.replaceChildren(...boutons);
   }
 
