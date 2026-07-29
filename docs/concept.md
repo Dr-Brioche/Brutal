@@ -447,6 +447,40 @@ s'affiche **en haut à droite** (miroir des bonus permanents du héros, à gauch
 `#combat-permanents-monstres` — survol = explication. Chiffres réglables dans l'onglet Excel
 *Général* (section « Passifs de famille »).
 
+**Famille KOBOLDS — « le peuple de la cire » (`kobold`, ajout du 29/07/2026, stats 1er jet).**
+Des lézards **mineurs** qui vivent dans les galeries profondes et vouent un culte aux
+**chandelles** : ils en portent sur leur casque, sur leur dos, sur leur roi — sous terre, la
+lumière est la vraie richesse. **Clan homogène** (comme les champignons et les blobs), en
+profondeur via `monstresProfonds`. Ils occupent la tranche **niveau 6 → 11** : ils prennent
+le relais des champignons (5-7) et mènent au Roi de cire, juste avant la Tour de siège (12).
+
+- *Candle Kobold* (niv 6, troupier de base, pioche courte),
+  *Kobold Hammerhand* (niv 7, maillet à deux mains : lent, mais lourd),
+  *Kobold Venomshot* (niv 7, `range` : arbalète, fragile et très rapide),
+  *Kobold Deepbreaker* (niv 9, **grand** : deux pioches → **2 coups** par attaque),
+  *Kobold War-Cart* (niv 10, **grand** + `range` : un chariot tiré par deux rats, armé
+  d'un faisceau de canons → **3 coups** à distance),
+  *The Wax King* (niv 11, chef du clan).
+- **Butin de famille** : **charbon** (50 %, ×1-2) et **pierre taillée** (25 %) — ce qu'ils
+  viennent d'extraire. Réglage dans `data/butin.js` (`BUTIN_FAMILLE.kobold`).
+
+**MÉCANIQUE NOUVELLE — l'ESCORTE OBLIGATOIRE (décision Brioche 29/07/2026).** Le **Roi de
+cire** n'apparaît **JAMAIS seul** : ses **deux porte-cire** (*Wax Bearer*, *Candle Servant*)
+viennent **toujours** avec lui. La rencontre mange donc **3 places d'un coup** (lui 1 + ses
+deux serviteurs), et le jeu **refuse de le tirer** s'il ne reste pas les trois places.
+- Le Roi n'est donc **pas** `grand` (sinon 2 + 2 = 4 places) : c'est `tailleRel: 1.15` qui
+  lui donne sa stature à l'écran, pas son emprise sur la ligne de combat.
+- Les deux porte-cire sont `spawnOnly: true` : exclus de tous les tirages normaux, ils
+  n'existent qu'en escorte.
+- **Ce que ça change en combat** : l'un **donne de la Pierre** aux alliés (le Roi devient
+  très dur à entamer), l'autre **soigne** et **presse** (hâte). Il faut donc choisir —
+  abattre les serviteurs d'abord, ou foncer sur le Roi et encaisser.
+- Côté code : champ **`escorte: [ids]`** sur la définition + `placesTotales()` et
+  `escorteDe()` dans `data/ennemis.js` ; `composerGroupe` les applique au meneur **et** aux
+  compagnons. Mécanisme **générique** : tout futur monstre à cortège n'a qu'à déclarer
+  `escorte`. (À ne pas confondre avec `splitEnMort`, qui fait apparaître des mobs **à la
+  mort** — ici c'est **à l'apparition**.)
+
 **Le LAPIN BLANC — rencontre SPÉCIALE rare, à 3 stades (23/07/2026).** En mine, **dès
 l'étage 4** (~4 % des rencontres éligibles), on peut tomber sur le Lapin blanc. Il
 apparaît **toujours seul ou entre lapins**, **jamais mêlé** à d'autres créatures (spawn

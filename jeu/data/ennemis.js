@@ -53,6 +53,14 @@ const STATS_MONSTRES = {
   "warrior-mushroom2": { nom: "Fungal Knight", niveau: 6, famille: "mushroom", pv: 48, attaque: 15, xp: 200, vitesse: 150, actions: [] },
   "black-mushroom-specialist": { nom: "Deathcap Reaper", niveau: 7, famille: "mushroom", pv: 50, attaque: 18, xp: 280, vitesse: 168, actions: [] },
   "king-mushroom": { nom: "Mushroom King", niveau: 7, famille: "mushroom", pv: 120, attaque: 20, xp: 560, vitesse: 100, actions: [{ type: "soigner", valeur: 18, poids: 40 }, { type: "haste-allie", valeur: 2, poids: 30 }, { type: "attaque", valeur: 16, poids: 30 }], grand: true },
+  "kobolds-miner": { nom: "Candle Kobold", niveau: 6, famille: "kobold", pv: 45, attaque: 14, xp: 40, vitesse: 110, actions: [] },
+  "kobolds-miner-2": { nom: "Kobold Hammerhand", niveau: 7, famille: "kobold", pv: 62, attaque: 20, xp: 55, vitesse: 90, actions: [] },
+  "kobolds-poison": { nom: "Kobold Venomshot", niveau: 7, famille: "kobold", pv: 40, attaque: 10, xp: 55, vitesse: 140, actions: [] },
+  "big-kobolds-miner": { nom: "Kobold Deepbreaker", niveau: 9, famille: "kobold", pv: 130, attaque: 13, xp: 140, vitesse: 90, attaqueHits: 2, actions: [], grand: true },
+  "fat-kobolds": { nom: "Kobold War-Cart", niveau: 10, famille: "kobold", pv: 120, attaque: 9, xp: 200, vitesse: 150, attaqueHits: 3, actions: [], grand: true },
+  "kobolds-slave-king-1": { nom: "Wax Bearer", niveau: 10, famille: "kobold", pv: 45, attaque: 8, xp: 60, vitesse: 130, actions: [{ type: "bouclier-allie", valeur: 18, poids: 65 }, { type: "attaque", valeur: 8, poids: 35 }] },
+  "kobolds-slave-king-2": { nom: "Candle Servant", niveau: 10, famille: "kobold", pv: 45, attaque: 8, xp: 60, vitesse: 140, actions: [{ type: "soigner", valeur: 28, poids: 45 }, { type: "haste-allie", valeur: 3, poids: 30 }, { type: "attaque", valeur: 8, poids: 25 }] },
+  "kobolds-king": { nom: "The Wax King", niveau: 11, famille: "kobold", pv: 220, attaque: 26, xp: 450, vitesse: 110, actions: [{ type: "bouclier-allie", valeur: 20, poids: 25 }, { type: "attaque", valeur: 26, poids: 75 }] },
   "lapin-stage1": { nom: "White Rabbit", niveau: 7, famille: "lapin", pv: 1, attaque: 0, xp: 0, vitesse: 100, actions: [] },
   "lapin-stage2": { nom: "Feral Hare", niveau: 7, famille: "lapin", pv: 50, attaque: 10, xp: 0, vitesse: 220, attaqueHits: 2, actions: [] },
   "lapin-stage3": { nom: "Bloodfang Horror", niveau: 10, famille: "lapin", pv: 250, attaque: 10, xp: 2000, vitesse: 350, attaqueHits: 4, actions: [] },
@@ -808,6 +816,171 @@ export const ENNEMIS = [
     butin: { objets: [] },
   },
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LES KOBOLDS — le peuple de la cire (famille "kobold", ajoutée le 29/07/2026)
+  //
+  // Des lézards mineurs qui vivent dans les galeries profondes et vouent un culte
+  // aux CHANDELLES : ils en portent sur leur casque, sur leur dos, sur leur roi.
+  // Sous terre, la lumière est la vraie richesse — d'où leur obsession.
+  //
+  // Ils occupent la tranche de niveau 6 → 11 des MINES : ils prennent le relais du
+  // peuple champignon (5-7) et mènent au Roi de cire, juste avant la tour de siège
+  // (12). Comme des mineurs, ils lâchent du charbon et de la pierre taillée.
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    // Le troupier : casque à chandelles, pioche courte. La base du clan.
+    id: "kobolds-miner",
+    nom: "Candle Kobold",
+    niveau: 6,
+    famille: "kobold",
+    pv: 45,
+    attaque: 14,
+    xp: 40,
+    vitesse: 11,
+    affix: "melee",
+    planche: "images/ennemis/kobolds-miner.png",
+    portrait: { sx: 12, sy: 12, sw: 74, sh: 74 },
+    sprite: { caseL: 135, caseH: 175, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    // Le cogneur : un maillet de mine à deux mains. Lent, mais chaque coup fait mal.
+    id: "kobolds-miner-2",
+    nom: "Kobold Hammerhand",
+    niveau: 7,
+    famille: "kobold",
+    pv: 62,
+    attaque: 20,
+    xp: 55,
+    vitesse: 9,
+    affix: "melee",
+    planche: "images/ennemis/kobolds-miner-2.png",
+    portrait: { sx: 32, sy: 13, sw: 78, sh: 78 },
+    sprite: { caseL: 187, caseH: 185, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    // L'arbalétrier : capuche verte, carreaux enduits. Fragile mais très rapide,
+    // et il tire de loin — d'où `affix: "range"` (il ne sort qu'en groupe de 3+).
+    id: "kobolds-poison",
+    nom: "Kobold Venomshot",
+    niveau: 7,
+    famille: "kobold",
+    pv: 40,
+    attaque: 10,
+    xp: 55,
+    vitesse: 14,
+    affix: "range",
+    planche: "images/ennemis/kobolds-poison.png",
+    portrait: { sx: 29, sy: 0, sw: 82, sh: 82 },
+    sprite: { caseL: 155, caseH: 195, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    // La brute : DEUX pioches, donc DEUX coups par attaque (`attaqueHits: 2`).
+    // 13 × 2 = 26 par tour — il faut le tuer vite ou tenir la Pierre.
+    id: "big-kobolds-miner",
+    nom: "Kobold Deepbreaker",
+    niveau: 9,
+    famille: "kobold",
+    pv: 130,
+    attaque: 13,
+    attaqueHits: 2,
+    xp: 140,
+    vitesse: 9,
+    affix: "melee",
+    grand: true,             // occupe 2 places
+    planche: "images/ennemis/big-kobolds-miner.png",
+    portrait: { sx: 69, sy: 18, sw: 105, sh: 105 },
+    sprite: { caseL: 244, caseH: 250, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    // Le chariot de guerre : deux rats de trait tirent une plate-forme armée d'un
+    // faisceau de canons. Il MITRAILLE (3 coups par attaque) et tire de loin.
+    id: "fat-kobolds",
+    nom: "Kobold War-Cart",
+    niveau: 10,
+    famille: "kobold",
+    pv: 120,
+    attaque: 9,
+    attaqueHits: 3,
+    xp: 200,
+    vitesse: 15,
+    affix: "range",
+    grand: true,             // occupe 2 places
+    planche: "images/ennemis/fat-kobolds.png",
+    portrait: { sx: 190, sy: 8, sw: 78, sh: 78 },
+    sprite: { caseL: 343, caseH: 200, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    // PORTE-CIRE (1/2) — DÉCISION BRIOCHE 29/07/2026 : les deux petits rats
+    // n'apparaissent JAMAIS seuls, ils escortent toujours le Roi de cire (cf.
+    // `escorte` sur kobolds-king). D'où `spawnOnly: true` : ils sont exclus de
+    // tous les tirages normaux.
+    // Celui-ci PROTÈGE : à chaque tour il donne de la Pierre à un allié — le Roi
+    // devient très dur à entamer tant qu'il est debout. C'est lui qu'il faut viser.
+    id: "kobolds-slave-king-1",
+    nom: "Wax Bearer",
+    niveau: 10,
+    famille: "kobold",
+    pv: 45,
+    attaque: 8,
+    xp: 60,
+    vitesse: 13,
+    affix: "melee",
+    spawnOnly: true,
+    planche: "images/ennemis/kobolds-slave-king-1.png",
+    portrait: { sx: 11, sy: 58, sw: 69, sh: 69 },
+    sprite: { caseL: 107, caseH: 165, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    // PORTE-CIRE (2/2) — même règle : n'apparaît qu'avec le Roi.
+    // Celui-ci SOIGNE et PRESSE : il rend des PV au Roi et le fait jouer plus vite.
+    id: "kobolds-slave-king-2",
+    nom: "Candle Servant",
+    niveau: 10,
+    famille: "kobold",
+    pv: 45,
+    attaque: 8,
+    xp: 60,
+    vitesse: 14,
+    affix: "melee",
+    spawnOnly: true,
+    planche: "images/ennemis/kobolds-slave-king-2.png",
+    portrait: { sx: 9, sy: 58, sw: 69, sh: 69 },
+    sprite: { caseL: 107, caseH: 165, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+  {
+    // LE ROI DE CIRE — le chef du clan, pâle, couronné, un candélabre pour sceptre.
+    //
+    // ⚠ RÈGLE BRIOCHE (29/07/2026) : il n'apparaît JAMAIS seul. Ses deux porte-cire
+    // viennent TOUJOURS avec lui → la rencontre mange 3 places d'un coup (lui 1 +
+    // ses deux serviteurs). C'est le champ `escorte` qui dit ça, et composerGroupe
+    // refuse de le tirer s'il ne reste pas les 3 places (cf. placesTotales).
+    //
+    // Il n'est donc PAS `grand` (sinon 2 + 2 = 4 places) : c'est `tailleRel` qui lui
+    // donne sa stature à l'écran, pas son emprise sur la ligne de combat.
+    id: "kobolds-king",
+    nom: "The Wax King",
+    niveau: 11,
+    famille: "kobold",
+    pv: 220,
+    attaque: 26,
+    xp: 450,
+    vitesse: 11,
+    affix: "melee",
+    escorte: ["kobolds-slave-king-1", "kobolds-slave-king-2"],
+    tailleRel: 1.15,         // il domine ses serviteurs sans occuper 2 places
+    planche: "images/ennemis/kobolds-king.png",
+    portrait: { sx: 20, sy: 19, sw: 111, sh: 111 },
+    sprite: { caseL: 189, caseH: 265, statique: true, anims: { idle: { frames: [0], ips: 1, boucle: true }, attaque: { frames: [0], ips: 1, boucle: false }, touche: { frames: [0], ips: 1, boucle: false }, ko: { frames: [0], ips: 1, boucle: false } } },
+    butin: { objets: [] },
+  },
+
 ];
 
 // Applique les stats de l'Excel (onglet « Monstres ») PAR-DESSUS les valeurs de
@@ -918,6 +1091,20 @@ function tirerPondere(pool, poids, rng) {
 // Nombre d'EMPLACEMENTS occupés par un monstre (grand = 2, normal = 1).
 export function placesMonstre(def) { return def?.grand ? 2 : 1; }
 
+// EMPRISE TOTALE d'un monstre : lui + son escorte obligatoire. Le Roi de cire ne
+// vient jamais seul (ses deux porte-cire l'accompagnent toujours) : il « coûte »
+// donc 3 places à lui tout seul, et on ne peut pas le tirer dans un groupe plus
+// petit. Sans escorte, c'est simplement placesMonstre.
+export function placesTotales(def) {
+  const esc = def?.escorte ?? [];
+  return placesMonstre(def) + esc.reduce((n, id) => n + placesMonstre(ennemiParId(id)), 0);
+}
+
+// Les monstres de l'escorte, dans l'ordre déclaré (ignore les ids inconnus).
+function escorteDe(def) {
+  return (def?.escorte ?? []).map(ennemiParId).filter(Boolean);
+}
+
 // Tire une taille de groupe selon une distribution cumulée.
 function tirerTaille(distribution) {
   const r = Math.random();
@@ -945,6 +1132,7 @@ function clanMonstre(d) {
   if (d.famille === "blob") return "blob";
   if (d.famille === "mushroom") return "mushroom"; // les champignons entre eux
   if (d.famille === "lapin") return "lapin";       // les lapins entre eux (spawn dédié)
+  if (d.famille === "kobold") return "kobold";     // le peuple de la cire entre soi
   // La MEUTE : molosses (« hyènes ») + ours partagent le même clan → ils apparaissent
   // ensemble (une meute de bêtes sauvages, l'ours en gros membre).
   if (typeof d.id === "string" && (d.id.startsWith("molosse") || d.id.includes("bear"))) return "hound";
@@ -991,7 +1179,9 @@ export function composerGroupe(monstreIds, opts = {}) {
   const eligible = (pool) => {
     let p = taille >= 3 ? pool : pool.filter((d) => d.affix !== "range");
     if (!p.length) p = pool;                            // zone 100 % range : on assume
-    const p2 = p.filter((d) => !d.grand || taille >= 2); // un grand veut 2 places
+    // Un grand veut 2 places ; un monstre À ESCORTE veut la place du cortège entier
+    // (le Roi de cire = 3). Sans ça il sortirait dans un groupe de 1 sans ses gardes.
+    const p2 = p.filter((d) => placesTotales(d) <= taille);
     return p2.length ? p2 : p;
   };
   const poolMeneur = eligible(dansFourchette);
@@ -1011,19 +1201,20 @@ export function composerGroupe(monstreIds, opts = {}) {
     && (d.niveau ?? 1) <= Math.max(hautFourchette, meneur.niveau ?? 1));
   const niveauMeneur = meneur.niveau ?? 1;
   const poolBase = eligible(defs.length ? defs : [meneur]);
-  // Le meneur EST dans le groupe : c'est lui qu'on est venu rencontrer.
-  const groupe = [meneur];
-  let libres = taille - placesMonstre(meneur);
+  // Le meneur EST dans le groupe : c'est lui qu'on est venu rencontrer, avec son
+  // escorte obligatoire s'il en a une (le Roi de cire et ses deux porte-cire).
+  const groupe = [meneur, ...escorteDe(meneur)];
+  let libres = taille - placesTotales(meneur);
   while (libres > 0) {
-    // Un grand n'est éligible que s'il reste ≥ 2 places.
-    let pool = poolBase.filter((d) => !d.grand || libres >= 2);
+    // Chacun n'est éligible que s'il reste la place de son cortège entier.
+    let pool = poolBase.filter((d) => placesTotales(d) <= libres);
     // Un seul ROI des champignons par combat : dès qu'il est là, on l'exclut du tirage.
     if (groupe.some((g) => g.roiChampi)) pool = pool.filter((d) => !d.roiChampi);
-    if (!pool.length) pool = poolBase.filter((d) => !d.grand); // dernière place : que du normal
+    if (!pool.length) pool = poolBase.filter((d) => placesTotales(d) === 1); // dernière place : que du normal
     if (!pool.length) break; // (cas extrême zone 100 % grand + 1 place : on laisse la place vide)
     const pick = tirerCompagnon(pool, niveauMeneur, grandFacteur);
-    groupe.push(pick);
-    libres -= placesMonstre(pick);
+    groupe.push(pick, ...escorteDe(pick));
+    libres -= placesTotales(pick);
   }
   // Tri stable melee d'abord, range à la fin (positionnement visuel du combat).
   groupe.sort((a, b) => (a.affix === "range" ? 1 : 0) - (b.affix === "range" ? 1 : 0));
