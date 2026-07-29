@@ -201,6 +201,94 @@ def original(chemin):
     return src
 
 
+def isoler(src):
+    """Découpe l'événement le plus intense d'une prise et le renvoie déjà filtré
+    (passe-haut appliqué), avec les informations pour le compte rendu.
+
+    Utilisé aussi bien pour un fichier seul que pour chaque COUCHE d'un montage :
+    dans les deux cas, on veut le même geste — trouver le son, jeter le reste.
+    L'attaque se retrouve toujours à PRE_MS du début, ce qui suffit à CALER
+    plusieurs couches entre elles (cf. assembler).
+    """
+    x = decoder(src)
+    avant = mesurer(x)
+    if avant is None:
+        return None
+    debut, fin, env, i = trouver_evenement(x)
+    _, n = enveloppe(x)
+    autre = rapport_hors_evenement(env, n, debut, fin, env[i])
+
+    tronque = ""
+    if (fin - debut) / ECHANT * 1000 > DUREE_MAX_MS:
+        fin = debut + int(DUREE_MAX_MS * ECHANT / 1000)
+        tronque = f" ✂ coupé à {DUREE_MAX_MS} ms"
+
+    decoupe = (f"atrim=start={debut / ECHANT:.4f}:end={fin / ECHANT:.4f},asetpts=N/SR/TB,"
+               f"highpass=f={HIGHPASS_HZ}")
+    return {"son": decoder_filtre(src, decoupe), "avant": avant, "autre": autre,
+            "tronque": tronque, "decoupe": decoupe, "duree_s": (fin - debut) / ECHANT}
+
+
+def encoder(x, sortie):
+    """Écrit un signal numpy en mp3 mono, avec ses fondus et son niveau final."""
+    duree_s = x.size / ECHANT
+    fs = min(FONDU_SORTIE_MS / 1000, duree_s / 3)
+    fe_ = min(FONDU_ENTREE_MS / 1000, duree_s / 10)
+    pic = float(np.max(np.abs(x))) or 1e-9
+    gain = 10 ** (PIC_VISE_DB / 20) / pic
+    filtres = (f"afade=t=in:st=0:d={fe_:.4f},"
+               f"afade=t=out:st={max(0, duree_s - fs):.4f}:d={fs:.4f}")
+    r = subprocess.run(
+        [FFMPEG, "-v", "error", "-y", "-f", "f32le", "-ar", str(ECHANT), "-ac", "1",
+         "-i", "-", "-af", filtres, "-ac", "1", "-ar", str(ECHANT), "-b:a", DEBIT, str(sortie)],
+        input=(x * gain).astype(np.float32).tobytes(), capture_output=True)
+    if r.returncode != 0:
+        raise RuntimeError(f"échec de l'encodage\n{r.stderr.decode()[:300]}")
+
+
+def assembler(nom_final, parties):
+    """MONTAGE EN COUCHES : plusieurs prises SUPERPOSÉES en un seul bruitage.
+
+    Convention (décision Brioche 29/07/2026) : `coup-1.1.mp3` + `coup-1.2.mp3`
+    donnent `coup-1.mp3`. C'est ainsi qu'on fabrique un vrai son d'impact — un
+    son GRAVE pour le poids, un son CLAQUANT par-dessus pour la netteté. Un seul
+    enregistrement ne donne jamais les deux.
+
+    Calage : chaque couche est d'abord ISOLÉE, ce qui place son attaque à PRE_MS
+    du début. Les superposer à partir de zéro fait donc coïncider les attaques —
+    et c'est cette coïncidence qui les fait entendre comme UN seul coup, pas
+    comme deux bruits.
+
+    Niveaux : on respecte le RAPPORT enregistré entre les couches (aucun gain
+    par couche), et on normalise seulement la somme. Si une couche doit rester
+    discrète, il suffit de l'enregistrer plus bas — l'outil ne le défera pas.
+    """
+    couches, details = [], []
+    for p in sorted(parties):
+        iso = isoler(original(p))
+        if iso is None:
+            details.append(f"{p.name} SILENCIEUSE")
+            continue
+        couches.append(iso["son"])
+        pic = float(np.max(np.abs(iso["son"]))) or 1e-9
+        details.append(f"{p.name.split('-')[-1]} {iso['son'].size / ECHANT * 1000:.0f} ms "
+                       f"({20 * math.log10(pic):+.1f} dB)")
+    if not couches:
+        return f"{nom_final} : aucune couche exploitable"
+
+    n = max(c.size for c in couches)
+    melange = np.zeros(n, dtype=np.float64)
+    for c in couches:
+        melange[:c.size] += c            # attaques calées : on part toutes de 0
+
+    sortie = DOSSIER / nom_final
+    encoder(melange, sortie)
+    apres = mesurer(decoder(sortie))
+    return (f"{nom_final:24} {len(couches)} couches → {apres['duree_ms']:>4} ms · "
+            f"pic {apres['pic_db']:+.1f} dB · {sortie.stat().st_size / 1024:.0f} Ko"
+            f"   [{' + '.join(details)}]")
+
+
 def traiter(chemin):
     src = original(chemin)
     x = decoder(src)
@@ -270,18 +358,39 @@ def verifier(chemin):
             + (f"   ⚠ 2e son à {autre:+.0f} dB" if autre > -25 else ""))
 
 
+# Une COUCHE de montage : `coup-1.1.mp3` = 1re couche du bruitage `coup-1`.
+RE_COUCHE = re.compile(r"(.+-\d+)\.(\d+)\.mp3$")
+
+
+def grouper_couches(cibles):
+    """Sépare les fichiers en MONTAGES (nom-N.M.mp3, à superposer) et fichiers
+    simples. Renvoie ({« coup-1.mp3 »: [parties…]}, [fichiers simples])."""
+    montages, simples = {}, []
+    for c in cibles:
+        m = RE_COUCHE.fullmatch(c.name)
+        if m:
+            montages.setdefault(f"{m.group(1)}.mp3", []).append(c)
+        else:
+            simples.append(c)
+    # Une couche toute seule n'est pas un montage : on la traite comme un fichier
+    # simple (et le nom final reste `nom-N.mp3`).
+    return montages, simples
+
+
 def controler_noms(cibles):
     """Signale les fichiers dont le NOM LOGIQUE est inconnu du jeu. Sans ça, un
     fichier mal nommé est ignoré en silence et on cherche longtemps pourquoi."""
     soucis = []
     for c in cibles:
-        m = re.fullmatch(r"(.+)-(\d+)\.mp3", c.name)
+        m = RE_COUCHE.fullmatch(c.name) or re.fullmatch(r"(.+)-(\d+)\.mp3", c.name)
         if not m:
-            soucis.append(f"{c.name} : nom hors convention (attendu « nom-1.mp3 »)")
+            soucis.append(f"{c.name} : nom hors convention "
+                          "(attendu « nom-1.mp3 », ou « nom-1.1.mp3 » pour une couche)")
             continue
-        if m.group(1) not in NOMS_CONNUS:
-            proches = [n for n in NOMS_CONNUS if n.startswith(m.group(1)[:4])]
-            soucis.append(f"{c.name} : « {m.group(1)} » inconnu du jeu → IGNORÉ"
+        base = m.group(1).rsplit("-", 1)[0] if RE_COUCHE.fullmatch(c.name) else m.group(1)
+        if base not in NOMS_CONNUS:
+            proches = [n for n in NOMS_CONNUS if n.startswith(base[:4])]
+            soucis.append(f"{c.name} : « {base} » inconnu du jeu → IGNORÉ"
                           + (f" (voulais-tu « {proches[0]} » ?)" if proches else ""))
     return soucis
 
@@ -308,12 +417,29 @@ def main():
             print(f"    {s}")
         print()
 
-    for c in cibles:
+    montages, simples = grouper_couches(cibles)
+
+    for c in simples:
         if not c.exists():
             print(f"  introuvable : {c}")
             continue
         try:
             print("  " + (verifier(c) if a.verifier else traiter(c)))
+        except RuntimeError as e:
+            print(f"  {e}")
+
+    for final, parties in sorted(montages.items()):
+        try:
+            if a.verifier:
+                print(f"  {final:24} MONTAGE de {len(parties)} couches : "
+                      + ", ".join(p.name for p in sorted(parties)))
+            else:
+                print("  " + assembler(final, parties))
+                # Les couches quittent sons/interface/ : elles vivent désormais
+                # dans sources/ (c'est `original()` qui les y a copiées). Sans ça
+                # le jeu les verrait comme des bruitages à part entière.
+                for p in parties:
+                    p.unlink(missing_ok=True)
         except RuntimeError as e:
             print(f"  {e}")
 
