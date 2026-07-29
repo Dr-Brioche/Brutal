@@ -1,35 +1,41 @@
 #!/usr/bin/env python3
 """Prépare un BRUITAGE brut en fichier prêt pour le jeu.
 
-Brioche enregistre et dépose ses prises dans `sons/interface/`. Ce script fait
-tout seul les cinq gestes qu'on ferait à la main dans Audacity :
+Brioche enregistre au téléphone et dépose ses prises dans `sons/interface/`. Une
+prise brute, ça ressemble à ça : 2 à 4 secondes de silence avec, quelque part au
+milieu, le son qu'on voulait — plus, souvent, un deuxième coup, un frottement de
+doigt sur le micro, ou le bruit du bouton d'arrêt.
 
-  1. COUPE le silence du début   — sinon le son arrive en retard sur l'image, et
-                                    ça se sent énormément (c'est LE défaut n°1) ;
-  2. COUPE le silence de la fin  — du poids pour rien ;
-  3. NORMALISE le pic à -3 dB    — pour qu'aucun son ne fasse sursauter et
-                                    qu'aucun ne soit inaudible à côté des autres ;
-  4. FONDU de sortie (30 ms)     — supprime le « clac » de coupure nette ;
-  5. EXPORTE en mp3 mono 128 k   — quelques Ko par fichier.
+Ce script fait donc tout seul ce qu'on ferait à la main dans Audacity :
 
-L'ORIGINAL n'est jamais perdu : il est déplacé dans `sons/interface/sources/`
-avant traitement (même convention que les planches de monstres). Un fichier déjà
-traité est reconnu et laissé tranquille, sauf avec --forcer.
+  1. TROUVE L'ÉVÉNEMENT       — la zone la plus intense de l'enregistrement, et
+                                ses vraies limites (pas la seule pointe : un son
+                                respire, on suit sa montée et sa décroissance) ;
+  2. JETTE LE RESTE           — le silence, ET les autres bruits de la prise ;
+  3. COUPE LES GRAVES         — passe-haut à 70 Hz : un enregistrement au
+                                téléphone porte toujours du grondement de
+                                manipulation, inaudible mais qui mange du niveau ;
+  4. NORMALISE le pic à -3 dB — aucun son ne fait sursauter, aucun n'est noyé ;
+  5. FONDU d'entrée et de sortie + export mp3 mono 128 kbps.
+
+L'ORIGINAL n'est jamais perdu : il est copié dans `sons/interface/sources/` avant
+traitement, et c'est TOUJOURS de là qu'on repart. Relancer le script deux fois
+donne donc exactement le même résultat — aucune dégradation qui s'accumule.
 
 Usage :
-    python3 outils/preparer_bruitage.py --tous          # tout sons/interface/
-    python3 outils/preparer_bruitage.py coup-1.mp3      # un seul
-    python3 outils/preparer_bruitage.py --tous --forcer # même les déjà traités
+    python3 outils/preparer_bruitage.py --tous            # traite tout
+    python3 outils/preparer_bruitage.py coup-1.mp3        # un seul
     python3 outils/preparer_bruitage.py --tous --verifier  # ne fait RIEN, mesure
 
 ⚠ Ne traite JAMAIS les musiques (sons/ambiance/, sons/combat/) : une musique
 n'a pas à être normalisée ni tronquée comme un bruitage. Le jingle `victoire.mp3`
-est également exclu pour la même raison.
+est également exclu.
 """
 
 import argparse
 import math
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -47,138 +53,272 @@ RACINE = pathlib.Path(__file__).resolve().parent.parent
 DOSSIER = RACINE / "sons" / "interface"
 SOURCES = DOSSIER / "sources"
 
-PIC_VISE_DB = -3.0     # niveau de sortie : tous les bruitages au même pic
-SEUIL_DB = -45.0       # sous ce niveau (par rapport au pic), c'est du silence
-MARGE_MS = 5           # on garde ce petit avant-coup : ne pas tronquer l'attaque
-FONDU_MS = 30          # fondu de sortie
-DEBIT = "128k"
 ECHANT = 44100
+PAS_MS = 5              # finesse de l'enveloppe d'énergie
+SEUIL_EVENT_DB = -32    # limite de l'événement, SOUS SON PROPRE PIC
+TROU_MS = 90            # un creux plus court ne coupe pas l'événement (il respire)
+PRE_MS = 12             # air gardé AVANT l'attaque (ne jamais tronquer le transitoire)
+QUEUE_MS = 60           # air gardé APRÈS, pour la décroissance
+DUREE_MAX_MS = 1200     # au-delà, on coupe (et on le signale)
+FONDU_ENTREE_MS = 4     # micro-fondu : supprime le « clic » de coupure au début
+FONDU_SORTIE_MS = 40
+PIC_VISE_DB = -3.0
+HIGHPASS_HZ = 70
+DEBIT = "128k"
 
-# Fichiers à ne PAS toucher (ce ne sont pas des bruitages courts).
 EXCLUS = {"victoire.mp3"}
+
+# Les noms de sons que le JEU sait jouer (doit rester aligné sur VARIANTES dans
+# jeu/core/sons.js). Sert à repérer un fichier mal nommé : sans ce contrôle, un
+# `hero-touche-1.mp3` déposé à la place de `heros-touche-1.mp3` est simplement
+# IGNORÉ par le jeu, en silence — exactement le genre de perte de temps qu'on
+# a déjà payée avec les trous de numérotation.
+NOMS_CONNUS = {
+    "coup", "coup-armure", "heros-touche", "monstre-mort", "carte-piochee",
+    "carte-jouee", "sortilege", "bouclier", "echec", "minage", "minerai-ramasse",
+    "forge-marteau", "levelup", "or", "clic",
+}
 
 
 def decoder(chemin):
-    """Décode en mono float32 (numpy). Renvoie (echantillons, frequence)."""
+    """Décode en mono float32 (numpy)."""
     r = subprocess.run(
         [FFMPEG, "-v", "error", "-i", str(chemin),
          "-f", "f32le", "-ac", "1", "-ar", str(ECHANT), "-"],
         capture_output=True)
     if r.returncode != 0:
-        raise RuntimeError(f"{chemin.name} : ffmpeg n'a pas pu lire le fichier\n{r.stderr.decode()[:300]}")
-    return np.frombuffer(r.stdout, dtype=np.float32), ECHANT
+        raise RuntimeError(f"ffmpeg n'a pas pu lire {chemin.name}\n{r.stderr.decode()[:300]}")
+    return np.frombuffer(r.stdout, dtype=np.float32)
 
 
-def mesurer(x, fe):
-    """Pic, RMS, silence de tête et de queue — en dB et en millisecondes."""
+def decoder_filtre(chemin, filtres):
+    """Décode APRÈS avoir appliqué une chaîne de filtres ffmpeg. Sert à mesurer
+    ce que le traitement produit vraiment, avant de décider du gain final."""
+    r = subprocess.run(
+        [FFMPEG, "-v", "error", "-i", str(chemin), "-af", filtres,
+         "-f", "f32le", "-ac", "1", "-ar", str(ECHANT), "-"],
+        capture_output=True)
+    if r.returncode != 0:
+        raise RuntimeError(f"ffmpeg a refusé les filtres sur {chemin.name}\n{r.stderr.decode()[:300]}")
+    return np.frombuffer(r.stdout, dtype=np.float32)
+
+
+def enveloppe(x):
+    """Énergie (RMS) par tranches de PAS_MS. C'est là-dessus qu'on raisonne :
+    la forme d'onde brute oscille trop vite pour qu'on y lise un « événement »."""
+    n = max(1, int(PAS_MS * ECHANT / 1000))
+    m = x.size // n
+    if m == 0:
+        return np.array([1e-12]), n
+    return np.sqrt((x[:m * n].reshape(m, n) ** 2).mean(axis=1)) + 1e-12, n
+
+
+def trouver_evenement(x):
+    """Bornes (début, fin) de l'événement le PLUS INTENSE de la prise.
+
+    On part de la pointe d'énergie et on s'étend des deux côtés tant qu'on reste
+    au-dessus d'un seuil relatif à cette pointe. Le seuil est relatif AU PIC et
+    non au bruit de fond : c'est ce qui fait qu'un deuxième coup, plus faible,
+    n'est PAS rattrapé — alors qu'un simple détecteur de silence les collerait
+    ensemble avec tout l'intervalle.
+
+    `TROU_MS` évite l'excès inverse : un son a des creux internes (un rebond, une
+    résonance qui repart), et couper au premier creux le décapiterait.
+    """
+    env, n = enveloppe(x)
+    i = int(env.argmax())
+    seuil = env[i] * 10 ** (SEUIL_EVENT_DB / 20)
+    trou = max(1, int(TROU_MS / PAS_MS))
+
+    g = i
+    creux = 0
+    while g > 0:
+        g -= 1
+        creux = creux + 1 if env[g] < seuil else 0
+        if creux >= trou:
+            g += creux
+            break
+    d = i
+    creux = 0
+    while d < env.size - 1:
+        d += 1
+        creux = creux + 1 if env[d] < seuil else 0
+        if creux >= trou:
+            d -= creux
+            break
+
+    debut, fin = g * n, min(x.size, (d + 1) * n)
+
+    # RECALAGE FIN DE L'ATTAQUE. L'enveloppe est calculée par tranches de 5 ms et
+    # tolère des creux de 90 ms : elle donne la bonne ZONE, pas la milliseconde
+    # exacte où le son commence. Or c'est justement ce début qui compte — 60 ms
+    # de silence en tête et le son paraît en retard sur l'image. On cherche donc,
+    # DANS la zone retenue, le premier échantillon vraiment audible.
+    zone = x[debut:fin]
+    if zone.size:
+        pic = float(np.max(np.abs(zone))) or 1e-9
+        fort = np.flatnonzero(np.abs(zone) >= pic * 10 ** (-40 / 20))
+        if fort.size:
+            debut += int(fort[0])
+            fin = debut + int(fort[-1] - fort[0]) + 1
+
+    debut = max(0, debut - int(PRE_MS * ECHANT / 1000))
+    fin = min(x.size, fin + int(QUEUE_MS * ECHANT / 1000))
+    return debut, fin, env, i
+
+
+def rapport_hors_evenement(env, n, debut, fin, pic):
+    """Niveau du plus fort bruit RESTÉ dehors, en dB sous le pic gardé. Sert à
+    dire « il y avait un 2e son dans la prise » — utile à savoir, pas une erreur."""
+    a, b = debut // n, fin // n
+    dehors = np.concatenate([env[:a], env[b:]])
+    if dehors.size == 0:
+        return -99.0
+    return 20 * math.log10(dehors.max() / pic)
+
+
+def mesurer(x):
+    """Pic, RMS, silence de tête, en dB / ms."""
     pic = float(np.max(np.abs(x))) if x.size else 0.0
     if pic <= 0:
         return None
-    seuil = pic * (10 ** (SEUIL_DB / 20))
+    seuil = pic * 10 ** (-45 / 20)
     fort = np.flatnonzero(np.abs(x) >= seuil)
-    debut, fin = int(fort[0]), int(fort[-1])
-    rms = float(np.sqrt(np.mean(np.square(x))))
     return {
         "pic_db": 20 * math.log10(pic),
-        "rms_db": 20 * math.log10(rms) if rms > 0 else -99.0,
-        "duree_ms": round(x.size / fe * 1000),
-        "tete_ms": round(debut / fe * 1000),
-        "queue_ms": round((x.size - 1 - fin) / fe * 1000),
-        "debut": debut,
-        "fin": fin,
+        "duree_ms": round(x.size / ECHANT * 1000),
+        "tete_ms": round(int(fort[0]) / ECHANT * 1000) if fort.size else 0,
     }
 
 
-def traiter(chemin, forcer=False):
-    """Nettoie un bruitage EN PLACE (l'original part dans sources/)."""
-    x, fe = decoder(chemin)
-    m = mesurer(x, fe)
-    if m is None:
-        return f"{chemin.name} : fichier SILENCIEUX, rien à faire"
+def original(chemin):
+    """La prise BRUTE. On la met de côté au premier passage, et on repart
+    toujours d'elle : deux exécutions donnent le même résultat."""
+    src = SOURCES / chemin.name
+    if not src.exists():
+        SOURCES.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(chemin, src)
+    return src
 
-    # Déjà propre ? (démarrage franc, pic déjà au bon niveau) → on ne retouche pas :
-    # repasser un mp3 dans un encodeur mp3 dégrade un peu à chaque fois.
-    propre = m["tete_ms"] <= 15 and m["queue_ms"] <= 60 and abs(m["pic_db"] - PIC_VISE_DB) <= 1.0
-    if propre and not forcer:
-        return f"{chemin.name} : déjà propre, laissé tel quel"
 
-    # Bornes de coupe, avec la petite marge avant l'attaque.
-    marge = int(MARGE_MS * fe / 1000)
-    debut = max(0, m["debut"] - marge)
-    fin = min(x.size, m["fin"] + marge)
-    debut_s, fin_s = debut / fe, fin / fe
-    gain_db = PIC_VISE_DB - m["pic_db"]
-    duree_s = fin_s - debut_s
-    fondu_s = min(FONDU_MS / 1000, duree_s / 3)   # jamais plus d'un tiers du son
+def traiter(chemin):
+    src = original(chemin)
+    x = decoder(src)
+    avant = mesurer(x)
+    if avant is None:
+        return f"{chemin.name} : prise SILENCIEUSE, rien à faire"
 
-    filtres = (f"atrim=start={debut_s:.4f}:end={fin_s:.4f},asetpts=N/SR/TB,"
-               f"volume={gain_db:.2f}dB,"
-               f"afade=t=out:st={max(0, duree_s - fondu_s):.4f}:d={fondu_s:.4f}")
+    debut, fin, env, i = trouver_evenement(x)
+    _, n = enveloppe(x)
+    autre = rapport_hors_evenement(env, n, debut, fin, env[i])
 
-    SOURCES.mkdir(parents=True, exist_ok=True)
-    original = SOURCES / chemin.name
-    if not original.exists():          # on ne remplace jamais une source gardée
-        shutil.copy2(chemin, original)
+    duree_s = (fin - debut) / ECHANT
+    tronque = ""
+    if duree_s * 1000 > DUREE_MAX_MS:
+        fin = debut + int(DUREE_MAX_MS * ECHANT / 1000)
+        duree_s = (fin - debut) / ECHANT
+        tronque = f" ✂ coupé à {DUREE_MAX_MS} ms"
+
+    fs = min(FONDU_SORTIE_MS / 1000, duree_s / 3)
+    fe_ = min(FONDU_ENTREE_MS / 1000, duree_s / 10)
+    decoupe = (f"atrim=start={debut / ECHANT:.4f}:end={fin / ECHANT:.4f},asetpts=N/SR/TB,"
+               f"highpass=f={HIGHPASS_HZ}")
+
+    # ⚠ EN DEUX TEMPS. Le gain doit se calculer APRÈS le passe-haut : le filtre
+    # retire des graves, donc il fait BAISSER le pic. En calculant avant, les
+    # fichiers sortaient entre -2,3 et -4,9 dB au lieu des -3 visés — soit
+    # 2,6 dB d'écart entre deux sons, ce qu'on entend. On découpe et on filtre
+    # d'abord, on MESURE le résultat, puis on applique le gain juste.
+    coupe = decoder_filtre(src, decoupe)
+    pic_filtre = float(np.max(np.abs(coupe))) or 1e-9
+    gain_db = PIC_VISE_DB - 20 * math.log10(pic_filtre)
+
+    filtres = (f"{decoupe},volume={gain_db:.2f}dB,"
+               f"afade=t=in:st=0:d={fe_:.4f},"
+               f"afade=t=out:st={max(0, duree_s - fs):.4f}:d={fs:.4f}")
 
     sortie = chemin.with_suffix(".tmp.mp3")
     r = subprocess.run(
-        [FFMPEG, "-v", "error", "-y", "-i", str(original),
-         "-af", filtres, "-ac", "1", "-ar", str(ECHANT), "-b:a", DEBIT, str(sortie)],
+        [FFMPEG, "-v", "error", "-y", "-i", str(src), "-af", filtres,
+         "-ac", "1", "-ar", str(ECHANT), "-b:a", DEBIT, str(sortie)],
         capture_output=True)
     if r.returncode != 0:
         sortie.unlink(missing_ok=True)
         raise RuntimeError(f"{chemin.name} : échec de l'encodage\n{r.stderr.decode()[:300]}")
     sortie.replace(chemin)
 
-    apres = mesurer(*decoder(chemin))
+    apres = mesurer(decoder(chemin))
     ko = chemin.stat().st_size / 1024
-    return (f"{chemin.name} : {m['duree_ms']}→{apres['duree_ms']} ms · "
-            f"début {m['tete_ms']}→{apres['tete_ms']} ms · "
-            f"pic {m['pic_db']:+.1f}→{apres['pic_db']:+.1f} dB · {ko:.0f} Ko")
+    note = ""
+    if autre > -25:
+        note = f"  (2e son dans la prise à {autre:+.0f} dB — écarté)"
+    return (f"{chemin.name:24} {avant['duree_ms']:>5}→{apres['duree_ms']:>4} ms · "
+            f"pic {avant['pic_db']:+.1f}→{apres['pic_db']:+.1f} dB · {ko:.0f} Ko{tronque}{note}")
 
 
 def verifier(chemin):
-    m = mesurer(*decoder(chemin))
+    src = SOURCES / chemin.name
+    x = decoder(src if src.exists() else chemin)
+    m = mesurer(x)
     if m is None:
-        return f"{chemin.name:24} SILENCIEUX"
-    alertes = []
-    if m["tete_ms"] > 15:
-        alertes.append(f"⚠ {m['tete_ms']} ms de silence au début")
-    if m["pic_db"] > -0.5:
-        alertes.append("⚠ sature (pic à 0 dB)")
-    if abs(m["pic_db"] - PIC_VISE_DB) > 3:
-        alertes.append(f"⚠ pic à {m['pic_db']:+.1f} dB (visé {PIC_VISE_DB:+.0f})")
-    return (f"{chemin.name:24} {m['duree_ms']:>5} ms · début {m['tete_ms']:>4} ms · "
-            f"pic {m['pic_db']:>+6.1f} dB   {' '.join(alertes)}")
+        return f"{chemin.name:24} SILENCIEUSE"
+    debut, fin, env, i = trouver_evenement(x)
+    _, n = enveloppe(x)
+    autre = rapport_hors_evenement(env, n, debut, fin, env[i])
+    return (f"{chemin.name:24} prise {m['duree_ms']:>5} ms → événement "
+            f"{(fin - debut) / ECHANT * 1000:>5.0f} ms à {debut / ECHANT * 1000:>5.0f} ms"
+            + (f"   ⚠ 2e son à {autre:+.0f} dB" if autre > -25 else ""))
+
+
+def controler_noms(cibles):
+    """Signale les fichiers dont le NOM LOGIQUE est inconnu du jeu. Sans ça, un
+    fichier mal nommé est ignoré en silence et on cherche longtemps pourquoi."""
+    soucis = []
+    for c in cibles:
+        m = re.fullmatch(r"(.+)-(\d+)\.mp3", c.name)
+        if not m:
+            soucis.append(f"{c.name} : nom hors convention (attendu « nom-1.mp3 »)")
+            continue
+        if m.group(1) not in NOMS_CONNUS:
+            proches = [n for n in NOMS_CONNUS if n.startswith(m.group(1)[:4])]
+            soucis.append(f"{c.name} : « {m.group(1)} » inconnu du jeu → IGNORÉ"
+                          + (f" (voulais-tu « {proches[0]} » ?)" if proches else ""))
+    return soucis
 
 
 def main():
     ap = argparse.ArgumentParser(description="Prépare les bruitages du jeu.")
     ap.add_argument("fichiers", nargs="*", help="noms dans sons/interface/ (défaut : --tous)")
     ap.add_argument("--tous", action="store_true", help="tout sons/interface/")
-    ap.add_argument("--forcer", action="store_true", help="retraiter même les fichiers déjà propres")
     ap.add_argument("--verifier", action="store_true", help="ne modifie RIEN, affiche les mesures")
     a = ap.parse_args()
 
     if a.tous or not a.fichiers:
         cibles = sorted(p for p in DOSSIER.glob("*.mp3") if p.name not in EXCLUS)
     else:
-        cibles = [DOSSIER / f if "/" not in f else pathlib.Path(f) for f in a.fichiers]
+        cibles = [DOSSIER / f for f in a.fichiers]
 
     if not cibles:
         sys.exit(f"Aucun bruitage dans {DOSSIER.relative_to(RACINE)}")
+
+    soucis = controler_noms(cibles)
+    if soucis:
+        print("⚠ NOMS À CORRIGER (ces fichiers ne seront jamais joués) :")
+        for s in soucis:
+            print(f"    {s}")
+        print()
 
     for c in cibles:
         if not c.exists():
             print(f"  introuvable : {c}")
             continue
         try:
-            print("  " + (verifier(c) if a.verifier else traiter(c, a.forcer)))
+            print("  " + (verifier(c) if a.verifier else traiter(c)))
         except RuntimeError as e:
             print(f"  {e}")
 
     if not a.verifier:
-        print(f"\nOriginaux gardés dans {SOURCES.relative_to(RACINE)}/")
+        print(f"\nPrises brutes gardées dans {SOURCES.relative_to(RACINE)}/")
 
 
 if __name__ == "__main__":
