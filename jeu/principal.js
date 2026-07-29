@@ -78,7 +78,8 @@ import {
 import { minerauxParCoup, peutMiner, dureeCoup } from "./systems/minage.js";
 import { installerChoixProfondeur, ouvrirChoixProfondeur } from "./ui/profondeur.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
-import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonMinage, jouerSonMinerai } from "./core/sons.js";
+import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonMinage, jouerSonMinerai,
+         jouerSonOr, installerClicUI, prechargerBruitages } from "./core/sons.js";
 import { getPreference, setPreference } from "./systems/preferences.js";
 
 const canvas = document.getElementById("jeu");
@@ -871,7 +872,7 @@ export async function demarrerJeu(donneesInitiales = null) {
         } else {
           prochainMenu = () => menuVendre(i, selRoot);
           const prix = vendreObjet(inventaire, o);
-          afficherMessage(t("marchand.msgVendu", { nom: d.nom, prix }));
+          afficherMessage(t("marchand.msgVendu", { nom: d.nom, prix })); jouerSonOr();
           inventaireUI.rendre();
         }
       },
@@ -909,7 +910,7 @@ export async function demarrerJeu(donneesInitiales = null) {
           const aVendre = [...inventaire.objets];
           let somme = 0;
           for (const o of aVendre) somme += vendreObjet(inventaire, o);
-          afficherMessage(t("marchand.msgVenduN", { n: aVendre.length, prix: somme }));
+          afficherMessage(t("marchand.msgVenduN", { n: aVendre.length, prix: somme })); jouerSonOr();
           inventaireUI.rendre();
         } },
     ], 0, retourVente);
@@ -926,7 +927,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       { texte: t("marchand.vendreConfOui", { prix }), action: () => {
           prochainMenu = retourVente;
           vendreObjet(inventaire, o);
-          afficherMessage(t("marchand.msgVendu", { nom: d.nom, prix }));
+          afficherMessage(t("marchand.msgVendu", { nom: d.nom, prix })); jouerSonOr();
           inventaireUI.rendre();
         } },
     ], 0, retourVente);
@@ -980,6 +981,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   // libre : il ne va pas DANS le sac, il EST le sac — sinon acheter un 2e sac pour
   // agrandir l'inventaire serait bloqué par « sac plein ».
   function acheterSimple(it) {
+    jouerSonOr();   // l'or change de mains, quel que soit l'endroit où l'objet atterrit
     const slotSac = it.categorie === "sac" ? equiperNeuf(inventaire, it.id, heros) : null;
     if (slotSac) afficherMessage(t("marchand.msgSacEquipe", { nom: it.nom }));
     else if (ajouterObjet(inventaire, it.id)) afficherMessage(t("marchand.msgSacAjoute", { nom: it.nom }));
@@ -988,6 +990,7 @@ export async function demarrerJeu(donneesInitiales = null) {
   }
 
   function acheterEtEquiper(it) {
+    jouerSonOr();
     const slotLibre = equiperNeuf(inventaire, it.id, heros);
     if (slotLibre) {
       afficherMessage(t("marchand.msgEquipe", { nom: it.nom }));
@@ -1287,6 +1290,8 @@ export async function demarrerJeu(donneesInitiales = null) {
 
   // La fenêtre de butin (fin de combat gagné) : on récupère le loot d'un clic / Espace.
   const butinUI = installerButin();
+  installerClicUI();       // le tintement des boutons (un seul écouteur pour tout le jeu)
+  prechargerBruitages();   // va chercher les prises MAINTENANT, pas à l'ouverture de la page
   installerForge();    // la forge plein écran (ouverte via le forgeron)
   installerHV();       // l'hôtel des ventes plein écran (ouvert via le courtier)
   installerBatiment(); // l'écran bâtiment (ouvert via le panneau de la scierie)

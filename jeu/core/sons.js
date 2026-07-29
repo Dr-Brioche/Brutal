@@ -83,40 +83,61 @@ const enCours = new Map();
 // de synthèse d'avant (plus bas dans ce fichier). On peut donc remplir le dossier
 // UN SON À LA FOIS, sans jamais rien casser ni rien avoir à recâbler.
 //
-// AJOUTER UN SON : une ligne ici (nom logique → nombre de prises), et déposer les
-// fichiers. Rien d'autre. La liste complète, avec le nom exact de chaque fichier
-// et quand il se déclenche, est dans `sons/README.md`.
+// AJOUTER UN SON : une ligne ici (le nom logique), et déposer les fichiers.
+// Rien d'autre. La liste complète, avec le nom exact de chaque fichier et quand
+// il se déclenche, est dans `sons/README.md`.
+//
+// ⚠ PIÈGE PAYÉ (29/07/2026) : cette table donnait AVANT un NOMBRE de prises, et le
+// jeu ne cherchait que `nom-1` … `nom-N`. Brioche a déposé `bouclier-3.mp3` (sans
+// `-2`) et `monstre-mort-3.mp3` : les deux ont été purement IGNORÉS, sans le
+// moindre signe. Compter les prises à l'avance était une mauvaise idée — on ne
+// peut pas demander à quelqu'un qui enregistre de se souvenir d'un chiffre écrit
+// dans le code. Le jeu SONDE donc maintenant `-1` à `-MAX_PRISES` et se sert de
+// tout ce qui répond : les trous de numérotation n'ont plus aucune importance.
+const MAX_PRISES = 8;
 
-const VARIANTES = {
-  "coup": 3,            // arme qui touche la chair
-  "coup-armure": 2,     // arme qui touche la Pierre (armure)
-  "heros-touche": 2,    // le HÉROS encaisse
-  "monstre-mort": 2,    // un ennemi s'effondre
-  "carte-piochee": 3,   // une carte quitte la pioche
-  "carte-jouee": 2,     // une carte part vers sa cible
-  "sortilege": 2,       // sort / buff lancé
-  "bouclier": 1,        // Pierre posée sur le héros
-  "echec": 1,           // action refusée / dé raté
-  "minage": 3,          // la pioche mord la roche
-  "minerai-ramasse": 1, // le minerai tombe dans le sac
-  "forge-marteau": 3,   // le marteau frappe l'enclume
-  "levelup": 1,         // passage de niveau
-  "or": 1,              // achat / vente / or versé
-  "clic": 1,            // bouton d'interface
-};
+const VARIANTES = [
+  "coup",            // arme qui touche la chair
+  "coup-armure",     // arme qui touche la Pierre (armure)
+  "heros-touche",    // le HÉROS encaisse
+  "monstre-mort",    // un ennemi s'effondre
+  "carte-piochee",   // une carte quitte la pioche
+  "carte-jouee",     // une carte part vers sa cible
+  "sortilege",       // sort / buff lancé
+  "bouclier",        // Pierre posée sur le héros
+  "echec",           // action refusée / dé raté
+  "minage",          // la pioche mord la roche
+  "minerai-ramasse", // le minerai tombe dans le sac
+  "forge-marteau",   // le marteau frappe l'enclume
+  "levelup",         // passage de niveau
+  "or",              // achat / vente
+  "clic",            // bouton d'interface
+];
 
 // Variation de hauteur appliquée à chaque lecture (±6 %). `preservesPitch = false`
 // est OBLIGATOIRE : sans lui les navigateurs changent la vitesse en gardant la
 // hauteur, et on n'entend plus aucune différence.
 const VARIATION_HAUTEUR = 0.06;
 
-// Les <audio> modèles, un par prise, créés UNE FOIS au chargement du module.
+// Les <audio> modèles. Créés À LA DEMANDE, au premier usage de chaque son.
+//
+// ⚠ Pourquoi PAS tout au chargement : 15 sons × 8 prises = 120 requêtes, dont
+// aujourd'hui 116 en 404, à CHAQUE ouverture du jeu — et ça grandit à chaque nom
+// ajouté ici. En sondant à la demande, un son jamais joué ne coûte rien, et les
+// requêtes se répartissent au lieu de tomber toutes au démarrage.
+// Le sondage est lancé soit au premier usage d'un son, soit d'un coup par
+// `prechargerBruitages()` QUAND UNE PARTIE DÉMARRE (pas à l'ouverture de la
+// page) : l'écran-titre reste ainsi léger, et en combat tout est déjà chargé.
 const prises = new Map();
-for (const [nom, nb] of Object.entries(VARIANTES)) {
-  for (let i = 1; i <= nb; i++) {
+const sondes = new Set();
+
+function sonder(nom) {
+  if (sondes.has(nom)) return;
+  sondes.add(nom);
+  for (let i = 1; i <= MAX_PRISES; i++) {
     const cle = `${nom}-${i}`;
     const audio = new Audio(`${DOSSIER}interface/${cle}.mp3`);
-    audio.preload = "auto";   // le navigateur va chercher le fichier tout de suite
+    audio.preload = "auto";
     prises.set(cle, audio);
   }
 }
@@ -137,10 +158,10 @@ function prisePrete(cle) {
 // joué, `false` s'il n'y en a aucun — c'est CE booléen qui décide du repli sur la
 // synthèse chez l'appelant.
 export function jouerVariante(nom, opts = {}) {
-  const nb = VARIANTES[nom];
-  if (!nb) return false;
+  if (!VARIANTES.includes(nom)) return false;
+  sonder(nom);   // 1er appel : lance le chargement, et repart sur la synthèse
   const vivantes = [];
-  for (let i = 1; i <= nb; i++) {
+  for (let i = 1; i <= MAX_PRISES; i++) {
     const p = prisePrete(`${nom}-${i}`);
     if (p) vivantes.push(p);
   }
@@ -708,4 +729,33 @@ export function jouerSonCarteJouee() { jouerVariante("carte-jouee"); }
 export function jouerSonHerosTouche() {
   if (jouerVariante("heros-touche")) return;
   jouerSonCoup();
+}
+
+// Un ennemi s'effondre (explosion de braises, cf. ui/combat.js).
+export function jouerSonMonstreMort() { jouerVariante("monstre-mort"); }
+
+// Une transaction : achat ou vente chez le marchand.
+export function jouerSonOr() { jouerVariante("or"); }
+
+// Le marteau frappe l'enclume (validation du mini-jeu de forge).
+export function jouerSonForge() { jouerVariante("forge-marteau"); }
+
+// Bouton d'interface. Branché GLOBALEMENT (cf. installerClicUI ci-dessous) : pas
+// besoin de toucher à chaque écran.
+export function jouerSonClic() { jouerVariante("clic", { volume: volBruitages * 0.5 }); }
+
+// Va chercher toutes les prises d'un coup. À appeler AU DÉMARRAGE D'UNE PARTIE
+// (pas au chargement de la page) : ainsi l'écran-titre ne paie rien, et le
+// premier coup d'épée du combat joue déjà le vrai son.
+export function prechargerBruitages() { for (const nom of VARIANTES) sonder(nom); }
+
+// Écoute UNE fois tous les clics de la page et fait tinter les vrais boutons.
+// On délègue sur `document` plutôt que d'ajouter un écouteur par bouton : les
+// panneaux du jeu se construisent et se détruisent en permanence, un par bouton
+// serait à recâbler sans arrêt (et à oublier une fois sur deux).
+export function installerClicUI() {
+  document.addEventListener("pointerdown", (ev) => {
+    const el = ev.target?.closest?.("button, .bouton, [role=button]");
+    if (el && !el.disabled) jouerSonClic();
+  }, true);
 }

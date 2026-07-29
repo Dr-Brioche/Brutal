@@ -35,7 +35,7 @@ import { getPreference } from "../systems/preferences.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
 import {
   jouerSonCoup, jouerSonCoupArmure, jouerSonSortilege, jouerSonPierre, jouerSonPioche,
-  jouerSonCarteJouee, jouerSonHerosTouche,
+  jouerSonCarteJouee, jouerSonHerosTouche, jouerSonMonstreMort,
   jouerSonNegatif, jouerSon,
 } from "../core/sons.js";
 
@@ -435,6 +435,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     u.mort.actif = true;
     u.mort.t = 0;
     jouerAnim(u, "ko");
+    jouerSonMonstreMort();
     // Conversion centre du sprite : coords monde → coords écran (espace virtuel 640×360).
     const e = u.echelle;
     const wx = u.localX + u.spr.caseL / 2, wy = u.localY + u.spr.caseH * 0.5;
