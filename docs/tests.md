@@ -62,6 +62,19 @@ Pour l'équilibrage, pas besoin d'ouvrir le jeu :
 python3 outils/auditer_excel.py     # doit finir sur « 0 erreur »
 ```
 
+Idem pour les BRUITAGES que Brioche dépose dans `sons/interface/` : on ne les
+juge pas à l'oreille, on les mesure.
+
+```bash
+python3 outils/preparer_bruitage.py --tous --verifier  # mesure, ne modifie rien
+python3 outils/preparer_bruitage.py --tous             # nettoie (coupe/normalise/fondu)
+```
+
+Il attrape le défaut n°1 (du silence au début du fichier → le son arrive en
+retard sur l'image) et les écarts de niveau entre prises. **À lancer à chaque
+fois que Brioche pousse des sons.** Les originaux sont gardés dans
+`sons/interface/sources/`.
+
 Il relit les 13 onglets du classeur et les compare au **contenu réel du jeu**
 (node importe `jeu/data/*.js`, donc c'est la vraie donnée, pas une regex).
 Il attrape ce que l'œil ne voit pas : un nom changé d'un seul côté, un objet
