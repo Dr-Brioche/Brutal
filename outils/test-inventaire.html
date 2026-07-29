@@ -1,0 +1,120 @@
+<!doctype html>
+<!--
+  ⚠ PAGE DE TEST (hors jeu) — À NE PAS EMBARQUER DANS L'EXPORT FINAL.
+
+  Ouvre DIRECTEMENT la fiche de personnage / inventaire, avec un sac REMPLI et
+  de l'équipement porté. Sert à juger la mise en page pour de vrai : un sac vide
+  ne dit rien du rendu, et traverser la ville pour acheter dix objets chez le
+  marchand coûte une dizaine de tours à chaque essai.
+
+  Deux menus : la langue, et le remplissage du sac (vide / à moitié / plein).
+
+  Ouvrir : outils/test-inventaire.html (depuis un serveur local, comme le jeu).
+-->
+<meta charset="utf-8">
+<base href="../">
+<title>Brütàl — test de l'inventaire</title>
+<style>
+  body { margin: 0; background: #14110d; color: #e8e0cc; font-family: system-ui, sans-serif; }
+  #barre { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 10px 14px;
+           background: #1e1a14; border-bottom: 1px solid #3a3227; }
+  label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+  select, button { font: inherit; padding: 4px 8px; background: #2a241b; color: #e8e0cc;
+                   border: 1px solid #52463433; border-radius: 6px; }
+  button { cursor: pointer; background: #6b5426; }
+  #etat { font-size: 12px; opacity: .8; margin-left: auto; font-family: ui-monospace, monospace; }
+</style>
+
+<div id="barre">
+  <label>Langue
+    <select id="sel-langue"><option value="fr">Français</option><option value="en">English</option></select>
+  </label>
+  <label>Sac
+    <select id="sel-sac">
+      <option value="plein">plein</option>
+      <option value="moitie">à moitié</option>
+      <option value="vide">vide</option>
+    </select>
+  </label>
+  <button id="go">Ouvrir la fiche</button>
+  <span id="etat"></span>
+</div>
+
+<div id="scene"></div>
+
+<script type="module">
+  import { installerInventaire } from "./jeu/ui/inventaire.js";
+  import { creerHeros } from "./jeu/entities/heros.js";
+  import { creerInventaire, ajouterObjet, equiperNeuf, appliquerEquipement } from "./jeu/systems/inventaire.js";
+  import { appliquerTextesDOM, definirLangue } from "./jeu/systems/langue.js";
+  import { installerLangueDonnees } from "./jeu/systems/i18n_donnees.js";
+
+  const etat = document.getElementById("etat");
+
+  // On recopie le DOM du jeu (mêmes éléments, mêmes styles) — cf. test-forge.html.
+  const html = await (await fetch("./index.html")).text();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  for (const st of doc.querySelectorAll("style")) document.head.append(st.cloneNode(true));
+  const scene = document.getElementById("scene");
+  for (const el of doc.body.children) {
+    if (el.tagName === "SCRIPT") continue;
+    scene.append(el.cloneNode(true));
+  }
+  for (const id of ["ecran-titre", "dbgr-btn", "dbgr-overlay", "barre-menu", "tactile", "cadre-jeu"]) {
+    document.getElementById(id)?.remove();
+  }
+
+  // De quoi remplir : un peu de tout (tailles d'empreinte variées, piles, raretés).
+  const EQUIPEMENT = ["maille-de-forge", "collier-cuivre", "gants-de-maille", "bottes-vives",
+                      "pioche-fer", "sac-en-cuir", "hache-rouillee", "bouclier-bois",
+                      "anneau-de-fer", "bague-de-sang"];
+  const SAC_PLEIN = [["fer", 12], ["charbon", 8], ["bois", 15], ["cuir", 6],
+                     ["rubis", 3], ["pierre-taillee", 9], ["cuivre", 5],
+                     ["marteau-de-forge", 1], ["targe", 1], ["bottes-onyx", 1],
+                     ["anneau-de-givre", 1], ["gants-de-mineur", 1]];
+
+  // Charge la planche de l'armure portée (une seule image, pas tout le catalogue).
+  async function chargerPlanches(inv) {
+    const { armureEquipee } = await import("./jeu/systems/inventaire.js");
+    const chemin = armureEquipee(inv)?.planche;
+    if (!chemin) return new Map();
+    const img = new Image();
+    await new Promise((ok) => { img.onload = ok; img.onerror = ok; img.src = chemin; });
+    return new Map([[chemin, img]]);
+  }
+
+  let ui = null;
+  async function ouvrir() {
+    definirLangue(document.getElementById("sel-langue").value);
+    appliquerTextesDOM();
+    installerLangueDonnees();
+
+    const heros = creerHeros();
+    const inv = creerInventaire();
+    inv.or = 12_345;
+    for (const id of EQUIPEMENT) { try { equiperNeuf(inv, id, heros); } catch { /* id absent : on passe */ } }
+
+    const combien = document.getElementById("sel-sac").value;
+    if (combien !== "vide") {
+      const liste = combien === "plein" ? SAC_PLEIN : SAC_PLEIN.slice(0, 4);
+      for (const [id, n] of liste) { try { ajouterObjet(inv, id, n); } catch { /* id absent */ } }
+    }
+    // `planches` = Map (chemin → image). On charge UNIQUEMENT celle de l'armure
+    // portée : sans elle le héros s'affiche en carré noir, et on ne juge alors
+    // plus rien de la mise en page.
+    appliquerEquipement(heros, inv, await chargerPlanches(inv));
+    heros.pv = Math.round(heros.pvMax * 0.62);   // une barre de vie ENTAMÉE : on la voit vraiment
+    heros.niveau = 7; heros.xp = 220; heros.pointsTalent = 2;
+
+    ui = installerInventaire({
+      inventaire: inv, heros,
+      surChangement: () => {}, surFermer: () => {},
+      surJeter: () => {}, surVendre: () => {}, surLire: () => {},
+    });
+    ui.ouvrir();
+    etat.textContent = `sac ${combien} · ${inv.objets.length} objets · PV ${heros.pv}/${heros.pvMax}`;
+  }
+  document.getElementById("go").addEventListener("click", ouvrir);
+  window.__ouvrirInventaire = ouvrir;
+  ouvrir();
+</script>

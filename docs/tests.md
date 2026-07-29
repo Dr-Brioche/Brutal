@@ -18,6 +18,7 @@ partie. On ouvre une page de test qui appelle directement le module concerné.
 | Les règles du Fou du roi (marché, butin, fuite) | `outils/test-fou.html` |
 | La mise en scène du Fou (combat gelé → marché → reprise) | `outils/test-fou-marche.html` |
 | La fiche de personnage (stats et leur détail) | `outils/test-fiche.html` |
+| L'inventaire avec un SAC PLEIN (mise en page) | `outils/test-inventaire.html` |
 | Le rendu d'une carte (écussons, texte, illustration) | `outils/apercu-cartes.py` |
 | La forge (glisser-déposer des ressources) | `outils/test-forge.html` |
 | Les 3 paiements du Fou et son cadeau | le Maître d'arène + God Mode (§3) |
@@ -39,6 +40,14 @@ python3 outils/apercu-cartes.py /tmp/cartes.png --langue en frappe,boule-de-feu
 `outils/test-forge.html` : ouvre la forge avec un sac plein de ressources, sans
 traverser la ville pour trouver Grimbrück. Sert à vérifier la manipulation :
 glisser depuis la palette, tas qui suit le curseur, quantité qui fond.
+
+`outils/test-inventaire.html` : ouvre la fiche avec un sac **rempli** et de
+l'équipement porté (menus : langue, sac vide / à moitié / plein). Un sac vide ne
+dit rien du rendu, et traverser la ville pour acheter dix objets chez le marchand
+coûte une dizaine de tours à chaque essai. Expose `window.__ouvrirInventaire()`.
+⚠ La fiche a DEUX dispositions : large quand elle est ouverte seule (touche B),
+et empilée quand elle partage l'écran (marchand, butin). Tester les deux — mettre
+`document.body.className = "en-boutique"` suffit à basculer.
 
 `outils/test-fiche.html` : ouvre la fiche de personnage avec les bottes et les
 talents choisis dans deux menus, plus un sélecteur de langue. Elle affiche à
