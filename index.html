@@ -2223,7 +2223,19 @@
       0%, 100% { box-shadow: 0 0 7px rgba(176, 123, 224, 0.4); }
       50%      { box-shadow: 0 0 16px rgba(176, 123, 224, 0.85); }
     }
-    .tal-desc { min-height: 1.4em; text-align: center; color: #cbd0d6; font-size: 0.86rem; }
+    /* ⚠ HAUTEUR FIXE, PAS `min-height` (corrigé le 29/07/2026). Les descriptions
+       vont de 1 à 3 lignes ; avec une hauteur libre, survoler un talent bavard
+       rallongeait le panneau, ce qui déclenchait l'auto-réduction `panneau-ui` et
+       faisait RÉTRÉCIR tout l'arbre (622 → 610 px, ~2 %) à chaque changement de
+       talent survolé. L'arbre semblait respirer sous la souris. On réserve donc
+       les 3 lignes une fois pour toutes : le panneau ne bouge plus jamais.
+       Si une description venait à dépasser 3 lignes, c'est cette valeur qu'il
+       faut monter (mesure : outils/test-fiche.html, arbre ouvert). */
+    .tal-desc {
+      height: 3.75em; line-height: 1.25;      /* exactement 3 lignes */
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; color: #cbd0d6; font-size: 0.86rem;
+    }
     .tal-desc-cout { color: #9aa0a6; }
     .tal-aide { margin-top: 10px; font-size: 0.72rem; color: #6b7280; text-align: center; }
 
