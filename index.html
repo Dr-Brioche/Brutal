@@ -1697,16 +1697,27 @@
       background: transparent;   /* l'inventaire reste bien visible à côté */
       pointer-events: none;      /* on peut cliquer l'inventaire à travers */
     }
+    /* ⚠ PIÈGE PAYÉ (29/07/2026) — LE `scale` DE L'AUTO-RÉDUCTION SE FAIT ÉCRASER.
+       `.panneau-ui` pose `transform: scale(var(--echelle-ui))` pour que la fenêtre
+       tienne dans le cadre. Ces règles-ci, plus spécifiques, REMPLAÇAIENT tout le
+       `transform` : en côte à côte (marchand, butin), les trois panneaux n'étaient
+       donc JAMAIS réduits et débordaient sur un petit écran. Il faut réécrire les
+       DEUX transformations ensemble.
+       Et le décalage doit lui aussi être mis à l'échelle : `translateX(50%)` compte
+       en largeur NON réduite, donc sans le facteur le panneau réduit s'écarterait
+       trop du centre. */
     body.en-boutique .dialogue-boite {
       width: min(360px, 42vw);
       margin: 0;
-      transform: translateX(calc(-50% - 8px)); /* bord droit au centre */
+      /* bord droit au centre */
+      transform: translateX(calc((-50% - 8px) * var(--echelle-ui, 1))) scale(var(--echelle-ui, 1));
       pointer-events: auto;
     }
     body.en-boutique #inventaire { justify-content: center; }
     body.en-boutique .inv-panneau {
       margin: 0;
-      transform: translateX(calc(50% + 8px));   /* bord gauche au centre */
+      /* bord gauche au centre */
+      transform: translateX(calc((50% + 8px) * var(--echelle-ui, 1))) scale(var(--echelle-ui, 1));
     }
 
     /* ---- Butin côte à côte : fenêtre de butin à GAUCHE, inventaire à DROITE
@@ -1718,13 +1729,15 @@
     }
     body.en-butin .butin-panneau {
       margin: 0;
-      transform: translateX(calc(-50% - 8px)); /* bord droit au centre */
+      /* bord droit au centre */
+      transform: translateX(calc((-50% - 8px) * var(--echelle-ui, 1))) scale(var(--echelle-ui, 1));
       pointer-events: auto;      /* …sauf sur le panneau de butin lui-même */
     }
     body.en-butin #inventaire { justify-content: center; }
     body.en-butin .inv-panneau {
       margin: 0;
-      transform: translateX(calc(50% + 8px));   /* bord gauche au centre */
+      /* bord gauche au centre */
+      transform: translateX(calc((50% + 8px) * var(--echelle-ui, 1))) scale(var(--echelle-ui, 1));
     }
 
     /* ⚠ CÔTE À CÔTE = MOITIÉ D'ÉCRAN (29/07/2026). Quand la fiche partage l'écran
