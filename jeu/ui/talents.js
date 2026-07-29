@@ -141,7 +141,10 @@ export function installerTalents({ heros, surChangement, surFermer, surAction })
     }
     const texteEffet = n.description || descEffet(n.effet);
     const badge = n.legendaire ? ` <span class="tal-legendaire">${t("tal.legendaire")}</span>` : "";
-    elDesc.innerHTML = `<b>${n.nom}</b>${badge} — ${texteEffet} <span class="tal-desc-cout">(${cout})</span>`;
+    // Le tout dans UN SEUL <span> : la zone de description est centrée en flex
+    // (hauteur figée, cf. `.tal-desc` dans index.html), et sans cet emballage le
+    // nom, le texte et le coût deviendraient trois colonnes séparées.
+    elDesc.innerHTML = `<span><b>${n.nom}</b>${badge} — ${texteEffet} <span class="tal-desc-cout">(${cout})</span></span>`;
   }
 
   function rendreLiens() {
