@@ -112,6 +112,7 @@ const VARIANTES = [
   "levelup",         // passage de niveau
   "or",              // achat / vente
   "clic",            // bouton d'interface
+  "objet",           // on attrape / on repose un objet (sac, butin de victoire)
 ];
 
 // Variation de hauteur appliquée à chaque lecture (±6 %). `preservesPitch = false`
@@ -718,6 +719,27 @@ export function jouerSonMinage() {
   jouerSonPierre();
 }
 
+// UNE VOLÉE DE TROIS COUPS (décision Brioche 29/07/2026). Un coup isolé sonnait
+// maigre : miner, c'est frapper plusieurs fois. Les trois coups tirent chacun
+// une prise au hasard avec sa propre variation de hauteur — sans ça on
+// entendrait un écho, pas un mineur au travail.
+export const COUPS_PAR_VOLEE = 3;
+export const ECART_COUP_MS = 130;
+let volee = [];
+export function jouerVoleeMinage() {
+  arreterVoleeMinage();                 // jamais deux volées superposées
+  jouerSonMinage();
+  for (let i = 1; i < COUPS_PAR_VOLEE; i++) {
+    volee.push(setTimeout(jouerSonMinage, i * ECART_COUP_MS));
+  }
+}
+// Le minage s'interrompt (on bouge, on change d'étage) : les coups en attente ne
+// doivent pas continuer à résonner dans le vide.
+export function arreterVoleeMinage() {
+  for (const id of volee) clearTimeout(id);
+  volee = [];
+}
+
 // Le minerai tombe dans le sac (fin d'un coup réussi).
 export function jouerSonMinerai() { jouerVariante("minerai-ramasse"); }
 
@@ -740,6 +762,10 @@ export function jouerSonOr() { jouerVariante("or"); }
 // Le marteau frappe l'enclume (validation du mini-jeu de forge).
 export function jouerSonForge() { jouerVariante("forge-marteau"); }
 
+// On ATTRAPE ou on REPOSE un objet : dans le sac, et au ramassage du butin de
+// victoire (même geste, même son — décision Brioche 29/07/2026).
+export function jouerSonObjet() { jouerVariante("objet"); }
+
 // Bouton d'interface. Branché GLOBALEMENT (cf. installerClicUI ci-dessous) : pas
 // besoin de toucher à chaque écran.
 export function jouerSonClic() { jouerVariante("clic", { volume: volBruitages * 0.5 }); }
@@ -753,9 +779,23 @@ export function prechargerBruitages() { for (const nom of VARIANTES) sonder(nom)
 // On délègue sur `document` plutôt que d'ajouter un écouteur par bouton : les
 // panneaux du jeu se construisent et se détruisent en permanence, un par bouton
 // serait à recâbler sans arrêt (et à oublier une fois sur deux).
+const SELECTEUR_BOUTON = "button, .bouton, [role=button]";
+
 export function installerClicUI() {
   document.addEventListener("pointerdown", (ev) => {
-    const el = ev.target?.closest?.("button, .bouton, [role=button]");
+    const el = ev.target?.closest?.(SELECTEUR_BOUTON);
     if (el && !el.disabled) jouerSonClic();
+  }, true);
+
+  // AU CLAVIER AUSSI (29/07/2026). Le jeu se joue entièrement au clavier : ne
+  // sonner qu'à la souris laissait la moitié des joueurs sans retour sonore.
+  // Ici on couvre les boutons qui ont vraiment le FOCUS (confirmation, butin,
+  // banque, coffre, écran-titre…). Les menus qui gèrent eux-mêmes leur
+  // sélection — dialogue, marchand, arbre de talents — n'ont pas de focus à
+  // observer : ils appellent `jouerSonClic()` directement au moment de valider.
+  document.addEventListener("keydown", (ev) => {
+    if (ev.code !== "Enter" && ev.code !== "NumpadEnter" && ev.code !== "Space") return;
+    const el = document.activeElement;
+    if (el && el.matches?.(SELECTEUR_BOUTON) && !el.disabled) jouerSonClic();
   }, true);
 }

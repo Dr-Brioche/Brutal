@@ -16,6 +16,7 @@ import { montrerInfobulle, suivreInfobulle, cacherInfobulle, montrerInfobulleEl 
 import { itemDef, couleurRarete } from "../data/items.js";
 import { confirmationActive } from "./confirmation.js";
 import { t } from "../systems/langue.js";
+import { jouerSonClic } from "../core/sons.js";
 
 // Touches captées par le dialogue (bloquées pour le reste du jeu pendant qu'il
 // est ouvert : pas de menu pause, pas de déplacement parasite).
@@ -223,6 +224,7 @@ export function ouvrirDialogue(dialogue, surFin) {
   // Valide le choix `i` : on ferme, on exécute son action, puis surFin. `action`
   // peut être forcée — c'est ce que fait une entrée de `menuContexte` (clic droit).
   function choisir(i, action = choix[i]?.action) {
+    jouerSonClic();   // ce menu gère sa propre sélection : pas de bouton focalisé à observer
     fermerUI();
     if (action) action();
     if (surFin) surFin();

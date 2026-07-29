@@ -6,6 +6,7 @@
 
 import { TALENTS, TALENT_GRILLE, BRANCHES, descEffet, talentsVisibles } from "../data/talents.js";
 import { t } from "../systems/langue.js";
+import { jouerSonClic } from "../core/sons.js";
 import { etatNoeud, debloquer, activerOuBasculer } from "../systems/talents.js";
 import { xpPourNiveau } from "../systems/progression.js";
 
@@ -111,6 +112,7 @@ export function installerTalents({ heros, surChangement, surFermer, surAction })
   function activer(id) {
     const n = TALENTS[id];
     if (!n) return;
+    jouerSonClic();   // l'arbre gère sa propre sélection (pas de focus navigateur)
     if (n.action) { surAction?.(id); surChangement(); rendre(); decrire(n); return; }
     if (activerOuBasculer(heros, id)) { surChangement(); rendre(); decrire(n); }
   }
