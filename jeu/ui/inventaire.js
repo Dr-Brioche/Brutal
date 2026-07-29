@@ -37,6 +37,7 @@ import { tailleCaseInventaire } from "../core/style.js";
 import { confirmationActive } from "./confirmation.js";
 import { dessinerCaseEchelle } from "../core/sprites.js";
 import { afficherMessage, montrerToast } from "./effets.js";
+import { jouerSonObjet } from "../core/sons.js";
 
 // Taille d'une case du sac, LUE dans le CSS (`--case-inv` dans index.html) : le
 // quadrillage est dessiné par un dégradé CSS, les positions sont calculées ici.
@@ -208,6 +209,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   }
 
   function soulever(objet, offX, offY) {
+    jouerSonObjet();
     cacherInfobulle();
     fermerContexte();
     tenu = { objet, offX, offY, ghost: creerGhost(objet) };
@@ -225,6 +227,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function souleverDepuisSlot(slot) {
     const id = inventaire.slots[slot];
     if (!id) return;
+    jouerSonObjet();
     cacherInfobulle();
     fermerContexte();
     tenu = { slot, id, qualite: inventaire.qualites?.[slot] ?? null, ghost: creerGhost({ id }) };
@@ -259,6 +262,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
 
   function lacher() {
     if (!tenu) return;
+    jouerSonObjet();          // l'objet retrouve une place (case, emplacement, sol…)
     tenu.ghost.remove();
     tenu = null;
     refCible = null;

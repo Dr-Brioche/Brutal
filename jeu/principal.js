@@ -78,7 +78,7 @@ import {
 import { minerauxParCoup, peutMiner, dureeCoup } from "./systems/minage.js";
 import { installerChoixProfondeur, ouvrirChoixProfondeur } from "./ui/profondeur.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
-import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonMinage, jouerSonMinerai,
+import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerVoleeMinage, arreterVoleeMinage, jouerSonMinerai,
          jouerSonOr, installerClicUI, prechargerBruitages } from "./core/sons.js";
 import { getPreference, setPreference } from "./systems/preferences.js";
 
@@ -1566,7 +1566,7 @@ export async function demarrerJeu(donneesInitiales = null) {
     veines = zone.veines ?? [];      // veines minables (mine) ; vide ailleurs
     caches = zone.estMine ? spawnerCaches() : []; // caches de butin perdu (mine seulement)
     cacheProche = null;
-    minage = null; veineProche = null;
+    minage = null; veineProche = null; arreterVoleeMinage();
     surPorte = true;                 // on arrive : ne pas re-déclencher une porte…
     surEntreeMine = true;            // … ni une entrée de mine si on atterrit dessus
     surDescente = true;              // … ni un passage de descente
@@ -1884,7 +1884,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       veine: v, t: 0,
       duree: dureeCoup(DUREE_COUP_BASE, v.type, heros.vitesseMinage),
     };
-    jouerSonMinage();
+    jouerVoleeMinage();
   }
   function avancerMinage(dt) {
     minage.t += dt;

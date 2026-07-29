@@ -15,7 +15,7 @@ import { ITEMS, couleurRarete, bonusPassifs } from "../data/items.js";
 import { t } from "../systems/langue.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
 import { animerGainXp } from "./gainXp.js";
-import { arreterSon } from "../core/sons.js";
+import { arreterSon, jouerSonObjet } from "../core/sons.js";
 
 export function installerButin() {
   const overlay = document.getElementById("butin");
@@ -94,6 +94,7 @@ export function installerButin() {
   // on pourra le reprendre après avoir fait de la place dans l'inventaire (ouvert
   // juste à côté) — ou l'abandonner en fermant la fenêtre.
   function ramasser(el) {
+    jouerSonObjet();   // même geste que dans le sac → même son (décision 29/07/2026)
     const reste = Number(el.dataset.n);
     const pris = prendre(el.dataset.id, reste) || 0;
     if (pris <= 0) { refuser(el); return 0; }

@@ -101,7 +101,8 @@ jamais les couches une à une.
 | `monstre-mort-1.mp3` `-2` | Un ennemi s'effondre (explosion de braises) | Chute molle + expiration ; ta voix ralentie pour les gros |
 | `or-1.mp3` | Achat ou vente chez le marchand | Poignée de pièces qu'on lâche |
 | `forge-marteau-1.mp3` `-2` `-3` | Le marteau frappe l'enclume (mini-jeu de forge) | Marteau sur du métal lourd |
-| `clic-1.mp3` | N'importe quel bouton d'interface | Clic sec et court, très discret |
+| `clic-1.mp3` | N'importe quel bouton d'interface, **à la souris comme au clavier** | Clic sec et court, très discret |
+| `objet-1.mp3` `-2` | **⏳ À ENREGISTRER.** On attrape ou on repose un objet — dans le sac, et au ramassage du butin de victoire (même geste, même son) | Froissement de cuir, objet posé sur une table en bois |
 
 **Tous ces sons sont branchés** : dépose le fichier, il se joue.
 
