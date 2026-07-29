@@ -263,9 +263,18 @@ def assembler(nom_final, parties):
     par couche), et on normalise seulement la somme. Si une couche doit rester
     discrète, il suffit de l'enregistrer plus bas — l'outil ne le défera pas.
     """
+    # ⚠ LES COUCHES RESTENT DANS sons/interface/ (et ne sont PAS recopiées dans
+    # sources/) : ce sont elles, les prises brutes. On les relit telles quelles à
+    # chaque exécution, donc le montage se refait à l'identique.
+    # Le piège évité : si on effaçait les couches après montage, `bouclier-1.mp3`
+    # redeviendrait un fichier simple au passage suivant — et comme un
+    # `sources/bouclier-1.mp3` d'une ancienne prise traîne, l'outil aurait
+    # reconstruit le son À PARTIR D'ELLE, détruisant le montage sans rien dire.
+    # (Le jeu, lui, ne cherche que `nom-1.mp3` … `nom-8.mp3` : les fichiers
+    # `nom-1.1.mp3` ne sont jamais demandés, ils ne le gênent pas.)
     couches, details = [], []
     for p in sorted(parties):
-        iso = isoler(original(p))
+        iso = isoler(p)
         if iso is None:
             details.append(f"{p.name} SILENCIEUSE")
             continue
@@ -282,6 +291,12 @@ def assembler(nom_final, parties):
         melange[:c.size] += c            # attaques calées : on part toutes de 0
 
     sortie = DOSSIER / nom_final
+    # Une ANCIENNE prise unique du même nom (avant qu'on passe au montage) doit
+    # partir : sinon elle resterait dans sources/ comme une bombe à retardement,
+    # prête à écraser le montage au moindre changement de nommage.
+    vieille = SOURCES / nom_final
+    if vieille.exists():
+        vieille.unlink()
     encoder(melange, sortie)
     apres = mesurer(decoder(sortie))
     return (f"{nom_final:24} {len(couches)} couches → {apres['duree_ms']:>4} ms · "
@@ -372,8 +387,11 @@ def grouper_couches(cibles):
             montages.setdefault(f"{m.group(1)}.mp3", []).append(c)
         else:
             simples.append(c)
-    # Une couche toute seule n'est pas un montage : on la traite comme un fichier
-    # simple (et le nom final reste `nom-N.mp3`).
+    # Un nom PRODUIT par un montage ne doit pas être traité comme fichier simple :
+    # sinon `bouclier-1.mp3` était d'abord reconstruit depuis l'ancienne prise
+    # unique, puis écrasé par le montage. Le résultat était bon — mais seulement
+    # grâce à l'ordre des deux passes, ce qui ne tient qu'à un fil.
+    simples = [s for s in simples if s.name not in montages]
     return montages, simples
 
 
@@ -435,11 +453,6 @@ def main():
                       + ", ".join(p.name for p in sorted(parties)))
             else:
                 print("  " + assembler(final, parties))
-                # Les couches quittent sons/interface/ : elles vivent désormais
-                # dans sources/ (c'est `original()` qui les y a copiées). Sans ça
-                # le jeu les verrait comme des bruitages à part entière.
-                for p in parties:
-                    p.unlink(missing_ok=True)
         except RuntimeError as e:
             print(f"  {e}")
 
