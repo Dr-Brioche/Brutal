@@ -72,6 +72,13 @@ export const BUTIN_FAMILLE = {
   animal: [
     { id: "cuir", chance: 0.6, qte: [1, 2] },
   ],
+  // Les KOBOLDS sont des mineurs : ils portent sur eux ce qu'ils viennent
+  // d'extraire. Charbon surtout (ils en brûlent pour leurs chandelles), et de la
+  // pierre taillée plus rarement.
+  kobold: [
+    { id: "charbon", chance: 0.5, qte: [1, 2] },
+    { id: "pierre-taillee", chance: 0.25, qte: [1, 1] },
+  ],
 };
 
 // ----- 3) RECETTES LÂCHÉES PAR LES MONSTRES ----------------------------------

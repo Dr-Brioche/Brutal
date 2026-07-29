@@ -78,6 +78,11 @@ export const EASTERN_UNDER_TUNNELS = {
     // Le peuple champignon (clan homogène : ils n'apparaissent qu'entre eux).
     "warrior-mushroom1", "warrior-mushroom2", "white-katana-mushroom",
     "black-mushroom-specialist", "mage-mushroom", "king-mushroom",
+    // Le peuple de la CIRE (kobolds mineurs, niveaux 6-11) : autre clan homogène,
+    // il prend le relais des champignons dans les étages profonds. Les deux
+    // porte-cire ne sont PAS listés : ils n'arrivent qu'escortant le Roi.
+    "kobolds-miner", "kobolds-miner-2", "kobolds-poison",
+    "big-kobolds-miner", "fat-kobolds", "kobolds-king",
   ],
   niveauMobs: [1, 3], // fourchette de niveau des monstres de la zone (affichée au HUD)
   plan: [

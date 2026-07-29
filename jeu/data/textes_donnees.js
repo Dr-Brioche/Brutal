@@ -52,6 +52,15 @@ export const TEXTES_DONNEES = {
   "mob.gobelin-blinde":            { fr: "Gobelin blindé" },
   "mob.gobelin-sans-blindage1":    { fr: "Gobelin à masse" },
   "mob.gobelin-sans-blindage2":    { fr: "Gobelin à bouclier" },
+  // Le peuple de la cire (kobolds mineurs)
+  "mob.kobolds-miner":             { fr: "Kobold à chandelle" },
+  "mob.kobolds-miner-2":           { fr: "Kobold marteleur" },
+  "mob.kobolds-poison":            { fr: "Kobold empoisonneur" },
+  "mob.big-kobolds-miner":         { fr: "Kobold brise-roche" },
+  "mob.fat-kobolds":               { fr: "Chariot de guerre kobold" },
+  "mob.kobolds-slave-king-1":      { fr: "Porte-cire" },
+  "mob.kobolds-slave-king-2":      { fr: "Serviteur à chandelles" },
+  "mob.kobolds-king":              { fr: "Le Roi de cire" },
 
   // ---- Noms d'effets de talent (générés par descEffet) ----
   "effet.pvMax":         { fr: "PV max" },
