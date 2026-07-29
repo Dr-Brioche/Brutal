@@ -1257,6 +1257,20 @@ export async function demarrerJeu(donneesInitiales = null) {
     surFermer: () => basculerTalents(),
     surAction: (id) => { if (id === "godmode") activerGodmode(); },
   });
+
+  // ⚠ À SUPPRIMER AVANT L'EXPORT FINAL (Electron/Steam) — raccourcis de TEST.
+  //
+  // Les deux talents de test ont quitté l'arbre (29/07/2026) : ils s'y voyaient,
+  // s'y cliquaient, et le nœud God Mode chevauchait même un vrai talent de la
+  // branche Forge au point de lui voler le survol. Ils restent atteignables ici,
+  // depuis la console du navigateur — c'est ce que les scripts de test utilisent
+  // (cf. docs/tests.md). Rien ne les expose au joueur.
+  window.__godmode = () => { activerGodmode(); inventaireUI.rendre(); };
+  window.__sansRencontre = (on = true) => {
+    heros.talents = { ...heros.talents, noRencontre: on ? 1 : 0 };
+    appliquerTalents(heros);
+    return `rencontres ${on ? "coupées" : "rétablies"}`;
+  };
   let talentsOuvert = false;
   function basculerTalents() {
     if (combatEnCours || dialogueActif() || enTransition) return;
