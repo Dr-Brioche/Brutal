@@ -128,6 +128,23 @@ L'original est gardé dans `sons/interface/sources/` : rien n'est jamais perdu.
 Un fichier déjà propre est reconnu et laissé tranquille (repasser un mp3 dans un
 encodeur mp3 le dégrade un peu à chaque fois).
 
+### Les sons qui ne s'enregistrent pas
+
+On n'enregistre pas une montée de niveau. `levelup` et `echec` sont donc
+**fabriqués** par `outils/synthetiser_bruitage.py` — du métal frappé (cloche,
+enclume), pas des bips de synthèse : le jeu est en pixel art détaillé avec de la
+vraie musique, un blip 8-bit jurerait.
+
+```bash
+python3 outils/synthetiser_bruitage.py            # refait les deux
+python3 outils/synthetiser_bruitage.py levelup    # un seul
+```
+
+**Pour les régler, on change les chiffres DANS le script** (fréquences, durées,
+niveaux) — jamais le mp3 dans un éditeur, sinon le réglage est perdu au prochain
+passage. Si tu enregistres un jour un vrai son pour l'un des deux, dépose-le
+normalement : le fichier enregistré remplacera le fichier fabriqué.
+
 Il reste **deux choses que la machine ne peut pas faire à ta place** :
 
 - **la durée** — vise 100 à 400 ms pour un impact, moins d'1 s pour tout ce qui
