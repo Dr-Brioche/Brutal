@@ -78,7 +78,7 @@ import {
 import { minerauxParCoup, peutMiner, dureeCoup } from "./systems/minage.js";
 import { installerChoixProfondeur, ouvrirChoixProfondeur } from "./ui/profondeur.js";
 import { creerPnj, mettreAJourPnj, dessinerPnj, piedsPnj, regarderHeros } from "./entities/pnj.js";
-import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonPierre } from "./core/sons.js";
+import { jouerMusique, jouerMusiqueFichier, arreterMusique, jouerSonMinage, jouerSonMinerai } from "./core/sons.js";
 import { getPreference, setPreference } from "./systems/preferences.js";
 
 const canvas = document.getElementById("jeu");
@@ -1865,7 +1865,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       veine: v, t: 0,
       duree: dureeCoup(DUREE_COUP_BASE, v.type, heros.vitesseMinage),
     };
-    jouerSonPierre();
+    jouerSonMinage();
   }
   function avancerMinage(dt) {
     minage.t += dt;
@@ -1889,6 +1889,7 @@ export async function demarrerJeu(donneesInitiales = null) {
       if (!ajouterObjet(inventaire, v.type, 1)) break; // sac plein : on s'arrête là
       qty++;
     }
+    jouerSonMinerai();                       // le minerai tombe dans le sac
     v.coups--;
     if (v.coups <= 0) {                      // filon épuisé → il disparaît
       veines = veines.filter((x) => x !== v);

@@ -30,12 +30,73 @@ La correspondance nom → fichier est définie dans `jeu/core/sons.js`.
 
 Tant qu'un fichier est absent, le jeu **ne plante pas** : le son est simplement silencieux.
 
+## 🎙 LES BRUITAGES À ENREGISTRER — la liste de courses
+
+**Tous ces fichiers vont dans `sons/interface/`, en `.mp3`.** Il suffit de les
+déposer : le jeu les trouve tout seul, il n'y a rien à recâbler.
+
+Un son peut avoir **plusieurs prises** numérotées (`coup-1.mp3`, `coup-2.mp3`…).
+Le jeu en tire une **au hasard** à chaque fois et lui donne une petite variation
+de hauteur (±6 %). C'est ce qui empêche le son de devenir insupportable quand on
+l'entend 200 fois dans une soirée. **On peut n'en fournir qu'une seule au début**
+et ajouter les autres plus tard.
+
+> **Tant qu'un fichier n'existe pas, le jeu rejoue le son de synthèse d'avant.**
+> On peut donc remplir ce dossier **un son à la fois**, dans l'ordre qu'on veut,
+> sans jamais rien casser.
+
+### Priorité 1 — les plus entendus (à faire en premier)
+
+| Fichiers | Quand ça se déclenche | Idée d'enregistrement |
+|---|---|---|
+| `coup-1.mp3` `coup-2.mp3` `coup-3.mp3` | Une arme touche la **chair** d'un monstre. **Le son le plus joué du jeu.** | Poing dans un coussin + claquement d'un couteau sur une planche |
+| `coup-armure-1.mp3` `coup-armure-2.mp3` | Une arme touche la **Pierre** (armure) — héros ou monstre | Clé à molette sur un radiateur, casserole |
+| `heros-touche-1.mp3` `heros-touche-2.mp3` | **Le héros** encaisse un coup. Doit se distinguer nettement de `coup` : c'est l'info « je prends cher » | Impact plus sourd, plus grave, + un souffle de voix |
+| `carte-piochee-1.mp3` `-2` `-3` | Une carte quitte la pioche (plusieurs par tour) | Frottement d'une carte à jouer sur une autre |
+| `carte-jouee-1.mp3` `-2` | Une carte part de la main vers sa cible | Carte qu'on claque sur une table |
+| `minage-1.mp3` `-2` `-3` | La pioche mord la roche (à **chaque** coup de minage) | Marteau sur une brique, un pavé, du carrelage |
+
+### Priorité 2 — les moments forts
+
+| Fichiers | Quand ça se déclenche | Idée d'enregistrement |
+|---|---|---|
+| `minerai-ramasse-1.mp3` | Le minerai tombe dans le sac (fin d'un coup réussi) | Des pièces / billes dans un bol, cailloux entrechoqués |
+| `sortilege-1.mp3` `-2` | Un sort ou un buff est lancé | Souffle + froissement de papier renversé, verre frotté |
+| `bouclier-1.mp3` | La **Pierre** (armure) se pose sur le héros | Choc grave + un léger tintement métallique |
+| `levelup-1.mp3` | Passage de niveau *(le jeu l'appelle déjà, le fichier manque : c'est muet aujourd'hui)* | Montée claire, quelque chose de gratifiant |
+| `echec-1.mp3` | Action refusée / dé raté | Note descendante courte, « plop » mat |
+
+### Priorité 3 — le liant (pas encore branchés dans le code)
+
+Ces trois-là, tu peux les enregistrer quand tu veux : **je les brancherai
+quand les fichiers seront là** (rien ne les déclenche pour l'instant).
+
+| Fichiers | Quand ça se déclenchera | Idée d'enregistrement |
+|---|---|---|
+| `monstre-mort-1.mp3` `-2` | Un ennemi s'effondre | Chute molle + expiration ; ta voix ralentie pour les gros |
+| `or-1.mp3` | Achat, vente, or versé à la sortie d'une mine | Poignée de pièces qu'on lâche |
+| `forge-marteau-1.mp3` `-2` `-3` | Le marteau frappe l'enclume (mini-jeu de forge) | Marteau sur du métal lourd |
+| `clic-1.mp3` | Bouton d'interface | Clic sec et court, très discret |
+
+### Comment enregistrer (rappel)
+
+- **Court** : 100 à 400 ms pour un impact. Moins d'1 s pour tout ce qui se répète.
+- **Couper le silence du début** — sinon le son arrive en retard sur l'image, et
+  ça se sent énormément.
+- **Normaliser à −3 dB** (Audacity → Effets → Normaliser) pour que tous les sons
+  aient le même niveau.
+- **Fondu de sortie** sur les 50 dernières millisecondes : supprime le « clac »
+  de coupure nette.
+- Export **mp3 mono, 128 kbps** → 5 à 20 Ko par fichier.
+- Les prises d'un même son doivent être **proches mais pas identiques** : c'est
+  la variété qui compte, pas la différence.
+
 ## Sons actuels
 
 | Nom logique      | Fichier(s)                              | Quand                          |
 |------------------|-----------------------------------------|--------------------------------|
 | `ambiance-city`  | `ambiance/city/1.mp3` … `5.mp3`         | Ville — playlist (intro 1-2, boucle 3-4-5) |
-| `levelup`        | `interface/levelup.mp3`                 | Passage de niveau (à fournir)  |
+| `victoire`       | `interface/victoire.mp3`                | Jingle de fin de combat gagné  |
 
 Musiques de combat (par chemin, pas par nom logique — voir `jeu/data/musiques.js`) :
 
@@ -48,3 +109,11 @@ Musiques de combat (par chemin, pas par nom logique — voir `jeu/data/musiques.
 - **`.mp3`**, mono ou stéréo.
 - Garder les fichiers **légers** (limite GitHub Pages : 100 Mo / fichier).
 - Les volumes sont réglables en jeu (menu Pause) et persistés dans le navigateur.
+
+## ⚖ Licence — à ne pas oublier (le jeu vise Steam)
+
+Si un son ne vient pas d'un enregistrement maison, il lui faut une licence
+**CC0** ou explicitement « **royalty-free, commercial use** ». Un son « gratuit »
+en CC-BY (attribution obligatoire) ou non-commercial **ne peut pas** partir dans
+un build vendu. Bonnes sources : **Sonniss GDC Bundle**, **Kenney.nl**,
+**Freesound filtré sur CC0**.
