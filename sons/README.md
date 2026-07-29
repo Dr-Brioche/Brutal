@@ -45,6 +45,30 @@ et ajouter les autres plus tard.
 > se sert de tout ce qu'il trouve. Déposer `bouclier-1` et `bouclier-3` sans `-2`
 > marche très bien : il alternera entre les deux.
 
+### Assembler plusieurs enregistrements en UN son
+
+Un bon son d'impact n'est presque jamais une seule prise : c'est un son **grave**
+pour le poids, plus un son **claquant** par-dessus pour la netteté. Aucun
+enregistrement ne donne les deux à la fois.
+
+Pour ça, il suffit d'ajouter un second numéro :
+
+```
+coup-1.1.mp3   ← la couche grave  (poing dans un coussin)
+coup-1.2.mp3   ← la couche claquante (couteau sur une planche)
+        ↓  outils/preparer_bruitage.py
+coup-1.mp3     ← les deux SUPERPOSÉS, attaques calées
+```
+
+Autant de couches qu'on veut (`.1`, `.2`, `.3`…). L'outil isole d'abord le son
+utile de chaque prise, puis les superpose en **faisant coïncider les attaques** —
+c'est cette coïncidence qui les fait entendre comme UN coup et non deux bruits.
+Les couches partent ensuite dans `sources/` : le jeu ne voit que le résultat.
+
+**Le rapport entre les couches est respecté.** Si une couche doit rester
+discrète, enregistre-la plus bas : l'outil normalise seulement le mélange final,
+jamais les couches une à une.
+
 > **Tant qu'un fichier n'existe pas, le jeu rejoue le son de synthèse d'avant.**
 > On peut donc remplir ce dossier **un son à la fois**, dans l'ordre qu'on veut,
 > sans jamais rien casser.
