@@ -81,18 +81,35 @@ et ajouter les autres plus tard.
 
 **Tous ces sons sont branchés** : dépose le fichier, il se joue.
 
-### Comment enregistrer (rappel)
+### Comment enregistrer — le NETTOYAGE EST AUTOMATIQUE
 
-- **Court** : 100 à 400 ms pour un impact. Moins d'1 s pour tout ce qui se répète.
-- **Couper le silence du début** — sinon le son arrive en retard sur l'image, et
-  ça se sent énormément.
-- **Normaliser à −3 dB** (Audacity → Effets → Normaliser) pour que tous les sons
-  aient le même niveau.
-- **Fondu de sortie** sur les 50 dernières millisecondes : supprime le « clac »
-  de coupure nette.
-- Export **mp3 mono, 128 kbps** → 5 à 20 Ko par fichier.
-- Les prises d'un même son doivent être **proches mais pas identiques** : c'est
-  la variété qui compte, pas la différence.
+**Enregistre, dépose le fichier, c'est tout.** Pas besoin de couper, normaliser
+ni faire de fondu à la main : `outils/preparer_bruitage.py` s'en charge.
+
+```bash
+python3 outils/preparer_bruitage.py --tous            # nettoie sons/interface/
+python3 outils/preparer_bruitage.py --tous --verifier  # ne modifie rien, mesure
+```
+
+Il fait les cinq gestes d'un coup, sur chaque fichier :
+
+1. **coupe le silence du début** (le défaut n°1 : sinon le son arrive en retard
+   sur l'image, et ça se sent énormément) ;
+2. **coupe le silence de la fin** ;
+3. **normalise le pic à −3 dB** — aucun son ne fait sursauter, aucun n'est noyé ;
+4. **fondu de sortie de 30 ms** — supprime le « clac » de coupure ;
+5. **exporte en mp3 mono 128 kbps** → 5 à 25 Ko par fichier.
+
+L'original est gardé dans `sons/interface/sources/` : rien n'est jamais perdu.
+Un fichier déjà propre est reconnu et laissé tranquille (repasser un mp3 dans un
+encodeur mp3 le dégrade un peu à chaque fois).
+
+Il reste **deux choses que la machine ne peut pas faire à ta place** :
+
+- **la durée** — vise 100 à 400 ms pour un impact, moins d'1 s pour tout ce qui
+  se répète. Un son trop long alourdit le combat ;
+- **la variété** — les prises d'un même son doivent être **proches mais pas
+  identiques**. C'est la variation qui empêche la lassitude, pas la différence.
 
 ## Sons actuels
 
