@@ -35,6 +35,7 @@ import { getPreference } from "../systems/preferences.js";
 import { demanderConfirmation, confirmationActive } from "./confirmation.js";
 import {
   jouerSonCoup, jouerSonCoupArmure, jouerSonSortilege, jouerSonPierre, jouerSonPioche,
+  jouerSonCarteJouee, jouerSonHerosTouche,
   jouerSonNegatif, jouerSon,
 } from "../core/sons.js";
 
@@ -973,6 +974,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
     combat.dernieresPiochesFiltre = null; // Lucky Draw : réinitialisé aussi (sinon une valeur périmée faisait clignoter les cartes piochées 0,5 s)
     combat.dernierEchangeMain = null; // Bare Hands : échanges main à animer
     if (!jouerCarte(combat, i, cible)) return; // pas assez de Chaleur, etc.
+    jouerSonCarteJouee();                      // la carte quitte la main
     carteJouee = true; // une carte a été jouée → on ne pourra plus fuir ce tour
     if (maitrise) incrementerMaitrise(maitrise, heros, carte.id);
 
@@ -1453,7 +1455,7 @@ export function demarrerCombat({ ctx, heros, inventaire, planches, ennemis, mait
             secousseHeros = 0.3;
             if (deg > 0) ajouterFlottant(`-${deg}`, heroEcran.cx, heroEcran.sommet, "#ff7a7a");
             else if (dernier && evt.attaque === 0) ajouterFlottant(`-${evt.armureAbsorbe}`, heroEcran.cx, heroEcran.sommet, "#9cd3ff");
-            if (pierreAvantTour > 0) jouerSonCoupArmure(); else jouerSonCoup();
+            if (pierreAvantTour > 0) jouerSonCoupArmure(); else jouerSonHerosTouche();
             if (dernier) {
               if (evt.poisonHero > 0) ajouterFlottant(`☠${evt.poisonHero}`, heroEcran.cx, heroEcran.sommet - 26, "#7ec850");
               if (evt.brulureRetour > 0) ajouterFlottant(`🔥${evt.brulureRetour}`, u.ecran.cx, u.ecran.sommet - 16, "#ff8a2c");

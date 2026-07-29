@@ -67,6 +67,98 @@ let volBruitages     = lireVol(CLE_VOL_B,  0.7);
 let volMusique       = lireVol(CLE_VOL_M,  0.10);
 let volMusiqueCombat = lireVol(CLE_VOL_MC, 0.30);
 
+// Dernier exemplaire joué de chaque son, pour pouvoir l'INTERROMPRE. Sans ça,
+// `jouerSon` clonait puis oubliait : le jingle de victoire continuait tout seul
+// après la fermeture de la fenêtre de butin, par-dessus la musique d'après.
+const enCours = new Map();
+
+// ---- Bruitages à VARIANTES (les prises enregistrées par Brioche) -------------
+//
+// PRINCIPE : un son logique (« coup ») peut avoir PLUSIEURS prises enregistrées,
+// nommées `sons/interface/coup-1.mp3`, `coup-2.mp3`… Le jeu en tire une AU HASARD
+// et lui applique une petite variation de HAUTEUR — sans ça, le même claquement
+// répété 200 fois dans une soirée devient insupportable.
+//
+// ⚠ LE POINT IMPORTANT : tant qu'un fichier n'existe pas, le jeu REJOUE le son
+// de synthèse d'avant (plus bas dans ce fichier). On peut donc remplir le dossier
+// UN SON À LA FOIS, sans jamais rien casser ni rien avoir à recâbler.
+//
+// AJOUTER UN SON : une ligne ici (nom logique → nombre de prises), et déposer les
+// fichiers. Rien d'autre. La liste complète, avec le nom exact de chaque fichier
+// et quand il se déclenche, est dans `sons/README.md`.
+
+const VARIANTES = {
+  "coup": 3,            // arme qui touche la chair
+  "coup-armure": 2,     // arme qui touche la Pierre (armure)
+  "heros-touche": 2,    // le HÉROS encaisse
+  "monstre-mort": 2,    // un ennemi s'effondre
+  "carte-piochee": 3,   // une carte quitte la pioche
+  "carte-jouee": 2,     // une carte part vers sa cible
+  "sortilege": 2,       // sort / buff lancé
+  "bouclier": 1,        // Pierre posée sur le héros
+  "echec": 1,           // action refusée / dé raté
+  "minage": 3,          // la pioche mord la roche
+  "minerai-ramasse": 1, // le minerai tombe dans le sac
+  "forge-marteau": 3,   // le marteau frappe l'enclume
+  "levelup": 1,         // passage de niveau
+  "or": 1,              // achat / vente / or versé
+  "clic": 1,            // bouton d'interface
+};
+
+// Variation de hauteur appliquée à chaque lecture (±6 %). `preservesPitch = false`
+// est OBLIGATOIRE : sans lui les navigateurs changent la vitesse en gardant la
+// hauteur, et on n'entend plus aucune différence.
+const VARIATION_HAUTEUR = 0.06;
+
+// Les <audio> modèles, un par prise, créés UNE FOIS au chargement du module.
+const prises = new Map();
+for (const [nom, nb] of Object.entries(VARIANTES)) {
+  for (let i = 1; i <= nb; i++) {
+    const cle = `${nom}-${i}`;
+    const audio = new Audio(`${DOSSIER}interface/${cle}.mp3`);
+    audio.preload = "auto";   // le navigateur va chercher le fichier tout de suite
+    prises.set(cle, audio);
+  }
+}
+
+// ⚠ PIÈGE PAYÉ (29/07/2026) : on testait la présence du fichier avec un écouteur
+// `error` qui marquait la prise morte. Mais l'erreur 404 arrive APRÈS le premier
+// appel — donc au tout premier coup du jeu on répondait « joué » pour un fichier
+// inexistant, la synthèse était sautée, et l'attaque était MUETTE. Le seul test
+// fiable est l'état de CHARGEMENT : `readyState >= 2` (HAVE_CURRENT_DATA) veut
+// dire que des données audio sont réellement là. Un fichier absent n'y arrive
+// jamais → on tombe proprement sur le son de synthèse.
+function prisePrete(cle) {
+  const a = prises.get(cle);
+  return a && a.readyState >= 2 ? a : null;
+}
+
+// Joue une prise au hasard du son `nom`. Renvoie `true` si un fichier a pu être
+// joué, `false` s'il n'y en a aucun — c'est CE booléen qui décide du repli sur la
+// synthèse chez l'appelant.
+export function jouerVariante(nom, opts = {}) {
+  const nb = VARIANTES[nom];
+  if (!nb) return false;
+  const vivantes = [];
+  for (let i = 1; i <= nb; i++) {
+    const p = prisePrete(`${nom}-${i}`);
+    if (p) vivantes.push(p);
+  }
+  if (!vivantes.length) return false;
+  const base = vivantes[Math.floor(Math.random() * vivantes.length)];
+  const audio = base.cloneNode();
+  audio.volume = clamp(opts.volume ?? volBruitages);
+  audio.preservesPitch = false;
+  audio.mozPreservesPitch = false;   // Firefox ancien
+  audio.webkitPreservesPitch = false; // Safari ancien
+  audio.playbackRate = 1 + (Math.random() * 2 - 1) * VARIATION_HAUTEUR;
+  enCours.set(nom, audio);
+  audio.addEventListener("ended", () => { if (enCours.get(nom) === audio) enCours.delete(nom); });
+  const p = audio.play();
+  if (p?.catch) p.catch(() => {});
+  return true;
+}
+
 // ---- Bruitages --------------------------------------------------------------
 
 const cache = new Map();
@@ -83,12 +175,9 @@ function modele(nom) {
   return audio;
 }
 
-// Dernier exemplaire joué de chaque son, pour pouvoir l'INTERROMPRE. Sans ça,
-// `jouerSon` clonait puis oubliait : le jingle de victoire continuait tout seul
-// après la fermeture de la fenêtre de butin, par-dessus la musique d'après.
-const enCours = new Map();
-
 export function jouerSon(nom, opts = {}) {
+  // Une prise ENREGISTRÉE l'emporte toujours sur le fichier unique historique.
+  if (jouerVariante(nom, opts)) return enCours.get(nom) ?? null;
   const base = modele(nom);
   if (!base) return null;
   const audio = base.cloneNode();
@@ -370,6 +459,7 @@ export function getVolumeMusiqueCombat() { return volMusiqueCombat; }
 // du fichier) et faire appeler jouerSon("nom") à la place de la synthèse.
 
 export function jouerSonCoup() {
+  if (jouerVariante("coup")) return;   // une vraie prise existe → elle gagne
   try {
     const ctx = obtenirContexte();
     const t = ctx.currentTime;
@@ -410,6 +500,7 @@ export function jouerSonCoup() {
 }
 
 export function jouerSonCoupArmure() {
+  if (jouerVariante("coup-armure")) return;   // une vraie prise existe → elle gagne
   try {
     const ctx = obtenirContexte();
     const t = ctx.currentTime;
@@ -450,6 +541,7 @@ export function jouerSonCoupArmure() {
 }
 
 export function jouerSonSortilege() {
+  if (jouerVariante("sortilege")) return;   // une vraie prise existe → elle gagne
   try {
     const ctx = obtenirContexte();
     const t = ctx.currentTime;
@@ -485,6 +577,7 @@ export function jouerSonSortilege() {
 }
 
 export function jouerSonPioche() {
+  if (jouerVariante("carte-piochee")) return;   // une vraie prise existe → elle gagne
   try {
     const ctx = obtenirContexte();
     const t = ctx.currentTime;
@@ -524,6 +617,7 @@ export function jouerSonPioche() {
 
 // Son « échec » (carte Lucky Draw rejetée, dé trop bas) : descente rapide + choc sourd.
 export function jouerSonNegatif() {
+  if (jouerVariante("echec")) return;   // une vraie prise existe → elle gagne
   try {
     const ctx = obtenirContexte();
     const t = ctx.currentTime;
@@ -557,6 +651,7 @@ export function jouerSonNegatif() {
 }
 
 export function jouerSonPierre() {
+  if (jouerVariante("bouclier")) return;   // une vraie prise existe → elle gagne
   try {
     const ctx = obtenirContexte();
     const t = ctx.currentTime;
@@ -587,4 +682,30 @@ export function jouerSonPierre() {
     choc.start(t); choc.stop(t + 0.1);
     ting.start(t + 0.05); ting.stop(t + 0.38);
   } catch (_) {}
+}
+
+// ---- Sons SANS synthèse : ils ne parlent que si le fichier existe ------------
+//
+// Ceux-là n'ont jamais eu de son de remplacement en code. Tant que la prise n'est
+// pas enregistrée, l'appel est silencieux — c'est voulu : mieux vaut le silence
+// qu'un bip qui ne ressemble à rien. Le nom du fichier attendu est dans le
+// tableau `VARIANTES` en haut de ce fichier, et détaillé dans `sons/README.md`.
+
+// La pioche mord la roche (un par coup de minage). Repli : le choc de Pierre.
+export function jouerSonMinage() {
+  if (jouerVariante("minage")) return;
+  jouerSonPierre();
+}
+
+// Le minerai tombe dans le sac (fin d'un coup réussi).
+export function jouerSonMinerai() { jouerVariante("minerai-ramasse"); }
+
+// Une carte part de la main vers sa cible.
+export function jouerSonCarteJouee() { jouerVariante("carte-jouee"); }
+
+// Le HÉROS encaisse un coup. Repli : le son d'impact générique (ce que le jeu
+// faisait jusqu'ici — héros et monstres partageaient le même bruit).
+export function jouerSonHerosTouche() {
+  if (jouerVariante("heros-touche")) return;
+  jouerSonCoup();
 }
