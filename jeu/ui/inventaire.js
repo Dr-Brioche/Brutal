@@ -9,6 +9,9 @@
 //   - on CLIQUE un objet du sac → il se SOULÈVE (suit le curseur) ;
 //   - on reclique sur une case du sac → il s'y POSE (réorganisation libre) ;
 //   - on reclique sur un slot d'équipement → il s'ÉQUIPE ;
+//   - DOUBLE-CLIC sur un objet du sac → il s'ÉQUIPE directement ;
+//   - on peut aussi GLISSER un objet PORTÉ vers le sac (ou vers un autre
+//     emplacement, ou le marchand) — le trajet marche dans les deux sens ;
 //   - clic droit (ou touche X) → menu Equip / Discard direct.
 // Au clavier : flèches/WASD pour bouger le curseur, Entrée pour soulever/poser,
 // X pour le menu Equip/Discard, Échap pour reposer l'objet tenu.
@@ -40,6 +43,10 @@ import { afficherMessage, montrerToast } from "./effets.js";
 // Les deux DOIVENT tomber pile ; en lisant la même variable, ils ne peuvent plus
 // diverger (avant, le chiffre était recopié ici, dans le coffre et dans le CSS).
 const CASE = tailleCaseInventaire();
+// Déplacement (px) au-delà duquel un appui devient un GLISSER et non un clic.
+const SEUIL_GLISSER = 5;
+// Délai (ms) sous lequel deux clics sur le MÊME objet comptent pour un double.
+const DELAI_DOUBLE_CLIC = 350;
 const ECHELLE_HERO = 2;     // 64×64 → 128 dans la fiche
 
 const COL_GAUCHE = ["armure", "collier", "gant", "botte", "outil", "sac", "sac2"];
@@ -119,7 +126,7 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     ongletActif = listeOnglets().includes(t) ? t : 0;
     cursorX = 0; cursorY = 0;
     rendre();
-    if (tenu && !enStats()) { const c = calculerCible(cursorX, cursorY); cibleX = c.x; cibleY = c.y; ghostVersCase(cibleX, cibleY); }
+    if (tenu?.objet && !enStats()) { const c = calculerCible(cursorX, cursorY); cibleX = c.x; cibleY = c.y; ghostVersCase(cibleX, cibleY); }
   }
 
   // Onglet suivant / précédent (cycle sur toute la liste, stats comprises).
@@ -210,6 +217,46 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     rendre();
   }
 
+  // SOULEVER UN OBJET ÉQUIPÉ (29/07/2026). Un objet porté n'est pas un objet du
+  // sac : c'est un simple identifiant rangé dans `inventaire.slots`, sans case ni
+  // position. Le `tenu` a donc deux formes — `{ objet }` pour le sac, `{ slot }`
+  // pour l'équipement — et tout ce qui manipule l'objet tenu doit regarder
+  // laquelle (cf. `tenuId`).
+  function souleverDepuisSlot(slot) {
+    const id = inventaire.slots[slot];
+    if (!id) return;
+    cacherInfobulle();
+    fermerContexte();
+    tenu = { slot, id, qualite: inventaire.qualites?.[slot] ?? null, ghost: creerGhost({ id }) };
+    window.addEventListener("pointermove", surSourisDeplace, true);
+    rendre();
+  }
+
+  // L'identifiant de ce qu'on tient, quelle que soit sa provenance.
+  const tenuId = () => (tenu ? (tenu.objet ? tenu.objet.id : tenu.id) : null);
+
+  // Appui en cours sur un emplacement ÉQUIPÉ, en attente de savoir si c'est un
+  // clic (déséquiper) ou un glisser. Rempli au pointerdown de l'icône, consommé
+  // par les deux écouteurs de fenêtre ci-dessous.
+  let pretAGlisser = null;
+  // Dernier clic dans la grille, pour reconnaître un double-clic.
+  let dernierClic = null;
+
+  window.addEventListener("pointermove", (ev) => {
+    if (!pretAGlisser || tenu) return;
+    if (Math.hypot(ev.clientX - pretAGlisser.x, ev.clientY - pretAGlisser.y) < SEUIL_GLISSER) return;
+    const slot = pretAGlisser.slot;
+    pretAGlisser = null;
+    souleverDepuisSlot(slot);
+    ghostVersSouris(ev.clientX, ev.clientY);
+  }, true);
+
+  window.addEventListener("pointerup", () => {
+    // Relâché sans avoir bougé → c'était un clic : on déséquipe (geste d'avant).
+    if (pretAGlisser && !tenu) pretAGlisser.desequiper(pretAGlisser.slot);
+    pretAGlisser = null;
+  }, true);
+
   function lacher() {
     if (!tenu) return;
     tenu.ghost.remove();
@@ -238,6 +285,9 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
   function surSourisDeplace(ev) {
     if (!tenu) return;
     ghostVersSouris(ev.clientX, ev.clientY);
+    // Un objet venu d'un SLOT n'a pas de case d'origine : pas d'aperçu de pose à
+    // calculer, il ira simplement dans le sac au relâchement.
+    if (tenu.slot) return;
     const r = elGrille.getBoundingClientRect();
     const surGrille = ev.clientX >= r.left && ev.clientX <= r.right &&
                       ev.clientY >= r.top && ev.clientY <= r.bottom;
@@ -262,6 +312,23 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     const o = objetSousCase(inventaire, c.x, c.y, sacAffiche());
     if (!o) return;
     ev.preventDefault(); // pas de sélection de texte pendant le drag
+
+    // DOUBLE-CLIC = ÉQUIPER (29/07/2026). C'est le geste que tout le monde
+    // essaie en premier, et il évite de viser un petit emplacement à la souris.
+    //
+    // ⚠ On le détecte À LA MAIN plutôt qu'avec l'événement `dblclick` : le
+    // `preventDefault()` ci-dessus, indispensable au glisser, empêche le
+    // navigateur d'émettre les événements souris de compatibilité — donc
+    // `dblclick` n'arrive jamais. (Essayé, et c'est bien ce qui se passait.)
+    const maintenant = performance.now();
+    if (dernierClic && dernierClic.objet === o &&
+        maintenant - dernierClic.t < DELAI_DOUBLE_CLIC) {
+      dernierClic = null;
+      if (estEquipable(o.id)) { essayerEquiper(inventaire, heros, o, surChangement, rendre); rendre(); }
+      return;   // ressource ou trésor : le double-clic ne fait simplement rien
+    }
+    dernierClic = { objet: o, t: maintenant };
+
     soulever(o, c.x - o.x, c.y - o.y);
     ghostVersSouris(ev.clientX, ev.clientY);
   });
@@ -276,6 +343,43 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
     if (!tenu || ev.button !== 0) return;
     const el = document.elementFromPoint(ev.clientX, ev.clientY);
     const slotCell = el && el.closest ? el.closest(".inv-slot") : null;
+
+    // L'objet vient d'un EMPLACEMENT ÉQUIPÉ : il repasse d'abord par le sac
+    // (c'est `desequiper` qui sait gérer les cas tordus — sac plein, retrait du
+    // 2e sac qui ferait déborder ses objets…), puis on l'emmène où on l'a lâché.
+    if (tenu.slot) {
+      const slotDepart = tenu.slot;
+      const cible = slotCell?.dataset.slot;
+      if (cible === slotDepart) { annulerTenu(); return; }   // reposé sur lui-même
+      const avant = new Set(inventaire.objets);
+      const res = desequiper(inventaire, slotDepart);
+      if (res !== true) {
+        montrerToast(res === "overflow"
+          ? "🎒 Empty the extra bag rows before removing this bag."
+          : "🎒 Bag is full — make some room before unequipping.");
+        annulerTenu();
+        return;
+      }
+      // L'exemplaire que `desequiper` vient d'ajouter au sac (on le retrouve par
+      // différence : c'est plus sûr que de parier sur sa position dans la liste).
+      const neuf = inventaire.objets.find((o) => !avant.has(o));
+      lacher();
+      if (cible) {                       // lâché sur un AUTRE emplacement → on l'y équipe
+        if (neuf) essayerEquiper(inventaire, heros, neuf, surChangement, rendre, cible);
+      } else if (el && el.closest && el.closest("#inv-grille")) {
+        // lâché dans le sac : on tente la case visée, sinon il reste où il est tombé
+        if (neuf) deplacerObjet(inventaire, neuf, cibleX, cibleY, sacAffiche());
+      } else if (surVendre && document.body.classList.contains("en-boutique") &&
+                 el && el.closest && el.closest(".dialogue-boite")) {
+        if (neuf) { surChangement(); rendre(); surVendre(neuf); return; }
+      } else if (el === overlay && surJeter) {
+        if (neuf) { surChangement(); rendre(); surJeter({ objet: neuf }); return; }
+      }
+      surChangement();
+      rendre();
+      return;
+    }
+
     if (slotCell && slotCell.dataset.slot) { equiperTenu(slotCell.dataset.slot); return; }
     if (el && el.closest && el.closest("#inv-grille")) {
       if (deplacerObjet(inventaire, tenu.objet, cibleX, cibleY, sacAffiche())) { lacher(); rendre(); }
@@ -438,9 +542,9 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       cursorX = Math.max(0, Math.min(colsInventaire(inventaire, sacAffiche()) - 1, cursorX + (ddx[e.code] || 0)));
       cursorY = Math.max(0, Math.min(rangs - 1, cursorY + (ddy[e.code] || 0)));
       cursorVisible = true;
-      if (tenu) { const c = calculerCible(cursorX, cursorY); cibleX = c.x; cibleY = c.y; }
+      if (tenu?.objet) { const c = calculerCible(cursorX, cursorY); cibleX = c.x; cibleY = c.y; }
       rendre();
-      if (tenu) ghostVersCase(cibleX, cibleY);
+      if (tenu?.objet) ghostVersCase(cibleX, cibleY);
       return;
     }
 
@@ -544,7 +648,20 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
         else if (res === "overflow") montrerToast("🎒 Empty the extra bag rows before removing this bag.");
         else montrerToast("🎒 Bag is full — make some room before unequipping.");
       };
-      ic.onclick = () => { if (!tenu) essayerDesequiper(slot); };
+      // CLIC ou GLISSER, sur le même bouton (29/07/2026) :
+      //   • appuyer-relâcher sans bouger  → déséquiper (le geste d'avant) ;
+      //   • appuyer et DÉPLACER            → on emporte l'objet, et on le lâche
+      //     où on veut (une case du sac, un autre emplacement, le marchand…).
+      // Sans le seuil de déplacement, le moindre tremblement de souris pendant
+      // un clic aurait déclenché un glisser et le clic n'aurait plus rien fait.
+      // ⚠ Le suivi se fait sur la FENÊTRE, pas sur l'icône : dès le premier
+      // déplacement la souris a déjà quitté ce petit carré de 46 px, et un
+      // `pointermove` posé sur l'icône ne se déclencherait jamais.
+      ic.addEventListener("pointerdown", (ev) => {
+        if (ev.button !== 0 || confirmationActive() || tenu) return;
+        ev.preventDefault();
+        pretAGlisser = { slot, x: ev.clientX, y: ev.clientY, desequiper: essayerDesequiper };
+      });
       ic.addEventListener("contextmenu", (ev) => {
         ev.preventDefault();
         if (tenu) return;
@@ -710,7 +827,9 @@ export function installerInventaire({ inventaire, heros, surChangement, surFerme
       elGrille.append(ic);
     }
     // Aperçu de pose (objet tenu) : rectangle vert/rouge sur la case de dépôt.
-    if (tenu) {
+    // Aperçu de pose : seulement pour un objet venu du SAC. Celui venu d'un
+    // emplacement équipé n'a pas d'empreinte à projeter — il ira où il pourra.
+    if (tenu?.objet) {
       refCible = document.createElement("div");
       refCible.className = "inv-cible";
       elGrille.append(refCible);

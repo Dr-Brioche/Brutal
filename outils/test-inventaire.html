@@ -96,7 +96,10 @@
 
     const combien = document.getElementById("sel-sac").value;
     if (combien !== "vide") {
-      const liste = combien === "plein" ? SAC_PLEIN : SAC_PLEIN.slice(0, 4);
+      // ⚠ « à moitié » prend UNE LIGNE SUR DEUX, pas les 4 premières : celles-ci
+      // sont toutes des ressources, et un sac sans rien d'équipable ne permet
+      // pas de tester l'équipement (le double-clic n'avait rien à saisir).
+      const liste = combien === "plein" ? SAC_PLEIN : SAC_PLEIN.filter((_, i) => i % 2 === 0);
       for (const [id, n] of liste) { try { ajouterObjet(inv, id, n); } catch { /* id absent */ } }
     }
     // `planches` = Map (chemin → image). On charge UNIQUEMENT celle de l'armure

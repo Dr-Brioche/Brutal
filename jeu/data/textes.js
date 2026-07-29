@@ -184,7 +184,7 @@ export const TEXTES = {
   "inv.aideVendreSlot": { fr: "Lâche sur le marchand pour vendre · sur un emplacement pour équiper · dans le vide pour jeter · Échap : annuler", en: "Drop on the merchant to sell · on a slot to equip · in the void to discard · Esc: cancel" },
   "inv.aideCaseSlot": { fr: "Lâche sur une case pour déplacer · sur un emplacement pour équiper · dans le vide pour jeter · Échap : annuler", en: "Drop on a cell to move · on a slot to equip · in the void to discard · Esc: cancel" },
   "inv.aideClavier":  { fr: "Flèches : déplacer · Entrée : prendre/poser · X : équiper/jeter", en: "Arrows: move · Enter: pick up/drop · X: equip/discard" },
-  "inv.aideSouris":   { fr: "Clique un objet pour le prendre · pose-le où tu veux ou sur un emplacement", en: "Click an item to pick it up · drop it where you want or on a slot" },
+  "inv.aideSouris":   { fr: "Clique-glisse un objet pour le déplacer · double-clic pour l'équiper · glisse un équipement vers le sac pour l'enlever", en: "Click-drag an item to move it · double-click to equip · drag worn gear into the bag to remove it" },
   "inv.aideClavierMarchand": { fr: "Flèches : déplacer · Entrée : prendre/poser · X : équiper/jeter · [Tab] : retour au marchand", en: "Arrows: move · Enter: pick up/drop · X: equip/discard · [Tab]: back to merchant" },
   "inv.aideSourisMarchand": { fr: "Glisse un objet sur le marchand pour le vendre · [Tab] : mode clavier", en: "Drag an item onto the merchant to sell it · [Tab]: keyboard mode" },
   "inv.aideSwitchBag": { fr: " · [E] changer d'onglet", en: " · [E] switch tab" },
