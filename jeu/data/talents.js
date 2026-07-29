@@ -234,6 +234,20 @@ export const TALENTS = {
   },
 };
 
+// Les talents MONTRÉS AU JOUEUR : tout sauf les outils de test (29/07/2026).
+//
+// God Mode et No Encounters restent définis — ils servent encore à tester — mais
+// ils n'ont rien à faire dans l'arbre : ils s'y voyaient, s'y cliquaient, et le
+// nœud God Mode chevauchait même un vrai talent de la branche Forge au point de
+// lui voler le survol. Ils s'atteignent maintenant par la console
+// (`window.__godmode()` / `window.__sansRencontre()`, cf. docs/tests.md).
+//
+// ⚠ Passer par CETTE fonction partout où l'on parcourt l'arbre — sinon un test
+// ressort quelque part (navigation clavier, liens, première sélection…).
+export function talentsVisibles() {
+  return Object.values(TALENTS).filter((t) => !t.test);
+}
+
 // Taille de la grille (pour dimensionner l'écran) : 5 colonnes, 7 rangées
 // (la branche commerce descend d'un cran depuis l'ajout de « Citizenship »).
 export const TALENT_GRILLE = { cols: 6, lignes: 7 };

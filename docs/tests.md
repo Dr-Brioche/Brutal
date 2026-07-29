@@ -182,8 +182,12 @@ invalider l'ancienne boucle (cf. `boucleId` dans `test-armures.html`).
 ## 5. Si tu dois VRAIMENT jouer (dernier recours)
 
 Raccourcis utiles :
-- **GOD MODE** : talent 😇 dans l'arbre (touche `T`) → kit Croisé complet
+- **GOD MODE** : `window.__godmode()` dans la console → kit Croisé complet
   (set + épée sacrée), 1 000 000 🪙, niveau 30. Sert à tester l'équipement rare.
+  (Il était dans l'arbre des talents jusqu'au 29/07/2026 ; il en a été **retiré**
+  avec « No Encounters » — un joueur n'a rien à y faire, et le nœud 😇
+  chevauchait un vrai talent de la branche Forge au point de lui voler le survol.)
+- **Couper les rencontres** : `window.__sansRencontre(true)` / `(false)`.
 - **Marchand** : tous les objets sont **gratuits** en test. Il est en
   colonne 38 / rangée 11, soit juste au-dessus du point de départ (37/14) :
   quelques pressions sur ↑ suffisent. **Clic droit** sur un objet = acheter ET

@@ -4,7 +4,7 @@
 // Les nœuds sont des boutons ronds posés sur une grille, reliés par des traits
 // (SVG) de prérequis à nœud. Couleur : débloqué / disponible / bloqué.
 
-import { TALENTS, TALENT_GRILLE, BRANCHES, descEffet } from "../data/talents.js";
+import { TALENTS, TALENT_GRILLE, BRANCHES, descEffet, talentsVisibles } from "../data/talents.js";
 import { t } from "../systems/langue.js";
 import { etatNoeud, debloquer, activerOuBasculer } from "../systems/talents.js";
 import { xpPourNiveau } from "../systems/progression.js";
@@ -74,7 +74,7 @@ export function installerTalents({ heros, surChangement, surFermer, surAction })
 
   // Sélection d'ouverture : un nœud DISPONIBLE sinon le premier (la racine).
   function premierPertinent() {
-    const ids = Object.keys(TALENTS);
+    const ids = talentsVisibles().map((t) => t.id);
     return ids.find((id) => etatNoeud(heros, id) === "disponible") || ids[0];
   }
 
@@ -84,7 +84,7 @@ export function installerTalents({ heros, surChangement, surFermer, surAction })
     const cur = TALENTS[selection];
     if (!cur) return;
     let best = null, meilleur = Infinity;
-    for (const n of Object.values(TALENTS)) {
+    for (const n of talentsVisibles()) {
       if (n.id === selection) continue;
       const dx = n.x - cur.x, dy = n.y - cur.y;
       let ok = false, principal = 0, lateral = 0;
@@ -149,7 +149,7 @@ export function installerTalents({ heros, surChangement, surFermer, surAction })
 
   function rendreLiens() {
     elLiens.replaceChildren();
-    for (const n of Object.values(TALENTS)) {
+    for (const n of talentsVisibles()) {
       const c = centre(n);
       for (const r of n.requis || []) {
         const p = TALENTS[r];
@@ -167,7 +167,7 @@ export function installerTalents({ heros, surChangement, surFermer, surAction })
 
   function rendreNoeuds() {
     for (const el of [...elArbre.querySelectorAll(".tal-noeud")]) el.remove();
-    for (const n of Object.values(TALENTS)) {
+    for (const n of talentsVisibles()) {
       const c = centre(n);
       const b = document.createElement("button");
       b.className = "tal-noeud tal-" + etatNoeud(heros, n.id) + (n.id === selection ? " tal-noeud--sel" : "");
