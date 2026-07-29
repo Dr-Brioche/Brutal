@@ -24,6 +24,7 @@ import {
 import { compterRessource, retirerRessource, ajouterObjet, placePourFabrication } from "../systems/inventaire.js";
 import { ouvrirLivre } from "./livre.js";
 import { afficherMessage } from "./effets.js";
+import { jouerSonForge } from "../core/sons.js";
 
 const TAILLE = 5;         // table 5×5
 
@@ -542,6 +543,7 @@ function validerFrappe() {
   if (!miniActif) return;
   miniActif = false;
   cancelAnimationFrame(mjRaf);
+  jouerSonForge();                 // le marteau tombe sur l'enclume
   resoudreCraft(outcomeFrappe(mjPos, mjCentre, mjRouge));
 }
 

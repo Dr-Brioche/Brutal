@@ -41,6 +41,10 @@ de hauteur (±6 %). C'est ce qui empêche le son de devenir insupportable quand 
 l'entend 200 fois dans une soirée. **On peut n'en fournir qu'une seule au début**
 et ajouter les autres plus tard.
 
+> **Les numéros n'ont pas besoin de se suivre.** Le jeu cherche de `-1` à `-8` et
+> se sert de tout ce qu'il trouve. Déposer `bouclier-1` et `bouclier-3` sans `-2`
+> marche très bien : il alternera entre les deux.
+
 > **Tant qu'un fichier n'existe pas, le jeu rejoue le son de synthèse d'avant.**
 > On peut donc remplir ce dossier **un son à la fois**, dans l'ordre qu'on veut,
 > sans jamais rien casser.
@@ -66,17 +70,16 @@ et ajouter les autres plus tard.
 | `levelup-1.mp3` | Passage de niveau *(le jeu l'appelle déjà, le fichier manque : c'est muet aujourd'hui)* | Montée claire, quelque chose de gratifiant |
 | `echec-1.mp3` | Action refusée / dé raté | Note descendante courte, « plop » mat |
 
-### Priorité 3 — le liant (pas encore branchés dans le code)
+### Priorité 3 — le liant
 
-Ces trois-là, tu peux les enregistrer quand tu veux : **je les brancherai
-quand les fichiers seront là** (rien ne les déclenche pour l'instant).
-
-| Fichiers | Quand ça se déclenchera | Idée d'enregistrement |
+| Fichiers | Quand ça se déclenche | Idée d'enregistrement |
 |---|---|---|
-| `monstre-mort-1.mp3` `-2` | Un ennemi s'effondre | Chute molle + expiration ; ta voix ralentie pour les gros |
-| `or-1.mp3` | Achat, vente, or versé à la sortie d'une mine | Poignée de pièces qu'on lâche |
+| `monstre-mort-1.mp3` `-2` | Un ennemi s'effondre (explosion de braises) | Chute molle + expiration ; ta voix ralentie pour les gros |
+| `or-1.mp3` | Achat ou vente chez le marchand | Poignée de pièces qu'on lâche |
 | `forge-marteau-1.mp3` `-2` `-3` | Le marteau frappe l'enclume (mini-jeu de forge) | Marteau sur du métal lourd |
-| `clic-1.mp3` | Bouton d'interface | Clic sec et court, très discret |
+| `clic-1.mp3` | N'importe quel bouton d'interface | Clic sec et court, très discret |
+
+**Tous ces sons sont branchés** : dépose le fichier, il se joue.
 
 ### Comment enregistrer (rappel)
 
