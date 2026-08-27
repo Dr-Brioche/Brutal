@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Centurys</title>
+<meta name="description" content="Envoie tes troupes, défends ton château, traverse les âges.">
+<style>
+:root{
+  --rayon: 10px;
+  --or: #f4cb63;
+  --or-sombre: #8a6c22;
+  --panneau: rgba(24,19,14,.88);
+  --bord: #7a6236;
+  --texte: #f6ecd8;
+  --bleu: #4ea8ff;
+  --rouge: #ff6a52;
+  --vert: #7fd06a;
+}
+*{box-sizing:border-box;}
+html,body{
+  margin:0; height:100%; overflow:hidden; background:#07090d; color:var(--texte);
+  font-family:"Trebuchet MS","Segoe UI",system-ui,-apple-system,sans-serif;
+  -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent;
+}
+#scene{position:fixed; inset:0; display:grid; place-items:center;}
+#zone{
+  position:relative; width:1280px; height:720px; transform-origin:center center;
+  border-radius:var(--rayon); overflow:hidden; box-shadow:0 0 60px rgba(0,0,0,.8);
+}
+canvas#jeu{position:absolute; inset:0; width:1280px; height:720px; display:block;}
+
+/* ---------- barre du haut ---------- */
+#barreHaut{
+  position:absolute; top:0; left:0; right:0; height:86px; display:flex;
+  align-items:flex-start; justify-content:space-between; gap:14px; padding:10px 14px;
+  background:linear-gradient(rgba(10,8,6,.72), rgba(10,8,6,0));
+  pointer-events:none;
+}
+#barreHaut .camp{width:330px; display:flex; flex-direction:column; gap:3px;}
+#barreHaut .camp.droite{align-items:flex-end; text-align:right;}
+#barreHaut .titre{font-size:13px; letter-spacing:.06em; opacity:.85; text-transform:uppercase;}
+.vie{
+  position:relative; width:100%; height:17px; border-radius:999px;
+  background:rgba(0,0,0,.55); border:2px solid rgba(0,0,0,.45); overflow:hidden;
+}
+.vie i{position:absolute; inset:0; width:100%; transform-origin:left center; border-radius:999px;
+       transition:width .12s linear;}
+.camp.gauche .vie i{background:linear-gradient(#79c0ff,#2f7fd6);}
+.camp.droite .vie i{background:linear-gradient(#ff9078,#d63f27);}
+.chiffre{font-size:12px; opacity:.8;}
+#centre{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; min-width:0;}
+#ageNom{font-size:19px; font-weight:bold; color:var(--or); text-shadow:0 2px 4px rgba(0,0,0,.8);}
+.xp{position:relative; width:290px; height:11px; border-radius:999px;
+    background:rgba(0,0,0,.55); border:2px solid rgba(0,0,0,.45); overflow:hidden;}
+.xp i{position:absolute; inset:0; width:0; background:linear-gradient(#ffe6a0,#d9a02e); border-radius:999px;
+      transition:width .15s linear;}
+#xpTxt{font-size:12px; opacity:.85;}
+
+/* ---------- or ---------- */
+#bourse{
+  position:absolute; top:96px; left:14px; display:flex; align-items:baseline; gap:8px;
+  padding:6px 14px; border-radius:var(--rayon);
+  background:var(--panneau); border:2px solid var(--bord); pointer-events:none;
+}
+#bourse b{font-size:26px; color:var(--or); line-height:1;}
+#bourse span{font-size:12px; opacity:.85;}
+
+/* ---------- file d'entraînement ---------- */
+#fileZone{
+  position:absolute; top:96px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:4px; pointer-events:none;
+}
+#fileZone .etiquette{font-size:11px; opacity:.7; text-transform:uppercase; letter-spacing:.08em;}
+#file{display:flex; gap:6px;}
+#file .case{
+  position:relative; width:46px; height:46px; border-radius:var(--rayon);
+  background:var(--panneau); border:2px solid var(--bord); overflow:hidden;
+  pointer-events:auto; cursor:pointer;
+}
+#file .case canvas{position:absolute; inset:0; width:100%; height:100%;}
+#file .case .progres{position:absolute; left:0; bottom:0; height:4px; background:var(--or);}
+#file .case:hover{border-color:var(--rouge);}
+
+/* ---------- barre du bas ---------- */
+#barreBas{
+  position:absolute; left:0; right:0; bottom:0; height:136px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 14px;
+  background:linear-gradient(rgba(10,8,6,0), rgba(10,8,6,.85) 38%);
+}
+#unites, #actions{display:flex; gap:9px; align-items:stretch;}
+button{
+  font-family:inherit; color:var(--texte); cursor:pointer;
+  background:var(--panneau); border:2px solid var(--bord); border-radius:var(--rayon);
+}
+button:focus-visible{outline:3px solid var(--or); outline-offset:2px;}
+button:disabled{cursor:not-allowed;}
+
+.unite{
+  position:relative; width:132px; height:112px; padding:4px 6px 6px;
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  transition:transform .08s ease, border-color .12s;
+}
+.unite:hover:not(:disabled){transform:translateY(-3px); border-color:var(--or);}
+.unite canvas.apercu{width:56px; height:56px;}
+.unite .nom{font-size:12.5px; line-height:1.05; text-align:center;}
+.unite .prix{font-size:14px; font-weight:bold; color:var(--or);}
+.unite .prix::after{content:" ●"; font-size:9px; vertical-align:2px;}
+.unite:disabled{opacity:.46; filter:grayscale(.5);}
+.unite:disabled .prix{color:#ff9b8b;}
+
+.action{
+  position:relative; width:118px; height:112px; padding:6px 6px 8px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  transition:transform .08s ease, border-color .12s;
+}
+.action:hover:not(:disabled){transform:translateY(-3px); border-color:var(--or);}
+.action b{font-size:14px;}
+.action .prix{font-size:14px; font-weight:bold; color:var(--or);}
+.action small{font-size:11px; opacity:.75;}
+.action:disabled{opacity:.46; filter:grayscale(.5);}
+.action.pret{border-color:var(--vert); box-shadow:0 0 14px rgba(127,208,106,.5);}
+.action .icone{font-size:26px; line-height:1;}
+.recharge{
+  position:absolute; left:0; bottom:0; height:5px; background:var(--or); border-radius:0 3px 3px 0;
+}
+.touche{
+  position:absolute; top:4px; left:5px; min-width:17px; height:17px; padding:0 3px;
+  display:grid; place-items:center; font-size:11px; font-weight:bold;
+  background:rgba(0,0,0,.55); border:1px solid var(--bord); border-radius:5px; color:var(--or);
+}
+.mini{width:46px; height:46px; font-size:19px; display:grid; place-items:center; align-self:flex-end;}
+
+/* le HUD n'existe que pendant une partie */
+#zone:not(.enJeu) #barreHaut,
+#zone:not(.enJeu) #bourse,
+#zone:not(.enJeu) #fileZone,
+#zone:not(.enJeu) #barreBas{display:none;}
+
+/* ---------- messages ---------- */
+#messages{
+  position:absolute; top:150px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:6px; pointer-events:none;
+}
+.message{
+  padding:6px 16px; border-radius:var(--rayon); font-size:15px;
+  background:var(--panneau); border:2px solid var(--bord);
+  animation:entree .18s ease-out; transition:opacity .5s, transform .5s;
+}
+.message.erreur{border-color:#c25a45; color:#ffbfb2;}
+.message.bien{border-color:var(--vert); color:#d6ffc9;}
+.message.sortie{opacity:0; transform:translateY(-12px);}
+@keyframes entree{from{opacity:0; transform:translateY(10px);} to{opacity:1;}}
+
+/* ---------- écrans (menu, pause, fin) ---------- */
+.ecran{
+  position:absolute; inset:0; display:none; place-items:center;
+  background:radial-gradient(circle at 50% 40%, rgba(12,10,8,.72), rgba(6,5,4,.94));
+}
+.ecran.visible{display:grid;}
+.panneau{
+  width:640px; max-width:92%; padding:26px 30px; text-align:center;
+  background:var(--panneau); border:3px solid var(--bord); border-radius:var(--rayon);
+  box-shadow:0 18px 60px rgba(0,0,0,.7);
+}
+.panneau h1{
+  margin:0 0 4px; font-size:60px; letter-spacing:.10em; color:var(--or);
+  text-shadow:0 4px 0 var(--or-sombre), 0 8px 22px rgba(0,0,0,.8);
+}
+.panneau h2{margin:0 0 6px; font-size:40px; letter-spacing:.06em; color:var(--or);}
+.panneau h2.perdu{color:#ff8a72;}
+.slogan{margin:0 0 18px; opacity:.85; font-size:16px;}
+.ligne{display:flex; align-items:center; justify-content:center; gap:12px; margin:9px 0; font-size:15px;}
+.choix{display:flex; gap:6px;}
+.choix button{padding:7px 15px; font-size:14px;}
+.choix button.actif{border-color:var(--or); color:var(--or); background:rgba(244,203,99,.14);}
+.gros{margin:18px auto 6px; padding:13px 44px; font-size:24px; font-weight:bold;
+      color:var(--or); border-color:var(--or); background:rgba(244,203,99,.12); display:block;}
+.gros:hover{background:rgba(244,203,99,.24);}
+.aide{margin-top:14px; font-size:13px; opacity:.75; line-height:1.6;}
+.aide p{margin:3px 0;}
+#finStats{list-style:none; margin:16px auto; padding:0; width:330px; font-size:15px;}
+#finStats li{display:flex; justify-content:space-between; padding:5px 4px;
+             border-bottom:1px solid rgba(255,255,255,.10);}
+#finStats li b{color:var(--or);}
+.boutons{display:flex; gap:12px; justify-content:center; margin-top:14px;}
+.boutons button{padding:11px 26px; font-size:17px;}
+.boutons button:hover{border-color:var(--or);}
+#ecranPause .panneau button{display:block; margin:10px auto; padding:11px 30px; font-size:17px;}
+</style>
+</head>
+<body>
+<div id="scene">
+  <div id="zone">
+    <canvas id="jeu" width="1280" height="720"></canvas>
+
+    <div id="barreHaut">
+      <div class="camp gauche">
+        <span class="titre" data-i18n="hud.toi"></span>
+        <div class="vie"><i id="viePj"></i></div>
+        <span class="chiffre" id="viePjTxt"></span>
+      </div>
+      <div id="centre">
+        <div id="ageNom"></div>
+        <div class="xp"><i id="xpBarre"></i></div>
+        <div id="xpTxt"></div>
+      </div>
+      <div class="camp droite">
+        <span class="titre" data-i18n="hud.ennemi"></span>
+        <div class="vie"><i id="vieIa"></i></div>
+        <span class="chiffre" id="vieIaTxt"></span>
+      </div>
+    </div>
+
+    <div id="bourse"><b id="orTxt">0</b><span id="revenuTxt"></span></div>
+
+    <div id="fileZone">
+      <span class="etiquette" data-i18n="hud.file"></span>
+      <div id="file"></div>
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="barreBas">
+      <div id="unites"></div>
+      <div id="actions">
+        <button id="btRevenu" class="action"></button>
+        <button id="btEvoluer" class="action"></button>
+        <button id="btSpecial" class="action"></button>
+        <button id="btPause" class="mini" title="P">❚❚</button>
+        <button id="btSon" class="mini" title="M">♪</button>
+      </div>
+    </div>
+
+    <!-- ===== Menu d'accueil ===== -->
+    <div id="ecranMenu" class="ecran visible">
+      <div class="panneau">
+        <h1>CENTURYS</h1>
+        <p class="slogan" data-i18n="menu.slogan"></p>
+        <div class="ligne">
+          <span data-i18n="menu.difficulte"></span>
+          <div class="choix" id="choixDiff">
+            <button data-diff="facile" data-i18n="diff.facile"></button>
+            <button data-diff="normal" class="actif" data-i18n="diff.normal"></button>
+            <button data-diff="difficile" data-i18n="diff.difficile"></button>
+          </div>
+        </div>
+        <div class="ligne">
+          <span data-i18n="menu.langue"></span>
+          <div class="choix" id="choixLangue">
+            <button data-langue="fr">Français</button>
+            <button data-langue="en">English</button>
+          </div>
+        </div>
+        <button id="btJouer" class="gros" data-i18n="menu.jouer"></button>
+        <div class="aide">
+          <p data-i18n="menu.but"></p>
+          <p data-i18n="menu.aideSouris"></p>
+          <p data-i18n="menu.aideClavier"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Pause ===== -->
+    <div id="ecranPause" class="ecran">
+      <div class="panneau">
+        <h2 data-i18n="pause.titre"></h2>
+        <button id="btReprendre" data-i18n="bouton.reprendre"></button>
+        <button id="btQuitter" data-i18n="bouton.quitter"></button>
+      </div>
+    </div>
+
+    <!-- ===== Fin de partie ===== -->
+    <div id="ecranFin" class="ecran">
+      <div class="panneau">
+        <h2 id="finTitre"></h2>
+        <p id="finTexte" class="slogan"></p>
+        <ul id="finStats"></ul>
+        <div class="boutons">
+          <button id="btRejouer" data-i18n="fin.rejouer"></button>
+          <button id="btMenu" data-i18n="fin.menu"></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script type="module" src="jeu/principal.js"></script>
+</body>
+</html>

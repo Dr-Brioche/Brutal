@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Centurys — planche des troupes</title>
+<style>
+  body{margin:0;background:#1a1712;color:#f6ecd8;
+       font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;}
+  h1{font-size:19px;padding:12px 16px 0;margin:0;color:#f4cb63;}
+  p{padding:0 16px;margin:6px 0 12px;font-size:13px;opacity:.75;}
+  canvas{display:block;margin:0 auto;background:#2b2a22;}
+  .barre{padding:0 16px 12px;display:flex;gap:10px;align-items:center;font-size:13px;}
+  button{font-family:inherit;color:inherit;background:#2b2620;border:2px solid #7a6236;
+         border-radius:8px;padding:6px 14px;cursor:pointer;}
+  button.actif{border-color:#f4cb63;color:#f4cb63;}
+</style>
+</head>
+<body>
+<h1>Planche des troupes</h1>
+<p>Toutes les unités du jeu, dans les deux camps. Sert à vérifier une silhouette
+   sans avoir à jouer une partie entière.</p>
+<div class="barre">
+  <button id="btAnim" class="actif">Marche / arrêt</button>
+  <button id="btAttaque">Animer l'attaque</button>
+  <span id="etat"></span>
+</div>
+<canvas id="planche" width="1500" height="1200"></canvas>
+<script type="module">
+import { AGES } from '../jeu/data/ages.js';
+import { dessinerUnite } from '../jeu/rendu/unites.js';
+import { texteContour } from '../jeu/core/style.js';
+
+const cv = document.getElementById('planche');
+const ctx = cv.getContext('2d');
+let anime = true, attaque = false, t = 0;
+
+document.getElementById('btAnim').addEventListener('click', e => {
+  anime = !anime; e.target.classList.toggle('actif', anime);
+});
+document.getElementById('btAttaque').addEventListener('click', e => {
+  attaque = !attaque; e.target.classList.toggle('actif', attaque);
+});
+
+function boucle() {
+  if (anime) t += 0.09;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = '#2b2a22';
+  ctx.fillRect(0, 0, cv.width, cv.height);
+
+  AGES.forEach((age, ia) => {
+    const yLigne = 170 + ia * 222;
+    ctx.fillStyle = 'rgba(255,255,255,.05)';
+    ctx.fillRect(0, yLigne - 178, cv.width, 214);
+    texteContour(ctx, age.nom.fr + '  /  ' + age.nom.en, 16, yLigne - 160, 17, '#f4cb63', 'left');
+
+    age.unites.forEach((def, iu) => {
+      const x = 200 + iu * 460;
+      // camp du joueur à gauche, camp ennemi à droite : on compare les deux
+      dessinerUnite(ctx, def, 'joueur', x, yLigne,
+        { phase: t, attaque: attaque ? (Math.sin(t * 2) * 0.5 + 0.5) : 0 });
+      dessinerUnite(ctx, def, 'ennemi', x + 190, yLigne,
+        { phase: t + 1.5, attaque: attaque ? (Math.sin(t * 2 + 1) * 0.5 + 0.5) : 0 });
+      texteContour(ctx, def.nom.fr, x + 95, yLigne + 24, 14, '#f6ecd8');
+      texteContour(ctx, def.cout + ' or · ' + def.pv + ' pv · ' + def.degats + ' dg',
+                   x + 95, yLigne + 42, 12, '#c8bda6');
+    });
+  });
+  requestAnimationFrame(boucle);
+}
+boucle();
+</script>
+</body>
+</html>
