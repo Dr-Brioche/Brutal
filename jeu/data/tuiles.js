@@ -56,10 +56,12 @@ export const TUILES = {
   },
   ".": {
     id: "sol-ville", nom: "City floor", solide: false,
+    planche: "images/tuiles/sol-ville.png", variantes: true,
     style: "sol", couleurs: { damier: ["#211c18", "#1d1916"] },
   },
   ",": {
     id: "sol-caverne", nom: "Cavern floor", solide: false, rencontre: true,
+    planche: "images/tuiles/sol-caverne.png", variantes: true,
     style: "sol",
     couleurs: { damier: ["#2a2520", "#241f1b"], gravats: "#3a332b", veine: "#9a6b2f" },
   },
