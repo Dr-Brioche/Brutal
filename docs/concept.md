@@ -118,10 +118,25 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
 - **Catalogue** `jeu/data/tuiles.js` : chaque tuile a un **id** (`mur`,
   `sol-caverne`…), et des propriétés (`solide`, `rencontre`, `porte`, `interet`).
   Les cartes restent des **grilles de caractères** (faciles à éditer).
-- Quand Brioche fournira du pixel art : on range les images dans une **galerie**
-  (ids type `mur-01`, `sol-02`…) et on remplace `couleurs` par des images dans le
-  catalogue — sans toucher aux cartes. Prévus : **variantes auto** (le moteur
-  pioche un sol parmi plusieurs) et **auto-mur** (raccord des bords/coins).
+- **AUTOTUILAGE (fait).** Une tuile peut déclarer une `planche` (une image dans
+  `images/tuiles/`) qui remplace la peinture au code. Le format retenu est
+  l'**autotuilage par quarts** : chaque case est peinte en 4 quarts, chaque
+  quart ne regarde que 3 voisins, donc il n'a que 5 aspects possibles
+  (remplissage, bord horizontal, bord vertical, coin sortant, coin rentrant).
+  Les 47 raccords possibles se recomposent à partir de **6 carrés dessinés**
+  (planche de 2 tuiles × 3, soit 128×192 px). Mécanisme : `jeu/world/tileset.js` ;
+  format côté dessin : `images/tuiles/LISEZMOI.md`.
+  - `groupe` dit quelles tuiles se **fondent** l'une dans l'autre (bordure ou
+    pas) ; le groupe `"*"` est neutre (portes, entrées de mine).
+  - `variantes: true` : la planche fournit un 2ᵉ remplissage, tiré au hasard
+    (une case sur trois) pour qu'un grand sol ne se répète pas.
+  - **Contrainte du format** : le motif de fond doit se répéter tous les 32 px
+    d'art (un quart). Ce qui doit rester rare (fissure, veine) vit donc dans la
+    case « remplissage variante », jamais dans le fond.
+  - **Sans fichier, rien ne casse** : la case est repeinte au code comme avant.
+    On remplace donc les matières **une par une**. Les murs (`#`, `H`) sont
+    encore peints au code — leur motif est calculé en coordonnées du monde,
+    donc jamais répétitif, ce qu'une planche ne sait pas faire.
 
 ## Les piliers de gameplay
 

@@ -1,0 +1,130 @@
+<!doctype html>
+<!--
+  ⚠ PAGE DE TEST (hors jeu) — À NE PAS EMBARQUER DANS L'EXPORT FINAL.
+
+  Juge l'AUTOTUILAGE du décor sans traverser le jeu. Elle dessine une carte
+  d'épreuve qui contient exprès TOUS les cas de figure : bords droits, coins
+  sortants, coins rentrants, couloirs d'une case, piliers isolés, diagonales,
+  culs-de-sac. Si une planche est mal découpée, ça se voit ici en une seconde.
+
+  Trois menus : la matière, le rendu (planche d'images / peinture au code —
+  c'est LA comparaison qui compte), et le zoom.
+
+  Ouvrir : outils/test-tuiles.html (depuis un serveur local, comme le jeu).
+-->
+<meta charset="utf-8">
+<base href="../">
+<title>Brütàl — test des tuiles</title>
+<style>
+  body { margin: 0; background: #14110d; color: #e8e0cc; font-family: system-ui, sans-serif; }
+  #barre { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; padding: 10px 14px;
+           background: #1e1a14; border-bottom: 1px solid #3a3227; }
+  label { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+  select, button { font: inherit; padding: 4px 8px; background: #2a241b; color: #e8e0cc;
+                   border: 1px solid #52463433; border-radius: 6px; }
+  button { cursor: pointer; background: #6b5426; }
+  #etat { font-size: 12px; opacity: .8; margin-left: auto; font-family: ui-monospace, monospace; }
+  canvas { display: block; margin: 14px; image-rendering: pixelated; }
+  p.aide { margin: 0 14px 14px; font-size: 12px; opacity: .7; max-width: 70ch; line-height: 1.5; }
+</style>
+
+<div id="barre">
+  <label>Matière
+    <select id="sel-mat">
+      <option value=".">sol de la ville</option>
+      <option value=",">sol de caverne</option>
+    </select>
+  </label>
+  <label>Rendu
+    <select id="sel-rendu">
+      <option value="image">planche d'images (autotuilage)</option>
+      <option value="code">peinture au code (avant)</option>
+    </select>
+  </label>
+  <label>Zoom
+    <select id="sel-zoom"><option>1</option><option selected>2</option><option>3</option></select>
+  </label>
+  <span id="etat"></span>
+</div>
+
+<canvas id="vue"></canvas>
+<p class="aide">
+  Les cas à vérifier, dans l'ordre où ils apparaissent : la <b>salle du haut</b>
+  (bords droits + 4 coins), le <b>pilier carré</b> (4 coins rentrants), la
+  <b>case de sol isolée</b> (4 coins sortants d'un coup), l'<b>escalier en
+  diagonale</b> (le cas qui casse les autotuilages ratés), les <b>piliers
+  isolés</b> en damier, le <b>couloir d'une case</b> et le <b>cul-de-sac</b>.
+</p>
+
+<script type="module">
+  import { TUILES } from "./jeu/data/tuiles.js";
+  import { creerCarte, dessinerCarte, TUILE } from "./jeu/world/carte.js";
+  import { attendreTuiles } from "./jeu/world/tileset.js";
+
+  // Carte d'épreuve. '#' = roche, '@' = la matière testée (remplacée au moment
+  // de construire la carte, pour pouvoir changer de sol sans réécrire le plan).
+  const PLAN = [
+    "############################",
+    "#@@@@@@@@@@@@#@@@@@@@@@@@@@#",
+    "#@@@####@@@@@#@@@@@@@@@@@@@#",
+    "#@@@#@@#@@@@@#@@@@####@@@@@#",
+    "#@@@#@@#@@@@@#@@@@#@@#@@@@@#",
+    "#@@@####@@@@@#@@@@#@@#@@@@@#",
+    "#@@@@@@@@@@@@#@@@@####@@@@@#",
+    "#@@@@@@@@@@@@#@@@@@@@@@@@@@#",
+    "##########@###@@@@@@@@@@@@@#",
+    "#@@@@@@@@@@@@@@@@@@@@@@@@@@#",
+    "#@@@@@#@@@@@@@@@@@#@#@#@#@@#",
+    "#@@@@#@#@@@@@@@@@@@@@@@@@@@#",
+    "#@@@#@@@#@@@@@@@@@#@#@#@#@@#",
+    "#@@#@@@@@#@@@@@@@@@@@@@@@@@#",
+    "#@@@@@@@@@@@@@@@@@@@@@@@@@@#",
+    "#@@@@@@@@#####@@@@@@@@@@@@@#",
+    "#@#####@@@@@@@@@@@@@@#####@#",
+    "#@@@@@@@@@@@@@@@@@@@@@@@@@@#",
+    "############################",
+  ];
+
+  const canvas = document.getElementById("vue");
+  const ctx = canvas.getContext("2d");
+  const etat = document.getElementById("etat");
+  const selMat = document.getElementById("sel-mat");
+  const selRendu = document.getElementById("sel-rendu");
+  const selZoom = document.getElementById("sel-zoom");
+
+  // On garde les planches déclarées : passer en « peinture au code » les retire
+  // du catalogue, et y revenir les remet. C'est exactement l'interrupteur que
+  // le jeu utilisera si un fichier manque.
+  const PLANCHES = Object.fromEntries(
+    Object.entries(TUILES).map(([car, def]) => [car, def.planche ?? null]));
+
+  function dessiner() {
+    const mat = selMat.value;
+    const avecImages = selRendu.value === "image";
+    for (const [car, def] of Object.entries(TUILES)) {
+      def.planche = avecImages ? (PLANCHES[car] ?? undefined) : undefined;
+    }
+
+    const plan = PLAN.map((ligne) => ligne.replaceAll("@", mat));
+    const carte = creerCarte({ nom: "test", depart: { colonne: 1, ligne: 1 }, plan });
+    const z = Number(selZoom.value);
+    canvas.width = carte.largeurPx * z;
+    canvas.height = carte.hauteurPx * z;
+    ctx.setTransform(z, 0, 0, z, 0, 0);
+    ctx.imageSmoothingEnabled = false;   // pixel art : jamais de flou
+    dessinerCarte(ctx, carte, { x: 0, y: 0 }, carte.largeurPx, carte.hauteurPx);
+
+    const p = PLANCHES[mat];
+    etat.textContent = `${carte.largeur}×${carte.hauteur} cases · tuile ${TUILE}px `
+      + `· ${avecImages ? (p ?? "aucune planche déclarée") : "peinture au code"}`;
+  }
+
+  // Les planches arrivent de façon asynchrone (le chargement est lancé par
+  // world/carte.js à l'import) : on attend, sinon la première image montrerait
+  // encore la peinture au code.
+  await attendreTuiles();
+
+  for (const s of [selMat, selRendu, selZoom]) s.addEventListener("change", dessiner);
+  dessiner();
+  window.__dessinerTuiles = dessiner;
+</script>
