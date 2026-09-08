@@ -49,6 +49,16 @@ coûte une dizaine de tours à chaque essai. Expose `window.__ouvrirInventaire()
 et empilée quand elle partage l'écran (marchand, butin). Tester les deux — mettre
 `document.body.className = "en-boutique"` suffit à basculer.
 
+`outils/test-tuiles.html` : dessine une carte d'épreuve qui contient exprès TOUS
+les cas d'autotuilage du décor (bords, coins sortants, coins **rentrants**,
+diagonale en escalier, piliers isolés, couloir d'une case, cul-de-sac). Trois
+menus : la matière, le **rendu** (planche d'images / peinture au code — c'est la
+comparaison qui compte) et le zoom. Une planche mal découpée se voit ici en une
+seconde ; la chercher en jeu coûte dix fois plus. Expose `window.__dessinerTuiles()`.
+⚠ Les planches se chargent en asynchrone : attendre `attendreTuiles()`
+(`jeu/world/tileset.js`) avant toute capture, sinon on photographie l'ancien
+rendu peint au code. Pour refaire les planches : `python3 outils/generer_tuiles.py`.
+
 `outils/test-fiche.html` : ouvre la fiche de personnage avec les bottes et les
 talents choisis dans deux menus, plus un sélecteur de langue. Elle affiche à
 droite le compte ATTENDU, calculé à part du code de la fiche : si les deux

@@ -3,7 +3,16 @@
 // Ce que SIGNIFIE et à quoi RESSEMBLE chaque tuile est décrit dans le
 // catalogue jeu/data/tuiles.js (ce moteur ne fait que l'appliquer).
 
-import { tuileDef, estSolide } from "../data/tuiles.js";
+import { TUILES, tuileDef, estSolide, memeGroupe } from "../data/tuiles.js";
+import {
+  plancheDe, prechargerTuiles, dessinerAutotuile,
+  V_N, V_E, V_S, V_O, V_NE, V_SE, V_SO, V_NO,
+} from "./tileset.js";
+
+// Lance le chargement des planches de tuiles dès l'import du moteur de carte.
+// Tant qu'une planche n'est pas arrivée (ou n'existe pas), la case est peinte
+// au code comme avant — rien ne clignote, rien ne manque.
+prechargerTuiles(TUILES);
 
 export const TUILE = 32; // taille d'une tuile en pixels
 
@@ -389,11 +398,46 @@ function peindreTheme(ctx, carte, c, l, x, y, style) {
   }
 }
 
+// ---- Rendu par PLANCHE D'IMAGES (autotuilage) -------------------------------
+//
+// Quand une tuile déclare une `planche` et que l'image est arrivée, on ne peint
+// plus : on colle 4 quarts découpés dans la planche, choisis d'après les 8
+// voisins. Les bordures, coins et recoins se raccordent alors tout seuls.
+// Le mécanisme complet est expliqué en tête de world/tileset.js.
+
+// Les 8 voisins d'une case, en bits : lesquels sont de la MÊME matière ?
+function masqueVoisins(carte, c, l) {
+  const moi = tuile(carte, c, l);
+  const pareil = (dc, dl) => memeGroupe(moi, tuile(carte, c + dc, l + dl));
+  return (pareil(0, -1) ? V_N : 0) | (pareil(1, 0) ? V_E : 0)
+    | (pareil(0, 1) ? V_S : 0) | (pareil(-1, 0) ? V_O : 0)
+    | (pareil(1, -1) ? V_NE : 0) | (pareil(1, 1) ? V_SE : 0)
+    | (pareil(-1, 1) ? V_SO : 0) | (pareil(-1, -1) ? V_NO : 0);
+}
+
 // Peint UNE tuile d'après sa définition (style + couleurs) et ses voisins.
 function dessinerTuile(ctx, carte, c, l) {
-  const def = tuileDef(tuile(carte, c, l));
+  const car = tuile(carte, c, l);
+  const def = tuileDef(car);
   const x = c * TUILE, y = l * TUILE;
   const k = def.couleurs;
+
+  // Une image existe pour cette matière ? Elle prime sur la peinture au code.
+  const planche = def.planche ? plancheDe(def.planche) : null;
+  if (planche) {
+    // `variantes` : environ une case sur cinq prend le remplissage de rechange
+    // (tirage STABLE d'après la position → la case ne change jamais d'aspect).
+    // Ne pas monter beaucoup plus haut : la variante porte souvent un détail
+    // (fissure, caillou) TOUJOURS LE MÊME — trop fréquent, il redevient un motif.
+    const varier = def.variantes === true && alea(c, l, 88) < 0.22;
+    dessinerAutotuile(ctx, planche, x, y, TUILE, masqueVoisins(carte, c, l), varier);
+    // Les thèmes d'étage (cristal/glace/lave) se posent PAR-DESSUS l'image,
+    // exactement comme par-dessus la peinture.
+    if (def.style === "mur" || def.style === "sol") {
+      peindreTheme(ctx, carte, c, l, x, y, def.style);
+    }
+    return;
+  }
 
   if (def.style === "mur") { dessinerRoche(ctx, carte, c, l, x, y, k); peindreTheme(ctx, carte, c, l, x, y, "mur"); return; }
   if (def.style === "pierre-taillee") { dessinerPierreTaillee(ctx, carte, c, l, x, y, k); return; }
