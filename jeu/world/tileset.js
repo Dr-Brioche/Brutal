@@ -38,8 +38,8 @@
 // quand deux bords se rejoignent dans un recoin ; d'où la case du haut à gauche,
 // qui range les 4 coins rentrants comme les 4 quarts d'une tuile.
 // La case REMPLISSAGE VARIANTE (haut à droite) est facultative : une seconde
-// version du remplissage, tirée au hasard une case sur trois, pour qu'un grand
-// sol ne se répète pas. Elle ne sert que si la tuile déclare `variantes: true`
+// version du remplissage, tirée au hasard environ une case sur cinq, pour qu'un
+// grand sol ne se répète pas. Elle ne sert que si la tuile déclare `variantes: true`
 // (jeu/data/tuiles.js) — sinon on ne la lit jamais, elle peut rester vide.
 //
 // Le fichier `images/tuiles/LISEZMOI.md` redit tout ça côté dessin.

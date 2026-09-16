@@ -129,7 +129,7 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   - `groupe` dit quelles tuiles se **fondent** l'une dans l'autre (bordure ou
     pas) ; le groupe `"*"` est neutre (portes, entrées de mine).
   - `variantes: true` : la planche fournit un 2ᵉ remplissage, tiré au hasard
-    (une case sur trois) pour qu'un grand sol ne se répète pas.
+    (environ une case sur cinq) pour qu'un grand sol ne se répète pas.
   - **Contrainte du format** : le motif de fond doit se répéter tous les 32 px
     d'art (un quart). Ce qui doit rester rare (fissure, veine) vit donc dans la
     case « remplissage variante », jamais dans le fond.
