@@ -57,7 +57,9 @@ comparaison qui compte) et le zoom. Une planche mal découpée se voit ici en un
 seconde ; la chercher en jeu coûte dix fois plus. Expose `window.__dessinerTuiles()`.
 ⚠ Les planches se chargent en asynchrone : attendre `attendreTuiles()`
 (`jeu/world/tileset.js`) avant toute capture, sinon on photographie l'ancien
-rendu peint au code. Pour refaire les planches : `python3 outils/generer_tuiles.py`.
+rendu peint au code. Pour refaire une planche à partir d'un carré dessiné :
+`python3 outils/planche_depuis_carre.py <matière> <carré.png> [variante.png]` ;
+pour les matières encore fabriquées au code : `python3 outils/generer_tuiles.py`.
 
 `outils/test-fiche.html` : ouvre la fiche de personnage avec les bottes et les
 talents choisis dans deux menus, plus un sélecteur de langue. Elle affiche à

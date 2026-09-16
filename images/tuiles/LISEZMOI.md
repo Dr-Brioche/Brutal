@@ -85,51 +85,82 @@ en haut à gauche, etc.
 du centre, tirée au hasard sur environ une case sur cinq, pour qu'un grand sol
 ne se répète pas. Si tu n'en veux pas, recopie simplement le remplissage.
 
-## LA RÈGLE À NE PAS OUBLIER : le fond se répète tous les 32 px
+## ⭐ LA FAÇON LA PLUS SIMPLE : tu dessines UN carré, le script fait le reste
 
-Un même quart de la planche peut servir à plusieurs endroits d'une case. Du coup,
-**le motif de fond doit se répéter tous les 32 px** (un quart) — sinon il
-« saute » d'un quart à l'autre et on voit des décrochages partout.
+**Tu n'as pas besoin de dessiner la planche.** Dessine juste **une tuile**, un
+carré qui se répète sans couture — c'est tout ce que le jeu demande de toi :
 
-En pratique :
+```bash
+python3 outils/planche_depuis_carre.py sol-ville images/tuiles/sources/mon-carre.png
+# avec une variante :
+python3 outils/planche_depuis_carre.py sol-ville images/tuiles/sources/carre-1.png images/tuiles/sources/carre-2.png
+```
+
+Le script monte l'îlot, calcule les ombres de bordure, fabrique les quatre coins
+rentrants, et écrit `images/tuiles/<nom>.png`. Les carrés d'origine restent dans
+`images/tuiles/sources/` (le jeu ne les lit pas).
+
+Par cette voie, **il n'y a AUCUNE contrainte de motif** : ton dessin peut occuper
+la case entière. Le script place chaque morceau à la place pour laquelle il a été
+dessiné, donc rien ne « saute ». La seule chose qui compte : **ton carré doit
+boucler sur lui-même** (le bord droit doit continuer le bord gauche, idem haut et
+bas). Des sites comme [texturize.app](https://texturize.app/tools/make-seamless)
+font ça en un clic sur n'importe quelle image.
+
+## Si un jour tu dessines une planche ENTIÈRE à la main
+
+Là, et seulement là, une contrainte apparaît : un même quart de la planche sert à
+plusieurs endroits d'une case, donc **le motif de fond doit se répéter tous les
+32 px** (un quart) — sinon il « saute » d'un quart à l'autre.
 
 - une dalle de **32 px** (ou 16, ou 8) : ✅
 - une dalle de 64 px, ou une grande fresque qui traverse la tuile : ❌
-- **un détail rare** (une fissure, une flaque, une veine de minerai) posé dans le
-  fond : ❌ — il réapparaîtrait tous les 32 px et dessinerait une grille.
-  **Les détails rares vont dans la case « remplissage variante »**, où ils
-  n'apparaissent qu'une fois, sur les cases tirées au sort.
+- **un détail rare** (fissure, flaque, veine de minerai) posé dans le fond : ❌ —
+  il réapparaîtrait tous les 32 px et dessinerait une grille. Les détails rares
+  vont dans la case « remplissage variante ».
 
-## Comment ajouter une matière
+C'est pour ça que la voie « un carré » est presque toujours la bonne.
 
-1. Copier `MODELE.png`, le peindre (n'importe quel éditeur de pixel art).
-2. L'enregistrer ici sous un nom simple, ex. `chemin-terre.png`.
-3. Dans `jeu/data/tuiles.js`, sur la tuile concernée, ajouter :
-   `planche: "images/tuiles/chemin-terre.png"` (et `variantes: true` si la case
-   du haut à droite est remplie).
-4. Vérifier dans `outils/test-tuiles.html` — la page montre tous les cas de
+## Quelle taille dessiner ?
+
+Une case du jeu fait **32 px de large à l'écran**, mais le jeu est rendu en
+double résolution : les personnages, eux, sont dessinés à **64 px par case**.
+
+- carré de **32×32** : simple à dessiner, mais tes pixels seront **deux fois plus
+  gros** que ceux des nains. C'est un choix de style valable (décor plus rustique
+  que les personnages), pas une erreur.
+- carré de **64×64** : même finesse que le reste du jeu.
+
+Le script accepte les deux et te prévient du rapport.
+
+## Comment brancher une matière
+
+1. Fabriquer la planche (ci-dessus), ou peindre `MODELE.png` à la main.
+2. Dans `jeu/data/tuiles.js`, sur la tuile concernée :
+   `planche: "images/tuiles/chemin-terre.png"` (et `variantes: true` seulement si
+   la case du haut à droite contient un VRAI second remplissage).
+3. Vérifier dans `outils/test-tuiles.html` — la page montre tous les cas de
    figure d'un coup, et permet de comparer avec l'ancien rendu peint au code.
 
 **Rien à recâbler.** Si le fichier manque ou n'a pas le bon format, le jeu
 repeint la case comme avant : on peut remplacer les matières **une par une**,
 sans jamais rien casser.
 
-## Les planches actuelles sont provisoires
+## Ce qui est encore fabriqué par script
 
-`sol-ville.png` et `sol-caverne.png` ont été **fabriquées par un script**
-(`outils/generer_tuiles.py`) pour que le mécanisme soit visible tout de suite.
-Elles sont faites pour être écrasées par du vrai dessin. Tant qu'elles sont là,
-on peut régler leurs couleurs en changeant les chiffres **dans le script**, puis
-en le relançant :
+`sol-caverne.png` est **fabriquée par `outils/generer_tuiles.py`**, en attendant
+un dessin. Elle est faite pour être écrasée. Tant qu'elle est là, on règle ses
+couleurs en changeant les chiffres **dans le script**, puis en le relançant :
 
 ```bash
-python3 outils/generer_tuiles.py            # tout (modèle + guide + planches)
-python3 outils/generer_tuiles.py sol-ville  # une seule
+python3 outils/generer_tuiles.py              # tout (modèle + guide + planches)
+python3 outils/generer_tuiles.py sol-caverne  # une seule
 ```
 
-⚠ Ne pas retoucher ces deux PNG à la main : le prochain passage du script les
-écraserait. Dès que tu dessines ta version, **supprime la matière du script**
-(ou ne le relance plus pour elle) — le PNG devient alors ton dessin, point.
+⚠ Ne pas retoucher ce PNG à la main : le prochain passage du script l'écraserait.
+Dès qu'une matière passe au dessin, on la **retire de la table `MATIERES`** du
+script — c'est ce qui a été fait pour `sol-ville`, qui vient maintenant de
+`sources/City_floor_1.png`.
 
 ## Les murs, eux, sont encore peints par le code
 

@@ -124,15 +124,22 @@ Objectif : devenir le meilleur **d'une** faction → entrer dans **The Triad of 
   quart ne regarde que 3 voisins, donc il n'a que 5 aspects possibles
   (remplissage, bord horizontal, bord vertical, coin sortant, coin rentrant).
   Les 47 raccords possibles se recomposent à partir de **6 carrés dessinés**
-  (planche de 2 tuiles × 3, soit 128×192 px). Mécanisme : `jeu/world/tileset.js` ;
-  format côté dessin : `images/tuiles/LISEZMOI.md`.
+  (planche de 2 tuiles × 3 ; la taille de tuile est libre, déduite de l'image).
+  Mécanisme : `jeu/world/tileset.js` ; format côté dessin :
+  `images/tuiles/LISEZMOI.md`.
   - `groupe` dit quelles tuiles se **fondent** l'une dans l'autre (bordure ou
     pas) ; le groupe `"*"` est neutre (portes, entrées de mine).
   - `variantes: true` : la planche fournit un 2ᵉ remplissage, tiré au hasard
     (environ une case sur cinq) pour qu'un grand sol ne se répète pas.
-  - **Contrainte du format** : le motif de fond doit se répéter tous les 32 px
-    d'art (un quart). Ce qui doit rester rare (fissure, veine) vit donc dans la
-    case « remplissage variante », jamais dans le fond.
+  - **Brioche ne dessine QU'UNE TUILE.** `outils/planche_depuis_carre.py` monte
+    la planche à partir d'un seul carré (rangé dans `images/tuiles/sources/`) :
+    îlot, ombres de bordure, coins rentrants. Il place chaque quart de l'îlot à
+    la place pour laquelle il a été dessiné (colonnes de quarts 0,1 → moitié
+    gauche du carré ; 2,3 → moitié droite), ce qui **lève toute contrainte de
+    motif** : le dessin peut occuper la case entière. Seule exigence : le carré
+    doit boucler sur lui-même.
+  - La contrainte « motif répété tous les 32 px » ne concerne QUE les planches
+    dessinées entièrement à la main, où l'on ne maîtrise pas ce placement.
   - **Sans fichier, rien ne casse** : la case est repeinte au code comme avant.
     On remplace donc les matières **une par une**. Les murs (`#`, `H`) sont
     encore peints au code — leur motif est calculé en coordonnées du monde,

@@ -56,7 +56,10 @@ export const TUILES = {
   },
   ".": {
     id: "sol-ville", nom: "City floor", solide: false,
-    planche: "images/tuiles/sol-ville.png", variantes: true,
+    planche: "images/tuiles/sol-ville.png",
+    // `variantes` désactivé : une seule tuile fournie pour l'instant. Déposer un
+    // second carré (City_floor_2.png) et relancer outils/planche_depuis_carre.py
+    // avec les deux le remettra à true.
     style: "sol", couleurs: { damier: ["#211c18", "#1d1916"] },
   },
   ",": {
