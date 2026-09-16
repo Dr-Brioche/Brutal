@@ -129,7 +129,7 @@ def sol_caverne(x, y, var=False):
     FOND = np.array([0x3b, 0x32, 0x2a], float)
     GRAVAT = np.array([0x47, 0x3d, 0x32], float)
     VEINE = np.array([0x6d, 0x4d, 0x26], float)   # cuivre SOURD : la variante
-    # sort sur ~1 case sur 3 ; une veine trop vive s'y verrait comme un motif.
+    # sort sur ~1 case sur 5 ; une veine trop vive s'y verrait comme un motif.
     px, py = x % PERIODE, y % PERIODE
     d = 40 if var else 0                        # variante : autres tirages
 
@@ -242,56 +242,188 @@ def _police(taille):
     return ImageFont.load_default()         # dernier recours : accents abîmés
 
 
-def guide(exemple="sol-ville"):
-    """La planche ANNOTÉE, agrandie, posée sur une vraie planche en exemple :
-    on voit du premier coup d'œil ce qui va dans chaque case.
-    Image de documentation — ce n'est pas un asset du jeu."""
-    k = 5
-    bas = 112
-    img = Image.new("RGB", (LARGEUR * k, HAUTEUR * k + bas), (24, 20, 16))
-    # La planche d'exemple, ÉCLAIRCIE : elle sert à montrer où sont les bordures,
-    # pas à juger les couleurs — sur un fond de doc, le sol du jeu est trop sombre.
-    ex = np.clip(np.array(planche(exemple).convert("RGB"), float) * 1.9, 0, 255).astype(np.uint8)
-    img.paste(Image.fromarray(ex).resize((LARGEUR * k, HAUTEUR * k), Image.NEAREST), (0, 0))
+# ---- Un autotuileur en Python (le même que jeu/world/tileset.js) ------------
+# Il ne sert QU'À FABRIQUER LE GUIDE : montrer le découpage en images est mille
+# fois plus clair que l'expliquer en mots. Il doit rester identique au JS — si
+# l'un des deux change, les images du guide mentiraient.
+
+# Pour chaque quart d'une case : le coin où il se pose, les 3 voisins qu'il
+# regarde (côté / dessus-dessous / diagonale), puis où le prendre dans la
+# planche selon le cas — en QUARTS de planche (4 colonnes × 6 rangées).
+QUARTS = [
+    # (dx, dy), voisin côté, voisin haut/bas, voisin diagonale,
+    #   plein,  bordH,  bordV,  sortant, rentrant, variante
+    ((0, 0), (-1, 0), (0, -1), (-1, -1), (1, 3), (1, 2), (0, 3), (0, 2), (0, 0), (2, 0)),
+    ((1, 0), (1, 0), (0, -1), (1, -1), (2, 3), (2, 2), (3, 3), (3, 2), (1, 0), (3, 0)),
+    ((0, 1), (-1, 0), (0, 1), (-1, 1), (1, 4), (1, 5), (0, 4), (0, 5), (0, 1), (2, 1)),
+    ((1, 1), (1, 0), (0, 1), (1, 1), (2, 4), (2, 5), (3, 4), (3, 5), (1, 1), (3, 1)),
+]
+
+# Un rôle = une couleur, la même dans tout le guide. C'est le fil conducteur :
+# on retrouve la couleur d'un morceau sur la planche ET sur la carte reconstruite.
+ROLES = {
+    "remplissage": (110, 200, 130),
+    "bord": (240, 175, 80),
+    "coin sortant": (235, 105, 105),
+    "coin rentrant": (130, 175, 255),
+}
+VIDE = (26, 23, 19)
+
+
+def rendre_carte(pl, grille, teinter=False, echelle=1):
+    """Dessine une carte (liste de chaînes, 'X' = matière) avec la planche `pl`.
+    `teinter` colorie chaque quart selon son rôle — c'est ce qui rend le
+    découpage visible."""
+    h, w = len(grille), len(grille[0])
+    img = Image.new("RGB", (w * TUILE, h * TUILE), VIDE)
     voile = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    d = ImageDraw.Draw(voile)
-    gros, petit = _police(18), _police(13)
+    plein = lambda c, l: 0 <= l < h and 0 <= c < w and grille[l][c] == "X"
 
-    zones = [
-        (0, 0, 1, 1, (240, 185, 95), "LES 4 COINS RENTRANTS",
-         "l'angle en creux, celui qu'on\nvoit dans un recoin.\nRangés comme les 4 quarts\nd'une tuile."),
-        (1, 0, 1, 1, (150, 215, 160), "REMPLISSAGE VARIANTE",
-         "une 2ᵉ version du centre,\ntirée au hasard pour qu'un\ngrand sol ne se répète pas.\n(facultatif)"),
-        (0, 1, 2, 2, (150, 180, 255), "L'ÎLOT",
-         "la matière ENTOURÉE de sa bordure sur ses 4 côtés.\n\n"
-         "ses 4 angles   →  les coins sortants\n"
-         "ses 4 milieux  →  les bords (haut, bas, gauche, droite)\n"
-         "son centre     →  le remplissage"),
-    ]
-    for cx, cy, cw, ch, coul, titre, expl in zones:
-        x0, y0 = cx * TUILE * k, cy * TUILE * k
-        x1, y1 = x0 + cw * TUILE * k, y0 + ch * TUILE * k
-        d.rectangle([x0 + 2, y0 + 2, x1 - 3, y1 - 3], outline=coul + (255,), width=3)
-        # Voile sombre UNIQUEMENT derrière le texte : ailleurs on veut voir la
-        # planche (c'est elle qui montre où tombent les bordures).
-        haut = 118 + 22 * expl.count("\n")
-        d.rectangle([x0 + 6, y0 + 6, x1 - 7, y0 + haut], fill=(0, 0, 0, 190))
-        d.text((x0 + 16, y0 + 14), titre, font=gros, fill=coul + (255,))
-        d.multiline_text((x0 + 16, y0 + 46), expl, font=petit, fill=(232, 224, 204, 255), spacing=6)
+    for l in range(h):
+        for c in range(w):
+            if not plein(c, l):
+                continue
+            for (dx, dy), vh, vv, vd, p, bh, bv, so, re, _ in QUARTS:
+                a = plein(c + vh[0], l + vh[1])          # voisin de côté
+                b = plein(c + vv[0], l + vv[1])          # voisin dessus / dessous
+                diag = plein(c + vd[0], l + vd[1])
+                if a and b and diag:  src, role = p, "remplissage"
+                elif a and b:         src, role = re, "coin rentrant"
+                elif a:               src, role = bh, "bord"
+                elif b:               src, role = bv, "bord"
+                else:                 src, role = so, "coin sortant"
+                bx, by = c * TUILE + dx * Q, l * TUILE + dy * Q
+                img.paste(pl.crop((src[0] * Q, src[1] * Q, src[0] * Q + Q, src[1] * Q + Q)), (bx, by))
+                if teinter:
+                    ImageDraw.Draw(voile).rectangle([bx, by, bx + Q - 1, by + Q - 1],
+                                                    fill=ROLES[role] + (105,))
+    img = Image.alpha_composite(img.convert("RGBA"), voile).convert("RGB")
+    return img if echelle == 1 else img.resize((img.width * echelle, img.height * echelle), Image.NEAREST)
 
-    for x in range(0, LARGEUR * k + 1, Q * k):
-        d.line([(x, 0), (x, HAUTEUR * k)], fill=(255, 255, 255, 45))
-    for y in range(0, HAUTEUR * k + 1, Q * k):
-        d.line([(0, y), (LARGEUR * k, y)], fill=(255, 255, 255, 45))
 
-    img.paste(Image.alpha_composite(img.convert("RGBA"), voile).convert("RGB"), (0, 0))
-    ImageDraw.Draw(img).multiline_text(
-        (14, HAUTEUR * k + 14),
-        f"Planche d'autotuilage — {LARGEUR}×{HAUTEUR} px ({TUILE} px par tuile, {Q} px par quart).\n"
-        "Le trait fin = un QUART. Tout le décor se recompose\n"
-        "à partir de ces six cases. Règle du fond : le motif doit se répéter\n"
-        "tous les 32 px, sinon les quarts « sautent » les uns par rapport aux autres.",
-        font=petit, fill=(190, 180, 160), spacing=7)
+# La carte de démonstration du guide : une salle, un pilier au milieu (pour les
+# coins rentrants) et un couloir qui part (pour les coins sortants et les bouts).
+DEMO = [
+    "........",
+    ".XXXXXX.",
+    ".XXXXXX.",
+    ".XX..XX.",
+    ".XX..XX.",
+    ".XXXXXX.",
+    ".XXX....",
+    "........",
+]
+
+
+def guide(exemple="sol-ville"):
+    """LE GUIDE : trois images qui racontent le mécanisme dans l'ordre —
+    ce qu'on dessine, comment le jeu le découpe, ce qu'il en fait.
+    Image de documentation (ce n'est pas un asset du jeu)."""
+    # La planche d'exemple, ÉCLAIRCIE : ici on montre OÙ tombent les bordures,
+    # on ne juge pas les couleurs — le sol du jeu est trop sombre sur une doc.
+    src = np.clip(np.array(planche(exemple).convert("RGB"), float) * 1.9, 0, 255)
+    pl = Image.fromarray(src.astype(np.uint8))
+
+    W = 1144
+    img = Image.new("RGB", (W, 2270), (22, 19, 16))
+    d = ImageDraw.Draw(img)
+    titre, sous, corps, mini = _police(30), _police(21), _police(15), _police(13)
+    OR, BLANC, GRIS = (226, 182, 96), (238, 232, 216), (170, 160, 146)
+    M = 40                                   # marge gauche
+
+    def cartouche(y, n, texte):
+        d.rectangle([M - 14, y - 10, M + 34, y + 34], fill=(58, 46, 26), outline=OR, width=2)
+        d.text((M + 10 - d.textlength(n, font=sous) / 2, y + 1), n, font=sous, fill=OR)
+        d.text((M + 52, y - 2), texte, font=titre, fill=BLANC)
+        return y + 52
+
+    def poser(im, x, y, legende, coul=GRIS):
+        img.paste(im, (x, y))
+        d.rectangle([x - 1, y - 1, x + im.width, y + im.height], outline=(70, 62, 52))
+        d.multiline_text((x, y + im.height + 9), legende, font=mini, fill=coul, spacing=5)
+
+    d.text((M, 30), "Une planche de tuiles, en 3 images", font=_police(38), fill=OR)
+    d.text((M, 80), "Tu dessines 6 carrés. Le jeu en fabrique les 47 raccords possibles.",
+           font=corps, fill=GRIS)
+
+    # ---------- 1. Ce que tu dessines ----------
+    y = cartouche(130, "1", "Ce que tu dessines")
+    d.multiline_text((M, y), "L'ÎLOT, c'est simplement une FLAQUE DE SOL POSÉE TOUTE SEULE AU MILIEU DU VIDE :\n"
+                             "de la matière au centre, et sa bordure tout autour. Rien de plus.",
+                     font=corps, fill=BLANC, spacing=7)
+    y += 62
+    ilot = pl.crop((0, TUILE, LARGEUR, HAUTEUR)).resize((384, 384), Image.NEAREST)
+    cadre = Image.new("RGB", (444, 444), VIDE)
+    cadre.paste(ilot, (30, 30))
+    poser(cadre, M, y, "L'ÎLOT  (2 tuiles × 2)\nla flaque de sol, seule dans le vide", BLANC)
+    coins = pl.crop((0, 0, TUILE, TUILE)).resize((192, 192), Image.NEAREST)
+    varia = pl.crop((TUILE, 0, LARGEUR, TUILE)).resize((192, 192), Image.NEAREST)
+    poser(coins, M + 500, y + 20, "LES 4 COINS RENTRANTS\nl'angle en CREUX (le seul que\nl'îlot ne contient pas)",
+          ROLES["coin rentrant"])
+    poser(varia, M + 740, y + 20, "REMPLISSAGE VARIANTE\nfacultatif : une 2ᵉ version\ndu centre, pour varier",
+          ROLES["remplissage"])
+    d.multiline_text((M + 500, y + 300),
+                     f"Le fichier fait {LARGEUR} × {HAUTEUR} px :\n"
+                     f"2 tuiles de large, 3 de haut,\n{TUILE} px par tuile.\n\n"
+                     "L'îlot occupe les deux rangées\ndu bas ; les deux petites cases\nsont la rangée du haut.",
+                     font=corps, fill=GRIS, spacing=7)
+    y += 560
+
+    # ---------- 2. Le découpage ----------
+    y = cartouche(y, "2", "Le jeu la découpe en 16 morceaux")
+    d.multiline_text((M, y), "Il coupe l'îlot en 16 petits carrés (des QUARTS de tuile). Chaque morceau a un rôle,\n"
+                             "donné par sa place : les angles, les milieux, le centre.",
+                     font=corps, fill=BLANC, spacing=7)
+    y += 62
+    ilot4 = pl.crop((0, TUILE, LARGEUR, HAUTEUR)).resize((384, 384), Image.NEAREST)
+    voile = Image.new("RGBA", ilot4.size, (0, 0, 0, 0))
+    dv = ImageDraw.Draw(voile)
+    for qy in range(4):
+        for qx in range(4):
+            bord_x, bord_y = qx in (0, 3), qy in (0, 3)
+            role = ("coin sortant" if bord_x and bord_y else
+                    "bord" if bord_x or bord_y else "remplissage")
+            dv.rectangle([qx * 96, qy * 96, qx * 96 + 95, qy * 96 + 95],
+                         fill=ROLES[role] + (105,), outline=(255, 255, 255, 70))
+    ilot4 = Image.alpha_composite(ilot4.convert("RGBA"), voile).convert("RGB")
+    poser(ilot4, M, y, "")
+    coins4 = pl.crop((0, 0, TUILE, TUILE)).resize((128, 128), Image.NEAREST)
+    v2 = Image.new("RGBA", coins4.size, ROLES["coin rentrant"] + (105,))
+    coins4 = Image.alpha_composite(coins4.convert("RGBA"), v2).convert("RGB")
+    poser(coins4, M + 420, y + 120, "+ les 4 coins\nrentrants", ROLES["coin rentrant"])
+
+    ly = y + 14
+    for role, texte in [
+        ("remplissage", "REMPLISSAGE — le centre. Quand la case a\nde la matière tout autour d'elle."),
+        ("bord", "BORD — les milieux des 4 côtés. Quand le\nvide est d'un seul côté."),
+        ("coin sortant", "COIN SORTANT — les 4 angles. Quand le vide\nest sur deux côtés à la fois."),
+        ("coin rentrant", "COIN RENTRANT — quand le vide n'est QUE\ndans la diagonale : c'est le creux d'un recoin."),
+    ]:
+        d.rectangle([M + 600, ly + 2, M + 624, ly + 26], fill=ROLES[role], outline=(0, 0, 0))
+        d.multiline_text((M + 636, ly), texte, font=corps, fill=BLANC, spacing=6)
+        ly += 72
+    y += 500
+
+    # ---------- 3. Le recollage ----------
+    y = cartouche(y, "3", "Puis il recolle les morceaux")
+    d.multiline_text((M, y), "Pour chaque case de la carte, il regarde ses voisins et choisit le bon morceau, quart\n"
+                             "par quart. À droite, la MÊME image avec les morceaux coloriés selon leur rôle.",
+                     font=corps, fill=BLANC, spacing=7)
+    y += 62
+    carte = rendre_carte(pl, DEMO)
+    poser(carte.resize((512, 512), Image.NEAREST), M, y, "ce que voit le joueur", BLANC)
+    poser(rendre_carte(pl, DEMO, teinter=True).resize((512, 512), Image.NEAREST), M + 560, y,
+          "les mêmes morceaux, coloriés : on retrouve\nles 4 rôles de l'étape 2", GRIS)
+
+    d.multiline_text(
+        (M, 2130),
+        "⚠ LA SEULE RÈGLE QUAND TU DESSINES : le motif du fond doit se répéter tous les 32 px "
+        "(la taille d'un quart).\n"
+        "Un même morceau sert à plusieurs endroits — si le dessin change tous les 64 px, "
+        "les quarts « sautent » les uns par rapport aux autres.\n"
+        "Ce qui doit rester RARE (fissure, flaque, veine) ne va donc pas dans le fond, "
+        "mais dans la case « remplissage variante ».",
+        font=corps, fill=(236, 190, 120), spacing=8)
     return img
 
 

@@ -11,18 +11,41 @@ images/tuiles/
   sol-caverne.png   ← le sol des souterrains
 ```
 
-## Pourquoi une « planche », et pas juste un carré ?
+## L'idée en une phrase
 
-Si une tuile est un seul carré, elle ne peut pas savoir qu'elle est **au bord**
-d'un chemin. Le décor reste plat, sans bordure ni recoin. La solution classique
-serait de dessiner à la main les **47 cas** possibles (bord haut, bord haut +
-gauche, coin, cul-de-sac, îlot…). C'est ce que tu as vu sur internet.
+**Tu dessines une flaque de sol posée toute seule au milieu du vide. Le jeu la
+découpe en petits morceaux, et recolle ces morceaux pour faire n'importe quelle
+forme.**
 
-Le jeu utilise la version courte : **on découpe chaque case en quatre quarts**.
-Un quart ne regarde que trois voisins, donc il n'a que **cinq aspects
-possibles** — remplissage, bord horizontal, bord vertical, coin sortant, coin
-rentrant. Ces cinq aspects, dans leurs quatre orientations, tiennent dans
-**six carrés dessinés**. Le code recompose les 47 cas tout seul.
+C'est tout. Le reste de cette page ne fait que détailler ça.
+
+> `GUIDE.png` raconte la même chose en trois images : ce que tu dessines,
+> comment le jeu le découpe, ce qu'il en fait. **Regarde-le en premier.**
+
+## Pourquoi on ne peut pas juste dessiner un carré de sol
+
+Un carré de sol tout seul ne sait pas qu'il est **au bord** d'un chemin. Le
+décor reste plat : pas de bordure, pas d'ombre au pied des murs, pas de recoin.
+
+La méthode classique — celle que tu as vue sur internet — consiste à dessiner à
+la main les **47 cas** possibles : bord du haut, bord du haut + bord de gauche,
+angle, cul-de-sac, îlot isolé… C'est énorme, et c'est ce qui fait peur.
+
+Le jeu utilise la version courte : **on découpe chaque case en quatre quarts**
+(haut-gauche, haut-droite, bas-gauche, bas-droite). Un quart ne regarde que
+**trois voisins** : celui d'à côté, celui du dessus (ou du dessous), et celui en
+diagonale. Du coup un quart n'a que **cinq têtes possibles** :
+
+| le quart… | s'appelle | on le voit |
+|---|---|---|
+| a de la matière partout autour | **remplissage** | au milieu d'une grande salle |
+| a le vide d'un seul côté | **bord** | le long d'un mur droit |
+| a le vide sur deux côtés | **coin sortant** | à l'angle d'un pilier |
+| n'a le vide qu'en diagonale | **coin rentrant** | dans le creux d'un recoin |
+| (variante du remplissage) | **variante** | facultatif, pour varier |
+
+Ces cinq têtes, dans leurs quatre orientations, tiennent dans **six carrés
+dessinés**. Le code recompose les 47 cas tout seul.
 
 **Tu dessines 6 carrés, le jeu en fabrique 47.**
 
@@ -33,29 +56,34 @@ Une image de **2 tuiles de large × 3 de haut**, soit **128 × 192 px**
 
 ```
 ┌──────────────┬──────────────┐
-│  LES 4 COINS │ REMPLISSAGE  │
+│  LES 4 COINS │ REMPLISSAGE  │   ← la rangée du haut : 2 petites cases
 │  RENTRANTS   │  VARIANTE    │
 ├──────────────┴──────────────┤
 │                             │
-│      L'ÎLOT : la matière    │
-│   ENTOURÉE de sa bordure    │
-│      sur ses 4 côtés        │
+│         L'ÎLOT              │   ← les 2 rangées du bas : la flaque de sol
+│   la flaque de sol posée    │      (2 tuiles × 2 tuiles)
+│   toute seule dans le vide  │
 │                             │
 └─────────────────────────────┘
 ```
 
-- **L'ÎLOT** (les deux rangées du bas) fait presque tout le travail : ses quatre
-  angles donnent les **coins sortants**, ses quatre milieux donnent les
-  **bords**, son centre donne le **remplissage**. Dessine-le comme un bloc de
-  matière posé tout seul au milieu du vide.
-- **LES 4 COINS RENTRANTS** (en haut à gauche) : le seul cas que l'îlot ne
-  contient pas — l'angle **en creux**, celui d'un recoin. Range-les comme les
-  quatre quarts d'une tuile (le coin rentrant « haut-gauche » en haut à gauche).
-- **REMPLISSAGE VARIANTE** (en haut à droite) : facultatif. Une deuxième version
-  du centre, tirée au hasard sur environ une case sur trois, pour qu'un grand
-  sol ne se répète pas. Si tu n'en veux pas, recopie simplement le remplissage.
+**L'ÎLOT** fait presque tout le travail. Dessine-le comme ce qu'il est : un bloc
+de matière posé au milieu de rien, avec sa bordure tout autour. Le jeu le coupe
+ensuite en 16 petits carrés, et chaque carré sert à quelque chose selon sa
+place :
 
-`GUIDE.png` montre tout ça en image, avec un vrai sol dessous.
+- ses **4 angles** → les coins sortants ;
+- ses **4 milieux de côté** → les bords (haut, bas, gauche, droite) ;
+- son **centre** → le remplissage.
+
+**LES 4 COINS RENTRANTS** (en haut à gauche) : le seul cas que l'îlot ne
+contient pas. C'est l'angle **en creux**, celui qu'on voit dans un recoin.
+Range-les comme les quatre quarts d'une tuile — le coin rentrant « haut-gauche »
+en haut à gauche, etc.
+
+**REMPLISSAGE VARIANTE** (en haut à droite) : facultatif. Une deuxième version
+du centre, tirée au hasard sur environ une case sur cinq, pour qu'un grand sol
+ne se répète pas. Si tu n'en veux pas, recopie simplement le remplissage.
 
 ## LA RÈGLE À NE PAS OUBLIER : le fond se répète tous les 32 px
 
