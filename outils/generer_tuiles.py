@@ -13,13 +13,16 @@ Le format de planche (2 tuiles de large × 3 de haut) est expliqué en tête de
 `jeu/world/tileset.js` et dans `images/tuiles/LISEZMOI.md`.
 
 ────────────────────────────────────────────────────────────────────────────
-⚠ LA CONTRAINTE À CONNAÎTRE AVANT DE DESSINER UN SOL
-Dans un autotuilage par quarts, le remplissage d'une case peut être piqué à
-plusieurs endroits de la planche, décalés de 32 px (un quart). Un motif dont le
-dessin change tous les 64 px se verrait donc « sauter » d'un quart à l'autre.
-La règle : LE MOTIF DE FOND SE RÉPÈTE TOUS LES 32 px (un quart). Une dalle de
-32 px, un grain qui se répète tous les 32 px → tout se raccorde partout.
-La variété ne vient pas du fond, elle vient de la case « remplissage variante ».
+⚠ LA CONTRAINTE, ET POURQUOI ELLE NE S'APPLIQUE QU'ICI
+Ce script CARRELLE une texture pour fabriquer l'îlot. Or le remplissage d'une
+case est piqué à plusieurs endroits de la planche, décalés d'un quart : un motif
+carrelé doit donc SE RÉPÉTER TOUS LES 32 px, sinon il « saute » d'un quart à
+l'autre. La variété ne vient pas du fond, elle vient de la case « variante ».
+
+→ `outils/planche_depuis_carre.py`, lui, ne carrelle pas : il pose dans chaque
+  quart de l'îlot le quart du dessin correspondant à sa DESTINATION. Il n'a donc
+  aucune contrainte de motif. C'est la voie à privilégier dès qu'il existe un
+  dessin ; ce script-ci ne sert plus qu'aux matières encore fabriquées au code.
 ────────────────────────────────────────────────────────────────────────────
 """
 
@@ -152,27 +155,33 @@ def sol_caverne(x, y, var=False):
     return couleur
 
 
-MATIERES = {"sol-ville": sol_ville, "sol-caverne": sol_caverne}
+# ⚠ `sol-ville` a été RETIRÉ de cette table : la planche du jeu vient maintenant
+# du dessin de Brioche (images/tuiles/sources/City_floor_1.png, monté par
+# outils/planche_depuis_carre.py). La fonction sol_ville() reste là comme
+# exemple de matière fabriquée au code, mais ce script ne l'écrit plus.
+MATIERES = {"sol-caverne": sol_caverne}
 
 
 # ---- Ombre des bordures ----------------------------------------------------
 
-def _bande(d):
+# `portee` est en pixels d'ART : une planche dessinée en 32 px par tuile doit
+# donc l'écraser de moitié, sinon l'ombre est deux fois trop large en jeu.
+def _bande(d, portee=None):
     """Assombrissement à la distance `d` du vide (0 = collé au bord)."""
-    return AO_FORCE * np.exp(-np.maximum(d, 0) / (AO_PORTEE / 2.2))
+    return AO_FORCE * np.exp(-np.maximum(d, 0) / ((portee or AO_PORTEE) / 2.2))
 
 
-def ombre_ilot(w, h):
+def ombre_ilot(w, h, portee=None):
     """L'ÎLOT : du vide sur les 4 côtés. Les angles cumulent les deux ombres
     (deux murs occultent plus qu'un seul) → les coins sortants s'assombrissent
     tout seuls, sans avoir à les dessiner à part."""
     ys, xs = np.mgrid[0:h, 0:w]
-    a = _bande(np.minimum(xs, w - 1 - xs))
-    b = _bande(np.minimum(ys, h - 1 - ys))
+    a = _bande(np.minimum(xs, w - 1 - xs), portee)
+    b = _bande(np.minimum(ys, h - 1 - ys), portee)
     return 1 - (1 - a) * (1 - b)
 
 
-def ombre_coins_rentrants(t):
+def ombre_coins_rentrants(t, portee=None):
     """LES 4 COINS RENTRANTS : dans chaque quart, le vide n'est QUE dans la
     diagonale. L'ombre se concentre donc sur l'angle et s'efface très vite."""
     occ = np.zeros((t, t))
@@ -182,7 +191,8 @@ def ombre_coins_rentrants(t):
             ys, xs = np.mgrid[0:q, 0:q]
             dx = xs if qx == 0 else (q - 1 - xs)   # distance à l'angle sortant du quart
             dy = ys if qy == 0 else (q - 1 - ys)
-            occ[qy * q:(qy + 1) * q, qx * q:(qx + 1) * q] = np.minimum(_bande(dx), _bande(dy))
+            occ[qy * q:(qy + 1) * q, qx * q:(qx + 1) * q] = np.minimum(
+                _bande(dx, portee), _bande(dy, portee))
     return occ
 
 
@@ -273,7 +283,10 @@ VIDE = (26, 23, 19)
 def rendre_carte(pl, grille, teinter=False, echelle=1):
     """Dessine une carte (liste de chaînes, 'X' = matière) avec la planche `pl`.
     `teinter` colorie chaque quart selon son rôle — c'est ce qui rend le
-    découpage visible."""
+    découpage visible. La taille de tuile est déduite de la planche : toutes ne
+    sont pas dessinées à la même finesse."""
+    Q = pl.width // 4
+    TUILE = pl.width // 2
     h, w = len(grille), len(grille[0])
     img = Image.new("RGB", (w * TUILE, h * TUILE), VIDE)
     voile = Image.new("RGBA", img.size, (0, 0, 0, 0))
@@ -319,10 +332,16 @@ def guide(exemple="sol-ville"):
     """LE GUIDE : trois images qui racontent le mécanisme dans l'ordre —
     ce qu'on dessine, comment le jeu le découpe, ce qu'il en fait.
     Image de documentation (ce n'est pas un asset du jeu)."""
-    # La planche d'exemple, ÉCLAIRCIE : ici on montre OÙ tombent les bordures,
-    # on ne juge pas les couleurs — le sol du jeu est trop sombre sur une doc.
-    src = np.clip(np.array(planche(exemple).convert("RGB"), float) * 1.9, 0, 255)
+    # On montre la VRAIE planche du jeu quand elle existe (donc le dessin de
+    # Brioche), sinon celle que ce script sait fabriquer.
+    fichier = DOSSIER / f"{exemple}.png"
+    brut = Image.open(fichier).convert("RGB") if fichier.exists() else planche(exemple).convert("RGB")
+    # Éclaircie juste ce qu'il faut pour être lisible sur une page de doc : ici on
+    # montre OÙ tombent les bordures, on ne juge pas les couleurs.
+    a = np.array(brut, float)
+    src = np.clip(a * min(2.0, max(1.0, 120 / max(a.mean(), 1))), 0, 255)
     pl = Image.fromarray(src.astype(np.uint8))
+    TW = pl.width // 2                       # une tuile, dans CETTE planche
 
     W = 1144
     img = Image.new("RGB", (W, 2270), (22, 19, 16))
@@ -352,19 +371,19 @@ def guide(exemple="sol-ville"):
                              "de la matière au centre, et sa bordure tout autour. Rien de plus.",
                      font=corps, fill=BLANC, spacing=7)
     y += 62
-    ilot = pl.crop((0, TUILE, LARGEUR, HAUTEUR)).resize((384, 384), Image.NEAREST)
+    ilot = pl.crop((0, TW, pl.width, pl.height)).resize((384, 384), Image.NEAREST)
     cadre = Image.new("RGB", (444, 444), VIDE)
     cadre.paste(ilot, (30, 30))
     poser(cadre, M, y, "L'ÎLOT  (2 tuiles × 2)\nla flaque de sol, seule dans le vide", BLANC)
-    coins = pl.crop((0, 0, TUILE, TUILE)).resize((192, 192), Image.NEAREST)
-    varia = pl.crop((TUILE, 0, LARGEUR, TUILE)).resize((192, 192), Image.NEAREST)
+    coins = pl.crop((0, 0, TW, TW)).resize((192, 192), Image.NEAREST)
+    varia = pl.crop((TW, 0, pl.width, TW)).resize((192, 192), Image.NEAREST)
     poser(coins, M + 500, y + 20, "LES 4 COINS RENTRANTS\nl'angle en CREUX (le seul que\nl'îlot ne contient pas)",
           ROLES["coin rentrant"])
     poser(varia, M + 740, y + 20, "REMPLISSAGE VARIANTE\nfacultatif : une 2ᵉ version\ndu centre, pour varier",
           ROLES["remplissage"])
     d.multiline_text((M + 500, y + 300),
-                     f"Le fichier fait {LARGEUR} × {HAUTEUR} px :\n"
-                     f"2 tuiles de large, 3 de haut,\n{TUILE} px par tuile.\n\n"
+                     f"Le fichier fait {pl.width} × {pl.height} px :\n"
+                     f"2 tuiles de large, 3 de haut,\n{TW} px par tuile.\n\n"
                      "L'îlot occupe les deux rangées\ndu bas ; les deux petites cases\nsont la rangée du haut.",
                      font=corps, fill=GRIS, spacing=7)
     y += 560
@@ -375,7 +394,7 @@ def guide(exemple="sol-ville"):
                              "donné par sa place : les angles, les milieux, le centre.",
                      font=corps, fill=BLANC, spacing=7)
     y += 62
-    ilot4 = pl.crop((0, TUILE, LARGEUR, HAUTEUR)).resize((384, 384), Image.NEAREST)
+    ilot4 = pl.crop((0, TW, pl.width, pl.height)).resize((384, 384), Image.NEAREST)
     voile = Image.new("RGBA", ilot4.size, (0, 0, 0, 0))
     dv = ImageDraw.Draw(voile)
     for qy in range(4):
@@ -387,7 +406,7 @@ def guide(exemple="sol-ville"):
                          fill=ROLES[role] + (105,), outline=(255, 255, 255, 70))
     ilot4 = Image.alpha_composite(ilot4.convert("RGBA"), voile).convert("RGB")
     poser(ilot4, M, y, "")
-    coins4 = pl.crop((0, 0, TUILE, TUILE)).resize((128, 128), Image.NEAREST)
+    coins4 = pl.crop((0, 0, TW, TW)).resize((128, 128), Image.NEAREST)
     v2 = Image.new("RGBA", coins4.size, ROLES["coin rentrant"] + (105,))
     coins4 = Image.alpha_composite(coins4.convert("RGBA"), v2).convert("RGB")
     poser(coins4, M + 420, y + 120, "+ les 4 coins\nrentrants", ROLES["coin rentrant"])
