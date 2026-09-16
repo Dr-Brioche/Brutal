@@ -55,6 +55,52 @@ def _teinter(tuile, occ):
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
 
 
+def _recoudre(a, f):
+    """Rend un morceau raccordable avec lui-même.
+
+    `a` mesure (h+f, w+f) ; on en sort un (h, w) qui boucle. L'idée : la bande
+    de GAUCHE du résultat est un fondu entre le début du morceau et ce qui venait
+    JUSTE APRÈS sa fin. Du coup la colonne w-1 est suivie, en bouclant, de ce qui
+    la suivait vraiment. Même chose en hauteur, appliquée après — ce qui règle le
+    coin d'un seul coup, sans cas particulier.
+    """
+    f = max(f, 2)
+    h, w = a.shape[0] - f, a.shape[1] - f
+    a = a.astype(float)
+
+    t = (np.arange(f) / (f - 1))[None, :, None]        # 0 → 1, le long des colonnes
+    b = a[:, :w].copy()
+    b[:, :f] = t * a[:, :f] + (1 - t) * a[:, w:w + f]
+
+    t = (np.arange(f) / (f - 1))[:, None, None]        # 0 → 1, le long des lignes
+    out = b[:h].copy()
+    out[:f] = t * b[:f] + (1 - t) * b[h:h + f]
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
+def decouper(src, cases, px):
+    """Extrait de `src` UNE tuile de jeu.
+
+    `cases` = combien de cases du jeu la texture d'origine doit couvrir. Une
+    photo de pavés qui couvre 3 cases doit être découpée en morceaux de 1/3,
+    sinon tout le motif se retrouve écrasé dans une seule case et les pavés
+    deviennent du gravier. Le morceau est ensuite RECOUSU (il ne boucle plus
+    tout seul une fois découpé), puis réduit à `px`.
+    """
+    a = np.array(src.convert("RGB"))
+    if cases > 1:
+        w = src.width // cases
+        f = max(4, w // 8)                       # largeur du fondu de couture
+        if w + f > src.width:
+            sys.exit(f"texture trop petite pour la découper en {cases} cases.")
+        a = _recoudre(a[:w + f, :w + f], f)
+    im = Image.fromarray(a)
+    cible = px or (im.width if im.width <= 64 else 64)
+    if im.width != cible:
+        im = im.resize((cible, cible), Image.LANCZOS if im.width > cible else Image.NEAREST)
+    return im
+
+
 def planche_depuis(carre, variante=None):
     """Fabrique la planche (2 tuiles de large × 3 de haut) à partir d'un carré."""
     n = carre.width
@@ -95,10 +141,18 @@ def main():
     ap.add_argument("nom", help="nom de la matière (ex. sol-ville) → images/tuiles/<nom>.png")
     ap.add_argument("carre", help="le carré dessiné, qui doit boucler sur lui-même")
     ap.add_argument("variante", nargs="?", help="second carré, facultatif (remplissage variante)")
+    ap.add_argument("--cases", type=int, default=1, metavar="N",
+                    help="combien de CASES DU JEU la texture d'origine doit couvrir "
+                         "(défaut 1). Une photo de pavés qui couvre 3 cases : --cases 3, "
+                         "sinon tout le motif est écrasé dans une case et devient du gravier.")
+    ap.add_argument("--px", type=int, default=0, metavar="N",
+                    help="px d'art par case dans la planche (défaut : la taille native "
+                         "si elle tient en 64, sinon réduite à 64 — soit 1 pixel d'art "
+                         "pour 1 pixel d'écran)")
     a = ap.parse_args()
 
-    carre = Image.open(a.carre).convert("RGB")
-    variante = Image.open(a.variante).convert("RGB") if a.variante else None
+    carre = decouper(Image.open(a.carre), a.cases, a.px)
+    variante = decouper(Image.open(a.variante), a.cases, a.px) if a.variante else None
     if variante and variante.size != carre.size:
         sys.exit("la variante doit avoir exactement la même taille que le carré.")
 
